@@ -99,10 +99,12 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
 
 int main (int argc, char* const argv[])
 {
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
     // set up bbox
     mapnik::vector::spherical_mercator<22> merc(256);
     merc.xyz(bbox,x,y,z);
     int result = Catch::Main( argc, argv );
     if (!result) printf("\x1b[1;32m ✓ \x1b[0m\n");
+    google::protobuf::ShutdownProtobufLibrary();
     return result;
 }
