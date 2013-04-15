@@ -4,5 +4,7 @@
     "description": "Mapnik API for working with vector tiles",
     "private": true,
     "main": "./package.json",
-    "install" : "make"
+    "scripts": {
+      "install" : "make"
+    }
 }
