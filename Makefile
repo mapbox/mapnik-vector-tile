@@ -1,15 +1,15 @@
 PROTOBUF_CXXFLAGS=$(shell pkg-config protobuf --cflags)
-PROTOBUF_LDFLAGS=$(shell pkg-config protobuf --libs)
+PROTOBUF_LDFLAGS=$(shell pkg-config protobuf --libs-only-L) -lprotobuf-lite
 MAPNIK_CXXFLAGS=$(shell mapnik-config --cflags)
 MAPNIK_LDFLAGS=$(shell mapnik-config --libs --ldflags) -licuuc -lboost_system
 
 
 all: mapnik-vector-tile
 
-src/vector_tile.pb.cc:
+src/vector_tile.pb.cc: proto/vector_tile.proto
 	protoc -Iproto/ --cpp_out=./src proto/vector_tile.proto
 
-run-test: test/vector_tile.cpp test/test_utils.hpp src/*
+run-test: src/vector_tile.pb.cc test/vector_tile.cpp test/test_utils.hpp src/*
 	$(CXX) -o run-test test/vector_tile.cpp src/vector_tile.pb.cc -I./src $(MAPNIK_CXXFLAGS) $(PROTOBUF_CXXFLAGS) $(MAPNIK_LDFLAGS) $(PROTOBUF_LDFLAGS) -Wno-unused-private-field
 
 test: run-test src/vector_tile.pb.cc
