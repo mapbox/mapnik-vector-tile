@@ -14,23 +14,23 @@
 
 namespace boost {
 
-    namespace detail { namespace variant {
-        struct variant_hasher: public boost::static_visitor<std::size_t> {
-            template <class T>
-            std::size_t operator()(T const& val) const {
-                using namespace boost;
-                hash<T> hasher;
-                return hasher(val);
-            }
-        };
+namespace detail { namespace variant {
+    struct variant_hasher: public boost::static_visitor<std::size_t> {
+        template <class T>
+        std::size_t operator()(T const& val) const {
+            using namespace boost;
+            hash<T> hasher;
+            return hasher(val);
+        }
+    };
     }}
 
-    template < BOOST_VARIANT_ENUM_PARAMS(typename T) >
-    std::size_t hash_value(variant< BOOST_VARIANT_ENUM_PARAMS(T) > const& val) {
-        std::size_t seed = boost::apply_visitor(detail::variant::variant_hasher(), val);
-        hash_combine(seed, val.which());
-        return seed;
-    }
+template < BOOST_VARIANT_ENUM_PARAMS(typename T) >
+std::size_t hash_value(variant< BOOST_VARIANT_ENUM_PARAMS(T) > const& val) {
+    std::size_t seed = boost::apply_visitor(detail::variant::variant_hasher(), val);
+    hash_combine(seed, val.which());
+    return seed;
+}
 }
 
 #endif
