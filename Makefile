@@ -2,6 +2,8 @@ PROTOBUF_CXXFLAGS=$(shell pkg-config protobuf --cflags)
 PROTOBUF_LDFLAGS=$(shell pkg-config protobuf --libs-only-L) -lprotobuf-lite
 MAPNIK_CXXFLAGS=$(shell mapnik-config --cflags)
 MAPNIK_LDFLAGS=$(shell mapnik-config --libs --ldflags) -licuuc -lboost_system
+CXXFLAGS := $(CXXFLAGS) # inherit from env
+LDFLAGS := $(LDFLAGS) # inherit from env
 
 all: mapnik-vector-tile
 
@@ -16,7 +18,7 @@ python/vector_tile_pb2.py: proto/vector_tile.proto
 python: python/vector_tile_pb2.py
 
 test/run-test: src/vector_tile.pb.cc test/vector_tile.cpp test/test_utils.hpp src/*
-	$(CXX) -o run-test test/vector_tile.cpp src/vector_tile.pb.cc -I./src $(MAPNIK_CXXFLAGS) $(PROTOBUF_CXXFLAGS) $(MAPNIK_LDFLAGS) $(PROTOBUF_LDFLAGS) -Wno-unused-private-field
+	$(CXX) -o ./test/run-test test/vector_tile.cpp src/vector_tile.pb.cc -I./src $(CXXFLAGS) $(MAPNIK_CXXFLAGS) $(PROTOBUF_CXXFLAGS) $(MAPNIK_LDFLAGS) $(PROTOBUF_LDFLAGS) $(LDFLAGS) -Wno-unused-private-field
 
 test: test/run-test src/vector_tile.pb.cc
 	./test/run-test
