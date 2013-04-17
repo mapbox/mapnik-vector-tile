@@ -78,6 +78,21 @@ Run the C++ tests like:
 
     make test
 
+## Python Examples
+
+These require the protobuf python bindings and the `rtree` library
+which can be installed like:
+
+    pip install protobuf rtree
+
+To build and test the python example code do:
+
+    make python && make python-test
+
+Run the example code:
+
+    python examples/python/hello-world.py
+
 ## Authors
 
 - [Artem Pavlenko](https://github.com/artemp)
