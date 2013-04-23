@@ -4,3 +4,5 @@ src/vector_tile.pb.h
 python/vector_tile_pb2.py
 test/run-test
 *pyc
+archive
+TODO.md
