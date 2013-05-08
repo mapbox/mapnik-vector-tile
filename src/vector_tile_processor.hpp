@@ -16,8 +16,11 @@
 #include <mapnik/config.hpp>
 #include <mapnik/box2d.hpp>
 #include <mapnik/version.hpp>
-
-#include <boost/utility.hpp> // noncopyable
+#if MAPNIK_VERSION >= 200200
+#include <mapnik/noncopyable.hpp>
+#else
+#include <boost/utility.hpp>
+#endif
 
 // agg
 #ifdef CONV_CLIPPER
@@ -50,7 +53,11 @@ namespace mapnik { namespace vector {
 */
 
     template <typename T>
+#if MAPNIK_VERSION >= 200200
+    class processor : private mapnik::noncopyable
+#else
     class processor : private boost::noncopyable
+#endif
     {
     public:
         typedef T backend_type;
