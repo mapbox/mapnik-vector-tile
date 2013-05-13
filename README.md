@@ -44,7 +44,7 @@ floating point types.
 
 Vector tiles are serialized as protobuf messages which are then zlib compressed.
 
-The assumed projection is Spherical Mercator (`epsg:3957`).
+The assumed projection is Spherical Mercator (`epsg:3857`).
 
 ## Requires
 
