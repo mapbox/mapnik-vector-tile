@@ -40,21 +40,21 @@ message tile {
 
                 // Contains a stream of commands and parameters (vertices). The
                 // repeat count is shifted to the left by 3 bits. This means
-                // that the command has 3 bits (0-15). The repeat count
+                // that the command has 3 bits (0-7). The repeat count
                 // indicates how often this command is to be repeated. Defined
                 // commands are:
                 // - MoveTo:    1   (2 parameters follow)
                 // - LineTo:    2   (2 parameters follow)
-                // - ClosePath: 15  (no parameters follow)
+                // - ClosePath: 7   (no parameters follow)
                 //
                 // Ex.: MoveTo(3, 6), LineTo(8, 12), LineTo(20, 34), ClosePath
-                // Encoded as: [ 3 6 18 5 6 12 22 15 ]
-                //                                == command type 15 (ClosePath)
-                //                          ===== relative LineTo(+12, +22) == LineTo(20, 34)
-                //                      === relative LineTo(+5, +6) == LineTo(8, 12)
-                //                   == [00010 010] = command type 2 (LineTo), length 2
-                //               === relative MoveTo(+3, +6)
-                //             = implicit command type 1 (MoveTo), length 1
+                // Encoded as: [ 9 3 6 18 5 6 12 22 7 ]
+                //                                  == command type 7 (ClosePath)
+                //                             ===== relative LineTo(+12, +22) == LineTo(20, 34)
+                //                         === relative LineTo(+5, +6) == LineTo(8, 12)
+                //                      == [00010 010] = command type 2 (LineTo), length 2
+                //                  === relative MoveTo(+3, +6)
+                //              == [00001 001] = command type 1 (MoveTo), length 1
                 // Commands are encoded as uint32 varints, vertex parameters are
                 // encoded as sint32 varints (zigzag). Vertex parameters are
                 // also encoded as deltas to the previous position. The original
