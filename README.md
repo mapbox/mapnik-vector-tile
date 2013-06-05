@@ -48,19 +48,19 @@ The assumed projection is Spherical Mercator (`epsg:3857`).
 
 ## Requires
 
-- libmapnik 2.2-pre / current master
-- libprotobuf and protoc
+- Mapnik v2.2.0: `libmapnik` and `mapnik-config`
+- Protobuf: `libprotobuf` and `protoc`
 
 ### Ubuntu Dependencies Installation
 
     apt-get install libprotobuf7 libprotobuf-dev protobuf-compiler
-    apt-add-repository mapnik::nightly-trunk
+    apt-add-repository ppa:mapnik/v2.2.0
     apt-get update && apt-get install libmapnik libmapnik-dev
 
 ### OS X Dependencies Installation
 
     brew install protobuf
-    brew install mapnik --HEAD
+    brew install mapnik
 
 ## Building
 
