@@ -3,6 +3,10 @@
     "version": "0.0.4",
     "description": "Mapnik API for working with vector tiles",
     "main": "./package.json",
+    "repository"   :  {
+      "type" : "git",
+      "url"  : "git://github.com/mapbox/mapnik-vector-tile.git"
+    },
     "scripts": {
       "install" : "protoc -Iproto/ --cpp_out=./src/ ./proto/vector_tile.proto"
     }
