@@ -78,7 +78,13 @@ Run the C++ tests like:
 
     make test
 
-## Python Examples
+## Examples
+
+### C++
+
+See examples in examples/c++
+
+### Python
 
 These require the protobuf python bindings and the `rtree` library
 which can be installed like:
