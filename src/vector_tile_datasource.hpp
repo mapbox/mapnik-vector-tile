@@ -12,22 +12,8 @@
 #include <mapnik/query.hpp>
 #include <mapnik/unicode.hpp>
 #include <mapnik/version.hpp>
-#if MAPNIK_VERSION >= 200200
 #include <mapnik/value_types.hpp>
 #include <mapnik/well_known_srs.hpp>
-#else
-#include <mapnik/value.hpp>
-#include <cmath>
-namespace mapnik {
-static const double EARTH_RADIUS = 6378137.0;
-static const double EARTH_DIAMETER = EARTH_RADIUS * 2.0;
-static const double EARTH_CIRCUMFERENCE = EARTH_DIAMETER * M_PI;
-typedef int value_integer;
-typedef double value_double;
-typedef UnicodeString  value_unicode_string;
-typedef bool value_bool;
-}
-#endif
 
 #include <mapnik/vertex.hpp>
 #include <mapnik/datasource.hpp>
@@ -194,11 +180,7 @@ namespace mapnik { namespace vector {
         virtual ~tile_datasource();
         datasource::datasource_t type() const;
         featureset_ptr features(query const& q) const;
-#if MAPNIK_VERSION >= 200200
         featureset_ptr features_at_point(coord2d const& pt, double tol = 0) const;
-#else
-        featureset_ptr features_at_point(coord2d const& pt) const;
-#endif
         void set_envelope(box2d<double> const& bbox);
         box2d<double> envelope() const;
         boost::optional<geometry_t> get_geometry_type() const;
@@ -251,19 +233,12 @@ namespace mapnik { namespace vector {
             (layer_, tile_x_, tile_y_, scale_);
     }
 
-#if MAPNIK_VERSION >= 200200
     featureset_ptr tile_datasource::features_at_point(coord2d const& pt, double tol) const
     {
         // TODO - add support
         return featureset_ptr();
     }
-#else
-    featureset_ptr tile_datasource::features_at_point(coord2d const& pt) const
-    {
-        // TODO - add support
-        return featureset_ptr();
-    }
-#endif
+
     void tile_datasource::set_envelope(box2d<double> const& bbox)
     {
         extent_initialized_ = true;

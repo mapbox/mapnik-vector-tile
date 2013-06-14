@@ -16,11 +16,7 @@
 #include <mapnik/config.hpp>
 #include <mapnik/box2d.hpp>
 #include <mapnik/version.hpp>
-#if MAPNIK_VERSION >= 200200
 #include <mapnik/noncopyable.hpp>
-#else
-#include <boost/utility.hpp>
-#endif
 
 // agg
 #ifdef CONV_CLIPPER
@@ -53,11 +49,7 @@ namespace mapnik { namespace vector {
 */
 
     template <typename T>
-#if MAPNIK_VERSION >= 200200
     class processor : private mapnik::noncopyable
-#else
-    class processor : private boost::noncopyable
-#endif
     {
     public:
         typedef T backend_type;
@@ -84,18 +76,10 @@ namespace mapnik { namespace vector {
 
         void apply(double scale_denom=0.0)
         {
-#if MAPNIK_VERSION >= 200200
             mapnik::projection proj(m_.srs(),true);
-#else
-            mapnik::projection proj(m_.srs());
-#endif
             if (scale_denom <= 0.0)
             {
-#if MAPNIK_VERSION >= 200200
                 scale_denom = mapnik::scale_denominator(m_.scale(),proj.is_geographic());
-#else
-                scale_denom = mapnik::scale_denominator(m_,proj.is_geographic());
-#endif
             }
             scale_denom *= scale_factor_;
             BOOST_FOREACH ( mapnik::layer const& lay, m_.layers() )
@@ -123,11 +107,7 @@ namespace mapnik { namespace vector {
             {
                 return;
             }
-#if MAPNIK_VERSION >= 200200
             mapnik::projection proj1(lay.srs(),true);
-#else
-            mapnik::projection proj1(lay.srs());
-#endif
             mapnik::proj_transform prj_trans(proj0,proj1);
             mapnik::box2d<double> query_ext = m_.get_current_extent(); // unbuffered
             mapnik::box2d<double> buffered_query_ext(query_ext);  // buffered

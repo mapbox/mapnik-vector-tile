@@ -69,13 +69,8 @@ namespace mapnik { namespace vector {
                  unsigned z)
         {
             if (z > levels) throw std::runtime_error("invalid z value");
-#if MAPNIK_VERSION >= 200200
             mapnik::projection src("+init=epsg:4326",true);
             mapnik::projection dest("+init=epsg:3857",true);
-#else
-            mapnik::projection src("+init=epsg:4326");
-            mapnik::projection dest("+init=epsg:3857");
-#endif
             mapnik::proj_transform tr(src,dest);
             double minx = x * tile_size_;
             double miny = (y + 1) * tile_size_;

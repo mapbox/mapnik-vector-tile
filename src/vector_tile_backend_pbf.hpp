@@ -6,34 +6,7 @@
 #include <mapnik/feature.hpp>
 #include "vector_tile.pb.h"
 #include <mapnik/version.hpp>
-#if MAPNIK_VERSION >= 200200
 #include <mapnik/value_types.hpp>
-#else
-#include <mapnik/value.hpp>
-namespace mapnik {
-typedef int value_integer;
-typedef double value_double;
-typedef UnicodeString  value_unicode_string;
-typedef bool value_bool;
-
-namespace value_adl_barrier {
-inline std::size_t hash_value(const value& val) {
-    return hash_value(val.base());
-}
-}
-
-inline std::size_t hash_value(const value_null& val) {
-    return 0;
-}
-}
-#include <boost/functional/hash.hpp>
-#include "hash_variant.hpp"
-namespace U_ICU_NAMESPACE {
-inline std::size_t hash_value(const UnicodeString& val) {
-    return val.hashCode();
-}
-}
-#endif
 
 namespace mapnik { namespace vector {
 
