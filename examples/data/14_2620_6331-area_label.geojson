@@ -1,0 +1,823 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4290120601654,
+     37.806321294872326
+    ]
+   },
+   "properties": {
+    "area": 420936.875,
+    "class": "park",
+    "name": "Fort Mason",
+    "name_de": "Fort Mason",
+    "name_en": "Fort Mason",
+    "name_es": "Fort Mason",
+    "name_fr": "Fort Mason"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43312656879425,
+     37.80212943883419
+    ]
+   },
+   "properties": {
+    "area": 78644.2890625,
+    "class": "park",
+    "name": "Moscone Recreation Center",
+    "name_de": "Moscone Recreation Center",
+    "name_en": "Moscone Recreation Center",
+    "name_es": "Moscone Recreation Center",
+    "name_fr": "Moscone Recreation Center"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42762804031372,
+     37.791566093394444
+    ]
+   },
+   "properties": {
+    "area": 74781.1484375,
+    "class": "park",
+    "name": "Lafayette Park",
+    "name_de": "Lafayette Park",
+    "name_en": "Lafayette Park",
+    "name_es": "Lafayette Park",
+    "name_fr": "Lafayette Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42220997810364,
+     37.80701214416185
+    ]
+   },
+   "properties": {
+    "area": 54851.48046875,
+    "class": "park",
+    "name": "Aquatic Park",
+    "name_de": "Aquatic Park",
+    "name_en": "Aquatic Park",
+    "name_es": "Aquatic Park",
+    "name_fr": "Aquatic Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43235409259796,
+     37.790641940767166
+    ]
+   },
+   "properties": {
+    "area": 46714.70703125,
+    "class": "hospital",
+    "name": "CPMC Pacific Campus",
+    "name_de": "CPMC Pacific Campus",
+    "name_en": "CPMC Pacific Campus",
+    "name_es": "CPMC Pacific Campus",
+    "name_fr": "CPMC Pacific Campus"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43551909923553,
+     37.80181578179817
+    ]
+   },
+   "properties": {
+    "area": 37927.9453125,
+    "class": "school",
+    "name": "Marina Middle School",
+    "name_de": "Marina Middle School",
+    "name_en": "Marina Middle School",
+    "name_es": "Marina Middle School",
+    "name_fr": "Marina Middle School"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40603625774384,
+     37.80274827178258
+    ]
+   },
+   "properties": {
+    "area": 37910.67578125,
+    "class": "park",
+    "name": "Pioneer Park",
+    "name_de": "Pioneer Park",
+    "name_en": "Pioneer Park",
+    "name_es": "Pioneer Park",
+    "name_fr": "Pioneer Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42033243179321,
+     37.801391918822475
+    ]
+   },
+   "properties": {
+    "area": 18318.51953125,
+    "class": "park",
+    "name": "George Sterling Park",
+    "name_de": "George Sterling Park",
+    "name_en": "George Sterling Park",
+    "name_es": "George Sterling Park",
+    "name_fr": "George Sterling Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41092324256897,
+     37.80479970830737
+    ]
+   },
+   "properties": {
+    "area": 17887.583984375,
+    "class": "school",
+    "name": "Francisco Middle School",
+    "name_de": "Francisco Middle School",
+    "name_en": "Francisco Middle School",
+    "name_es": "Francisco Middle School",
+    "name_fr": "Francisco Middle School"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41206049919128,
+     37.802493957499856
+    ]
+   },
+   "properties": {
+    "area": 15649.849609375,
+    "class": "park",
+    "name": "North Beach Playground",
+    "name_de": "North Beach Playground",
+    "name_en": "North Beach Playground",
+    "name_es": "North Beach Playground",
+    "name_fr": "North Beach Playground"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.407506108284,
+     37.7879372441879
+    ]
+   },
+   "properties": {
+    "area": 14722.525390625,
+    "class": "park",
+    "name": "Union Square",
+    "name_de": "Union Square",
+    "name_en": "Union Square",
+    "name_es": "Union Square",
+    "name_fr": "Union Square"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41007566452026,
+     37.80084513199106
+    ]
+   },
+   "properties": {
+    "area": 14162.384765625,
+    "class": "park",
+    "name": "Washington Square Park",
+    "name_de": "Washington Square Park",
+    "name_en": "Washington Square Park",
+    "name_es": "Washington Square Park",
+    "name_fr": "Washington Square Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4165290594101,
+     37.789603315074956
+    ]
+   },
+   "properties": {
+    "area": 13636.7626953125,
+    "class": "hospital",
+    "name": "Saint Francis Memorial Hospital",
+    "name_de": "Saint Francis Memorial Hospital",
+    "name_en": "Saint Francis Memorial Hospital",
+    "name_es": "Saint Francis Memorial Hospital",
+    "name_fr": "Saint Francis Memorial Hospital"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40883648395538,
+     37.794647931681375
+    ]
+   },
+   "properties": {
+    "area": 12502.6455078125,
+    "class": "school",
+    "name": "Gordon J. Lau Elementary School",
+    "name_de": "Gordon J. Lau Elementary School",
+    "name_en": "Gordon J. Lau Elementary School",
+    "name_es": "Gordon J. Lau Elementary School",
+    "name_fr": "Gordon J. Lau Elementary School"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42612063884735,
+     37.79780594071465
+    ]
+   },
+   "properties": {
+    "area": 10926.486328125,
+    "class": "school",
+    "name": "Sherman Elementary School",
+    "name_de": "Sherman Elementary School",
+    "name_en": "Sherman Elementary School",
+    "name_es": "Sherman Elementary School",
+    "name_fr": "Sherman Elementary School"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42436647415161,
+     37.80485480808938
+    ]
+   },
+   "properties": {
+    "area": 10491.86328125,
+    "class": "pitch",
+    "name": "George White Field",
+    "name_de": "George White Field",
+    "name_en": "George White Field",
+    "name_es": "George White Field",
+    "name_fr": "George White Field"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4209600687027,
+     37.80437586245604
+    ]
+   },
+   "properties": {
+    "area": 9823.4970703125,
+    "class": "park",
+    "name": "Russian Hill Park",
+    "name_de": "Russian Hill Park",
+    "name_en": "Russian Hill Park",
+    "name_es": "Russian Hill Park",
+    "name_fr": "Russian Hill Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40533351898193,
+     37.79483444871761
+    ]
+   },
+   "properties": {
+    "area": 8338.2763671875,
+    "class": "park",
+    "name": "Portsmouth Square",
+    "name_de": "Portsmouth Square",
+    "name_en": "Portsmouth Square",
+    "name_es": "Portsmouth Square",
+    "name_fr": "Portsmouth Square"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40746855735779,
+     37.7879414836017
+    ]
+   },
+   "properties": {
+    "area": 7855.46435546875,
+    "class": "parking",
+    "name": "Union Square Garage",
+    "name_de": "Union Square Garage",
+    "name_en": "Union Square Garage",
+    "name_es": "Union Square Garage",
+    "name_fr": "Union Square Garage"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41215705871582,
+     37.792168058155134
+    ]
+   },
+   "properties": {
+    "area": 6761.63525390625,
+    "class": "park",
+    "name": "Huntington Park",
+    "name_de": "Huntington Park",
+    "name_en": "Huntington Park",
+    "name_es": "Huntington Park",
+    "name_fr": "Huntington Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40516722202301,
+     37.792045122088425
+    ]
+   },
+   "properties": {
+    "area": 6754.05224609375,
+    "class": "park",
+    "name": "Saint Mary's Square",
+    "name_de": "Saint Mary's Square",
+    "name_en": "Saint Mary's Square",
+    "name_es": "Saint Mary's Square",
+    "name_fr": "Saint Mary's Square"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41188883781433,
+     37.784486280685954
+    ]
+   },
+   "properties": {
+    "area": 5962.169921875,
+    "class": "park",
+    "name": "Boeddeker Park",
+    "name_de": "Boeddeker Park",
+    "name_en": "Boeddeker Park",
+    "name_es": "Boeddeker Park",
+    "name_fr": "Boeddeker Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42767095565796,
+     37.79746259325332
+    ]
+   },
+   "properties": {
+    "area": 5467.72900390625,
+    "class": "park",
+    "name": "Allyne Park",
+    "name_de": "Allyne Park",
+    "name_en": "Allyne Park",
+    "name_es": "Allyne Park",
+    "name_fr": "Allyne Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41339087486267,
+     37.79822982426816
+    ]
+   },
+   "properties": {
+    "area": 5286.7763671875,
+    "class": "park",
+    "name": "Ina Coolbrith Park",
+    "name_de": "Ina Coolbrith Park",
+    "name_en": "Ina Coolbrith Park",
+    "name_es": "Ina Coolbrith Park",
+    "name_fr": "Ina Coolbrith Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42066502571106,
+     37.795767026835556
+    ]
+   },
+   "properties": {
+    "area": 5055.89599609375,
+    "class": "park",
+    "name": "Helen Wills Playground",
+    "name_de": "Helen Wills Playground",
+    "name_en": "Helen Wills Playground",
+    "name_es": "Helen Wills Playground",
+    "name_fr": "Helen Wills Playground"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41659343242645,
+     37.80190055410142
+    ]
+   },
+   "properties": {
+    "area": 4614.470703125,
+    "class": "school",
+    "name": "Yick Wo Elementary School",
+    "name_de": "Yick Wo Elementary School",
+    "name_en": "Yick Wo Elementary School",
+    "name_es": "Yick Wo Elementary School",
+    "name_fr": "Yick Wo Elementary School"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40673899650574,
+     37.80204466679365
+    ]
+   },
+   "properties": {
+    "area": 4535.21484375,
+    "class": "school",
+    "name": "Garfield Elementary School",
+    "name_de": "Garfield Elementary School",
+    "name_en": "Garfield Elementary School",
+    "name_es": "Garfield Elementary School",
+    "name_fr": "Garfield Elementary School"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41504311561584,
+     37.80095109874748
+    ]
+   },
+   "properties": {
+    "area": 4380.76220703125,
+    "class": "school",
+    "name": "Sarah B. Cooper Child Development Center",
+    "name_de": "Sarah B. Cooper Child Development Center",
+    "name_en": "Sarah B. Cooper Child Development Center",
+    "name_es": "Sarah B. Cooper Child Development Center",
+    "name_fr": "Sarah B. Cooper Child Development Center"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41178691387177,
+     37.794211310414276
+    ]
+   },
+   "properties": {
+    "area": 4241.5634765625,
+    "class": "park",
+    "name": "Chinese Recreation Center",
+    "name_de": "Chinese Recreation Center",
+    "name_en": "Chinese Recreation Center",
+    "name_es": "Chinese Recreation Center",
+    "name_fr": "Chinese Recreation Center"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41104662418365,
+     37.79760247574503
+    ]
+   },
+   "properties": {
+    "area": 3482.419677734375,
+    "class": "school",
+    "name": "Jean Parker School",
+    "name_de": "Jean Parker School",
+    "name_en": "Jean Parker School",
+    "name_es": "Jean Parker School",
+    "name_fr": "Jean Parker School"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40708231925964,
+     37.79358816685511
+    ]
+   },
+   "properties": {
+    "area": 3241.57275390625,
+    "class": "park",
+    "name": "Willie \"Woo Woo\" Wong Park",
+    "name_de": "Willie \"Woo Woo\" Wong Park",
+    "name_en": "Willie \"Woo Woo\" Wong Park",
+    "name_es": "Willie \"Woo Woo\" Wong Park",
+    "name_fr": "Willie \"Woo Woo\" Wong Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42011785507202,
+     37.80156570293673
+    ]
+   },
+   "properties": {
+    "area": 3144.7783203125,
+    "class": "pitch",
+    "name": "Alice Marble Tennis Courts",
+    "name_de": "Alice Marble Tennis Courts",
+    "name_en": "Alice Marble Tennis Courts",
+    "name_es": "Alice Marble Tennis Courts",
+    "name_fr": "Alice Marble Tennis Courts"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41690993309021,
+     37.801116406583915
+    ]
+   },
+   "properties": {
+    "area": 2637.12255859375,
+    "class": "park",
+    "name": "Michelangelo Playground",
+    "name_de": "Michelangelo Playground",
+    "name_en": "Michelangelo Playground",
+    "name_es": "Michelangelo Playground",
+    "name_fr": "Michelangelo Playground"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40846633911133,
+     37.78405807864497
+    ]
+   },
+   "properties": {
+    "area": 2256.60009765625,
+    "class": "park",
+    "name": "Hallidie Plaza",
+    "name_de": "Hallidie Plaza",
+    "name_en": "Hallidie Plaza",
+    "name_es": "Hallidie Plaza",
+    "name_fr": "Hallidie Plaza"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41035461425781,
+     37.795826372317386
+    ]
+   },
+   "properties": {
+    "area": 2005.4078369140625,
+    "class": "park",
+    "name": "Woh Hei Yuen Recreation Center",
+    "name_de": "Woh Hei Yuen Recreation Center",
+    "name_en": "Woh Hei Yuen Recreation Center",
+    "name_es": "Woh Hei Yuen Recreation Center",
+    "name_fr": "Woh Hei Yuen Recreation Center"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40888476371765,
+     37.79552116647442
+    ]
+   },
+   "properties": {
+    "area": 1817.8153076171875,
+    "class": "hospital",
+    "name": "Chinese Hospital",
+    "name_de": "Chinese Hospital",
+    "name_en": "Chinese Hospital",
+    "name_es": "Chinese Hospital",
+    "name_fr": "Chinese Hospital"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40505993366241,
+     37.80187936103475
+    ]
+   },
+   "properties": {
+    "area": 1763.20166015625,
+    "class": "park",
+    "name": "Filbert Steeps Gargen",
+    "name_de": "Filbert Steeps Gargen",
+    "name_en": "Filbert Steeps Gargen",
+    "name_es": "Filbert Steeps Gargen",
+    "name_fr": "Filbert Steeps Gargen"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4178808927536,
+     37.80290509848712
+    ]
+   },
+   "properties": {
+    "area": 1628.5638427734375,
+    "class": "park",
+    "name": "Fay Park",
+    "name_de": "Fay Park",
+    "name_en": "Fay Park",
+    "name_es": "Fay Park",
+    "name_fr": "Fay Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41820275783539,
+     37.785406270739166
+    ]
+   },
+   "properties": {
+    "area": 1243.2176513671875,
+    "class": "park",
+    "name": "O'Farrell-Larkin Mini-Park",
+    "name_de": "O'Farrell-Larkin Mini-Park",
+    "name_en": "O'Farrell-Larkin Mini-Park",
+    "name_es": "O'Farrell-Larkin Mini-Park",
+    "name_fr": "O'Farrell-Larkin Mini-Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41145431995392,
+     37.78912427055049
+    ]
+   },
+   "properties": {
+    "area": 1096.6558837890625,
+    "class": "parking",
+    "name": "California Parking",
+    "name_de": "California Parking",
+    "name_en": "California Parking",
+    "name_es": "California Parking",
+    "name_fr": "California Parking"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41743564605713,
+     37.796441019146776
+    ]
+   },
+   "properties": {
+    "area": 944.394775390625,
+    "class": "park",
+    "name": "Broadway Tunnel West Mini Park",
+    "name_de": "Broadway Tunnel West Mini Park",
+    "name_en": "Broadway Tunnel West Mini Park",
+    "name_es": "Broadway Tunnel West Mini Park",
+    "name_fr": "Broadway Tunnel West Mini Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43233263492584,
+     37.78646615291675
+    ]
+   },
+   "properties": {
+    "area": 668.4193725585938,
+    "class": "park",
+    "name": "Cottage Row Mini Park",
+    "name_de": "Cottage Row Mini Park",
+    "name_en": "Cottage Row Mini Park",
+    "name_es": "Cottage Row Mini Park",
+    "name_fr": "Cottage Row Mini Park"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41070866584778,
+     37.80046365040925
+    ]
+   },
+   "properties": {
+    "area": 511.5633850097656,
+    "class": "park",
+    "name": "Marini Plaza",
+    "name_de": "Marini Plaza",
+    "name_en": "Marini Plaza",
+    "name_es": "Marini Plaza",
+    "name_fr": "Marini Plaza"
+   }
+  }
+ ],
+ "name": "area_label"
+}

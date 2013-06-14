@@ -1,0 +1,56 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -122.41784870624542,
+      37.796335045920344
+     ],
+     [
+      -122.41178691387177,
+      37.797110766421454
+     ],
+     [
+      -122.41127192974089,
+      37.7971785885917
+     ]
+    ]
+   },
+   "properties": {
+    "class": "main",
+    "layer": -1,
+    "oneway": 1
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -122.411288022995,
+      37.797254888458816
+     ],
+     [
+      -122.41180300712585,
+      37.797187066358596
+     ],
+     [
+      -122.41785407066345,
+      37.79641558558629
+     ]
+    ]
+   },
+   "properties": {
+    "class": "main",
+    "layer": -1,
+    "oneway": 1
+   }
+  }
+ ],
+ "name": "tunnel"
+}

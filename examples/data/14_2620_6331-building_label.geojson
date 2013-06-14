@@ -1,0 +1,2004 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4292802810669,
+     37.78527484428987
+    ]
+   },
+   "properties": {
+    "area": 5516.33349609375,
+    "name": "Miyako Mall",
+    "name_de": "Miyako Mall",
+    "name_en": "Miyako Mall",
+    "name_es": "Miyako Mall",
+    "name_fr": "Miyako Mall"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42416799068451,
+     37.80113759986951
+    ]
+   },
+   "properties": {
+    "area": 1380.7078857421875,
+    "name": "Chase",
+    "name_de": "Chase",
+    "name_en": "Chase",
+    "name_es": "Chase",
+    "name_fr": "Chase"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41160988807678,
+     37.78994245976337
+    ]
+   },
+   "properties": {
+    "area": 230.83670043945312,
+    "name": "Fire Chief's Residence",
+    "name_de": "Fire Chief's Residence",
+    "name_en": "Fire Chief's Residence",
+    "name_es": "Fire Chief's Residence",
+    "name_fr": "Fire Chief's Residence"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43130803108215,
+     37.78509254269906
+    ]
+   },
+   "properties": {
+    "area": 908.6409912109375,
+    "name": "Webster Street Bridge",
+    "name_de": "Webster Street Bridge",
+    "name_en": "Webster Street Bridge",
+    "name_es": "Webster Street Bridge",
+    "name_fr": "Webster Street Bridge"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43186056613922,
+     37.78496535527636
+    ]
+   },
+   "properties": {
+    "area": 5365.01318359375,
+    "name": "Kinokuniya Mall",
+    "name_de": "Kinokuniya Mall",
+    "name_en": "Kinokuniya Mall",
+    "name_es": "Kinokuniya Mall",
+    "name_fr": "Kinokuniya Mall"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4284702539444,
+     37.785393552060754
+    ]
+   },
+   "properties": {
+    "area": 3088.516357421875,
+    "name": "Hotel Kabuki",
+    "name_de": "Hotel Kabuki",
+    "name_en": "Hotel Kabuki",
+    "name_es": "Hotel Kabuki",
+    "name_fr": "Hotel Kabuki"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41934537887573,
+     37.78665269060695
+    ]
+   },
+   "properties": {
+    "area": 520.3375244140625,
+    "name": "San Francisco Fire Station 3",
+    "name_de": "San Francisco Fire Station 3",
+    "name_en": "San Francisco Fire Station 3",
+    "name_es": "San Francisco Fire Station 3",
+    "name_fr": "San Francisco Fire Station 3"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41794526576996,
+     37.80530408170084
+    ]
+   },
+   "properties": {
+    "area": 572.687744140625,
+    "name": "Bayside Inn at the Wharf",
+    "name_de": "Bayside Inn at the Wharf",
+    "name_en": "Bayside Inn at the Wharf",
+    "name_es": "Bayside Inn at the Wharf",
+    "name_fr": "Bayside Inn at the Wharf"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41453349590302,
+     37.80774960805068
+    ]
+   },
+   "properties": {
+    "area": 1862.534912109375,
+    "name": "The Wharf Inn",
+    "name_de": "The Wharf Inn",
+    "name_en": "The Wharf Inn",
+    "name_es": "The Wharf Inn",
+    "name_fr": "The Wharf Inn"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41641640663147,
+     37.80607123126648
+    ]
+   },
+   "properties": {
+    "area": 343.0441589355469,
+    "name": "Knuckles Historic Sports Bar & Grill",
+    "name_de": "Knuckles Historic Sports Bar & Grill",
+    "name_en": "Knuckles Historic Sports Bar & Grill",
+    "name_es": "Knuckles Historic Sports Bar & Grill",
+    "name_fr": "Knuckles Historic Sports Bar & Grill"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4135947227478,
+     37.80428261604232
+    ]
+   },
+   "properties": {
+    "area": 830.158447265625,
+    "name": "San Remo Hotel",
+    "name_de": "San Remo Hotel",
+    "name_en": "San Remo Hotel",
+    "name_es": "San Remo Hotel",
+    "name_fr": "San Remo Hotel"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4206006526947,
+     37.80551176386163
+    ]
+   },
+   "properties": {
+    "area": 1236.4427490234375,
+    "name": "Suites at Fisherman's Wharf",
+    "name_de": "Suites at Fisherman's Wharf",
+    "name_en": "Suites at Fisherman's Wharf",
+    "name_es": "Suites at Fisherman's Wharf",
+    "name_fr": "Suites at Fisherman's Wharf"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41020441055298,
+     37.795237154349074
+    ]
+   },
+   "properties": {
+    "area": 1414.74072265625,
+    "name": "Chinatown Branch Library",
+    "name_de": "Chinatown Branch Library",
+    "name_en": "Chinatown Branch Library",
+    "name_es": "Chinatown Branch Library",
+    "name_fr": "Chinatown Branch Library"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43674218654633,
+     37.79862827259065
+    ]
+   },
+   "properties": {
+    "area": 660.9341430664062,
+    "name": "San Francisco Fire Station 16",
+    "name_de": "San Francisco Fire Station 16",
+    "name_en": "San Francisco Fire Station 16",
+    "name_es": "San Francisco Fire Station 16",
+    "name_fr": "San Francisco Fire Station 16"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40935146808624,
+     37.802549059002104
+    ]
+   },
+   "properties": {
+    "area": 422.4821472167969,
+    "name": "San Francisco Fire Station 28",
+    "name_de": "San Francisco Fire Station 28",
+    "name_en": "San Francisco Fire Station 28",
+    "name_es": "San Francisco Fire Station 28",
+    "name_fr": "San Francisco Fire Station 28"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40993082523346,
+     37.79875119770314
+    ]
+   },
+   "properties": {
+    "area": 2133.2392578125,
+    "name": "Central Police Station",
+    "name_de": "Central Police Station",
+    "name_en": "Central Police Station",
+    "name_es": "Central Police Station",
+    "name_fr": "Central Police Station"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40958750247955,
+     37.79821286897272
+    ]
+   },
+   "properties": {
+    "area": 2808.270751953125,
+    "name": "North Beach Garage",
+    "name_de": "North Beach Garage",
+    "name_en": "North Beach Garage",
+    "name_es": "North Beach Garage",
+    "name_fr": "North Beach Garage"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4277138710022,
+     37.78465586496683
+    ]
+   },
+   "properties": {
+    "area": 1985.4339599609375,
+    "name": "Consulate General of People's Republic of China, San Francisco",
+    "name_de": "Consulate General of People's Republic of China, San Francisco",
+    "name_en": "Consulate General of People's Republic of China, San Francisco",
+    "name_es": "Consulate General of People's Republic of China, San Francisco",
+    "name_fr": "Consulate General of People's Republic of China, San Francisco"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41189420223236,
+     37.79491499001951
+    ]
+   },
+   "properties": {
+    "area": 6071.3720703125,
+    "name": "Cable Car Barn and Museum",
+    "name_de": "Cable Car Barn and Museum",
+    "name_en": "Cable Car Barn and Museum",
+    "name_es": "Cable Car Barn and Museum",
+    "name_fr": "Cable Car Barn and Museum"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40681946277618,
+     37.79345675495729
+    ]
+   },
+   "properties": {
+    "area": 391.3664855957031,
+    "name": "First Chinese Baptist Church",
+    "name_de": "First Chinese Baptist Church",
+    "name_en": "First Chinese Baptist Church",
+    "name_es": "First Chinese Baptist Church",
+    "name_fr": "First Chinese Baptist Church"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42138385772705,
+     37.791171846210275
+    ]
+   },
+   "properties": {
+    "area": 1251.1688232421875,
+    "name": "Old First Garage",
+    "name_de": "Old First Garage",
+    "name_en": "Old First Garage",
+    "name_es": "Old First Garage",
+    "name_fr": "Old First Garage"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43056237697601,
+     37.78513917803252
+    ]
+   },
+   "properties": {
+    "area": 8348.4609375,
+    "name": "Kintetsu Mall",
+    "name_de": "Kintetsu Mall",
+    "name_en": "Kintetsu Mall",
+    "name_es": "Kintetsu Mall",
+    "name_fr": "Kintetsu Mall"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40898668766022,
+     37.784867844770744
+    ]
+   },
+   "properties": {
+    "area": 7335.865234375,
+    "name": "Parc 55 Hotel",
+    "name_de": "Parc 55 Hotel",
+    "name_en": "Parc 55 Hotel",
+    "name_es": "Parc 55 Hotel",
+    "name_fr": "Parc 55 Hotel"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42539644241333,
+     37.78572423698848
+    ]
+   },
+   "properties": {
+    "area": 7462.6748046875,
+    "name": "Cathedral Hill Plaza",
+    "name_de": "Cathedral Hill Plaza",
+    "name_en": "Cathedral Hill Plaza",
+    "name_es": "Cathedral Hill Plaza",
+    "name_fr": "Cathedral Hill Plaza"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42535352706909,
+     37.78424886203896
+    ]
+   },
+   "properties": {
+    "area": 8470.4453125,
+    "name": "Cathedral of Saint Mary of the Assumption",
+    "name_de": "Cathedral of Saint Mary of the Assumption",
+    "name_en": "Cathedral of Saint Mary of the Assumption",
+    "name_es": "Cathedral of Saint Mary of the Assumption",
+    "name_fr": "Cathedral of Saint Mary of the Assumption"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41531133651733,
+     37.78618634549861
+    ]
+   },
+   "properties": {
+    "area": 505.65185546875,
+    "name": "Luz Hotel",
+    "name_de": "Luz Hotel",
+    "name_en": "Luz Hotel",
+    "name_es": "Luz Hotel",
+    "name_fr": "Luz Hotel"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41287589073181,
+     37.80805476336766
+    ]
+   },
+   "properties": {
+    "area": 14876.345703125,
+    "name": "Radisson",
+    "name_de": "Radisson",
+    "name_en": "Radisson",
+    "name_es": "Radisson",
+    "name_fr": "Radisson"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41165280342102,
+     37.80810562246455
+    ]
+   },
+   "properties": {
+    "area": 9020.443359375,
+    "name": "Pier 39 Garage",
+    "name_de": "Pier 39 Garage",
+    "name_en": "Pier 39 Garage",
+    "name_es": "Pier 39 Garage",
+    "name_fr": "Pier 39 Garage"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43238627910614,
+     37.807872517982794
+    ]
+   },
+   "properties": {
+    "area": 3615.182861328125,
+    "name": "Pier 1",
+    "name_de": "Pier 1",
+    "name_en": "Pier 1",
+    "name_es": "Pier 1",
+    "name_fr": "Pier 1"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40513503551483,
+     37.80599070212845
+    ]
+   },
+   "properties": {
+    "area": 1131.0096435546875,
+    "name": "Houston's",
+    "name_de": "Houston's",
+    "name_en": "Houston's",
+    "name_es": "Houston's",
+    "name_fr": "Houston's"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43417799472809,
+     37.80141735066961
+    ]
+   },
+   "properties": {
+    "area": 1237.8514404296875,
+    "name": "Marina Branch San Francisco Public Library",
+    "name_de": "Marina Branch San Francisco Public Library",
+    "name_en": "Marina Branch San Francisco Public Library",
+    "name_es": "Marina Branch San Francisco Public Library",
+    "name_fr": "Marina Branch San Francisco Public Library"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41409361362457,
+     37.80616447542192
+    ]
+   },
+   "properties": {
+    "area": 3546.529296875,
+    "name": "Best Western Tuscan Inn",
+    "name_de": "Best Western Tuscan Inn",
+    "name_en": "Best Western Tuscan Inn",
+    "name_es": "Best Western Tuscan Inn",
+    "name_fr": "Best Western Tuscan Inn"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42490828037262,
+     37.80092142807103
+    ]
+   },
+   "properties": {
+    "area": 1123.26171875,
+    "name": "Comfort Inn",
+    "name_de": "Comfort Inn",
+    "name_en": "Comfort Inn",
+    "name_es": "Comfort Inn",
+    "name_fr": "Comfort Inn"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41276860237122,
+     37.80238375437207
+    ]
+   },
+   "properties": {
+    "area": 755.2568969726562,
+    "name": "North Beach Branch Library",
+    "name_de": "North Beach Branch Library",
+    "name_en": "North Beach Branch Library",
+    "name_es": "North Beach Branch Library",
+    "name_fr": "North Beach Branch Library"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40642786026001,
+     37.79746259325332
+    ]
+   },
+   "properties": {
+    "area": 382.2843933105469,
+    "name": "Vesuvio",
+    "name_de": "Vesuvio",
+    "name_en": "Vesuvio",
+    "name_es": "Vesuvio",
+    "name_fr": "Vesuvio"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41563320159912,
+     37.808766787536605
+    ]
+   },
+   "properties": {
+    "area": 393.5412902832031,
+    "name": "Boudin",
+    "name_de": "Boudin",
+    "name_en": "Boudin",
+    "name_es": "Boudin",
+    "name_fr": "Boudin"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41489827632904,
+     37.808533685141974
+    ]
+   },
+   "properties": {
+    "area": 2283.5849609375,
+    "name": "Boudin",
+    "name_de": "Boudin",
+    "name_en": "Boudin",
+    "name_es": "Boudin",
+    "name_fr": "Boudin"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41548836231232,
+     37.80798271292044
+    ]
+   },
+   "properties": {
+    "area": 2022.918701171875,
+    "name": "Ripley's Believe it or Not",
+    "name_de": "Ripley's Believe it or Not",
+    "name_en": "Ripley's Believe it or Not",
+    "name_es": "Ripley's Believe it or Not",
+    "name_fr": "Ripley's Believe it or Not"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40637421607971,
+     37.80851673221186
+    ]
+   },
+   "properties": {
+    "area": 24874.34375,
+    "name": "Pier 35",
+    "name_de": "Pier 35",
+    "name_en": "Pier 35",
+    "name_es": "Pier 35",
+    "name_fr": "Pier 35"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40471661090851,
+     37.80765636589674
+    ]
+   },
+   "properties": {
+    "area": 15779.9248046875,
+    "name": "Pier 33",
+    "name_de": "Pier 33",
+    "name_en": "Pier 33",
+    "name_es": "Pier 33",
+    "name_fr": "Pier 33"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41289734840393,
+     37.8071435319456
+    ]
+   },
+   "properties": {
+    "area": 12872.4033203125,
+    "name": "Sheraton Fisherman's Wharf",
+    "name_de": "Sheraton Fisherman's Wharf",
+    "name_en": "Sheraton Fisherman's Wharf",
+    "name_es": "Sheraton Fisherman's Wharf",
+    "name_fr": "Sheraton Fisherman's Wharf"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42696285247803,
+     37.80784708835846
+    ]
+   },
+   "properties": {
+    "area": 983.818603515625,
+    "name": "Salt Water Pumping Station #2",
+    "name_de": "Salt Water Pumping Station #2",
+    "name_en": "Salt Water Pumping Station #2",
+    "name_es": "Salt Water Pumping Station #2",
+    "name_fr": "Salt Water Pumping Station #2"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4093246459961,
+     37.80878797862691
+    ]
+   },
+   "properties": {
+    "area": 2921.8076171875,
+    "name": "Aquarium of the Bay",
+    "name_de": "Aquarium of the Bay",
+    "name_en": "Aquarium of the Bay",
+    "name_es": "Aquarium of the Bay",
+    "name_fr": "Aquarium of the Bay"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41211414337158,
+     37.80909312965286
+    ]
+   },
+   "properties": {
+    "area": 1839.5250244140625,
+    "name": "San Francisco Pier 41",
+    "name_de": "San Francisco Pier 41",
+    "name_en": "San Francisco Pier 41",
+    "name_es": "San Francisco Pier 41",
+    "name_fr": "San Francisco Pier 41"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41834759712219,
+     37.807393591920395
+    ]
+   },
+   "properties": {
+    "area": 3765.9267578125,
+    "name": "Courtyard by Marriott",
+    "name_de": "Courtyard by Marriott",
+    "name_en": "Courtyard by Marriott",
+    "name_es": "Courtyard by Marriott",
+    "name_fr": "Courtyard by Marriott"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42360472679138,
+     37.79928104498482
+    ]
+   },
+   "properties": {
+    "area": 3528.04296875,
+    "name": "Heritage Marina Hotel",
+    "name_de": "Heritage Marina Hotel",
+    "name_en": "Heritage Marina Hotel",
+    "name_es": "Heritage Marina Hotel",
+    "name_fr": "Heritage Marina Hotel"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41784334182739,
+     37.78583870450334
+    ]
+   },
+   "properties": {
+    "area": 1468.395751953125,
+    "name": "Motel 6",
+    "name_de": "Motel 6",
+    "name_en": "Motel 6",
+    "name_es": "Motel 6",
+    "name_fr": "Motel 6"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42006957530975,
+     37.785592811104635
+    ]
+   },
+   "properties": {
+    "area": 888.1964111328125,
+    "name": "Monarch Hotel",
+    "name_de": "Monarch Hotel",
+    "name_en": "Monarch Hotel",
+    "name_es": "Monarch Hotel",
+    "name_fr": "Monarch Hotel"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41901814937592,
+     37.78530452125047
+    ]
+   },
+   "properties": {
+    "area": 4581.5654296875,
+    "name": "Trinity Towers",
+    "name_de": "Trinity Towers",
+    "name_en": "Trinity Towers",
+    "name_es": "Trinity Towers",
+    "name_fr": "Trinity Towers"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41949021816254,
+     37.78951005001279
+    ]
+   },
+   "properties": {
+    "area": 2203.13330078125,
+    "name": "Redding Elementary School",
+    "name_de": "Redding Elementary School",
+    "name_en": "Redding Elementary School",
+    "name_es": "Redding Elementary School",
+    "name_fr": "Redding Elementary School"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41796672344208,
+     37.78779734339625
+    ]
+   },
+   "properties": {
+    "area": 1228.1376953125,
+    "name": "Carlton Hotel",
+    "name_de": "Carlton Hotel",
+    "name_en": "Carlton Hotel",
+    "name_es": "Carlton Hotel",
+    "name_fr": "Carlton Hotel"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4329924583435,
+     37.790234970806864
+    ]
+   },
+   "properties": {
+    "area": 4045.7548828125,
+    "name": "Dental School of the University of the Pacific",
+    "name_de": "Dental School of the University of the Pacific",
+    "name_en": "Dental School of the University of the Pacific",
+    "name_es": "Dental School of the University of the Pacific",
+    "name_fr": "Dental School of the University of the Pacific"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4302351474762,
+     37.80835991742361
+    ]
+   },
+   "properties": {
+    "area": 9903.87109375,
+    "name": "Pier 3 — Festival Pavillion",
+    "name_de": "Pier 3 — Festival Pavillion",
+    "name_en": "Pier 3 — Festival Pavillion",
+    "name_es": "Pier 3 — Festival Pavillion",
+    "name_fr": "Pier 3 — Festival Pavillion"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43137240409851,
+     37.80821157880392
+    ]
+   },
+   "properties": {
+    "area": 7855.970703125,
+    "name": "Pier 2 — Herbst Pavillion",
+    "name_de": "Pier 2 — Herbst Pavillion",
+    "name_en": "Pier 2 — Herbst Pavillion",
+    "name_es": "Pier 2 — Herbst Pavillion",
+    "name_fr": "Pier 2 — Herbst Pavillion"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42568075656891,
+     37.801569941568545
+    ]
+   },
+   "properties": {
+    "area": 2369.4833984375,
+    "name": "Travelodge",
+    "name_de": "Travelodge",
+    "name_en": "Travelodge",
+    "name_es": "Travelodge",
+    "name_fr": "Travelodge"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41723716259003,
+     37.80567706149055
+    ]
+   },
+   "properties": {
+    "area": 4797.96875,
+    "name": "Marriott",
+    "name_de": "Marriott",
+    "name_en": "Marriott",
+    "name_es": "Marriott",
+    "name_fr": "Marriott"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41663634777069,
+     37.8057194454384
+    ]
+   },
+   "properties": {
+    "area": 6233.70751953125,
+    "name": "Hilton San Francisco Fisherman's Wharf",
+    "name_de": "Hilton San Francisco Fisherman's Wharf",
+    "name_en": "Hilton San Francisco Fisherman's Wharf",
+    "name_es": "Hilton San Francisco Fisherman's Wharf",
+    "name_fr": "Hilton San Francisco Fisherman's Wharf"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41614282131195,
+     37.805855073907956
+    ]
+   },
+   "properties": {
+    "area": 6987.13134765625,
+    "name": "Hyatt at Fisherman's Wharf",
+    "name_de": "Hyatt at Fisherman's Wharf",
+    "name_en": "Hyatt at Fisherman's Wharf",
+    "name_es": "Hyatt at Fisherman's Wharf",
+    "name_fr": "Hyatt at Fisherman's Wharf"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4202573299408,
+     37.807198629978885
+    ]
+   },
+   "properties": {
+    "area": 7605.28759765625,
+    "name": "Argonaut Hotel",
+    "name_de": "Argonaut Hotel",
+    "name_en": "Argonaut Hotel",
+    "name_es": "Argonaut Hotel",
+    "name_fr": "Argonaut Hotel"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42389440536499,
+     37.806423015418865
+    ]
+   },
+   "properties": {
+    "area": 1902.082275390625,
+    "name": "National Maritime Museum",
+    "name_de": "National Maritime Museum",
+    "name_en": "National Maritime Museum",
+    "name_es": "National Maritime Museum",
+    "name_fr": "National Maritime Museum"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41769313812256,
+     37.80653745086623
+    ]
+   },
+   "properties": {
+    "area": 7447.5517578125,
+    "name": "Holiday Inn",
+    "name_de": "Holiday Inn",
+    "name_en": "Holiday Inn",
+    "name_es": "Holiday Inn",
+    "name_fr": "Holiday Inn"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40583777427673,
+     37.80237527720156
+    ]
+   },
+   "properties": {
+    "area": 638.9163208007812,
+    "name": "Coit Tower",
+    "name_de": "Coit Tower",
+    "name_en": "Coit Tower",
+    "name_es": "Coit Tower",
+    "name_fr": "Coit Tower"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40650832653046,
+     37.790001809923794
+    ]
+   },
+   "properties": {
+    "area": 10718.5927734375,
+    "name": "Sutter-Stockton Garage",
+    "name_de": "Sutter-Stockton Garage",
+    "name_en": "Sutter-Stockton Garage",
+    "name_es": "Sutter-Stockton Garage",
+    "name_fr": "Sutter-Stockton Garage"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4104243516922,
+     37.7992301798107
+    ]
+   },
+   "properties": {
+    "area": 114.67269897460938,
+    "name": "Northstar Cafe",
+    "name_de": "Northstar Cafe",
+    "name_en": "Northstar Cafe",
+    "name_es": "Northstar Cafe",
+    "name_fr": "Northstar Cafe"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41023123264313,
+     37.8015996119845
+    ]
+   },
+   "properties": {
+    "area": 2652.321533203125,
+    "name": "Saint Peter and Paul Church",
+    "name_de": "Saint Peter and Paul Church",
+    "name_en": "Saint Peter and Paul Church",
+    "name_es": "Saint Peter and Paul Church",
+    "name_fr": "Saint Peter and Paul Church"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40573585033417,
+     37.800060973268764
+    ]
+   },
+   "properties": {
+    "area": 265.8677978515625,
+    "name": "Fog Hill Market",
+    "name_de": "Fog Hill Market",
+    "name_en": "Fog Hill Market",
+    "name_es": "Fog Hill Market",
+    "name_fr": "Fog Hill Market"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40774214267731,
+     37.7990097636514
+    ]
+   },
+   "properties": {
+    "area": 1287.492431640625,
+    "name": "The National Shrine of Saint Francis of Assisi",
+    "name_de": "The National Shrine of Saint Francis of Assisi",
+    "name_en": "The National Shrine of Saint Francis of Assisi",
+    "name_es": "The National Shrine of Saint Francis of Assisi",
+    "name_fr": "The National Shrine of Saint Francis of Assisi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40420162677765,
+     37.79519052538833
+    ]
+   },
+   "properties": {
+    "area": 4514.34716796875,
+    "name": "Hilton San Francisco Financial District",
+    "name_de": "Hilton San Francisco Financial District",
+    "name_en": "Hilton San Francisco Financial District",
+    "name_es": "Hilton San Francisco Financial District",
+    "name_fr": "Hilton San Francisco Financial District"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40862190723419,
+     37.78778038570655
+    ]
+   },
+   "properties": {
+    "area": 5864.0146484375,
+    "name": "The Westin Saint Francis",
+    "name_de": "The Westin Saint Francis",
+    "name_en": "The Westin Saint Francis",
+    "name_es": "The Westin Saint Francis",
+    "name_fr": "The Westin Saint Francis"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40838050842285,
+     37.788980132652135
+    ]
+   },
+   "properties": {
+    "area": 1684.3642578125,
+    "name": "Sir Francis Drake",
+    "name_de": "Sir Francis Drake",
+    "name_en": "Sir Francis Drake",
+    "name_es": "Sir Francis Drake",
+    "name_fr": "Sir Francis Drake"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40719497203827,
+     37.78702576457477
+    ]
+   },
+   "properties": {
+    "area": 13504.876953125,
+    "name": "Macy's",
+    "name_de": "Macy's",
+    "name_en": "Macy's",
+    "name_es": "Macy's",
+    "name_fr": "Macy's"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40811228752136,
+     37.78861554730136
+    ]
+   },
+   "properties": {
+    "area": 3552.616455078125,
+    "name": "Saks Fifth Avenue",
+    "name_de": "Saks Fifth Avenue",
+    "name_en": "Saks Fifth Avenue",
+    "name_es": "Saks Fifth Avenue",
+    "name_fr": "Saks Fifth Avenue"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40732371807098,
+     37.788751207176915
+    ]
+   },
+   "properties": {
+    "area": 1753.3902587890625,
+    "name": "Levi's Strauss",
+    "name_de": "Levi's Strauss",
+    "name_en": "Levi's Strauss",
+    "name_es": "Levi's Strauss",
+    "name_fr": "Levi's Strauss"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4102795124054,
+     37.79964557770774
+    ]
+   },
+   "properties": {
+    "area": 866.610595703125,
+    "name": "Fugazi Hall",
+    "name_de": "Fugazi Hall",
+    "name_en": "Fugazi Hall",
+    "name_es": "Fugazi Hall",
+    "name_fr": "Fugazi Hall"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40660488605499,
+     37.797636386612204
+    ]
+   },
+   "properties": {
+    "area": 256.4836120605469,
+    "name": "City Lights Bookstore",
+    "name_de": "City Lights Bookstore",
+    "name_en": "City Lights Bookstore",
+    "name_es": "City Lights Bookstore",
+    "name_fr": "City Lights Bookstore"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41349816322327,
+     37.79182892368188
+    ]
+   },
+   "properties": {
+    "area": 4078.9423828125,
+    "name": "Grace Cathedral",
+    "name_de": "Grace Cathedral",
+    "name_en": "Grace Cathedral",
+    "name_es": "Grace Cathedral",
+    "name_fr": "Grace Cathedral"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41298317909241,
+     37.79119728157595
+    ]
+   },
+   "properties": {
+    "area": 7263.853515625,
+    "name": "Masonic Memorial Temple",
+    "name_de": "Masonic Memorial Temple",
+    "name_en": "Masonic Memorial Temple",
+    "name_es": "Masonic Memorial Temple",
+    "name_fr": "Masonic Memorial Temple"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41133630275726,
+     37.792235884863004
+    ]
+   },
+   "properties": {
+    "area": 3000.710205078125,
+    "name": "Pacific Union Club",
+    "name_de": "Pacific Union Club",
+    "name_en": "Pacific Union Club",
+    "name_es": "Pacific Union Club",
+    "name_fr": "Pacific Union Club"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40650832653046,
+     37.790709768875985
+    ]
+   },
+   "properties": {
+    "area": 687.8807373046875,
+    "name": "Notre Dame Des Victoires Church",
+    "name_de": "Notre Dame Des Victoires Church",
+    "name_en": "Notre Dame Des Victoires Church",
+    "name_es": "Notre Dame Des Victoires Church",
+    "name_fr": "Notre Dame Des Victoires Church"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41018831729889,
+     37.79244360376852
+    ]
+   },
+   "properties": {
+    "area": 13559.2392578125,
+    "name": "The Fairmont San Francisco Hotel",
+    "name_de": "The Fairmont San Francisco Hotel",
+    "name_en": "The Fairmont San Francisco Hotel",
+    "name_es": "The Fairmont San Francisco Hotel",
+    "name_fr": "The Fairmont San Francisco Hotel"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41032779216766,
+     37.7864322369225
+    ]
+   },
+   "properties": {
+    "area": 5438.31689453125,
+    "name": "Mason O'Farrell Garage",
+    "name_de": "Mason O'Farrell Garage",
+    "name_en": "Mason O'Farrell Garage",
+    "name_es": "Mason O'Farrell Garage",
+    "name_fr": "Mason O'Farrell Garage"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40706622600555,
+     37.78607187852223
+    ]
+   },
+   "properties": {
+    "area": 4905.40234375,
+    "name": "Ellis O'Farrell Garage",
+    "name_de": "Ellis O'Farrell Garage",
+    "name_en": "Ellis O'Farrell Garage",
+    "name_es": "Ellis O'Farrell Garage",
+    "name_fr": "Ellis O'Farrell Garage"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41019904613495,
+     37.793126104632066
+    ]
+   },
+   "properties": {
+    "area": 2254.120849609375,
+    "name": "Brocklebank Garage",
+    "name_de": "Brocklebank Garage",
+    "name_en": "Brocklebank Garage",
+    "name_es": "Brocklebank Garage",
+    "name_fr": "Brocklebank Garage"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41366982460022,
+     37.78643647642264
+    ]
+   },
+   "properties": {
+    "area": 1744.7864990234375,
+    "name": "Geary Courtyard",
+    "name_de": "Geary Courtyard",
+    "name_en": "Geary Courtyard",
+    "name_es": "Geary Courtyard",
+    "name_fr": "Geary Courtyard"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40530133247375,
+     37.798251018382
+    ]
+   },
+   "properties": {
+    "area": 931.8032836914062,
+    "name": "Green Tortoise Hostel",
+    "name_de": "Green Tortoise Hostel",
+    "name_en": "Green Tortoise Hostel",
+    "name_es": "Green Tortoise Hostel",
+    "name_fr": "Green Tortoise Hostel"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41027414798737,
+     37.791485548441756
+    ]
+   },
+   "properties": {
+    "area": 5916.74169921875,
+    "name": "InterContinental Hotel Mark Hopkins",
+    "name_de": "InterContinental Hotel Mark Hopkins",
+    "name_en": "InterContinental Hotel Mark Hopkins",
+    "name_es": "InterContinental Hotel Mark Hopkins",
+    "name_fr": "InterContinental Hotel Mark Hopkins"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40504920482635,
+     37.796551231141
+    ]
+   },
+   "properties": {
+    "area": 203.70689392089844,
+    "name": "Sentinel Building",
+    "name_de": "Sentinel Building",
+    "name_en": "Sentinel Building",
+    "name_es": "Sentinel Building",
+    "name_fr": "Sentinel Building"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4319839477539,
+     37.78945493878432
+    ]
+   },
+   "properties": {
+    "area": 2216.253662109375,
+    "name": "Temple Sherith Israel",
+    "name_de": "Temple Sherith Israel",
+    "name_en": "Temple Sherith Israel",
+    "name_es": "Temple Sherith Israel",
+    "name_fr": "Temple Sherith Israel"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4357658624649,
+     37.787008806708016
+    ]
+   },
+   "properties": {
+    "area": 2847.9228515625,
+    "name": "Saint Dominics Roman Catholic Church",
+    "name_de": "Saint Dominics Roman Catholic Church",
+    "name_en": "Saint Dominics Roman Catholic Church",
+    "name_es": "Saint Dominics Roman Catholic Church",
+    "name_fr": "Saint Dominics Roman Catholic Church"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43255257606506,
+     37.784914480246
+    ]
+   },
+   "properties": {
+    "area": 4337.994140625,
+    "name": "Sundance Kabuki Theater",
+    "name_de": "Sundance Kabuki Theater",
+    "name_en": "Sundance Kabuki Theater",
+    "name_es": "Sundance Kabuki Theater",
+    "name_fr": "Sundance Kabuki Theater"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40720570087433,
+     37.78508830312183
+    ]
+   },
+   "properties": {
+    "area": 4147.34716796875,
+    "name": "Flood Building",
+    "name_de": "Flood Building",
+    "name_en": "Flood Building",
+    "name_es": "Flood Building",
+    "name_fr": "Flood Building"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40446984767914,
+     37.790056920744384
+    ]
+   },
+   "properties": {
+    "area": 2156.785888671875,
+    "name": "W&J Sloane Building",
+    "name_de": "W&J Sloane Building",
+    "name_en": "W&J Sloane Building",
+    "name_es": "W&J Sloane Building",
+    "name_fr": "W&J Sloane Building"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41510212421417,
+     37.786707803925296
+    ]
+   },
+   "properties": {
+    "area": 652.7189331054688,
+    "name": "601 Leavenworth Street",
+    "name_de": "601 Leavenworth Street",
+    "name_en": "601 Leavenworth Street",
+    "name_es": "601 Leavenworth Street",
+    "name_fr": "601 Leavenworth Street"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40691065788269,
+     37.78492719900686
+    ]
+   },
+   "properties": {
+    "area": 15417.0107421875,
+    "name": "Powell Station",
+    "name_de": "Powell Station",
+    "name_en": "Powell Station",
+    "name_es": "Powell Station",
+    "name_fr": "Powell Station"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40546226501465,
+     37.786398320912674
+    ]
+   },
+   "properties": {
+    "area": 3803.703125,
+    "name": "Phelan Building",
+    "name_de": "Phelan Building",
+    "name_en": "Phelan Building",
+    "name_es": "Phelan Building",
+    "name_fr": "Phelan Building"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41386830806732,
+     37.78686466468337
+    ]
+   },
+   "properties": {
+    "area": 368.9371032714844,
+    "name": "Hotel Adante",
+    "name_de": "Hotel Adante",
+    "name_en": "Hotel Adante",
+    "name_es": "Hotel Adante",
+    "name_fr": "Hotel Adante"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40652441978455,
+     37.78585990217182
+    ]
+   },
+   "properties": {
+    "area": 866.3295288085938,
+    "name": "Apple Store",
+    "name_de": "Apple Store",
+    "name_en": "Apple Store",
+    "name_es": "Apple Store",
+    "name_fr": "Apple Store"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40636885166168,
+     37.784104714631205
+    ]
+   },
+   "properties": {
+    "area": 40016.9453125,
+    "name": "Westfield San Francisco Centre",
+    "name_de": "Westfield San Francisco Centre",
+    "name_en": "Westfield San Francisco Centre",
+    "name_es": "Westfield San Francisco Centre",
+    "name_fr": "Westfield San Francisco Centre"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.41469442844391,
+     37.809084653252505
+    ]
+   },
+   "properties": {
+    "area": 1289.7733154296875,
+    "name": "Franciscan",
+    "name_de": "Franciscan",
+    "name_en": "Franciscan",
+    "name_es": "Franciscan",
+    "name_fr": "Franciscan"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42195248603821,
+     37.78492719900686
+    ]
+   },
+   "properties": {
+    "area": 4642.2548828125,
+    "name": "KRON TV",
+    "name_de": "KRON TV",
+    "name_en": "KRON TV",
+    "name_es": "KRON TV",
+    "name_fr": "KRON TV"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43609845638275,
+     37.79726760509566
+    ]
+   },
+   "properties": {
+    "area": 1231.0413818359375,
+    "name": "Metro Theatre",
+    "name_de": "Metro Theatre",
+    "name_en": "Metro Theatre",
+    "name_es": "Metro Theatre",
+    "name_fr": "Metro Theatre"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42194175720215,
+     37.79833155595906
+    ]
+   },
+   "properties": {
+    "area": 1569.696533203125,
+    "name": "Alhambra Theatre",
+    "name_de": "Alhambra Theatre",
+    "name_en": "Alhambra Theatre",
+    "name_es": "Alhambra Theatre",
+    "name_fr": "Alhambra Theatre"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43282616138458,
+     37.8044521548888
+    ]
+   },
+   "properties": {
+    "area": 6547.6796875,
+    "name": "Safeway 1711",
+    "name_de": "Safeway 1711",
+    "name_en": "Safeway 1711",
+    "name_es": "Safeway 1711",
+    "name_fr": "Safeway 1711"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.43460714817047,
+     37.79132869749249
+    ]
+   },
+   "properties": {
+    "area": 1204.5052490234375,
+    "name": "Pets Unlimited",
+    "name_de": "Pets Unlimited",
+    "name_en": "Pets Unlimited",
+    "name_es": "Pets Unlimited",
+    "name_fr": "Pets Unlimited"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42153406143188,
+     37.796373196299385
+    ]
+   },
+   "properties": {
+    "area": 1438.6531982421875,
+    "name": "Walgreens",
+    "name_de": "Walgreens",
+    "name_en": "Walgreens",
+    "name_es": "Walgreens",
+    "name_fr": "Walgreens"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42484390735626,
+     37.805388850000256
+    ]
+   },
+   "properties": {
+    "area": 1308.3048095703125,
+    "name": "Fontana West",
+    "name_de": "Fontana West",
+    "name_en": "Fontana West",
+    "name_es": "Fontana West",
+    "name_fr": "Fontana West"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42411971092224,
+     37.80546937979462
+    ]
+   },
+   "properties": {
+    "area": 1163.4339599609375,
+    "name": "Fontana East",
+    "name_de": "Fontana East",
+    "name_en": "Fontana East",
+    "name_es": "Fontana East",
+    "name_fr": "Fontana East"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42282688617706,
+     37.80618990562568
+    ]
+   },
+   "properties": {
+    "area": 1523.4742431640625,
+    "name": "Wurster Building",
+    "name_de": "Wurster Building",
+    "name_en": "Wurster Building",
+    "name_es": "Wurster Building",
+    "name_fr": "Wurster Building"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42120146751404,
+     37.79483020969929
+    ]
+   },
+   "properties": {
+    "area": 2583.54833984375,
+    "name": "Pacific Terrace Apts",
+    "name_de": "Pacific Terrace Apts",
+    "name_en": "Pacific Terrace Apts",
+    "name_es": "Pacific Terrace Apts",
+    "name_fr": "Pacific Terrace Apts"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.4330997467041,
+     37.79711924419614
+    ]
+   },
+   "properties": {
+    "area": 1806.2464599609375,
+    "name": "Equinox Gym — Underconstruction",
+    "name_de": "Equinox Gym — Underconstruction",
+    "name_en": "Equinox Gym — Underconstruction",
+    "name_es": "Equinox Gym — Underconstruction",
+    "name_fr": "Equinox Gym — Underconstruction"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.42416262626648,
+     37.802125200234485
+    ]
+   },
+   "properties": {
+    "area": 1164.0887451171875,
+    "name": "America's Best Inn",
+    "name_de": "America's Best Inn",
+    "name_en": "America's Best Inn",
+    "name_es": "America's Best Inn",
+    "name_fr": "America's Best Inn"
+   }
+  }
+ ],
+ "name": "building_label"
+}

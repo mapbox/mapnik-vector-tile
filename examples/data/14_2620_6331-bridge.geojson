@@ -1,0 +1,111 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -122.41849780082703,
+      37.79639862987445
+     ],
+     [
+      -122.41846024990083,
+      37.79621635572625
+     ]
+    ]
+   },
+   "properties": {
+    "class": "street",
+    "layer": 1,
+    "oneway": 0
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -122.41861045360565,
+      37.79641982451364
+     ],
+     [
+      -122.41856217384338,
+      37.79616972738355
+     ]
+    ]
+   },
+   "properties": {
+    "class": "path",
+    "layer": 1,
+    "oneway": 0
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -122.41839587688446,
+      37.79644525807265
+     ],
+     [
+      -122.41833150386809,
+      37.79618244420722
+     ]
+    ]
+   },
+   "properties": {
+    "class": "path",
+    "layer": 1,
+    "oneway": 0
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -122.41844415664673,
+      37.79622059466506
+     ],
+     [
+      -122.41848707199097,
+      37.79640286880277
+     ]
+    ]
+   },
+   "properties": {
+    "class": "minor_rail",
+    "layer": 1,
+    "oneway": 0
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -122.41851925849915,
+      37.79639862987445
+     ],
+     [
+      -122.41848170757295,
+      37.79621635572625
+     ]
+    ]
+   },
+   "properties": {
+    "class": "minor_rail",
+    "layer": 1,
+    "oneway": 0
+   }
+  }
+ ],
+ "name": "bridge"
+}

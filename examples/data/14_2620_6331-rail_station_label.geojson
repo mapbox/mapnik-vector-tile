@@ -1,0 +1,86 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40694284439087,
+     37.78496111569185
+    ]
+   },
+   "properties": {
+    "class": "light",
+    "group": "name",
+    "name": "Powell Muni",
+    "name_de": "Powell Muni",
+    "name_en": "Powell Muni",
+    "name_es": "Powell Muni",
+    "name_fr": "Powell Muni",
+    "network": "light"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40691065788269,
+     37.78493143859335
+    ]
+   },
+   "properties": {
+    "class": "light",
+    "group": "name",
+    "name": "Powell",
+    "name_de": "Powell",
+    "name_en": "Powell",
+    "name_es": "Powell",
+    "name_fr": "Powell",
+    "network": "light"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40694284439087,
+     37.78496111569185
+    ]
+   },
+   "properties": {
+    "class": "light",
+    "group": "network",
+    "name": "Powell Muni",
+    "name_de": "Powell Muni",
+    "name_en": "Powell Muni",
+    "name_es": "Powell Muni",
+    "name_fr": "Powell Muni",
+    "network": "light"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.40691065788269,
+     37.78493143859335
+    ]
+   },
+   "properties": {
+    "class": "light",
+    "group": "network",
+    "name": "Powell",
+    "name_de": "Powell",
+    "name_en": "Powell",
+    "name_es": "Powell",
+    "name_fr": "Powell",
+    "network": "light"
+   }
+  }
+ ],
+ "name": "rail_station_label"
+}
