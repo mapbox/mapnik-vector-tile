@@ -1,5 +1,4 @@
 archive
-examples
 python
 .DS_Store
 src/vector_tile.pb.cc
