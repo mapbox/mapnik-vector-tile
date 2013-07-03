@@ -251,6 +251,7 @@ namespace mapnik { namespace vector {
         {
             mapnik::vector::spherical_mercator<22> merc(tile_size_);
             merc.xyz(extent_,x_,y_,z_);
+            extent_initialized_ = true;
         }
         return extent_;
     }
