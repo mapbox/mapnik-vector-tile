@@ -249,8 +249,10 @@ namespace mapnik { namespace vector {
     {
         if (!extent_initialized_)
         {
-            mapnik::vector::spherical_mercator<22> merc(tile_size_);
-            merc.xyz(extent_,x_,y_,z_);
+            mapnik::vector::spherical_mercator merc(tile_size_);
+            double minx,miny,maxx,maxy;
+            merc.xyz(x_,y_,z_,minx,miny,maxx,maxy);
+            extent_.init(minx,miny,maxx,maxy);
             extent_initialized_ = true;
         }
         return extent_;

@@ -15,6 +15,38 @@ mapnik::box2d<double> bbox;
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
 
+TEST_CASE( "vector tile projection 1", "should support z/x/y to bbox conversion at 0/0/0" ) {
+    mapnik::vector::spherical_mercator merc(256);
+    int x = 0;
+    int y = 0;
+    int z = 0;
+    double minx,miny,maxx,maxy;
+    merc.xyz(x,y,z,minx,miny,maxx,maxy);
+    mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
+    mapnik::box2d<double> e(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
+    double epsilon = 0.000001;
+    CHECK(std::fabs(map_extent.minx() - e.minx()) < epsilon);
+    CHECK(std::fabs(map_extent.miny() - e.miny()) < epsilon);
+    CHECK(std::fabs(map_extent.maxx() - e.maxx()) < epsilon);
+    CHECK(std::fabs(map_extent.maxy() - e.maxy()) < epsilon);
+}
+
+TEST_CASE( "vector tile projection 2", "should support z/x/y to bbox conversion up to z33" ) {
+    mapnik::vector::spherical_mercator merc(256);
+    int x = 2145960701;
+    int y = 1428172928;
+    int z = 32;
+    double minx,miny,maxx,maxy;
+    merc.xyz(x,y,z,minx,miny,maxx,maxy);
+    mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
+    mapnik::box2d<double> e(-14210.1492817168364127,6711666.7204630710184574,-14210.1399510249066225,6711666.7297937674447894);
+    double epsilon = 0.00000001;
+    CHECK(std::fabs(map_extent.minx() - e.minx()) < epsilon);
+    CHECK(std::fabs(map_extent.miny() - e.miny()) < epsilon);
+    CHECK(std::fabs(map_extent.maxx() - e.maxx()) < epsilon);
+    CHECK(std::fabs(map_extent.maxy() - e.maxy()) < epsilon);
+}
+
 TEST_CASE( "vector tile output", "should create vector tile with one point" ) {
     typedef mapnik::vector::backend_pbf backend_type;
     typedef mapnik::vector::processor<backend_type> renderer_type;
@@ -101,8 +133,10 @@ int main (int argc, char* const argv[])
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
     // set up bbox
-    mapnik::vector::spherical_mercator<22> merc(256);
-    merc.xyz(bbox,x,y,z);
+    double minx,miny,maxx,maxy;
+    mapnik::vector::spherical_mercator merc(256);
+    merc.xyz(x,y,z,minx,miny,maxx,maxy);
+    bbox.init(minx,miny,maxx,maxy);
     int result = Catch::Main( argc, argv );
     if (!result) printf("\x1b[1;32m ✓ \x1b[0m\n");
     google::protobuf::ShutdownProtobufLibrary();
