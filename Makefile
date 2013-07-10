@@ -1,7 +1,7 @@
 PROTOBUF_CXXFLAGS=$(shell pkg-config protobuf --cflags)
 PROTOBUF_LDFLAGS=$(shell pkg-config protobuf --libs-only-L) -lprotobuf-lite
 MAPNIK_CXXFLAGS=$(shell mapnik-config --cflags)
-MAPNIK_LDFLAGS=$(shell mapnik-config --libs --dep-libs --ldflags)
+MAPNIK_LDFLAGS=$(shell mapnik-config --libs --ldflags --dep-libs)
 CXXFLAGS := $(CXXFLAGS) # inherit from env
 LDFLAGS := $(LDFLAGS) # inherit from env
 
