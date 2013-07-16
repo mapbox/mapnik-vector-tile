@@ -129,6 +129,70 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     //mapnik::save_to_file(im,"test.png");
 }
 
+TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
+    typedef mapnik::vector::backend_pbf backend_type;
+    typedef mapnik::vector::processor<backend_type> renderer_type;
+    typedef mapnik::vector::tile tile_type;
+    tile_type tile;
+    backend_type backend(tile,16);
+    mapnik::Map map(tile_size,tile_size);
+    mapnik::layer lyr("layer");
+    lyr.set_datasource(build_ds());
+    map.addLayer(lyr);
+    map.zoom_to_box(bbox);
+    renderer_type ren(backend,map);
+    ren.apply();
+    CHECK(1 == tile.layers_size());
+    mapnik::vector::tile_layer const& layer = tile.layers(0);
+    CHECK(std::string("layer") == layer.name());
+    CHECK(1 == layer.features_size());
+    mapnik::vector::tile_feature const& f = layer.features(0);
+    CHECK(1 == f.id());
+    CHECK(3 == f.geometry_size());
+    CHECK(9 == f.geometry(0));
+    CHECK(4096 == f.geometry(1));
+    CHECK(4096 == f.geometry(2));
+    // now actually start the meat of the test
+    mapnik::vector::tile_datasource ds(layer,x,y,z,tile_size);
+    mapnik::featureset_ptr fs;
+
+    // ensure we can query single feature
+    fs = ds.features(mapnik::query(bbox));
+    CHECK(fs->next() != mapnik::feature_ptr());
+    fs = ds.features(mapnik::query(mapnik::box2d<double>(-1,-1,1,1)));
+    CHECK(fs->next() != mapnik::feature_ptr());
+
+    // now check that datasource api throws out feature which is outside extent
+    fs = ds.features(mapnik::query(mapnik::box2d<double>(-10,-10,-10,-10)));
+    CHECK(fs->next() == mapnik::feature_ptr());
+
+    // ensure same behavior for feature_at_point
+    fs = ds.features_at_point(mapnik::coord2d(0,0),0);
+    CHECK(fs->next() != mapnik::feature_ptr());
+
+    fs = ds.features_at_point(mapnik::coord2d(1,1),1);
+    CHECK(fs->next() != mapnik::feature_ptr());
+
+    fs = ds.features_at_point(mapnik::coord2d(-10,-10),0);
+    CHECK(fs->next() == mapnik::feature_ptr());
+
+    // finally, make sure attributes are also filtered
+    mapnik::feature_ptr f_ptr;
+    fs = ds.features(mapnik::query(bbox));
+    f_ptr = fs->next();
+    CHECK(f_ptr != mapnik::feature_ptr());
+    // no attributes
+    CHECK(f_ptr->context()->size() == 0);
+
+    mapnik::query q(bbox);
+    q.add_property_name("name");
+    fs = ds.features(q);
+    f_ptr = fs->next();
+    CHECK(f_ptr != mapnik::feature_ptr());
+    // one attribute
+    CHECK(f_ptr->context()->size() == 1);
+}
+
 int main (int argc, char* const argv[])
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;

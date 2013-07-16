@@ -19,6 +19,7 @@
 #include <mapnik/datasource.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/feature_factory.hpp>
+#include <mapnik/geom_util.hpp>
 
 #include <memory>
 #include <stdexcept>
@@ -29,17 +30,22 @@
 #include <boost/make_shared.hpp>
 #include <boost/shared_ptr.hpp>
 #include <unicode/unistr.h>
+#include <boost/algorithm/string.hpp>
 
 namespace mapnik { namespace vector {
 
+    template <typename Filter>
     class tile_featureset : public Featureset
     {
     public:
-        tile_featureset(mapnik::vector::tile_layer const& layer,
+        tile_featureset(Filter const& filter,
+                        std::set<std::string> const& attribute_names,
+                        mapnik::vector::tile_layer const& layer,
                         double tile_x,
                         double tile_y,
                         double scale)
-            : layer_(layer),
+            : filter_(filter),
+              layer_(layer),
               tile_x_(tile_x),
               tile_y_(tile_y),
               scale_(scale),
@@ -47,7 +53,36 @@ namespace mapnik { namespace vector {
               end_(layer_.features_size()),
               tr_("utf-8"),
               ctx_(boost::make_shared<mapnik::context_type>())
-        {}
+        {
+            std::set<std::string>::const_iterator pos = attribute_names.begin();
+            std::set<std::string>::const_iterator end = attribute_names.end();
+            for ( ;pos !=end; ++pos)
+            {
+                bool found_name = false;
+                for (int i = 0; i < layer_.keys_size(); ++i)
+                {
+                    if (layer_.keys(i) == *pos)
+                    {
+                        ctx_->push(*pos);
+                        found_name = true;
+                        break;
+                    }
+                }
+                if (!found_name)
+                {
+                    std::string s("no attribute '");
+                    std::string pos_string;
+                    s += *pos + "'. Valid attributes are: ";
+                    std::vector<std::string> list;
+                    for (int i = 0; i < layer_.keys_size(); ++i)
+                    {
+                        list.push_back(layer_.keys(i));
+                    }
+                    s += boost::algorithm::join(list, ",") + ".";
+                    throw mapnik::datasource_exception("Vector Tile Datasource: " + s);
+                }
+            }
+        }
 
         virtual ~tile_featureset() {}
 
@@ -56,18 +91,16 @@ namespace mapnik { namespace vector {
             while (itr_ < end_)
             {
                 mapnik::vector::tile_feature const& f = layer_.features(itr_);
-                mapnik::feature_ptr feature(
-                    mapnik::feature_factory::create(ctx_,itr_++));
-
+                mapnik::value_integer feature_id = itr_++;
                 std::auto_ptr<mapnik::geometry_type> geom(
                     new mapnik::geometry_type(
                         mapnik::eGeomType(f.type())));
-
                 int cmd = -1;
                 const int cmd_bits = 3;
                 unsigned length = 0;
                 double x = tile_x_, y = tile_y_;
-
+                bool first = false;
+                mapnik::box2d<double> envelope;
                 for (int k = 0; k < f.geometry_size();)
                 {
                     if (!length) {
@@ -85,6 +118,15 @@ namespace mapnik { namespace vector {
                             dy = ((dy >> 1) ^ (-(dy & 1)));
                             x += (double)dx / scale_;
                             y -= (double)dy / scale_;
+                            if (first)
+                            {
+                                envelope.init(x,y,x,y);
+                                first = false;
+                            }
+                            else
+                            {
+                                envelope.expand_to_include(x,y);
+                            }
                             geom->push_vertex(x, y, static_cast<mapnik::CommandType>(cmd));
                         }
                         else if (cmd == (mapnik::SEG_CLOSE & ((1 << cmd_bits) - 1)))
@@ -97,6 +139,12 @@ namespace mapnik { namespace vector {
                         }
                     }
                 }
+                if (!filter_.pass(envelope))
+                {
+                    continue;
+                }
+                mapnik::feature_ptr feature(
+                    mapnik::feature_factory::create(ctx_,feature_id));
                 feature->paths().push_back(geom);
 
                 // attributes
@@ -109,46 +157,49 @@ namespace mapnik { namespace vector {
                         && key_value < static_cast<std::size_t>(layer_.values_size()))
                     {
                         std::string const& name = layer_.keys(key_name);
-                        mapnik::vector::tile_value const& value = layer_.values(key_value);
-                        if (value.has_string_value())
+                        if (feature->has_key(name))
                         {
-                            std::string str = value.string_value();
-                            feature->put_new(name, tr_.transcode(str.data(), str.length()));
-                        }
-                        else if (value.has_int_value())
-                        {
-                            mapnik::value_integer val = value.int_value();
-                            feature->put_new(name, val);
-                        }
-                        else if (value.has_double_value())
-                        {
-                            mapnik::value_double val = value.double_value();
-                            feature->put_new(name, val);
-                        }
-                        else if (value.has_float_value())
-                        {
-                            mapnik::value_double val = value.float_value();
-                            feature->put_new(name, val);
-                        }
-                        else if (value.has_bool_value())
-                        {
-                            mapnik::value_bool val = value.bool_value();
-                            feature->put_new(name, val);
-                        }
-                        else if (value.has_sint_value())
-                        {
-                            mapnik::value_integer val = value.sint_value();
-                            feature->put_new(name, val);
-                        }
-                        else if (value.has_uint_value())
-                        {
-                            mapnik::value_integer val = value.uint_value();
-                            feature->put_new(name, val);
-                        }
-                        else
-                        {
-                            // Do nothing
-                            //feature->put_new(name, mapnik::value_null());
+                            mapnik::vector::tile_value const& value = layer_.values(key_value);
+                            if (value.has_string_value())
+                            {
+                                std::string str = value.string_value();
+                                feature->put(name, tr_.transcode(str.data(), str.length()));
+                            }
+                            else if (value.has_int_value())
+                            {
+                                mapnik::value_integer val = value.int_value();
+                                feature->put(name, val);
+                            }
+                            else if (value.has_double_value())
+                            {
+                                mapnik::value_double val = value.double_value();
+                                feature->put(name, val);
+                            }
+                            else if (value.has_float_value())
+                            {
+                                mapnik::value_double val = value.float_value();
+                                feature->put(name, val);
+                            }
+                            else if (value.has_bool_value())
+                            {
+                                mapnik::value_bool val = value.bool_value();
+                                feature->put(name, val);
+                            }
+                            else if (value.has_sint_value())
+                            {
+                                mapnik::value_integer val = value.sint_value();
+                                feature->put(name, val);
+                            }
+                            else if (value.has_uint_value())
+                            {
+                                mapnik::value_integer val = value.uint_value();
+                                feature->put(name, val);
+                            }
+                            else
+                            {
+                                // Do nothing
+                                //feature->put_new(name, mapnik::value_null());
+                            }
                         }
                     }
                 }
@@ -158,6 +209,7 @@ namespace mapnik { namespace vector {
         }
 
     private:
+        Filter filter_;
         mapnik::vector::tile_layer const& layer_;
         double tile_x_;
         double tile_y_;
@@ -170,7 +222,6 @@ namespace mapnik { namespace vector {
 
     class tile_datasource : public datasource
     {
-        friend class tile_featureset;
     public:
         tile_datasource(mapnik::vector::tile_layer const& layer,
                         unsigned x,
@@ -228,15 +279,21 @@ namespace mapnik { namespace vector {
 
     featureset_ptr tile_datasource::features(query const& q) const
     {
-        // TODO - restrict features based on query
-        return boost::make_shared<tile_featureset>
-            (layer_, tile_x_, tile_y_, scale_);
+        mapnik::filter_in_box filter(q.get_bbox());
+        return boost::make_shared<tile_featureset<mapnik::filter_in_box> >
+            (filter, q.property_names(), layer_, tile_x_, tile_y_, scale_);
     }
 
     featureset_ptr tile_datasource::features_at_point(coord2d const& pt, double tol) const
     {
-        // TODO - add support
-        return featureset_ptr();
+        mapnik::filter_at_point filter(pt,tol);
+        std::set<std::string> names;
+        for (int i = 0; i < layer_.keys_size(); ++i)
+        {
+            names.insert(layer_.keys(i));
+        }
+        return boost::make_shared<tile_featureset<filter_at_point> >
+            (filter, names, layer_, tile_x_, tile_y_, scale_);
     }
 
     void tile_datasource::set_envelope(box2d<double> const& bbox)

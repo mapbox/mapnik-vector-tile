@@ -1,5 +1,8 @@
 # Changlog
 
+## 0.2.0
+ - Now filtering features based on mapnik::query bbox and filtering attributes based on mapnik::query names.
+
 ## 0.1.0
 
  - API change: Optimized spherical mercator math and reworked interface. `mapnik::vector::spherical_mercator` now is not templated on max zoom level and works with any zoom. `mapnik::vector::spherical_mercator::xyz` now expects references to doubles instead of a `mapnik::box2d`.
