@@ -58,28 +58,13 @@ namespace mapnik { namespace vector {
             std::set<std::string>::const_iterator end = attribute_names.end();
             for ( ;pos !=end; ++pos)
             {
-                bool found_name = false;
                 for (int i = 0; i < layer_.keys_size(); ++i)
                 {
                     if (layer_.keys(i) == *pos)
                     {
                         ctx_->push(*pos);
-                        found_name = true;
                         break;
                     }
-                }
-                if (!found_name)
-                {
-                    std::string s("no attribute '");
-                    std::string pos_string;
-                    s += *pos + "'. Valid attributes are: ";
-                    std::vector<std::string> list;
-                    for (int i = 0; i < layer_.keys_size(); ++i)
-                    {
-                        list.push_back(layer_.keys(i));
-                    }
-                    s += boost::algorithm::join(list, ",") + ".";
-                    throw mapnik::datasource_exception("Vector Tile Datasource: " + s);
                 }
             }
         }
