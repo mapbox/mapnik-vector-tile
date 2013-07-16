@@ -1,7 +1,7 @@
 # Changlog
 
 ## 0.2.0
- - Now filtering features based on mapnik::query bbox and filtering attributes based on mapnik::query names.
+ - Now filtering features based on mapnik::query bbox and filtering attributes based on mapnik::query names. (#6)
 
 ## 0.1.0
 
