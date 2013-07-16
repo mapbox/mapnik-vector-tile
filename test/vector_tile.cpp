@@ -59,7 +59,7 @@ TEST_CASE( "vector tile output", "should create vector tile with one point" ) {
     map.addLayer(lyr);
     map.zoom_to_box(bbox);
     renderer_type ren(backend,map);
-    ren.apply();
+    ren.apply(map.layers());
     CHECK(1 == tile.layers_size());
     mapnik::vector::tile_layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -92,7 +92,7 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     map.addLayer(lyr);
     map.zoom_to_box(bbox);
     renderer_type ren(backend,map);
-    ren.apply();
+    ren.apply(map.layers());
     // serialize to message
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
@@ -123,7 +123,7 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     map2.zoom_to_box(bbox);
     mapnik::image_32 im(map2.width(),map2.height());
     mapnik::agg_renderer<mapnik::image_32> ren2(map2,im);
-    ren2.apply();
+    ren2.apply(map2.layers(),map2.styles());
     unsigned rgba = im.data()(128,128);
     CHECK(red.rgba() == rgba);
     //mapnik::save_to_file(im,"test.png");

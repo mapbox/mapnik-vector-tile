@@ -74,7 +74,8 @@ namespace mapnik { namespace vector {
               tolerance_(tolerance),
               painted_(false) {}
 
-        void apply(double scale_denom=0.0)
+        void apply(std::vector<mapnik::layer> const& layers,
+                   double scale_denom=0.0)
         {
             mapnik::projection proj(m_.srs(),true);
             if (scale_denom <= 0.0)
@@ -82,7 +83,7 @@ namespace mapnik { namespace vector {
                 scale_denom = mapnik::scale_denominator(m_.scale(),proj.is_geographic());
             }
             scale_denom *= scale_factor_;
-            BOOST_FOREACH ( mapnik::layer const& lay, m_.layers() )
+            BOOST_FOREACH ( mapnik::layer const& lay, layers )
             {
                 backend_.start_tile_layer(lay.name());
                 if (lay.visible(scale_denom))
