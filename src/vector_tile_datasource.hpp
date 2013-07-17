@@ -84,7 +84,7 @@ namespace mapnik { namespace vector {
                 const int cmd_bits = 3;
                 unsigned length = 0;
                 double x = tile_x_, y = tile_y_;
-                bool first = false;
+                bool first = true;
                 mapnik::box2d<double> envelope;
                 for (int k = 0; k < f.geometry_size();)
                 {

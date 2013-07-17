@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.2.2
+
+ - Fixed accuracy of bbox filtering of features
+
 ## 0.2.1
 
  - Removed tile_datasource validation that requested attributes exist in feature since current vector tiles do not guarantee that `tile_layer::keys` is populated with all possible attributes and rather only include those encounted by features processed.
