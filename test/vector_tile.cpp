@@ -167,10 +167,10 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     CHECK(fs->next() == mapnik::feature_ptr());
 
     // ensure same behavior for feature_at_point
-    fs = ds.features_at_point(mapnik::coord2d(0,0),0);
+    fs = ds.features_at_point(mapnik::coord2d(0.0,0.0),0.0001);
     CHECK(fs->next() != mapnik::feature_ptr());
 
-    fs = ds.features_at_point(mapnik::coord2d(1,1),1);
+    fs = ds.features_at_point(mapnik::coord2d(1.0,1.0),1.0001);
     CHECK(fs->next() != mapnik::feature_ptr());
 
     fs = ds.features_at_point(mapnik::coord2d(-10,-10),0);

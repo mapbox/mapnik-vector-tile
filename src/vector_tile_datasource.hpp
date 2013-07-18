@@ -101,8 +101,8 @@ namespace mapnik { namespace vector {
                             int32_t dy = f.geometry(k++);
                             dx = ((dx >> 1) ^ (-(dx & 1)));
                             dy = ((dy >> 1) ^ (-(dy & 1)));
-                            x += (double)dx / scale_;
-                            y -= (double)dy / scale_;
+                            x += (static_cast<double>(dx) / scale_);
+                            y -= (static_cast<double>(dy) / scale_);
                             if (first)
                             {
                                 envelope.init(x,y,x,y);

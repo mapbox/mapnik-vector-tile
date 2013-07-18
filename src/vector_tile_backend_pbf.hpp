@@ -192,14 +192,14 @@ namespace mapnik { namespace vector {
                     if (cmd == SEG_MOVETO || cmd == SEG_LINETO)
                     {
                         // Compute delta to the previous coordinate.
-                        int32_t cur_x = static_cast<int32_t>(vtx.x * path_multiplier_);
-                        int32_t cur_y = static_cast<int32_t>(vtx.y * path_multiplier_);
+                        int32_t cur_x = static_cast<int32_t>(std::floor((vtx.x * path_multiplier_)+.5));
+                        int32_t cur_y = static_cast<int32_t>(std::floor((vtx.y * path_multiplier_)+.5));
                         int32_t dx = cur_x - x_;
                         int32_t dy = cur_y - y_;
 
                         // Omit movements that are no-ops.
-                        unsigned x_floor = static_cast<unsigned>(std::floor(std::abs(dx) +.5));
-                        unsigned y_floor = static_cast<unsigned>(std::floor(std::abs(dy) +.5));
+                        unsigned x_floor = static_cast<unsigned>(std::abs(dx));
+                        unsigned y_floor = static_cast<unsigned>(std::abs(dy));
                         if (x_floor >= tolerance ||
                             y_floor >= tolerance ||
                             length == 0)
