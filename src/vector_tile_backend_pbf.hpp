@@ -176,14 +176,14 @@ namespace mapnik { namespace vector {
                 // encoding works.
                 while ((vtx.cmd = path.vertex(&vtx.x, &vtx.y)) != SEG_END)
                 {
-                    if ((int)vtx.cmd != cmd)
+                    if (static_cast<int>(vtx.cmd) != cmd)
                     {
                         if (cmd_idx >= 0)
                         {
                             // Encode the previous length/command value.
                             current_feature_->set_geometry(cmd_idx, (length << cmd_bits) | (cmd & ((1 << cmd_bits) - 1)));
                         }
-                        cmd = vtx.cmd;
+                        cmd = static_cast<int>(vtx.cmd);
                         length = 0;
                         cmd_idx = current_feature_->geometry_size();
                         current_feature_->add_geometry(0); // placeholder
