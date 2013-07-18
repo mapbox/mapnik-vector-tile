@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.2.3
+
+ - Fixed casting between doubles and ints (solves test failures on 32 bit linux)
+
 ## 0.2.2
 
  - Fixed accuracy of bbox filtering of features
