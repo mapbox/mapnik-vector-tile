@@ -236,7 +236,7 @@ namespace mapnik { namespace vector {
     };
 
 // tile_datasource impl
-    tile_datasource::tile_datasource(mapnik::vector::tile_layer const& layer,
+    inline tile_datasource::tile_datasource(mapnik::vector::tile_layer const& layer,
                                      unsigned x,
                                      unsigned y,
                                      unsigned z,
@@ -255,21 +255,21 @@ namespace mapnik { namespace vector {
         scale_ = (static_cast<double>(layer_.extent()) / tile_size_) * tile_size_/resolution;
     }
 
-    tile_datasource::~tile_datasource() {}
+    inline tile_datasource::~tile_datasource() {}
 
-    datasource::datasource_t tile_datasource::type() const
+    inline datasource::datasource_t tile_datasource::type() const
     {
         return datasource::Vector;
     }
 
-    featureset_ptr tile_datasource::features(query const& q) const
+    inline featureset_ptr tile_datasource::features(query const& q) const
     {
         mapnik::filter_in_box filter(q.get_bbox());
         return boost::make_shared<tile_featureset<mapnik::filter_in_box> >
             (filter, q.property_names(), layer_, tile_x_, tile_y_, scale_);
     }
 
-    featureset_ptr tile_datasource::features_at_point(coord2d const& pt, double tol) const
+    inline featureset_ptr tile_datasource::features_at_point(coord2d const& pt, double tol) const
     {
         mapnik::filter_at_point filter(pt,tol);
         std::set<std::string> names;
@@ -281,13 +281,13 @@ namespace mapnik { namespace vector {
             (filter, names, layer_, tile_x_, tile_y_, scale_);
     }
 
-    void tile_datasource::set_envelope(box2d<double> const& bbox)
+    inline void tile_datasource::set_envelope(box2d<double> const& bbox)
     {
         extent_initialized_ = true;
         extent_ = bbox;
     }
 
-    box2d<double> tile_datasource::envelope() const
+    inline box2d<double> tile_datasource::envelope() const
     {
         if (!extent_initialized_)
         {
@@ -300,12 +300,12 @@ namespace mapnik { namespace vector {
         return extent_;
     }
 
-    boost::optional<datasource::geometry_t> tile_datasource::get_geometry_type() const
+    inline boost::optional<datasource::geometry_t> tile_datasource::get_geometry_type() const
     {
         return datasource::Collection;
     }
 
-    layer_descriptor tile_datasource::get_descriptor() const
+    inline layer_descriptor tile_datasource::get_descriptor() const
     {
         return desc_;
     }

@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.2.4
+
+ - Marked tile_datasource implemented to avoid duplicate symbol errors if used from multiple compilation units
+
 ## 0.2.3
 
  - Fixed casting between doubles and ints (solves test failures on 32 bit linux)
