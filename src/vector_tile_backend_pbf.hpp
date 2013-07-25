@@ -1,12 +1,17 @@
 #ifndef __MAPNIK_VECTOR_TILE_BACKEND_PBF_H__
 #define __MAPNIK_VECTOR_TILE_BACKEND_PBF_H__
 
-#include <boost/unordered_map.hpp>
-#include <boost/foreach.hpp>
+// mapnik
 #include <mapnik/feature.hpp>
-#include "vector_tile.pb.h"
 #include <mapnik/version.hpp>
 #include <mapnik/value_types.hpp>
+
+// vector tile
+#include "vector_tile.pb.h"
+
+// boost
+#include <boost/unordered_map.hpp>
+#include <boost/foreach.hpp>
 
 namespace mapnik { namespace vector {
 
@@ -81,7 +86,7 @@ namespace mapnik { namespace vector {
             }
         }
 
-        void start_tile_feature(mapnik::feature_impl const & feature)
+        void start_tile_feature(mapnik::feature_impl const& feature)
         {
             current_feature_ = current_layer_->add_features();
             x_ = y_ = 0;
