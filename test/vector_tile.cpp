@@ -65,7 +65,7 @@ TEST_CASE( "vector tile output", "should create vector tile with one point" ) {
     CHECK(std::string("layer") == layer.name());
     CHECK(1 == layer.features_size());
     mapnik::vector::tile_feature const& f = layer.features(0);
-    CHECK(1 == f.id());
+    CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
     CHECK(3 == f.geometry_size());
     CHECK(9 == f.geometry(0));
     CHECK(4096 == f.geometry(1));
@@ -147,7 +147,7 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     CHECK(std::string("layer") == layer.name());
     CHECK(1 == layer.features_size());
     mapnik::vector::tile_feature const& f = layer.features(0);
-    CHECK(1 == f.id());
+    CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
     CHECK(3 == f.geometry_size());
     CHECK(9 == f.geometry(0));
     CHECK(4096 == f.geometry(1));
