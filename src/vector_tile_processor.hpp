@@ -2,6 +2,7 @@
 #define __MAPNIK_VECTOR_PROCESSOR_H__
 
 #include <mapnik/map.hpp>
+#include <mapnik/request.hpp>
 #include <mapnik/layer.hpp>
 #include <mapnik/query.hpp>
 #include <mapnik/ctrans.hpp>
@@ -56,6 +57,7 @@ namespace mapnik { namespace vector {
     private:
         backend_type & backend_;
         mapnik::Map const& m_;
+        mapnik::request const& m_req_;
         double scale_factor_;
         mapnik::CoordTransform t_;
         unsigned tolerance_;
@@ -63,14 +65,16 @@ namespace mapnik { namespace vector {
     public:
         processor(T & backend,
                   mapnik::Map const& map,
+                  mapnik::request const& m_req,
                   double scale_factor=1.0,
                   unsigned offset_x=0,
                   unsigned offset_y=0,
                   unsigned tolerance=1)
             : backend_(backend),
               m_(map),
+              m_req_(m_req),
               scale_factor_(scale_factor),
-              t_(m_.width(),m_.height(),m_.get_current_extent(),offset_x,offset_y),
+              t_(m_req.width(),m_req.height(),m_req.extent(),offset_x,offset_y),
               tolerance_(tolerance),
               painted_(false) {}
 
@@ -79,7 +83,7 @@ namespace mapnik { namespace vector {
             mapnik::projection proj(m_.srs(),true);
             if (scale_denom <= 0.0)
             {
-                scale_denom = mapnik::scale_denominator(m_.scale(),proj.is_geographic());
+                scale_denom = mapnik::scale_denominator(m_req_.scale(),proj.is_geographic());
             }
             scale_denom *= scale_factor_;
             BOOST_FOREACH ( mapnik::layer const& lay, m_.layers() )
@@ -87,7 +91,14 @@ namespace mapnik { namespace vector {
                 backend_.start_tile_layer(lay.name());
                 if (lay.visible(scale_denom))
                 {
-                    apply_to_layer(lay,proj,scale_denom);
+                    apply_to_layer(lay,
+                                   proj,
+                                   m_req_.scale(),
+                                   scale_denom,
+                                   m_req_.width(),
+                                   m_req_.height(),
+                                   m_req_.extent(),
+                                   m_req_.buffer_size());
                 }
                 backend_.stop_tile_layer();
             }
@@ -100,7 +111,12 @@ namespace mapnik { namespace vector {
 
         void apply_to_layer(mapnik::layer const& lay,
                             mapnik::projection const& proj0,
-                            double scale_denom)
+                            double scale,
+                            double scale_denom,
+                            unsigned width,
+                            unsigned height,
+                            box2d<double> const& extent,
+                            int buffer_size)
         {
             mapnik::datasource_ptr ds = lay.datasource();
             if (!ds)
@@ -109,24 +125,24 @@ namespace mapnik { namespace vector {
             }
             mapnik::projection proj1(lay.srs(),true);
             mapnik::proj_transform prj_trans(proj0,proj1);
-            mapnik::box2d<double> query_ext = m_.get_current_extent(); // unbuffered
-            mapnik::box2d<double> buffered_query_ext(query_ext);  // buffered
+            box2d<double> query_ext = extent; // unbuffered
+            box2d<double> buffered_query_ext(query_ext);  // buffered
+            double buffer_padding = 2.0 * scale;
             boost::optional<int> layer_buffer_size = lay.buffer_size();
-            // if layer overrides buffer size, use this value to compute buffered extent
-            if (layer_buffer_size)
+            if (layer_buffer_size) // if layer overrides buffer size, use this value to compute buffered extent
             {
-                int layer_buffer_size_int = *layer_buffer_size;
-                double extra = 2.0 * m_.scale() * layer_buffer_size_int;
-                buffered_query_ext.width(query_ext.width() + extra);
-                buffered_query_ext.height(query_ext.height() + extra);
+                buffer_padding *= *layer_buffer_size;
             }
             else
             {
-                buffered_query_ext = m_.get_buffered_extent();
+                buffer_padding *= buffer_size;
             }
+            buffered_query_ext.width(query_ext.width() + buffer_padding);
+            buffered_query_ext.height(query_ext.height() + buffer_padding);
             // clip buffered extent by maximum extent, if supplied
-            boost::optional<mapnik::box2d<double> > const& maximum_extent = m_.maximum_extent();
-            if (maximum_extent) {
+            boost::optional<box2d<double> > const& maximum_extent = m_.maximum_extent();
+            if (maximum_extent)
+            {
                 buffered_query_ext.clip(*maximum_extent);
             }
             mapnik::box2d<double> layer_ext = lay.envelope();
@@ -189,9 +205,9 @@ namespace mapnik { namespace vector {
             }
             double qw = query_ext.width()>0 ? query_ext.width() : 1;
             double qh = query_ext.height()>0 ? query_ext.height() : 1;
-            mapnik::query::resolution_type res(m_.width()/qw,
-                                               m_.height()/qh);
-            mapnik::query q(layer_ext,res,scale_denom,m_.get_current_extent());
+            mapnik::query::resolution_type res(width/qw,
+                                               height/qh);
+            mapnik::query q(layer_ext,res,scale_denom,extent);
             mapnik::layer_descriptor lay_desc = ds->get_descriptor();
             BOOST_FOREACH(mapnik::attribute_descriptor const& desc, lay_desc.get_descriptors())
             {

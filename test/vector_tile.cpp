@@ -57,8 +57,8 @@ TEST_CASE( "vector tile output", "should create vector tile with one point" ) {
     mapnik::layer lyr("layer");
     lyr.set_datasource(build_ds());
     map.addLayer(lyr);
-    map.zoom_to_box(bbox);
-    renderer_type ren(backend,map);
+    mapnik::request m_req(tile_size,tile_size,bbox);
+    renderer_type ren(backend,map,m_req);
     ren.apply();
     CHECK(1 == tile.layers_size());
     mapnik::vector::tile_layer const& layer = tile.layers(0);
@@ -91,7 +91,8 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     lyr.set_datasource(build_ds());
     map.addLayer(lyr);
     map.zoom_to_box(bbox);
-    renderer_type ren(backend,map);
+    mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
+    renderer_type ren(backend,map,m_req);
     ren.apply();
     // serialize to message
     std::string buffer;
@@ -139,8 +140,8 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     mapnik::layer lyr("layer");
     lyr.set_datasource(build_ds());
     map.addLayer(lyr);
-    map.zoom_to_box(bbox);
-    renderer_type ren(backend,map);
+    mapnik::request m_req(tile_size,tile_size,bbox);
+    renderer_type ren(backend,map,m_req);
     ren.apply();
     CHECK(1 == tile.layers_size());
     mapnik::vector::tile_layer const& layer = tile.layers(0);

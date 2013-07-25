@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.3.0
+
+ - API change: mapnik::vector::processor now requires a mapnik::request object as the third argument. The reason for this is to make it more viable for calling programs to avoid needing to mutate the map before passing to the processor. Now the `width`, `height`, `buffer_size`, and `extent` will be taken from the mapnik::request object inside processor.apply(). For now the `srs` and `layers` will still be taken off the map.
+
 ## 0.2.5
 
  - Fixed incorrect copy of protobuf writing backend when passed to the processor
