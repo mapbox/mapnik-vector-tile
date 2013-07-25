@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.2.5
+
+ - Fixed incorrect copy of protobuf writing backend when passed to the processor
+
 ## 0.2.4
 
  - Marked tile_datasource implemented to avoid duplicate symbol errors if used from multiple compilation units

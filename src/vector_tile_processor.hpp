@@ -54,7 +54,7 @@ namespace mapnik { namespace vector {
     public:
         typedef T backend_type;
     private:
-        backend_type backend_;
+        backend_type & backend_;
         mapnik::Map const& m_;
         double scale_factor_;
         mapnik::CoordTransform t_;
