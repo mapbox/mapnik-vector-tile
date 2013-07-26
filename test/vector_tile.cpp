@@ -110,6 +110,15 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
                                     mapnik::vector::tile_datasource>(
                                         layer2,x,y,z,map2.width());
     ds->set_envelope(bbox);
+    mapnik::layer_descriptor lay_desc = ds->get_descriptor();
+    std::vector<std::string> expected_names;
+    expected_names.push_back("name");
+    std::vector<std::string> names;
+    BOOST_FOREACH(mapnik::attribute_descriptor const& desc, lay_desc.get_descriptors())
+    {
+        names.push_back(desc.get_name());
+    }
+    CHECK(names == expected_names);
     lyr2.set_datasource(ds);
     lyr2.add_style("style");
     map2.addLayer(lyr2);
@@ -159,9 +168,17 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
 
     // ensure we can query single feature
     fs = ds.features(mapnik::query(bbox));
-    CHECK(fs->next() != mapnik::feature_ptr());
-    fs = ds.features(mapnik::query(mapnik::box2d<double>(-1,-1,1,1)));
-    CHECK(fs->next() != mapnik::feature_ptr());
+    mapnik::feature_ptr feat = fs->next();
+    CHECK(feat != mapnik::feature_ptr());
+    CHECK(feat->size() == 0);
+    CHECK(fs->next() == mapnik::feature_ptr());
+    mapnik::query qq = mapnik::query(mapnik::box2d<double>(-1,-1,1,1));
+    qq.add_property_name("name");
+    fs = ds.features(qq);
+    feat = fs->next();
+    CHECK(feat != mapnik::feature_ptr());
+    CHECK(feat->size() == 1);
+//    CHECK(feat->get("name") == "null island");
 
     // now check that datasource api throws out feature which is outside extent
     fs = ds.features(mapnik::query(mapnik::box2d<double>(-10,-10,-10,-10)));

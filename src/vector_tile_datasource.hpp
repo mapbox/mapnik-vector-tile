@@ -222,7 +222,8 @@ namespace mapnik { namespace vector {
         boost::optional<geometry_t> get_geometry_type() const;
         layer_descriptor get_descriptor() const;
     private:
-        mapnik::layer_descriptor desc_;
+        mutable mapnik::layer_descriptor desc_;
+        mutable bool attributes_added_;
         mapnik::vector::tile_layer const& layer_;
         unsigned x_;
         unsigned y_;
@@ -243,6 +244,7 @@ namespace mapnik { namespace vector {
                                      unsigned tile_size)
         : datasource(parameters()),
           desc_("in-memory datasource","utf-8"),
+          attributes_added_(false),
           layer_(layer),
           x_(x),
           y_(y),
@@ -307,6 +309,15 @@ namespace mapnik { namespace vector {
 
     inline layer_descriptor tile_datasource::get_descriptor() const
     {
+        if (!attributes_added_)
+        {
+            for (int i = 0; i < layer_.keys_size(); ++i)
+            {
+                // Object type here because we don't know the precise value until features are unpacked
+                desc_.add_descriptor(attribute_descriptor(layer_.keys(i), Object));
+            }
+            attributes_added_ = true;
+        }
         return desc_;
     }
 
