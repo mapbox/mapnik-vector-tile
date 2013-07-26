@@ -1,8 +1,12 @@
 # Changlog
 
+## 0.3.2
+
+ - Fixed `mapnik::vector::tile_datasource` to respect the feature id if known
+
 ## 0.3.1
 
- - Added support for reporting known attribute names for a given vector tile layer via mapnik::vector::tile_datasource `descriptors`.
+ - Added support for reporting known attribute names for a given vector tile layer via `mapnik::vector::tile_datasource` `descriptors`.
 
 ## 0.3.0
 

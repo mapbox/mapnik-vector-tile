@@ -128,6 +128,14 @@ namespace mapnik { namespace vector {
                 {
                     continue;
                 }
+                // if encoded feature was given an id, respect it
+                // TODO: id should not be optional!
+                // https://github.com/mapbox/mapnik-vector-tile/issues/17
+                // https://github.com/mapbox/mapnik-vector-tile/issues/18
+                if (f.has_id())
+                {
+                    feature_id = f.id();
+                }
                 mapnik::feature_ptr feature(
                     mapnik::feature_factory::create(ctx_,feature_id));
                 feature->paths().push_back(geom);
