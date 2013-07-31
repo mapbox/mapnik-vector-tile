@@ -89,6 +89,7 @@ See examples in examples/c++
 These require the protobuf python bindings and the `rtree` library
 which can be installed like:
 
+    sudo apt-get install libspatialindex-dev
     pip install protobuf rtree
 
 To build and test the python example code do:
