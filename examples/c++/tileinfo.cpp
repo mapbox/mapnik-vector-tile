@@ -1,9 +1,9 @@
 #include "../../src/vector_tile.pb.h"
+#include "../../src/vector_tile_compression.hpp"
 #include <vector>
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
-
 
 int main(int argc, char** argv)
 {
@@ -16,7 +16,7 @@ int main(int argc, char** argv)
     
     if (args.empty())
     {
-        std::clog << "please pass the path to an uncompressed protobuf tile (.vector.pbf)\n";
+        std::clog << "please pass the path to an uncompressed or zlib-compressed protobuf tile\n";
         return -1;
     }
 
@@ -35,9 +35,21 @@ int main(int argc, char** argv)
 
         // now attemp to open protobuf
         mapnik::vector::tile tile;
-        if (!tile.ParseFromString(message))
+        if (mapnik::vector::is_compressed(message))
         {
-            std::clog << "failed to parse protobuf\n";
+            std::string uncompressed;
+            mapnik::vector::decompress(message,uncompressed);
+            if (!tile.ParseFromString(uncompressed))
+            {
+                std::clog << "failed to parse compressed protobuf\n";
+            }
+        }
+        else
+        {
+            if (!tile.ParseFromString(message))
+            {
+                std::clog << "failed to parse protobuf\n";
+            }
         }
         
         std::cout << "number of layers: " << tile.layers_size() << "\n";

@@ -91,6 +91,8 @@ namespace mapnik { namespace vector {
             current_feature_ = current_layer_->add_features();
             x_ = y_ = 0;
 
+            // TODO - encode as sint64: (n << 1) ^ ( n >> 63)
+            // test current behavior with negative numbers
             current_feature_->set_id(feature.id());
 
             feature_kv_iterator itr = feature.begin();
