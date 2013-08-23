@@ -19,7 +19,8 @@ int main(int argc, char** argv)
         std::clog << "please pass the path to an uncompressed or zlib-compressed protobuf tile\n";
         return -1;
     }
-
+    bool verbose = std::find(args.begin(), args.end(), "--verbose")!=args.end();
+    
     try
     {
         std::string filename = args[0];
@@ -51,26 +52,86 @@ int main(int argc, char** argv)
                 std::clog << "failed to parse protobuf\n";
             }
         }
-        
-        std::cout << "number of layers: " << tile.layers_size() << "\n";
-
-        for (unsigned i=0;i<tile.layers_size();++i)
-        {
-            mapnik::vector::tile_layer const& layer = tile.layers(i);
-            std::cout << "  layer: " << i << "\n";
-            std::cout << "  layer name: " << layer.name() << "\n";
-            std::cout << "  layer extent: " << layer.extent() << "\n";
-            std::cout << "  layer features: " << layer.features_size() << "\n";
-            for (unsigned j=0;j<layer.features_size();++j)
+        if (!verbose) {
+            std::cout << "layers: " << tile.layers_size() << "\n";
+            for (unsigned i=0;i<tile.layers_size();++i)
             {
-                mapnik::vector::tile_feature const& feature = layer.features(j);
-                std::cout << "    feature: " << j << "\n";
-                std::cout << "    feature id: " << feature.id() << "\n";
-                std::cout << "    feature type: " << feature.type() << "\n";
-                // TODO - dump tags and geometries
+                mapnik::vector::tile_layer const& layer = tile.layers(i);
+                std::cout << layer.name() << ":\n";
+                std::cout << "  version: " << layer.version() << "\n";
+                std::cout << "  extent: " << layer.extent() << "\n";
+                std::cout << "  features: " << layer.features_size() << "\n";
+                std::cout << "  keys: " << layer.keys_size() << "\n";
+                std::cout << "  values: " << layer.values_size() << "\n";
+            }
+        } else {
+            for (unsigned i=0;i<tile.layers_size();++i)
+            {
+                mapnik::vector::tile_layer const& layer = tile.layers(i);
+                std::cout << "layer: " << layer.name() << "\n";
+                std::cout << "  version: " << layer.version() << "\n";
+                std::cout << "  extent: " << layer.extent() << "\n";
+                std::cout << "  keys: ";
+                for (unsigned i=0;i<layer.keys_size();++i)
+                {
+                     std::string const& key = layer.keys(i);
+                     std::cout << key << ",";
+                }
+                std::cout << "\n";
+                std::cout << "  values: ";
+                for (unsigned i=0;i<layer.values_size();++i)
+                {
+                     mapnik::vector::tile_value const & value = layer.values(i);
+                     if (value.has_string_value()) {
+                          std::cout << "'" << value.string_value();
+                     } else if (value.has_int_value()) {
+                          std::cout << value.int_value();
+                     } else if (value.has_double_value()) {
+                          std::cout << value.double_value();
+                     } else if (value.has_float_value()) {
+                          std::cout << value.float_value();
+                     } else if (value.has_bool_value()) {
+                          std::cout << value.bool_value();
+                     } else if (value.has_sint_value()) {
+                          std::cout << value.sint_value();
+                     } else if (value.has_uint_value()) {
+                          std::cout << value.uint_value();
+                     } else {
+                          std::cout << "null";
+                     }
+                     if (i<layer.values_size()-1) {
+                        std::cout << ",";
+                     }
+                 }
+                 std::cout << "\n";
+                 for (unsigned i=0;i<layer.features_size();++i)
+                 {
+                     mapnik::vector::tile_feature const & feat = layer.features(i);
+                     std::cout << "  feature: " << feat.id() << " " << feat.type() << "\n";
+                     std::cout << "    tags: ";
+                     for (unsigned j=0;j<feat.tags_size();++j)
+                     {
+                          uint32_t tag = feat.tags(j);
+                          std::cout << tag;
+                          if (j<feat.tags_size()-1) {
+                            std::cout << ",";
+                          }
+                     }
+                     std::cout << "\n";
+                     std::cout << "    geometries: ";
+                     for (unsigned j=0;j<feat.geometry_size();++j)
+                     {
+                          uint32_t geom = feat.geometry(j);
+                          std::cout << geom;
+                          if (j<feat.geometry_size()-1) {
+                            std::cout << ",";
+                          }
+                     }
+                     std::cout << "\n";
+                 }
+                 std::cout << "\n";
             }
         }
-
     }
     catch (std::exception const& ex)
     {
