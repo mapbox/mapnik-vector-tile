@@ -219,7 +219,7 @@ int main (int argc, char* const argv[])
     mapnik::vector::spherical_mercator merc(256);
     merc.xyz(x,y,z,minx,miny,maxx,maxy);
     bbox.init(minx,miny,maxx,maxy);
-    int result = Catch::Main( argc, argv );
+    int result = Catch::Session().run( argc, argv );
     if (!result) printf("\x1b[1;32m ✓ \x1b[0m\n");
     google::protobuf::ShutdownProtobufLibrary();
     return result;
