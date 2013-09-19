@@ -1,5 +1,9 @@
 # Changlog
 
+## Future
+
+ - Upgraded bundled cache.hpp test framework to `1.0 build 8` (kapouer)
+
 ## 0.3.2
 
  - Fixed `mapnik::vector::tile_datasource` to respect the feature id if known
