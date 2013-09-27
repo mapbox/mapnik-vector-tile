@@ -9,9 +9,14 @@ int main(int argc, char** argv)
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
     std::vector<std::string> args;
+    bool verbose = false;
     for (int i=1;i<argc;++i)
     {
-        args.push_back(argv[i]);
+        if (strcmp(argv[i], "--verbose") == 0) {
+            verbose = true;
+        } else {
+            args.push_back(argv[i]);
+        }
     }
     
     if (args.empty())
@@ -19,7 +24,6 @@ int main(int argc, char** argv)
         std::clog << "please pass the path to an uncompressed or zlib-compressed protobuf tile\n";
         return -1;
     }
-    bool verbose = std::find(args.begin(), args.end(), "--verbose")!=args.end();
     
     try
     {
