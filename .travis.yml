@@ -1,0 +1,19 @@
+language: cpp
+
+compiler:
+ - clang
+ - gcc
+
+before_install:
+ - sudo apt-add-repository --yes ppa:mapnik/v2.2.0
+ - sudo apt-get update -qq
+ - sudo apt-get -qq install libprotobuf7 libprotobuf-dev protobuf-compiler libmapnik libmapnik-dev
+
+script:
+ - make test
+
+notifications:
+  irc:
+    channels:
+      - "irc.freenode.org#mapnik"
+    use_notice: true
