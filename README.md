@@ -1,7 +1,8 @@
 ## mapnik-vector-tile
 
-A high performance library for working with vector tiles from the
-team at [MapBox](http://mapbox.com/about/team/).
+[![Build Status](https://secure.travis-ci.org/mapbox/mapnik-vector-tile.png)](http://travis-ci.org/mapbox/mapnik-vector-tile)
+
+A high performance library for working with vector tiles with Mapnik.
 
 Provides C++ headers that support rendering geodata into vector tiles
 and rendering vector tiles into images.
