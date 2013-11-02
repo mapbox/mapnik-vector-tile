@@ -83,6 +83,9 @@ message tile {
                 // The bounding box in this tile spans from 0..4095 units
                 optional uint32 extent = 5 [ default = 4096 ];
 
+                // The buffer size originally used to query features
+                optional sint32 buffer_size = 6 [ default = 0 ];
+
                 extensions 16 to max;
         }
 

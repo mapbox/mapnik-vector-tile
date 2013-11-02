@@ -132,10 +132,12 @@ namespace mapnik { namespace vector {
             if (layer_buffer_size) // if layer overrides buffer size, use this value to compute buffered extent
             {
                 buffer_padding *= *layer_buffer_size;
+                backend_.set_tile_layer_buffer_size(*layer_buffer_size);
             }
             else
             {
                 buffer_padding *= buffer_size;
+                backend_.set_tile_layer_buffer_size(buffer_size);
             }
             buffered_query_ext.width(query_ext.width() + buffer_padding);
             buffered_query_ext.height(query_ext.height() + buffer_padding);

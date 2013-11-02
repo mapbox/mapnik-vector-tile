@@ -305,6 +305,13 @@ namespace mapnik { namespace vector {
             double minx,miny,maxx,maxy;
             merc.xyz(x_,y_,z_,minx,miny,maxx,maxy);
             extent_.init(minx,miny,maxx,maxy);
+            if (layer_.buffer_size() > 0)
+            {
+                double scale = extent_.width()/tile_size_;
+                double padding = 2.0 * scale * layer_.buffer_size();
+                extent_.width(extent_.width() + padding);
+                extent_.height(extent_.height() + padding);
+            }
             extent_initialized_ = true;
         }
         return extent_;

@@ -156,6 +156,16 @@ namespace mapnik { namespace vector {
             current_layer_->set_extent(256 * path_multiplier_);
         }
 
+        void set_tile_layer_buffer_size(int buffer_size)
+        {
+            // only write if non-zero to save a byte
+            if (buffer_size != 0 && current_layer_)
+            {
+                current_layer_->set_buffer_size(buffer_size);
+            }
+
+        }
+
         void stop_tile_layer()
         {
             // NOTE: we intentionally do not remove layers without features

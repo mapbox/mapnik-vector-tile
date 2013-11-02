@@ -76,6 +76,70 @@ TEST_CASE( "vector tile output", "should create vector tile with one point" ) {
     CHECK(52 == buffer.size());
 }
 
+TEST_CASE( "vector tile output 2", "should create vector tile with encoded request-level buffer_size" ) {
+    typedef mapnik::vector::backend_pbf backend_type;
+    typedef mapnik::vector::processor<backend_type> renderer_type;
+    typedef mapnik::vector::tile tile_type;
+    tile_type tile;
+    backend_type backend(tile,16);
+    mapnik::Map map(tile_size,tile_size);
+    mapnik::layer lyr("layer");
+    lyr.set_datasource(build_ds());
+    map.addLayer(lyr);
+    mapnik::request m_req(tile_size,tile_size,bbox);
+    m_req.set_buffer_size(-1);
+    renderer_type ren(backend,map,m_req);
+    ren.apply();
+    CHECK(1 == tile.layers_size());
+    mapnik::vector::tile_layer const& layer = tile.layers(0);
+    CHECK(std::string("layer") == layer.name());
+    CHECK(1 == layer.features_size());
+    CHECK(-1 == layer.buffer_size());
+    mapnik::vector::tile_feature const& f = layer.features(0);
+    CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
+    CHECK(3 == f.geometry_size());
+    CHECK(9 == f.geometry(0));
+    CHECK(4096 == f.geometry(1));
+    CHECK(4096 == f.geometry(2));
+    CHECK(54 == tile.ByteSize());
+    std::string buffer;
+    CHECK(tile.SerializeToString(&buffer));
+    CHECK(54 == buffer.size());
+}
+
+TEST_CASE( "vector tile output 3", "should create vector tile with encoded layer-level buffer_size" ) {
+    typedef mapnik::vector::backend_pbf backend_type;
+    typedef mapnik::vector::processor<backend_type> renderer_type;
+    typedef mapnik::vector::tile tile_type;
+    tile_type tile;
+    backend_type backend(tile,16);
+    mapnik::Map map(tile_size,tile_size);
+    mapnik::layer lyr("layer");
+    lyr.set_datasource(build_ds());
+    lyr.set_buffer_size(256);
+    map.addLayer(lyr);
+    mapnik::request m_req(tile_size,tile_size,bbox);
+    m_req.set_buffer_size(-1);
+    renderer_type ren(backend,map,m_req);
+    ren.apply();
+    CHECK(1 == tile.layers_size());
+    mapnik::vector::tile_layer const& layer = tile.layers(0);
+    CHECK(std::string("layer") == layer.name());
+    CHECK(1 == layer.features_size());
+    CHECK(256 == layer.buffer_size());
+    mapnik::vector::tile_feature const& f = layer.features(0);
+    CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
+    CHECK(3 == f.geometry_size());
+    CHECK(9 == f.geometry(0));
+    CHECK(4096 == f.geometry(1));
+    CHECK(4096 == f.geometry(2));
+    CHECK(55 == tile.ByteSize());
+    std::string buffer;
+    CHECK(tile.SerializeToString(&buffer));
+    CHECK(55 == buffer.size());
+}
+
+
 // vector input api
 #include "vector_tile_datasource.hpp"
 #include "vector_tile_backend_pbf.hpp"
