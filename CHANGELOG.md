@@ -1,7 +1,9 @@
 # Changlog
 
-## Future
+## 0.3.3
 
+ - Added support in tileinfo demo program for reading zlib compressed tiles
+ - Removed dependence on clipper.hp unless `-DCONV_CLIPPER` is defined in `CXXFLAGS`
  - Upgraded bundled cache.hpp test framework to `1.0 build 8` (kapouer)
 
 ## 0.3.2
