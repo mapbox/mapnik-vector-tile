@@ -1,7 +1,6 @@
 #ifndef __MAPNIK_VECTOR_TILE_UTIL_H__
 #define __MAPNIK_VECTOR_TILE_UTIL_H__
 
-#include "clipper.hpp"
 #include "vector_tile.pb.h"
 #include <mapnik/vertex.hpp>
 #include <mapnik/box2d.hpp>
@@ -9,8 +8,13 @@
 #include <stdexcept>
 #include <string>
 
+#ifdef CONV_CLIPPER
+#include "clipper.hpp"
+#endif
+
 namespace mapnik { namespace vector {
 
+#ifdef CONV_CLIPPER
     bool is_solid_clipper(mapnik::vector::tile const& tile, std::string & key)
     {
         ClipperLib::Clipper clipper;
@@ -119,6 +123,7 @@ namespace mapnik { namespace vector {
         // not on the border of the bbox.
         return true;
     }
+#endif
 
     bool is_solid_extent(mapnik::vector::tile const& tile, std::string & key)
     {
