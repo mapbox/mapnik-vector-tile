@@ -77,15 +77,26 @@ namespace mapnik { namespace vector {
             {
                 mapnik::vector::tile_feature const& f = layer_.features(itr_);
                 mapnik::value_integer feature_id = itr_++;
-                std::auto_ptr<mapnik::geometry_type> geom(
-                    new mapnik::geometry_type(
+                // if encoded feature was given an id, respect it
+                // https://github.com/mapbox/mapnik-vector-tile/issues/17
+                // https://github.com/mapbox/mapnik-vector-tile/issues/18
+                if (f.has_id())
+                {
+                    feature_id = f.id();
+                }
+                mapnik::feature_ptr feature(
+                    mapnik::feature_factory::create(ctx_,feature_id));
+                feature->paths().push_back(new mapnik::geometry_type(
                         mapnik::eGeomType(f.type())));
+                mapnik::geometry_type * geom = &feature->paths().front();
                 int cmd = -1;
                 const int cmd_bits = 3;
                 unsigned length = 0;
                 double x = tile_x_, y = tile_y_;
                 bool first = true;
                 mapnik::box2d<double> envelope;
+                double first_x=0;
+                double first_y=0;
                 for (int k = 0; k < f.geometry_size();)
                 {
                     if (!length) {
@@ -103,6 +114,16 @@ namespace mapnik { namespace vector {
                             dy = ((dy >> 1) ^ (-(dy & 1)));
                             x += (static_cast<double>(dx) / scale_);
                             y -= (static_cast<double>(dy) / scale_);
+                            if (cmd == mapnik::SEG_MOVETO)
+                            {
+                                if (!first) {
+                                    feature->paths().push_back(new mapnik::geometry_type(
+                                        mapnik::eGeomType(f.type())));
+                                    geom = &feature->paths().back();
+                                }
+                                first_x = x;
+                                first_y = y;
+                            }
                             if (first)
                             {
                                 envelope.init(x,y,x,y);
@@ -116,6 +137,7 @@ namespace mapnik { namespace vector {
                         }
                         else if (cmd == (mapnik::SEG_CLOSE & ((1 << cmd_bits) - 1)))
                         {
+                            geom->push_vertex(first_x, first_y, mapnik::SEG_LINETO);
                             geom->push_vertex(0, 0, mapnik::SEG_CLOSE);
                         }
                         else
@@ -128,17 +150,6 @@ namespace mapnik { namespace vector {
                 {
                     continue;
                 }
-                // if encoded feature was given an id, respect it
-                // TODO: id should not be optional!
-                // https://github.com/mapbox/mapnik-vector-tile/issues/17
-                // https://github.com/mapbox/mapnik-vector-tile/issues/18
-                if (f.has_id())
-                {
-                    feature_id = f.id();
-                }
-                mapnik::feature_ptr feature(
-                    mapnik::feature_factory::create(ctx_,feature_id));
-                feature->paths().push_back(geom);
 
                 // attributes
                 for (int m = 0; m < f.tags_size(); m += 2)
