@@ -79,7 +79,10 @@ int main(int argc, char** argv)
                 for (unsigned i=0;i<layer.keys_size();++i)
                 {
                      std::string const& key = layer.keys(i);
-                     std::cout << key << ",";
+                     std::cout << key;
+                     if (i<layer.keys_size()-1) {
+                        std::cout << ",";
+                     }
                 }
                 std::cout << "\n";
                 std::cout << "  values: ";
@@ -87,7 +90,7 @@ int main(int argc, char** argv)
                 {
                      mapnik::vector::tile_value const & value = layer.values(i);
                      if (value.has_string_value()) {
-                          std::cout << "'" << value.string_value();
+                          std::cout << value.string_value();
                      } else if (value.has_int_value()) {
                           std::cout << value.int_value();
                      } else if (value.has_double_value()) {
@@ -111,7 +114,19 @@ int main(int argc, char** argv)
                  for (unsigned i=0;i<layer.features_size();++i)
                  {
                      mapnik::vector::tile_feature const & feat = layer.features(i);
-                     std::cout << "  feature: " << feat.id() << " " << feat.type() << "\n";
+                     std::cout << "  feature: " << feat.id() << "\n";
+                     std::cout << "    type: ";
+                     unsigned feat_type = feat.type();
+                     if (feat_type == 0) {
+                         std::cout << "Unknown";
+                     } else if (feat_type == 1) {
+                         std::cout << "Point";
+                     } else if (feat_type == 2) {
+                         std::cout << "LineString";
+                     } else if (feat_type == 3) {
+                         std::cout << "Polygon";
+                     }
+                     std::cout << "\n";
                      std::cout << "    tags: ";
                      for (unsigned j=0;j<feat.tags_size();++j)
                      {

@@ -8,13 +8,13 @@ all: tileinfo
 tileinfo: tileinfo.cpp ../../src/vector_tile.pb.cc
 	$(CXX) $(PROTOBUF_CXXFLAGS) $(PROTOBUF_LDFLAGS) tileinfo.cpp ../../src/vector_tile.pb.cc -o tileinfo -lprotobuf-lite -lz
 
+install: tileinfo
+	cp ./tileinfo /usr/local/bin/tileinfo
+	chmod +x /usr/local/bin/tileinfo
+
 test:
 	./tileinfo ../data/14_8716_8015.vector.pbf
 	./tileinfo ../data/14_2620_6331.vector.pbf.z
-
-install:
-	cp ./tileinfo /usr/local/bin/tileinfo
-	chmod +x /usr/local/bin/tileinfo
 
 clean:
 	@rm -f ./tileinfo
