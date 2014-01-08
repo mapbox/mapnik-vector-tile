@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.3.4
+
+ - Fixed tile_datasource geometry decoding such that it respects multipart geometries (#19)
+
 ## 0.3.3
 
  - Added support in tileinfo demo program for reading zlib compressed tiles
