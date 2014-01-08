@@ -6,7 +6,7 @@ LDFLAGS := $(LDFLAGS) # inherit from env
 all: tileinfo
 
 tileinfo: tileinfo.cpp ../../src/vector_tile.pb.cc
-	$(CXX) tileinfo.cpp ../../src/vector_tile.pb.cc -o tileinfo -lprotobuf-lite -lz
+	$(CXX) $(PROTOBUF_CXXFLAGS) $(PROTOBUF_LDFLAGS) tileinfo.cpp ../../src/vector_tile.pb.cc -o tileinfo -lprotobuf-lite -lz
 
 test:
 	./tileinfo ../data/14_8716_8015.vector.pbf
