@@ -48,8 +48,8 @@ message tile {
                 // - ClosePath: 7   (no parameters follow)
                 //
                 // Ex.: MoveTo(3, 6), LineTo(8, 12), LineTo(20, 34), ClosePath
-                // Encoded as: [ 9 3 6 18 5 6 12 22 7 ]
-                //                                  == command type 7 (ClosePath)
+                // Encoded as: [ 9 3 6 18 5 6 12 22 15 ]
+                //                                  == command type 7 (ClosePath), length 1
                 //                             ===== relative LineTo(+12, +22) == LineTo(20, 34)
                 //                         === relative LineTo(+5, +6) == LineTo(8, 12)
                 //                      == [00010 010] = command type 2 (LineTo), length 2

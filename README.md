@@ -36,7 +36,7 @@ as multiple features, each storing a single geometry part.
 Geometries are stored as an x,y,command stream (where `command` is a rendering command
 like move_to or line_to). Geometries are clipped, reprojected into the map srs,
 converted to screen coordinates, and [delta](http://en.wikipedia.org/wiki/Delta_encoding)
-and [zigzag](http://en.wikipedia.org/wiki/Delta_encoding) encoded.
+and [zigzag](https://developers.google.com/protocol-buffers/docs/encoding#types) encoded.
 
 Feature attributes are encoded as key:value pairs which are dictionary encoded
 at the layer level for compact storage of any repeated keys or values. Values use variant
