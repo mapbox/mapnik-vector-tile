@@ -30,7 +30,6 @@
 #include <boost/make_shared.hpp>
 #include <boost/shared_ptr.hpp>
 #include <unicode/unistr.h>
-#include <boost/algorithm/string.hpp>
 
 namespace mapnik { namespace vector {
 
