@@ -4,6 +4,21 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+#include <sstream>
+
+enum CommandType {
+    SEG_END    = 0,
+    SEG_MOVETO = 1,
+    SEG_LINETO = 2,
+    SEG_CLOSE = (0x40 | 0x0f)
+};
+
+enum eGeomType {
+    Unknown = 0,
+    Point = 1,
+    LineString = 2,
+    Polygon = 3
+};
 
 int main(int argc, char** argv)
 {
@@ -67,6 +82,70 @@ int main(int argc, char** argv)
                 std::cout << "  features: " << layer.features_size() << "\n";
                 std::cout << "  keys: " << layer.keys_size() << "\n";
                 std::cout << "  values: " << layer.values_size() << "\n";
+                unsigned total_repeated = 0;
+                unsigned num_commands = 0;
+                unsigned num_move_to = 0;
+                unsigned num_line_to = 0;
+                unsigned num_close = 0;
+                unsigned num_empty = 0;
+                unsigned degenerate = 0;
+                for (unsigned j=0;j<layer.features_size();++j)
+                {
+                    mapnik::vector::tile_feature const & f = layer.features(j);
+                    total_repeated += f.geometry_size();
+                    eGeomType g_type = static_cast<eGeomType>(f.type());
+                    int cmd = -1;
+                    const int cmd_bits = 3;
+                    unsigned length = 0;
+                    unsigned g_length = 0;
+                    for (int k = 0; k < f.geometry_size();)
+                    {
+                        if (!length) {
+                            unsigned cmd_length = f.geometry(k++);
+                            cmd = cmd_length & ((1 << cmd_bits) - 1);
+                            length = cmd_length >> cmd_bits;
+                            if (length <= 0) num_empty++;
+                            num_commands++;
+                            g_length = 0;
+                        }
+                        if (length > 0) {
+                            length--;
+                            if (cmd == SEG_MOVETO || cmd == SEG_LINETO)
+                            {
+                                f.geometry(k++);
+                                f.geometry(k++);
+                                g_length++;
+                                if (cmd == SEG_MOVETO)
+                                {
+                                    num_move_to++;
+                                }
+                                else if (cmd == SEG_LINETO)
+                                {
+                                    num_line_to++;
+                                }
+                            }
+                            else if (cmd == (SEG_CLOSE & ((1 << cmd_bits) - 1)))
+                            {
+                                if (g_length <= 2) degenerate++;
+                                num_close++;
+                            }
+                            else
+                            {
+                                std::stringstream s;
+                                s << "Unknown command type: " << cmd;
+                                throw std::runtime_error(s.str());
+                            }
+                        }
+                    }
+                }
+                std::cout << "  geometry summary:\n";
+                std::cout << "    total: " << total_repeated << "\n";
+                std::cout << "    commands: " << num_commands << "\n";
+                std::cout << "    move_to: " << num_move_to << "\n";
+                std::cout << "    line_to: " << num_line_to << "\n";
+                std::cout << "    close: " << num_close << "\n";
+                std::cout << "    degenerate polygons: " << degenerate << "\n";
+                std::cout << "    empty geoms: " << num_empty << "\n";
             }
         } else {
             for (unsigned i=0;i<tile.layers_size();++i)
