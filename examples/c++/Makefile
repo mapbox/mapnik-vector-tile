@@ -9,6 +9,7 @@ tileinfo: tileinfo.cpp ../../src/vector_tile.pb.cc
 	$(CXX) $(CXXFLAGS) $(PROTOBUF_CXXFLAGS) $(LDFLAGS) $(PROTOBUF_LDFLAGS) tileinfo.cpp ../../src/vector_tile.pb.cc -o tileinfo -lprotobuf-lite -lz
 
 install: tileinfo
+	mkdir -p /usr/local/bin
 	cp ./tileinfo /usr/local/bin/tileinfo
 	chmod +x /usr/local/bin/tileinfo
 
