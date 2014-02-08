@@ -6,7 +6,7 @@ LDFLAGS := $(LDFLAGS) # inherit from env
 all: tileinfo
 
 tileinfo: tileinfo.cpp ../../src/vector_tile.pb.cc
-	$(CXX) $(PROTOBUF_CXXFLAGS) $(PROTOBUF_LDFLAGS) tileinfo.cpp ../../src/vector_tile.pb.cc -o tileinfo -lprotobuf-lite -lz
+	$(CXX) $(CXXFLAGS) $(PROTOBUF_CXXFLAGS) $(LDFLAGS) $(PROTOBUF_LDFLAGS) tileinfo.cpp ../../src/vector_tile.pb.cc -o tileinfo -lprotobuf-lite -lz
 
 install: tileinfo
 	cp ./tileinfo /usr/local/bin/tileinfo
