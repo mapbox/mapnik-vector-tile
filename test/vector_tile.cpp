@@ -211,6 +211,52 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     CHECK(f_ptr->context()->size() == 1);
 }
 
+// NOTE: encoding a multiple lines as one path is technically incorrect
+// because in Mapnik the protocol is to split geometry parts into separate paths
+// however this case should still be supported in error and its an optimization in the
+// case where you know that lines do not need to be labeled in custom ways.
+TEST_CASE( "encoding multi line as one path", "should maintain second move_to command" ) {
+    // Options
+    // here we use a multiplier of 1 to avoid rounding numbers
+    // and stay in integer space for simplity
+    unsigned path_multiplier = 1;
+    // here we use an extreme tolerance to prove tht all vertices are maintained no matter
+    // the tolerance because we never want to drop a move_to or the first line_to
+    unsigned tolerance = 2000000;
+    // now create the testing data
+    mapnik::vector::tile tile;
+    mapnik::vector::backend_pbf backend(tile,path_multiplier);
+    backend.start_tile_layer("layer");
+    mapnik::feature_ptr feature(mapnik::feature_factory::create(boost::make_shared<mapnik::context_type>(),1));
+    backend.start_tile_feature(*feature);
+    mapnik::geometry_type * line = new mapnik::geometry_type(mapnik::LineString);
+    line->move_to(0,0);        // takes 3 geoms: command length,x,y
+    line->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
+    line->move_to(1,1);        // takes 3 geoms: command length,x,y
+    line->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
+    backend.add_path(*line, tolerance, line->type());
+    backend.stop_tile_feature();
+    backend.stop_tile_layer();
+    // done encoding single feature/geometry
+    CHECK(1 == tile.layers_size());
+    mapnik::vector::tile_layer const& layer = tile.layers(0);
+    CHECK(1 == layer.features_size());
+    mapnik::vector::tile_feature const& f = layer.features(0);
+    CHECK(12 == f.geometry_size());
+    CHECK(9 == f.geometry(0)); // 1 move_to
+    CHECK(0 == f.geometry(1)); // x:0
+    CHECK(0 == f.geometry(2)); // y:0
+    CHECK(10 == f.geometry(3)); // 1 line_to
+    CHECK(4 == f.geometry(4)); // x:2
+    CHECK(4 == f.geometry(5)); // y:2
+    CHECK(9 == f.geometry(6)); // 1 move_to
+    CHECK(1 == f.geometry(7)); // x:1
+    CHECK(1 == f.geometry(8)); // y:1
+    CHECK(10 == f.geometry(9)); // 1 line_to
+    CHECK(2 == f.geometry(10)); // x:2
+    CHECK(2 == f.geometry(11)); // y:2
+}
+
 int main (int argc, char* const argv[])
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
