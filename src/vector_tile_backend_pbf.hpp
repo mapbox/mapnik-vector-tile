@@ -209,7 +209,8 @@ namespace mapnik { namespace vector {
                         unsigned y_floor = static_cast<unsigned>(std::abs(dy));
                         if (x_floor >= tolerance ||
                             y_floor >= tolerance ||
-                            length == 0)
+                            length == 0 ||
+                            cmd == SEG_MOVETO)
                         {
                             // Manual zigzag encoding.
                             current_feature_->add_geometry((dx << 1) ^ (dx >> 31));
