@@ -178,6 +178,9 @@ namespace mapnik { namespace vector {
                 int cmd_idx = -1;
                 const int cmd_bits = 3;
                 unsigned length = 0;
+                bool skipped_last = false;
+                int32_t cur_x = 0;
+                int32_t cur_y = 0;
 
                 // See vector_tile.proto for a description of how vertex command
                 // encoding works.
@@ -193,14 +196,14 @@ namespace mapnik { namespace vector {
                         cmd = static_cast<int>(vtx.cmd);
                         length = 0;
                         cmd_idx = current_feature_->geometry_size();
-                        current_feature_->add_geometry(0); // placeholder
+                        current_feature_->add_geometry(0); // placeholder added in first pass
                     }
 
                     if (cmd == SEG_MOVETO || cmd == SEG_LINETO)
                     {
                         // Compute delta to the previous coordinate.
-                        int32_t cur_x = static_cast<int32_t>(std::floor((vtx.x * path_multiplier_)+.5));
-                        int32_t cur_y = static_cast<int32_t>(std::floor((vtx.y * path_multiplier_)+.5));
+                        cur_x = static_cast<int32_t>(std::floor((vtx.x * path_multiplier_)+.5));
+                        cur_y = static_cast<int32_t>(std::floor((vtx.y * path_multiplier_)+.5));
                         int32_t dx = cur_x - x_;
                         int32_t dy = cur_y - y_;
 
@@ -217,8 +220,12 @@ namespace mapnik { namespace vector {
                             current_feature_->add_geometry((dy << 1) ^ (dy >> 31));
                             x_ = cur_x;
                             y_ = cur_y;
-
+                            skipped_last = false;
                             length++;
+                        }
+                        else
+                        {
+                            skipped_last = true;
                         }
                     }
                     else if (cmd == SEG_CLOSE) {
@@ -229,6 +236,16 @@ namespace mapnik { namespace vector {
                     }
 
                     ++count;
+                }
+
+                if (skipped_last && length > 0)
+                {
+                    int32_t dx = cur_x - x_;
+                    int32_t dy = cur_y - y_;
+                    std::clog << "adding last " << dx << " " << dy << "\n";
+                    current_feature_->add_geometry((dx << 1) ^ (dx >> 31));
+                    current_feature_->add_geometry((dy << 1) ^ (dy >> 31));
+                    length++;
                 }
 
                 // Update the last length/command value.

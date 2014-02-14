@@ -295,6 +295,78 @@ TEST_CASE( "encoding repeated move_to in degerate geometry", "should never drop 
     CHECK(2 == f.geometry(7)); // y:1
 }
 
+TEST_CASE( "encoding single line", "should maintain start/end vertex" ) {
+    // Options
+    // here we use a multiplier of 1 to avoid rounding numbers
+    // this works because we are staying in integer space for this test
+    unsigned path_multiplier = 1;
+    // here we use a tolerance of 2. Along with a multiplier of 1 this
+    // says to discard any verticies that are not at least >= 2 different
+    // in both the x and y from the previous vertex
+    unsigned tolerance = 2;
+    // now create the testing data
+    mapnik::vector::tile tile;
+    mapnik::vector::backend_pbf backend(tile,path_multiplier);
+    backend.start_tile_layer("layer");
+    mapnik::feature_ptr feature(mapnik::feature_factory::create(boost::make_shared<mapnik::context_type>(),1));
+    backend.start_tile_feature(*feature);
+    mapnik::geometry_type * line = new mapnik::geometry_type(mapnik::LineString);
+    line->move_to(0,0);        // takes 3 geoms: command length,x,y
+    line->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
+    line->line_to(1000,1000);  // repeated line_to, so only takes 2 geoms: x,y | total 8
+    line->line_to(1001,1001);  // should skip given tolerance of 2 | total 8
+    line->line_to(1001,1001);  // should not skip given it is the endpoint, added 2 geoms | total 10
+    backend.add_path(*line, tolerance, line->type());
+    backend.stop_tile_feature();
+    backend.stop_tile_layer();
+    // done encoding single feature/geometry
+    CHECK(1 == tile.layers_size());
+    mapnik::vector::tile_layer const& layer = tile.layers(0);
+    CHECK(1 == layer.features_size());
+    mapnik::vector::tile_feature const& f = layer.features(0);
+    // sequence of 10 geometries given tolerance of 2
+    CHECK(10 == f.geometry_size());
+    // first geometry is 9, which packs both the command and how many verticies are encoded with that same command
+    // It is 9 because it is a move_to (which is an enum of 1) and there is one command (length == 1)
+    unsigned move_value = f.geometry(0);
+    // (1      << 3) | (1       & ((1 << 3) -1)) == 9
+    // (length << 3) | (MOVE_TO & ((1 << 3) -1))
+    CHECK(9 == move_value);
+    unsigned move_cmd = move_value & ((1 << 3) - 1);
+    CHECK(1 == move_cmd);
+    unsigned move_length = move_value >> 3;
+    CHECK(1 == move_length);
+    // 2nd and 3rd are the x,y of the one move_to command
+    CHECK(0 == f.geometry(1));
+    CHECK(0 == f.geometry(2));
+    // 4th is the line_to (which is an enum of 2) and a number indicating how many line_to commands are repeated
+    // in this case there should be 3 because one was skipped
+    unsigned line_value = f.geometry(3);
+    // (3      << 3) | (2       & ((1 << 3) -1)) == 26
+    CHECK(26 == line_value);
+    unsigned line_cmd = line_value & ((1 << 3) - 1);
+    CHECK(2 == line_cmd);
+    unsigned line_length = line_value >> 3;
+    CHECK(3 == line_length);
+    // 5th and 6th are the x,y of the first line_to command
+    // due zigzag encoding the 2,2 should be 4,4
+    // delta encoding has no impact since the previous coordinate was 0,0
+    unsigned four = (2 << 1) ^ (2 >> 31);
+    CHECK(4 == four);
+    CHECK(4 == f.geometry(4));
+    CHECK(4 == f.geometry(5));
+    // 7th and 8th are x,y of the second line_to command
+    // due to delta encoding 1000-2 becomes 998
+    // zigzag encoded 998 becomes 1996
+    CHECK(1996 == f.geometry(6));
+    CHECK(1996 == f.geometry(7));
+    // next 1001,1001 should have been skipped
+    // so final line_to command of 1001,1001 after
+    // delta encoding becomes 1 which zigzag encoded is 2
+    CHECK(2 == f.geometry(8));
+    CHECK(2 == f.geometry(9));
+}
+
 int main (int argc, char* const argv[])
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
