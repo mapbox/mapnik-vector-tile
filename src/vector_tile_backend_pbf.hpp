@@ -210,10 +210,11 @@ namespace mapnik { namespace vector {
                         // Omit movements that are no-ops.
                         unsigned x_floor = static_cast<unsigned>(std::abs(dx));
                         unsigned y_floor = static_cast<unsigned>(std::abs(dy));
-                        if (x_floor >= tolerance ||
+                        if (cmd == SEG_MOVETO ||
+                            x_floor >= tolerance ||
                             y_floor >= tolerance ||
-                            length == 0 ||
-                            cmd == SEG_MOVETO)
+                            length == 0
+                            )
                         {
                             // Manual zigzag encoding.
                             current_feature_->add_geometry((dx << 1) ^ (dx >> 31));
@@ -221,7 +222,7 @@ namespace mapnik { namespace vector {
                             x_ = cur_x;
                             y_ = cur_y;
                             skipped_last = false;
-                            length++;
+                            ++length;
                         }
                         else
                         {
@@ -230,7 +231,7 @@ namespace mapnik { namespace vector {
                     }
                     else if (cmd == SEG_CLOSE)
                     {
-                        length++;
+                        ++length;
                     }
                     else
                     {
@@ -249,7 +250,7 @@ namespace mapnik { namespace vector {
                     int32_t dy = cur_y - y_;
                     current_feature_->add_geometry((dx << 1) ^ (dx >> 31));
                     current_feature_->add_geometry((dy << 1) ^ (dy >> 31));
-                    length++;
+                    ++length;
                 }
 
                 // Update the last length/command value.
