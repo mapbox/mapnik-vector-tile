@@ -207,14 +207,13 @@ namespace mapnik { namespace vector {
                         int32_t dx = cur_x - x_;
                         int32_t dy = cur_y - y_;
 
-                        // Omit movements that are no-ops.
-                        unsigned x_floor = static_cast<unsigned>(std::abs(dx));
-                        unsigned y_floor = static_cast<unsigned>(std::abs(dy));
-                        if (cmd == SEG_MOVETO ||
-                            x_floor >= tolerance ||
-                            y_floor >= tolerance ||
-                            length == 0
-                            )
+                        // Keep all move_to commands, but omit other movements that are
+                        // not >= the tolerance threshold and should be considered no-ops.
+                        if ( cmd == SEG_MOVETO ||
+                             (static_cast<unsigned>(std::abs(dx)) >= tolerance) ||
+                             (static_cast<unsigned>(std::abs(dy)) >= tolerance) ||
+                             length == 0
+                           )
                         {
                             // Manual zigzag encoding.
                             current_feature_->add_geometry((dx << 1) ^ (dx >> 31));
