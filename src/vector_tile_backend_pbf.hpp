@@ -228,11 +228,16 @@ namespace mapnik { namespace vector {
                             skipped_last = true;
                         }
                     }
-                    else if (cmd == SEG_CLOSE) {
+                    else if (cmd == SEG_CLOSE)
+                    {
                         length++;
                     }
-                    else {
-                        throw std::runtime_error("Unknown command type");
+                    else
+                    {
+                        std::stringstream msg;
+                        msg << "Unknown command type (backend_pbf): "
+                            << cmd;
+                        throw std::runtime_error(msg.str());
                     }
 
                     ++count;
@@ -242,7 +247,6 @@ namespace mapnik { namespace vector {
                 {
                     int32_t dx = cur_x - x_;
                     int32_t dy = cur_y - y_;
-                    std::clog << "adding last " << dx << " " << dy << "\n";
                     current_feature_->add_geometry((dx << 1) ^ (dx >> 31));
                     current_feature_->add_geometry((dy << 1) ^ (dy >> 31));
                     length++;

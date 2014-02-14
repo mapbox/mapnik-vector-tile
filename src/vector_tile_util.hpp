@@ -87,7 +87,10 @@ namespace mapnik { namespace vector {
                         }
                         else
                         {
-                            throw std::runtime_error("Unknown command type");
+                            std::stringstream msg;
+                            msg << "Unknown command type (is_solid_clipper): "
+                                << cmd;
+                            throw std::runtime_error(msg.str());
                         }
                     }
                 }
@@ -172,7 +175,10 @@ namespace mapnik { namespace vector {
                         }
                         else
                         {
-                            throw std::runtime_error("Unknown command type");
+                            std::stringstream msg;
+                            msg << "Unknown command type (is_solid_extent): "
+                                << cmd;
+                            throw std::runtime_error(msg.str());
                         }
                     }
                 }

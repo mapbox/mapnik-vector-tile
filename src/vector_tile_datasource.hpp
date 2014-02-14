@@ -141,7 +141,10 @@ namespace mapnik { namespace vector {
                         }
                         else
                         {
-                            throw std::runtime_error("Unknown command type");
+                            std::stringstream msg;
+                            msg << "Unknown command type (tile_featureset): "
+                                << cmd;
+                            throw std::runtime_error(msg.str());
                         }
                     }
                 }
