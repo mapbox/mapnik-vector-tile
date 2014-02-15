@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.3.6
+
+ - Avoided 'Unknown command type (is_solid_extent): 0'
+
 ## 0.3.5
 
  - `npm install` no longer runs `protoc` - the responsibility for this is now up to `node-mapnik`

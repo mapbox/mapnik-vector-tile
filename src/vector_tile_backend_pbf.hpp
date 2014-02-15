@@ -243,7 +243,7 @@ namespace mapnik { namespace vector {
                     ++count;
                 }
 
-                if (skipped_last && length > 0)
+                if (skipped_last && length > 1)
                 {
                     int32_t dx = cur_x - x_;
                     int32_t dy = cur_y - y_;

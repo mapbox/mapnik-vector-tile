@@ -14,6 +14,7 @@ mapnik::box2d<double> bbox;
 // vector output api
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
+#include "vector_tile_util.hpp"
 
 TEST_CASE( "vector tile projection 1", "should support z/x/y to bbox conversion at 0/0/0" ) {
     mapnik::vector::spherical_mercator merc(256);
@@ -354,7 +355,7 @@ TEST_CASE( "encoding repeated move_to in degerate geometry", "should never drop 
     CHECK(2 == f.geometry(7)); // y:1
 }
 
-TEST_CASE( "encoding single line", "should maintain start/end vertex" ) {
+TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     // Options
     // here we use a multiplier of 1 to avoid rounding numbers
     // this works because we are staying in integer space for this test
@@ -424,6 +425,39 @@ TEST_CASE( "encoding single line", "should maintain start/end vertex" ) {
     // delta encoding becomes 1 which zigzag encoded is 2
     CHECK(2 == f.geometry(8));
     CHECK(2 == f.geometry(9));
+}
+
+// testcase for avoiding error in is_solid_extent of
+// "Unknown command type (is_solid_extent): 0"
+// not yet clear if this test is correct
+// ported from shapefile test in tilelive-bridge (a:should render a (1.0.1))
+TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
+    unsigned path_multiplier = 16;
+    unsigned tolerance = 5;
+    mapnik::vector::tile tile;
+    mapnik::vector::backend_pbf backend(tile,path_multiplier);
+    backend.start_tile_layer("layer");
+    mapnik::feature_ptr feature(mapnik::feature_factory::create(boost::make_shared<mapnik::context_type>(),1));
+    backend.start_tile_feature(*feature);
+    std::auto_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::Polygon));
+    g->move_to(168.267850,-24.576888);
+    g->line_to(167.982618,-24.697145);
+    g->line_to(168.114561,-24.783548);
+    g->line_to(168.267850,-24.576888);
+    g->line_to(168.267850,-24.576888);
+    g->close_path();
+    //g->push_vertex(256.000000,-0.00000, mapnik::SEG_CLOSE);
+    // todo - why does shape_io result in on-zero close path x,y?
+    backend.add_path(*g, tolerance, g->type());
+    backend.stop_tile_feature();
+    backend.stop_tile_layer();
+    std::string key("test");
+    is_solid_extent(tile,key); // should not throw!
+    CHECK(1 == tile.layers_size());
+    mapnik::vector::tile_layer const& layer = tile.layers(0);
+    CHECK(1 == layer.features_size());
+    mapnik::vector::tile_feature const& f = layer.features(0);
+    CHECK(7 == f.geometry_size());
 }
 
 int main (int argc, char* const argv[])
