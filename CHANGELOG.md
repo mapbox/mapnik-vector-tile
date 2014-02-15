@@ -1,6 +1,6 @@
 # Changlog
 
-## 0.4.0
+## 0.3.5
 
  - Improved tile encoding: empty layers are no longer added
  - All move_to commands and the last vertex in lines is no longer thrown out even with high `tolerance`
