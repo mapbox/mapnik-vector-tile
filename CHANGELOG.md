@@ -2,6 +2,7 @@
 
 ## 0.3.5
 
+ - `npm install` no longer runs `protoc` - the responsibility for this is now up to `node-mapnik`
  - Improved tile encoding: empty layers are no longer added
  - All move_to commands and the last vertex in lines is no longer thrown out even with high `tolerance`
  - Rolled back the change from v0.3.4 - multipart geometries are now again not decoded correctly, but this
