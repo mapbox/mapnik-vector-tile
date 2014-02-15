@@ -99,10 +99,10 @@ TEST_CASE( "vector tile output 3", "adding layers with geometries outside render
     mapnik::layer lyr("layer");
     mapnik::context_ptr ctx = boost::make_shared<mapnik::context_type>();
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
-    mapnik::geometry_type * line = new mapnik::geometry_type(mapnik::LineString);
-    line->move_to(0,0);
-    line->line_to(1,1);
-    feature->add_geometry(line);
+    std::auto_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::LineString));
+    g->move_to(0,0);
+    g->line_to(1,1);
+    feature->add_geometry(g.release());
     boost::shared_ptr<mapnik::memory_datasource> ds = boost::make_shared<mapnik::memory_datasource>();
     ds->push(feature);
     lyr.set_datasource(ds);
@@ -289,12 +289,12 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     backend.start_tile_layer("layer");
     mapnik::feature_ptr feature(mapnik::feature_factory::create(boost::make_shared<mapnik::context_type>(),1));
     backend.start_tile_feature(*feature);
-    mapnik::geometry_type * line = new mapnik::geometry_type(mapnik::LineString);
-    line->move_to(0,0);        // takes 3 geoms: command length,x,y
-    line->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
-    line->move_to(1,1);        // takes 3 geoms: command length,x,y
-    line->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
-    backend.add_path(*line, tolerance, line->type());
+    std::auto_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::LineString));
+    g->move_to(0,0);        // takes 3 geoms: command length,x,y
+    g->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
+    g->move_to(1,1);        // takes 3 geoms: command length,x,y
+    g->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
+    backend.add_path(*g, tolerance, g->type());
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     // done encoding single feature/geometry
@@ -331,12 +331,12 @@ TEST_CASE( "encoding repeated move_to in degerate geometry", "should never drop 
     backend.start_tile_layer("layer");
     mapnik::feature_ptr feature(mapnik::feature_factory::create(boost::make_shared<mapnik::context_type>(),1));
     backend.start_tile_feature(*feature);
-    mapnik::geometry_type * line = new mapnik::geometry_type(mapnik::LineString);
+    std::auto_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::LineString));
     // simulate broken geometry, perhaps from clipping or simplification
-    line->move_to(0,0);
-    line->move_to(1,1); // we cannot drop this. Future: should we drop the previous bogus move_to?
-    line->line_to(2,2);
-    backend.add_path(*line, tolerance, line->type());
+    g->move_to(0,0);
+    g->move_to(1,1); // we cannot drop this. Future: should we drop the previous bogus move_to?
+    g->line_to(2,2);
+    backend.add_path(*g, tolerance, g->type());
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     // done encoding single feature/geometry
@@ -370,13 +370,13 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     backend.start_tile_layer("layer");
     mapnik::feature_ptr feature(mapnik::feature_factory::create(boost::make_shared<mapnik::context_type>(),1));
     backend.start_tile_feature(*feature);
-    mapnik::geometry_type * line = new mapnik::geometry_type(mapnik::LineString);
-    line->move_to(0,0);        // takes 3 geoms: command length,x,y
-    line->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
-    line->line_to(1000,1000);  // repeated line_to, so only takes 2 geoms: x,y | total 8
-    line->line_to(1001,1001);  // should skip given tolerance of 2 | total 8
-    line->line_to(1001,1001);  // should not skip given it is the endpoint, added 2 geoms | total 10
-    backend.add_path(*line, tolerance, line->type());
+    std::auto_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::LineString));
+    g->move_to(0,0);        // takes 3 geoms: command length,x,y
+    g->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
+    g->line_to(1000,1000);  // repeated line_to, so only takes 2 geoms: x,y | total 8
+    g->line_to(1001,1001);  // should skip given tolerance of 2 | total 8
+    g->line_to(1001,1001);  // should not skip given it is the endpoint, added 2 geoms | total 10
+    backend.add_path(*g, tolerance, g->type());
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     // done encoding single feature/geometry
