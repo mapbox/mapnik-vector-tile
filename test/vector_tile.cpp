@@ -55,7 +55,7 @@ TEST_CASE( "vector tile output", "should create vector tile with one point" ) {
     backend_type backend(tile,16);
     mapnik::Map map(tile_size,tile_size);
     mapnik::layer lyr("layer");
-    lyr.set_datasource(build_ds());
+    lyr.set_datasource(build_ds(0,0));
     map.addLayer(lyr);
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
@@ -88,7 +88,7 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     backend_type backend(tile,16);
     mapnik::Map map(tile_size,tile_size);
     mapnik::layer lyr("layer");
-    lyr.set_datasource(build_ds());
+    lyr.set_datasource(build_ds(0,0));
     map.addLayer(lyr);
     map.zoom_to_box(bbox);
     mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
@@ -147,7 +147,7 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     backend_type backend(tile,16);
     mapnik::Map map(tile_size,tile_size);
     mapnik::layer lyr("layer");
-    lyr.set_datasource(build_ds());
+    lyr.set_datasource(build_ds(0,0));
     map.addLayer(lyr);
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
