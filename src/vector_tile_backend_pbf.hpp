@@ -158,8 +158,6 @@ namespace mapnik { namespace vector {
 
         void stop_tile_layer()
         {
-            // NOTE: we intentionally do not remove layers without features
-            // since the re-rendering logic expects a layer entry no matter what
             //std::cerr << "stop_tile_layer()" << std::endl;
         }
 
