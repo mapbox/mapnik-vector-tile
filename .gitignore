@@ -8,3 +8,4 @@ test/run-test
 *pyc
 archive
 TODO.md
+examples/c++/tileinfo
