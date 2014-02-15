@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.3.7
+
+ - Add back protoc running to avoid unintended node-mapnik breakages with older versions.
+
 ## 0.3.6
 
  - Avoided 'Unknown command type (is_solid_extent): 0'
