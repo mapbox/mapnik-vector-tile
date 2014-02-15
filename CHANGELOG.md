@@ -1,5 +1,9 @@
 # Changlog
 
+## Future
+
+ - Optimized is_solid check
+
 ## 0.3.7
 
  - Add back protoc running to avoid unintended node-mapnik breakages with older versions.

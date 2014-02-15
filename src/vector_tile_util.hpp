@@ -139,11 +139,11 @@ namespace mapnik { namespace vector {
             for (int j = 0; j < layer.features_size(); j++)
             {
                 mapnik::vector::tile_feature const& feature = layer.features(j);
-                mapnik::eGeomType g_type = static_cast<mapnik::eGeomType>(feature.type());
-                mapnik::geometry_type geom(g_type);
                 int cmd = -1;
                 const int cmd_bits = 3;
                 unsigned length = 0;
+                bool first = true;
+                mapnik::box2d<double> box;
                 int32_t x = 0, y = 0;
                 for (int k = 0; k < feature.geometry_size();)
                 {
@@ -152,10 +152,8 @@ namespace mapnik { namespace vector {
                         cmd = cmd_length & ((1 << cmd_bits) - 1);
                         length = cmd_length >> cmd_bits;
                     }
-
                     if (length > 0) {
                         length--;
-
                         if (cmd == mapnik::SEG_MOVETO || cmd == mapnik::SEG_LINETO)
                         {
                             int32_t dx = feature.geometry(k++);
@@ -167,11 +165,19 @@ namespace mapnik { namespace vector {
                             if ((x > 0 && x < static_cast<int>(side)) && (y > 0 && y < static_cast<int>(side))) {
                                 return false;
                             }
-                            geom.push_vertex(x, y, static_cast<mapnik::CommandType>(cmd));
+                            if (first)
+                            {
+                                box.init(x,y,x,y);
+                                first = false;
+                            }
+                            else
+                            {
+                                box.expand_to_include(x,y);
+                            }
                         }
                         else if (cmd == (mapnik::SEG_CLOSE & ((1 << cmd_bits) - 1)))
                         {
-                            geom.push_vertex(0, 0, mapnik::SEG_CLOSE);
+                            // pass
                         }
                         else
                         {
@@ -184,7 +190,6 @@ namespace mapnik { namespace vector {
                 }
                 // Once we have only one clipped result polygon, we can compare the
                 // areas and return early if they don't match.
-                mapnik::box2d<double> box = geom.envelope();
                 double geom_area = box.width() * box.height();
                 if (geom_area < (extent_area - 32) )
                 {
