@@ -237,7 +237,6 @@ namespace mapnik { namespace vector {
                 {
                     std::size_t key_name = f.tags(m);
                     std::size_t key_value = f.tags(m + 1);
-
                     if (key_name < static_cast<std::size_t>(layer_.keys_size())
                         && key_value < static_cast<std::size_t>(layer_.values_size()))
                     {
@@ -252,33 +251,27 @@ namespace mapnik { namespace vector {
                             }
                             else if (value.has_int_value())
                             {
-                                mapnik::value_integer val = value.int_value();
-                                feature->put(name, val);
+                                feature->put(name, value.int_value());
                             }
                             else if (value.has_double_value())
                             {
-                                mapnik::value_double val = value.double_value();
-                                feature->put(name, val);
+                                feature->put(name, value.double_value());
                             }
                             else if (value.has_float_value())
                             {
-                                mapnik::value_double val = value.float_value();
-                                feature->put(name, val);
+                                feature->put(name, value.float_value());
                             }
                             else if (value.has_bool_value())
                             {
-                                mapnik::value_bool val = value.bool_value();
-                                feature->put(name, val);
+                                feature->put(name, value.bool_value());
                             }
                             else if (value.has_sint_value())
                             {
-                                mapnik::value_integer val = value.sint_value();
-                                feature->put(name, val);
+                                feature->put(name, value.sint_value());
                             }
                             else if (value.has_uint_value())
                             {
-                                mapnik::value_integer val = value.uint_value();
-                                feature->put(name, val);
+                                feature->put(name, static_cast<mapnik::value_integer>(value.uint_value()));
                             }
                             else
                             {
