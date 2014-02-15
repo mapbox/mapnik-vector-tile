@@ -7,7 +7,7 @@
 
 #include "vector_tile_projection.hpp"
 
-const unsigned x=0,y=0,z=0;
+const unsigned _x=0,_y=0,_z=0;
 const unsigned tile_size = 256;
 mapnik::box2d<double> bbox;
 
@@ -17,11 +17,8 @@ mapnik::box2d<double> bbox;
 
 TEST_CASE( "vector tile projection 1", "should support z/x/y to bbox conversion at 0/0/0" ) {
     mapnik::vector::spherical_mercator merc(256);
-    int x = 0;
-    int y = 0;
-    int z = 0;
     double minx,miny,maxx,maxy;
-    merc.xyz(x,y,z,minx,miny,maxx,maxy);
+    merc.xyz(_x,_y,_z,minx,miny,maxx,maxy);
     mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
     mapnik::box2d<double> e(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     double epsilon = 0.000001;
@@ -170,7 +167,7 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     mapnik::layer lyr2("layer");
     boost::shared_ptr<mapnik::vector::tile_datasource> ds = boost::make_shared<
                                     mapnik::vector::tile_datasource>(
-                                        layer2,x,y,z,map2.width());
+                                        layer2,_x,_y,_z,map2.width());
     ds->set_envelope(bbox);
     mapnik::layer_descriptor lay_desc = ds->get_descriptor();
     std::vector<std::string> expected_names;
@@ -225,7 +222,7 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     CHECK(4096 == f.geometry(1));
     CHECK(4096 == f.geometry(2));
     // now actually start the meat of the test
-    mapnik::vector::tile_datasource ds(layer,x,y,z,tile_size);
+    mapnik::vector::tile_datasource ds(layer,_x,_y,_z,tile_size);
     mapnik::featureset_ptr fs;
 
     // ensure we can query single feature
@@ -435,7 +432,7 @@ int main (int argc, char* const argv[])
     // set up bbox
     double minx,miny,maxx,maxy;
     mapnik::vector::spherical_mercator merc(256);
-    merc.xyz(x,y,z,minx,miny,maxx,maxy);
+    merc.xyz(_x,_y,_z,minx,miny,maxx,maxy);
     bbox.init(minx,miny,maxx,maxy);
     int result = Catch::Session().run( argc, argv );
     if (!result) printf("\x1b[1;32m ✓ \x1b[0m\n");
