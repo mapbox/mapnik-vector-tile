@@ -3,7 +3,6 @@
 
 // mapnik
 #include <mapnik/feature.hpp>
-#include <mapnik/version.hpp>
 #include <mapnik/value_types.hpp>
 
 // vector tile
