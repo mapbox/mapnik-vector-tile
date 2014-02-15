@@ -1,7 +1,13 @@
 # Changlog
 
+## 0.4.0
+
+ - Improved tile encoding: empty layers are no longer added
+ - All move_to commands and the last vertex in lines is no longer thrown out even with high `tolerance`
+
 ## 0.3.4
 
+ - Fixed tile_datasource geometry decoding such that it polygons are closed (for hit_test results)
  - Fixed tile_datasource geometry decoding such that it respects multipart geometries (#19)
 
 ## 0.3.3

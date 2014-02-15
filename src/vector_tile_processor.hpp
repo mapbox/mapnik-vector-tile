@@ -88,7 +88,6 @@ namespace mapnik { namespace vector {
             scale_denom *= scale_factor_;
             BOOST_FOREACH ( mapnik::layer const& lay, m_.layers() )
             {
-                backend_.start_tile_layer(lay.name());
                 if (lay.visible(scale_denom))
                 {
                     apply_to_layer(lay,
@@ -100,7 +99,6 @@ namespace mapnik { namespace vector {
                                    m_req_.extent(),
                                    m_req_.buffer_size());
                 }
-                backend_.stop_tile_layer();
             }
         }
 
@@ -218,27 +216,33 @@ namespace mapnik { namespace vector {
             {
                 return;
             }
-            mapnik::feature_ptr feature;
-            while ((feature = features->next()))
-            {
-                boost::ptr_vector<mapnik::geometry_type> & paths = feature->paths();
-                if (paths.empty()) continue;
-                backend_.start_tile_feature(*feature);
-                BOOST_FOREACH( mapnik::geometry_type & geom, paths)
+            mapnik::feature_ptr feature = features->next();
+            if (feature) {
+                backend_.start_tile_layer(lay.name());
+                while (feature)
                 {
-                    mapnik::box2d<double> geom_box = geom.envelope();
-                    if (!geom_box.intersects(buffered_query_ext))
+                    boost::ptr_vector<mapnik::geometry_type> & paths = feature->paths();
+                    if (paths.empty()) continue;
+                    backend_.start_tile_feature(*feature);
+                    BOOST_FOREACH( mapnik::geometry_type & geom, paths)
                     {
-                        continue;
+                        mapnik::box2d<double> geom_box = geom.envelope();
+                        if (!geom_box.intersects(buffered_query_ext))
+                        {
+                            continue;
+                        }
+                        if (handle_geometry(geom,
+                                            prj_trans,
+                                            buffered_query_ext) > 0)
+                        {
+                            painted_ = true;
+                        }
                     }
-                    if (handle_geometry(geom,
-                                        prj_trans,
-                                        buffered_query_ext) > 0)
-                    {
-                        painted_ = true;
-                    }
+                    backend_.stop_tile_feature();
+                    feature = features->next();
                 }
-                backend_.stop_tile_feature();
+                backend_.stop_tile_layer();
+
             }
         }
 

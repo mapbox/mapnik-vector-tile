@@ -47,7 +47,7 @@ TEST_CASE( "vector tile projection 2", "should support z/x/y to bbox conversion 
     CHECK(std::fabs(map_extent.maxy() - e.maxy()) < epsilon);
 }
 
-TEST_CASE( "vector tile output", "should create vector tile with one point" ) {
+TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) {
     typedef mapnik::vector::backend_pbf backend_type;
     typedef mapnik::vector::processor<backend_type> renderer_type;
     typedef mapnik::vector::tile tile_type;
@@ -74,6 +74,68 @@ TEST_CASE( "vector tile output", "should create vector tile with one point" ) {
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
     CHECK(52 == buffer.size());
+}
+
+TEST_CASE( "vector tile output 2", "adding empty layers should result in empty tile" ) {
+    typedef mapnik::vector::backend_pbf backend_type;
+    typedef mapnik::vector::processor<backend_type> renderer_type;
+    typedef mapnik::vector::tile tile_type;
+    tile_type tile;
+    backend_type backend(tile,16);
+    mapnik::Map map(tile_size,tile_size);
+    map.addLayer(mapnik::layer("layer"));
+    map.zoom_to_box(bbox);
+    mapnik::request m_req(tile_size,tile_size,bbox);
+    renderer_type ren(backend,map,m_req);
+    ren.apply();
+    CHECK(0 == tile.layers_size());
+}
+
+TEST_CASE( "vector tile output 3", "adding layers with geometries outside rendering extent should not add layer" ) {
+    typedef mapnik::vector::backend_pbf backend_type;
+    typedef mapnik::vector::processor<backend_type> renderer_type;
+    typedef mapnik::vector::tile tile_type;
+    tile_type tile;
+    backend_type backend(tile,16);
+    mapnik::Map map(tile_size,tile_size);
+    mapnik::layer lyr("layer");
+    mapnik::context_ptr ctx = boost::make_shared<mapnik::context_type>();
+    mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
+    mapnik::geometry_type * line = new mapnik::geometry_type(mapnik::LineString);
+    line->move_to(0,0);
+    line->line_to(1,1);
+    feature->add_geometry(line);
+    boost::shared_ptr<mapnik::memory_datasource> ds = boost::make_shared<mapnik::memory_datasource>();
+    ds->push(feature);
+    lyr.set_datasource(ds);
+    map.addLayer(lyr);
+    map.zoom_to_box(bbox);
+    mapnik::request m_req(tile_size,tile_size,bbox);
+    renderer_type ren(backend,map,m_req);
+    ren.apply();
+    CHECK(1 == tile.layers_size());
+}
+
+TEST_CASE( "vector tile output 4", "adding layers with degenerate geometries should not add layer" ) {
+    typedef mapnik::vector::backend_pbf backend_type;
+    typedef mapnik::vector::processor<backend_type> renderer_type;
+    typedef mapnik::vector::tile tile_type;
+    tile_type tile;
+    backend_type backend(tile,16);
+    mapnik::Map map(tile_size,tile_size);
+    mapnik::layer lyr("layer");
+    // create a datasource with a feature outside the map
+    boost::shared_ptr<mapnik::memory_datasource> ds = build_ds(bbox.minx()-1,bbox.miny()-1);
+    // but fake the overall envelope to ensure the layer is still processed
+    // and then removed given no intersecting features will be added
+    ds->set_envelope(bbox);
+    lyr.set_datasource(ds);
+    map.addLayer(lyr);
+    map.zoom_to_box(bbox);
+    mapnik::request m_req(tile_size,tile_size,bbox);
+    renderer_type ren(backend,map,m_req);
+    ren.apply();
+    CHECK(0 == tile.layers_size());
 }
 
 // vector input api
