@@ -4,6 +4,10 @@
 
  - Improved tile encoding: empty layers are no longer added
  - All move_to commands and the last vertex in lines is no longer thrown out even with high `tolerance`
+ - Rolled back the change from v0.3.4 - multipart geometries are now again not decoded correctly, but this
+   needs to stay this way for performance reasons at the cost of correct marker/labeling placement on each
+   geometry part - long term solutions tracked at mapnik/mapnik#2151. Re-enabled to v0.3.4 behavior by setting
+   `-DEXPLODE_PARTS` in `CXXFLAGS`.
 
 ## 0.3.4
 

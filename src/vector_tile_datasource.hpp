@@ -74,6 +74,8 @@ namespace mapnik { namespace vector {
         {
             while (itr_ < end_)
             {
+// disabled due to https://github.com/mapbox/mapnik-vector-tile/issues/37
+#ifdef EXPLODE_PARTS
                 mapnik::vector::tile_feature const& f = layer_.features(itr_);
                 mapnik::value_integer feature_id = itr_++;
                 // if encoded feature was given an id, respect it
@@ -152,6 +154,80 @@ namespace mapnik { namespace vector {
                 {
                     continue;
                 }
+#else
+                mapnik::vector::tile_feature const& f = layer_.features(itr_);
+                mapnik::value_integer feature_id = itr_++;
+                std::auto_ptr<mapnik::geometry_type> geom(
+                    new mapnik::geometry_type(
+                        mapnik::eGeomType(f.type())));
+                int cmd = -1;
+                const int cmd_bits = 3;
+                unsigned length = 0;
+                double x = tile_x_, y = tile_y_;
+                bool first = true;
+                mapnik::box2d<double> envelope;
+                double first_x=0;
+                double first_y=0;
+                for (int k = 0; k < f.geometry_size();)
+                {
+                    if (!length) {
+                        unsigned cmd_length = f.geometry(k++);
+                        cmd = cmd_length & ((1 << cmd_bits) - 1);
+                        length = cmd_length >> cmd_bits;
+                    }
+                    if (length > 0) {
+                        length--;
+                        if (cmd == mapnik::SEG_MOVETO || cmd == mapnik::SEG_LINETO)
+                        {
+                            int32_t dx = f.geometry(k++);
+                            int32_t dy = f.geometry(k++);
+                            dx = ((dx >> 1) ^ (-(dx & 1)));
+                            dy = ((dy >> 1) ^ (-(dy & 1)));
+                            x += (static_cast<double>(dx) / scale_);
+                            y -= (static_cast<double>(dy) / scale_);
+                            if (cmd == mapnik::SEG_MOVETO)
+                            {
+                                first_x = x;
+                                first_y = y;
+                            }
+                            if (first)
+                            {
+                                envelope.init(x,y,x,y);
+                                first = false;
+                            }
+                            else
+                            {
+                                envelope.expand_to_include(x,y);
+                            }
+                            geom->push_vertex(x, y, static_cast<mapnik::CommandType>(cmd));
+                        }
+                        else if (cmd == (mapnik::SEG_CLOSE & ((1 << cmd_bits) - 1)))
+                        {
+                            geom->push_vertex(first_x, first_y, mapnik::SEG_LINETO);
+                            geom->push_vertex(0, 0, mapnik::SEG_CLOSE);
+                        }
+                        else
+                        {
+                            throw std::runtime_error("Unknown command type");
+                        }
+                    }
+                }
+                if (!filter_.pass(envelope))
+                {
+                    continue;
+                }
+                // if encoded feature was given an id, respect it
+                // TODO: id should not be optional!
+                // https://github.com/mapbox/mapnik-vector-tile/issues/17
+                // https://github.com/mapbox/mapnik-vector-tile/issues/18
+                if (f.has_id())
+                {
+                    feature_id = f.id();
+                }
+                mapnik::feature_ptr feature(
+                    mapnik::feature_factory::create(ctx_,feature_id));
+                feature->paths().push_back(geom);
+#endif
 
                 // attributes
                 for (int m = 0; m < f.tags_size(); m += 2)
