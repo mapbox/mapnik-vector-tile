@@ -124,7 +124,7 @@ TEST_CASE( "test 2b", "should drop vertices" ) {
     g.line_to(1,1);
     std::string expected(
     "move_to(0,0)\n"
-    "line_to(0,0)\n"
+    "line_to(0,0)\n" // TODO - drop this
     "line_to(1,1)\n"
     );
     CHECK(compare(g,1) == expected);
