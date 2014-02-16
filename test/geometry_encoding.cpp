@@ -187,6 +187,22 @@ TEST_CASE( "test 5b", "can drop duplicate move_to" ) {
     CHECK(compare(g,3) == expected);
 }
 
+TEST_CASE( "test 5c", "can drop duplicate move_to but not second" ) {
+    mapnik::geometry_type g(mapnik::LineString);
+    g.move_to(0,0);
+    g.move_to(1,1);
+    g.line_to(2,2);
+    g.move_to(3,3);
+    g.line_to(4,4);
+    std::string expected(
+    "move_to(0,0)\n"
+    "line_to(2,2)\n"
+    "move_to(3,3)\n"
+    "line_to(4,4)\n"
+    );
+    CHECK(compare(g,3) == expected);
+}
+
 TEST_CASE( "test 6", "should not drop last move_to if repeated" ) {
     mapnik::geometry_type g(mapnik::LineString);
     g.move_to(0,0);
