@@ -56,10 +56,11 @@ namespace mapnik { namespace vector {
 
                     // Keep all move_to commands, but omit other movements that are
                     // not >= the tolerance threshold and should be considered no-ops.
-                    if ( cmd == SEG_MOVETO ||
+                    // NOTE: length == 0 indicates the command has changed and will
+                    // preserve any non duplicate move_to or line_to
+                    if ( length == 0 ||
                          (static_cast<unsigned>(std::abs(dx)) >= tolerance) ||
-                         (static_cast<unsigned>(std::abs(dy)) >= tolerance) ||
-                         length == 0
+                         (static_cast<unsigned>(std::abs(dy)) >= tolerance)
                        )
                     {
                         // Manual zigzag encoding.

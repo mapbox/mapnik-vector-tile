@@ -170,7 +170,6 @@ TEST_CASE( "test 5", "should not drop last move_to if repeated" ) {
     g.line_to(5,5);
     std::string expected(
     "move_to(0,0)\n"
-    "move_to(1,1)\n"
     "line_to(5,5)\n"
     );
     CHECK(compare(g,2) == expected);
