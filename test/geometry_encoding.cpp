@@ -162,7 +162,7 @@ TEST_CASE( "test 4", "should not drop first move_to or last vertex in polygon" )
     CHECK(compare(g,1000) == expected);
 }
 
-TEST_CASE( "test 5", "should not drop last move_to if repeated" ) {
+TEST_CASE( "test 5", "can drop duplicate move_to" ) {
     mapnik::geometry_type g(mapnik::LineString);
     g.move_to(0,0);
     g.move_to(1,1);
@@ -173,6 +173,18 @@ TEST_CASE( "test 5", "should not drop last move_to if repeated" ) {
     "line_to(5,5)\n"
     );
     CHECK(compare(g,2) == expected);
+}
+
+TEST_CASE( "test 5b", "can drop duplicate move_to" ) {
+    mapnik::geometry_type g(mapnik::LineString);
+    g.move_to(0,0);
+    g.move_to(1,1);
+    g.line_to(2,2);
+    std::string expected(
+    "move_to(0,0)\n"
+    "line_to(2,2)\n"
+    );
+    CHECK(compare(g,3) == expected);
 }
 
 TEST_CASE( "test 6", "should not drop last move_to if repeated" ) {

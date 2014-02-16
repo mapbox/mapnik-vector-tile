@@ -317,44 +317,6 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     CHECK(2 == f.geometry(11)); // y:2
 }
 
-TEST_CASE( "encoding repeated move_to in degerate geometry", "should never drop move_to commands" ) {
-    // Options
-    // here we use a multiplier of 1 to avoid rounding numbers
-    // and stay in integer space for simplity
-    unsigned path_multiplier = 1;
-    // here we use an extreme tolerance to prove tht all vertices are maintained no matter
-    // the tolerance because we never want to drop a move_to or the first line_to
-    unsigned tolerance = 2000000;
-    // now create the testing data
-    mapnik::vector::tile tile;
-    mapnik::vector::backend_pbf backend(tile,path_multiplier);
-    backend.start_tile_layer("layer");
-    mapnik::feature_ptr feature(mapnik::feature_factory::create(boost::make_shared<mapnik::context_type>(),1));
-    backend.start_tile_feature(*feature);
-    std::auto_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::LineString));
-    // simulate broken geometry, perhaps from clipping or simplification
-    g->move_to(0,0);
-    g->move_to(1,1); // we cannot drop this. Future: should we drop the previous bogus move_to?
-    g->line_to(2,2);
-    backend.add_path(*g, tolerance, g->type());
-    backend.stop_tile_feature();
-    backend.stop_tile_layer();
-    // done encoding single feature/geometry
-    CHECK(1 == tile.layers_size());
-    mapnik::vector::tile_layer const& layer = tile.layers(0);
-    CHECK(1 == layer.features_size());
-    mapnik::vector::tile_feature const& f = layer.features(0);
-    CHECK(8 == f.geometry_size());
-    CHECK(17 == f.geometry(0)); // 2 move_to's (2 << 3) | (1 & ((1 << 3) -1))
-    CHECK(0 == f.geometry(1)); // x:0
-    CHECK(0 == f.geometry(2)); // y:0
-    CHECK(2 == f.geometry(3)); // x:1
-    CHECK(2 == f.geometry(4)); // y:1
-    CHECK(10 == f.geometry(5)); // 1 line_to
-    CHECK(2 == f.geometry(6)); // x:1
-    CHECK(2 == f.geometry(7)); // y:1
-}
-
 TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     // Options
     // here we use a multiplier of 1 to avoid rounding numbers
