@@ -104,10 +104,22 @@ TEST_CASE( "test 1", "should round trip without changes" ) {
 TEST_CASE( "test 2", "should drop vertices" ) {
     mapnik::geometry_type g(mapnik::LineString);
     g.move_to(0,0);
-    g.line_to(0,0);
-    g.line_to(0,0);
-    g.line_to(0,0);
-    g.line_to(0,0);
+    g.line_to(3,3);
+    g.line_to(3,3);
+    g.line_to(3,3);
+    g.line_to(3,3);
+    g.line_to(4,4);
+    std::string expected(
+    "move_to(0,0)\n"
+    "line_to(3,3)\n"
+    "line_to(4,4)\n"
+    );
+    CHECK(compare(g,1) == expected);
+}
+
+TEST_CASE( "test 2b", "should drop vertices" ) {
+    mapnik::geometry_type g(mapnik::LineString);
+    g.move_to(0,0);
     g.line_to(0,0);
     g.line_to(1,1);
     std::string expected(
