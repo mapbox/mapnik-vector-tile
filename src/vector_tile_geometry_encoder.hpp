@@ -90,13 +90,18 @@ namespace mapnik { namespace vector {
                 ++count;
             }
 
-            if (skipped_last && length > 1)
+            int last_index = current_feature.geometry_size();
+            if (skipped_last && last_index > 1) // at least one vertex + cmd/length
             {
+                // if we skipped previous vertex we just update it to the last one here.
                 int32_t dx = cur_x - x_;
                 int32_t dy = cur_y - y_;
-                current_feature.add_geometry((dx << 1) ^ (dx >> 31));
-                current_feature.add_geometry((dy << 1) ^ (dy >> 31));
-                ++length;
+                uint32_t last_x = current_feature.geometry(last_index - 2);
+                uint32_t last_y = current_feature.geometry(last_index - 1);
+
+                // FIXME : add tolerance check here to discard short segments
+                current_feature.set_geometry(last_index - 2, ((dx << 1) ^ (dx >> 31)) + last_x);
+                current_feature.set_geometry(last_index - 1, ((dy << 1) ^ (dy >> 31)) + last_y);
             }
 
             // Update the last length/command value.

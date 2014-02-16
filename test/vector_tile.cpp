@@ -385,7 +385,7 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     CHECK(1 == layer.features_size());
     mapnik::vector::tile_feature const& f = layer.features(0);
     // sequence of 10 geometries given tolerance of 2
-    CHECK(10 == f.geometry_size());
+    CHECK(8 == f.geometry_size());
     // first geometry is 9, which packs both the command and how many verticies are encoded with that same command
     // It is 9 because it is a move_to (which is an enum of 1) and there is one command (length == 1)
     unsigned move_value = f.geometry(0);
@@ -400,14 +400,14 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     CHECK(0 == f.geometry(1));
     CHECK(0 == f.geometry(2));
     // 4th is the line_to (which is an enum of 2) and a number indicating how many line_to commands are repeated
-    // in this case there should be 3 because one was skipped
+    // in this case there should be 2 because two were skipped
     unsigned line_value = f.geometry(3);
-    // (3      << 3) | (2       & ((1 << 3) -1)) == 26
-    CHECK(26 == line_value);
+    // (2      << 3) | (2       & ((1 << 3) -1)) == 18
+    CHECK(18 == line_value);
     unsigned line_cmd = line_value & ((1 << 3) - 1);
     CHECK(2 == line_cmd);
     unsigned line_length = line_value >> 3;
-    CHECK(3 == line_length);
+    CHECK(2 == line_length);
     // 5th and 6th are the x,y of the first line_to command
     // due zigzag encoding the 2,2 should be 4,4
     // delta encoding has no impact since the previous coordinate was 0,0
@@ -416,15 +416,10 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     CHECK(4 == f.geometry(4));
     CHECK(4 == f.geometry(5));
     // 7th and 8th are x,y of the second line_to command
-    // due to delta encoding 1000-2 becomes 998
-    // zigzag encoded 998 becomes 1996
-    CHECK(1996 == f.geometry(6));
-    CHECK(1996 == f.geometry(7));
-    // next 1001,1001 should have been skipped
-    // so final line_to command of 1001,1001 after
-    // delta encoding becomes 1 which zigzag encoded is 2
-    CHECK(2 == f.geometry(8));
-    CHECK(2 == f.geometry(9));
+    // due to delta encoding 1001-2 becomes 999
+    // zigzag encoded 999 becomes 1998 == (999 << 1) ^ (999 >> 31)
+    CHECK(1998 == f.geometry(6));
+    CHECK(1998 == f.geometry(7));
 }
 
 // testcase for avoiding error in is_solid_extent of

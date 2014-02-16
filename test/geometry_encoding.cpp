@@ -164,6 +164,21 @@ TEST_CASE( "test 5", "should not drop last move_to if repeated" ) {
     CHECK(compare(g,2) == expected);
 }
 
+TEST_CASE( "test 6", "should not drop last move_to if repeated" ) {
+    mapnik::geometry_type g(mapnik::LineString);
+    g.move_to(0,0);
+    g.line_to(2,2);
+    g.line_to(1000,1000);
+    g.line_to(1001,1001);
+    g.line_to(1001,1001);
+    std::string expected(
+    "move_to(0,0)\n"
+    "line_to(2,2)\n"
+    "line_to(1001,1001)\n"
+    );
+    CHECK(compare(g,2) == expected);
+}
+
 int main (int argc, char* const argv[])
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
