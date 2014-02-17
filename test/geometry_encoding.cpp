@@ -279,6 +279,19 @@ TEST_CASE( "test 9b", "should not drop last vertex" ) {
     CHECK(compare(g,11) == expected);
 }
 
+TEST_CASE( "test 9c", "should not drop last vertex" ) {
+    mapnik::geometry_type g(mapnik::Polygon);
+    g.move_to(0,0);
+    g.line_to(0,10);
+    g.close_path();
+    std::string expected(
+    "move_to(0,0)\n"
+    "line_to(0,10)\n"
+    "close_path(0,0)\n"
+    );
+    CHECK(compare(g,11) == expected);
+}
+
 TEST_CASE( "test 10", "should skip repeated close and coincident line_to commands" ) {
     mapnik::geometry_type g(mapnik::Polygon);
     g.move_to(0,0);
