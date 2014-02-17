@@ -78,6 +78,7 @@ namespace mapnik { namespace vector {
                 }
                 else if (cmd == SEG_CLOSE)
                 {
+                    skipped_last = false;
                     ++length;
                 }
                 else
