@@ -253,6 +253,57 @@ TEST_CASE( "test 8", "should drop repeated close commands" ) {
     CHECK(compare(g,100) == expected);
 }
 
+TEST_CASE( "test 9a", "should not drop last vertex" ) {
+    mapnik::geometry_type g(mapnik::LineString);
+    g.move_to(0,0);
+    g.line_to(9,0); // skipped
+    g.line_to(0,10); // skipped
+    std::string expected(
+    "move_to(0,0)\n"
+    "line_to(0,10)\n" // FIXME: ends up as line_to(-18,10)
+    );
+    CHECK(compare(g,11) == expected);
+}
+
+TEST_CASE( "test 9b", "should not drop last vertex" ) {
+    mapnik::geometry_type g(mapnik::Polygon);
+    g.move_to(0,0);
+    g.line_to(10,0);
+    g.line_to(0,10);
+    g.close_path();
+    std::string expected(
+    "move_to(0,0)\n"
+    "line_to(0,10)\n"
+    "close_path(0,0)\n"
+    );
+    CHECK(compare(g,11) == expected);
+}
+
+TEST_CASE( "test 10", "should avoid repeated close commands" ) {
+    mapnik::geometry_type g(mapnik::Polygon);
+    g.move_to(0,0);
+    g.line_to(10,10);
+    g.line_to(20,20);
+    g.close_path();
+    g.close_path();
+    g.close_path();
+    g.close_path();
+    g.move_to(0,0);
+    g.line_to(10,10);
+    g.line_to(20,20);
+    std::string expected(
+    "move_to(0,0)\n"
+    "line_to(10,10)\n"
+    "line_to(20,20)\n"
+    "close_path(0,0)\n"
+    "move_to(0,0)\n"
+    "line_to(10,10)\n"
+    "line_to(20,20)\n"
+    "close_path(0,0)\n"
+    );
+    CHECK(compare(g,0) == expected);
+}
+
 int main (int argc, char* const argv[])
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
