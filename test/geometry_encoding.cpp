@@ -260,7 +260,7 @@ TEST_CASE( "test 9a", "should not drop last vertex" ) {
     g.line_to(0,10); // skipped
     std::string expected(
     "move_to(0,0)\n"
-    "line_to(0,10)\n" // FIXME: ends up as line_to(-18,10)
+    "line_to(0,10)\n"
     );
     CHECK(compare(g,11) == expected);
 }
