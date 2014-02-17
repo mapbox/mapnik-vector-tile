@@ -238,6 +238,21 @@ TEST_CASE( "test 7", "ensure proper handling of skipping and close commands" ) {
     CHECK(compare(g,100) == expected);
 }
 
+TEST_CASE( "test 8", "should drop repeated close commands" ) {
+    mapnik::geometry_type g(mapnik::Polygon);
+    g.move_to(0,0);
+    g.line_to(2,2);
+    g.close_path();
+    g.close_path();
+    g.close_path();
+    std::string expected(
+    "move_to(0,0)\n"
+    "line_to(2,2)\n"
+    "close_path(0,0)\n"
+    );
+    CHECK(compare(g,100) == expected);
+}
+
 int main (int argc, char* const argv[])
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
