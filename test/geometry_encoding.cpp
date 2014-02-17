@@ -8,12 +8,13 @@
 
 void decode_geometry(mapnik::vector::tile_feature const& f,
                      mapnik::geometry_type & geom,
+                     double & x,
+                     double & y,
                      double scale)
 {
     int cmd = -1;
     const int cmd_bits = 3;
     unsigned length = 0;
-    double x = 0,y = 0;
     for (int k = 0; k < f.geometry_size();)
     {
         if (!length) {
@@ -82,7 +83,9 @@ std::string compare(mapnik::geometry_type const & g,
     encode_geometry(g,(tile_GeomType)g.type(),feature,x,y,tolerance,path_multiplier);
     // decode
     mapnik::geometry_type g2(mapnik::Polygon);
-    decode_geometry(feature,g2,path_multiplier);
+    double x0 = 0;
+    double y0 = 0;
+    decode_geometry(feature,g2,x0,y0,path_multiplier);
     return show_path(g2);
 }
 
@@ -321,6 +324,44 @@ TEST_CASE( "test 10", "should skip repeated close and coincident line_to command
     CHECK(compare(g,1) == expected);
 }
 
+TEST_CASE( "test 11", "should correctly encode multiple paths" ) {
+    using namespace mapnik::vector;
+    tile_feature feature0;
+    int32_t x = 0;
+    int32_t y = 0;
+    unsigned path_multiplier = 1;
+    unsigned tolerance = 10000;
+    mapnik::geometry_type g0(mapnik::Polygon);
+    g0.move_to(0,0);
+    g0.line_to(-10,-10);
+    g0.line_to(-20,-20);
+    g0.close_path();
+    encode_geometry(g0,(tile_GeomType)g0.type(),feature0,x,y,tolerance,path_multiplier);
+    CHECK(x == -20);
+    CHECK(y == -20);
+    mapnik::geometry_type g1(mapnik::Polygon);
+    g1.move_to(1000,1000);
+    g1.line_to(1010,1010);
+    g1.line_to(1020,1020);
+    g1.close_path();
+    encode_geometry(g1,(tile_GeomType)g1.type(),feature0,x,y,tolerance,path_multiplier);
+    CHECK(x == 1020);
+    CHECK(y == 1020);
+    mapnik::geometry_type g2(mapnik::Polygon);
+    double x0 = 0;
+    double y0 = 0;
+    decode_geometry(feature0,g2,x0,y0,path_multiplier);
+    std::string actual = show_path(g2);
+    std::string expected(
+    "move_to(0,0)\n"
+    "line_to(-20,-20)\n"
+    "close_path(0,0)\n"
+    "move_to(1000,1000)\n"
+    "line_to(1020,1020)\n"
+    "close_path(0,0)\n"
+    );
+    CHECK(actual == expected);
+}
 int main (int argc, char* const argv[])
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;

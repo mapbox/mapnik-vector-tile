@@ -103,6 +103,8 @@ namespace mapnik { namespace vector {
                 int32_t last_dy = ((last_y >> 1) ^ (-(last_y & 1)));
                 int32_t dx = cur_x - x_ + last_dx;
                 int32_t dy = cur_y - y_ + last_dy;
+                x_ = cur_x;
+                y_ = cur_y;
                 // FIXME : add tolerance check here to discard short segments
                 current_feature.set_geometry(skipped_index - 2, ((dx << 1) ^ (dx >> 31)));
                 current_feature.set_geometry(skipped_index - 1, ((dy << 1) ^ (dy >> 31)));
