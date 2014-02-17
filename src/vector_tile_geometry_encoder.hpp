@@ -22,10 +22,12 @@ namespace mapnik { namespace vector {
 
             vertex2d vtx(vertex2d::no_init);
             int cmd = -1;
+            int prev_cmd = -1;
             int cmd_idx = -1;
             const int cmd_bits = 3;
             unsigned length = 0;
             bool skipped_last = false;
+            int32_t skipped_index = -1;
             int32_t cur_x = 0;
             int32_t cur_y = 0;
 
@@ -53,7 +55,6 @@ namespace mapnik { namespace vector {
                     cur_y = static_cast<int32_t>(std::floor((vtx.y * path_multiplier) + 0.5));
                     int32_t dx = cur_x - x_;
                     int32_t dy = cur_y - y_;
-
                     // Keep all move_to commands, but omit other movements that are
                     // not >= the tolerance threshold and should be considered no-ops.
                     // NOTE: length == 0 indicates the command has changed and will
@@ -61,7 +62,7 @@ namespace mapnik { namespace vector {
                     if ( length == 0 ||
                          (static_cast<unsigned>(std::abs(dx)) >= tolerance) ||
                          (static_cast<unsigned>(std::abs(dy)) >= tolerance)
-                       )
+                        )
                     {
                         // Manual zigzag encoding.
                         current_feature.add_geometry((dx << 1) ^ (dx >> 31));
@@ -74,12 +75,12 @@ namespace mapnik { namespace vector {
                     else
                     {
                         skipped_last = true;
+                        skipped_index = current_feature.geometry_size();
                     }
                 }
                 else if (cmd == SEG_CLOSE)
                 {
-                    skipped_last = false;
-                    ++length;
+                    if (prev_cmd != SEG_CLOSE) ++length;
                 }
                 else
                 {
@@ -90,20 +91,21 @@ namespace mapnik { namespace vector {
                 }
 
                 ++count;
+                prev_cmd = cmd;
             }
 
-            int last_index = current_feature.geometry_size();
-            if (skipped_last && last_index > 1) // at least one vertex + cmd/length
+            if (skipped_last && skipped_index > 1) // at least one vertex + cmd/length
             {
                 // if we skipped previous vertex we just update it to the last one here.
-                int32_t dx = cur_x - x_;
-                int32_t dy = cur_y - y_;
-                uint32_t last_x = current_feature.geometry(last_index - 2);
-                uint32_t last_y = current_feature.geometry(last_index - 1);
-
+                uint32_t last_x = current_feature.geometry(skipped_index - 2);
+                uint32_t last_y = current_feature.geometry(skipped_index - 1);
+                int32_t last_dx = ((last_x >> 1) ^ (-(last_x & 1)));
+                int32_t last_dy = ((last_y >> 1) ^ (-(last_y & 1)));
+                int32_t dx = cur_x - x_ + last_dx;
+                int32_t dy = cur_y - y_ + last_dy;
                 // FIXME : add tolerance check here to discard short segments
-                current_feature.set_geometry(last_index - 2, ((dx << 1) ^ (dx >> 31)) + last_x);
-                current_feature.set_geometry(last_index - 1, ((dy << 1) ^ (dy >> 31)) + last_y);
+                current_feature.set_geometry(skipped_index - 2, ((dx << 1) ^ (dx >> 31)));
+                current_feature.set_geometry(skipped_index - 1, ((dy << 1) ^ (dy >> 31)));
             }
 
             // Update the last length/command value.

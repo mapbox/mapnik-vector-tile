@@ -279,10 +279,12 @@ TEST_CASE( "test 9b", "should not drop last vertex" ) {
     CHECK(compare(g,11) == expected);
 }
 
-TEST_CASE( "test 10", "should avoid repeated close commands" ) {
+TEST_CASE( "test 10", "should skip repeated close and coincident line_to commands" ) {
     mapnik::geometry_type g(mapnik::Polygon);
     g.move_to(0,0);
     g.line_to(10,10);
+    g.line_to(10,10);
+    g.line_to(20,20);
     g.line_to(20,20);
     g.close_path();
     g.close_path();
@@ -291,6 +293,8 @@ TEST_CASE( "test 10", "should avoid repeated close commands" ) {
     g.move_to(0,0);
     g.line_to(10,10);
     g.line_to(20,20);
+    g.close_path();
+    g.close_path();
     std::string expected(
     "move_to(0,0)\n"
     "line_to(10,10)\n"
@@ -301,7 +305,7 @@ TEST_CASE( "test 10", "should avoid repeated close commands" ) {
     "line_to(20,20)\n"
     "close_path(0,0)\n"
     );
-    CHECK(compare(g,0) == expected);
+    CHECK(compare(g,1) == expected);
 }
 
 int main (int argc, char* const argv[])
