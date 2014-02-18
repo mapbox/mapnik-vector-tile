@@ -251,32 +251,27 @@ namespace mapnik { namespace vector {
                             }
                             else if (value.has_int_value())
                             {
-                                feature->put(name, value.int_value());
+                                feature->put(name, static_cast<mapnik::value_integer>(value.int_value()));
                             }
                             else if (value.has_double_value())
                             {
-                                feature->put(name, value.double_value());
+                                feature->put(name, static_cast<mapnik::value_double>(value.double_value()));
                             }
                             else if (value.has_float_value())
                             {
-                                feature->put(name, value.float_value());
+                                feature->put(name, static_cast<mapnik::value_double>(value.float_value()));
                             }
                             else if (value.has_bool_value())
                             {
-                                feature->put(name, value.bool_value());
+                                feature->put(name, static_cast<mapnik::value_bool>(value.bool_value()));
                             }
                             else if (value.has_sint_value())
                             {
-                                feature->put(name, value.sint_value());
+                                feature->put(name, static_cast<mapnik::value_integer>(value.sint_value()));
                             }
                             else if (value.has_uint_value())
                             {
                                 feature->put(name, static_cast<mapnik::value_integer>(value.uint_value()));
-                            }
-                            else
-                            {
-                                // Do nothing
-                                //feature->put_new(name, mapnik::value_null());
                             }
                         }
                     }
