@@ -2,55 +2,31 @@
 
 [![Build Status](https://secure.travis-ci.org/mapbox/mapnik-vector-tile.png)](http://travis-ci.org/mapbox/mapnik-vector-tile)
 
-A high performance library for working with vector tiles with Mapnik.
+A high performance library for working with vector tiles.
 
 Provides C++ headers that support rendering geodata into vector tiles
 and rendering vector tiles into images.
 
-Many efforts at vector tiles use [GeoJSON](http://www.geojson.org/) or other
-text based formats that are easy to parse in the browser.
+## Depends
 
-This approach is different: tiles are encoded as protobuf messages and
-storage is tightly designed around the [Mapnik rendering engine](http://mapnik.org).
-In this case Mapnik is the client rather than the browser. This provides a geodata
-format that is a drop-in replacement for datasources like postgis and shapefiles
-without compromising on speed and can be styled using existing design tools
-like [TileMill](http://tilemill.com).
-
+ - Mapnik > = v2.2.x: `libmapnik` and `mapnik-config`
+ - Protobuf: `libprotobuf` and `protoc`
 
 ## Implementation details
 
-Vector tiles in this code represent a direct serialization of Mapnik layers
-optimized for space efficient storage and fast deserialization directly back
-into Mapnik objects. For those familiar with the Mapnik API vector tiles
-here can be considered a named array of `mapnik::featureset_ptr` whose geometries
-have been pre-tiled.
+Vector tiles in this code represent a direct serialization of Mapnik layers optimized for space efficient storage and fast deserialization. For those familiar with the Mapnik API vector tiles here can be considered a named array of `mapnik::featureset_ptr` whose geometries have been pre-tiled.
 
-A vector tile can consist of one or more ordered layers identified by name
-and containing one or more features.
+A vector tile can consist of one or more ordered layers identified by name and containing one or more features.
 
 Features contain attributes and geometries: either point, linestring, or polygon.
-Features expect single geometries so multipolygons or multilinestrings are represented
-as multiple features, each storing a single geometry part.
 
-Geometries are stored as an x,y,command stream (where `command` is a rendering command
-like move_to or line_to). Geometries are clipped, reprojected into the map srs,
-converted to screen coordinates, and [delta](http://en.wikipedia.org/wiki/Delta_encoding)
-and [zigzag](https://developers.google.com/protocol-buffers/docs/encoding#types) encoded.
+Geometries are stored as an x,y,command stream (where `command` is a rendering command like move_to or line_to). Geometries are clipped, reprojected into spherical mercator, converted to screen coordinates, and [delta](http://en.wikipedia.org/wiki/Delta_encoding) and [zigzag](https://developers.google.com/protocol-buffers/docs/encoding#types) encoded.
 
-Feature attributes are encoded as key:value pairs which are dictionary encoded
-at the layer level for compact storage of any repeated keys or values. Values use variant
-type encoding supporting both unicode strings, boolean values, and various integer and
-floating point types.
+Feature attributes are encoded as key:value pairs which are dictionary encoded at the layer level for compact storage of any repeated keys or values. Values use variant type encoding supporting both unicode strings, boolean values, and various integer and floating point types.
 
 Vector tiles are serialized as protobuf messages which are then zlib compressed.
 
 The assumed projection is Spherical Mercator (`epsg:3857`).
-
-## Requires
-
-- Mapnik v2.2.0: `libmapnik` and `mapnik-config`
-- Protobuf: `libprotobuf` and `protoc`
 
 ### Ubuntu Dependencies Installation
 
