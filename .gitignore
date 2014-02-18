@@ -5,6 +5,7 @@ src/vector_tile.pb.cc
 src/vector_tile.pb.h
 python/vector_tile_pb2.py
 test/run-test
+test/run-geom-test
 *pyc
 archive
 TODO.md

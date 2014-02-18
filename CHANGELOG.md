@@ -1,7 +1,9 @@
 # Changlog
 
-## Future
+## 0.4.0
 
+ - Refactored geometry encoder with fixes to drop duplicated/no-op verticies and/or close commands
+ - `npm install` no longer runs `protoc` - the responsibility for this is now up to `node-mapnik`
  - Optimized is_solid check
 
 ## 0.3.7
