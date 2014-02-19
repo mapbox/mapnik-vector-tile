@@ -22,11 +22,11 @@ python: python/vector_tile_pb2.py
 test/run-test: Makefile src/vector_tile.pb.cc test/vector_tile.cpp test/test_utils.hpp src/*
 	@$(CXX) -o ./test/run-test test/vector_tile.cpp src/vector_tile.pb.cc -I./src $(CXXFLAGS) $(MAPNIK_CXXFLAGS) $(PROTOBUF_CXXFLAGS) $(COMMON_FLAGS) $(MAPNIK_LDFLAGS) $(PROTOBUF_LDFLAGS) $(LDFLAGS) -Wno-unused-private-field
 
-test: test/run-test test/run-geom-test src/vector_tile.pb.cc
+test: test/run-test test/run-geom-test src/vector_tile.pb.cc test/catch.hpp
 	./test/run-test
 	./test/run-geom-test
 
-./test/run-geom-test: Makefile src/vector_tile.pb.cc test/geometry_encoding.cpp src/vector_tile_geometry_encoder.hpp
+./test/run-geom-test: Makefile src/vector_tile.pb.cc test/geometry_encoding.cpp test/encoding_util.hpp src/vector_tile_geometry_encoder.hpp test/catch.hpp
 	@$(CXX) -o ./test/run-geom-test test/geometry_encoding.cpp src/vector_tile.pb.cc -I./src $(CXXFLAGS) $(MAPNIK_CXXFLAGS) $(PROTOBUF_CXXFLAGS) $(COMMON_FLAGS) $(MAPNIK_LDFLAGS) $(PROTOBUF_LDFLAGS) $(LDFLAGS) -Wno-unused-private-field
 
 geom: test/run-geom-test src/vector_tile.pb.cc
