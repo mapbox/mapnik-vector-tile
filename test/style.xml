@@ -1,0 +1,7 @@
+<Map>
+<Style name="style">
+    <Rule>
+        <MarkersSymbolizer fill="red" />
+    </Rule>
+</Style>
+</Map>
