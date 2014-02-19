@@ -1,11 +1,11 @@
 // https://github.com/philsquared/Catch/wiki/Supplying-your-own-main()
+// http://www.levelofindirection.com/journal/2013/6/28/catch-10.html
 #define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
 
 #include "encoding_util.hpp"
 
 // https://github.com/mapbox/mapnik-vector-tile/issues/36
-
 
 TEST_CASE( "test 1", "should round trip without changes" ) {
     mapnik::geometry_type g(mapnik::Polygon);
@@ -22,7 +22,7 @@ TEST_CASE( "test 1", "should round trip without changes" ) {
     CHECK(compare(g) == expected);
 }
 
-TEST_CASE( "test 2", "should drop vertices" ) {
+TEST_CASE( "test 2", "should drop coincident line_to moves" ) {
     mapnik::geometry_type g(mapnik::LineString);
     g.move_to(0,0);
     g.line_to(3,3);
@@ -45,7 +45,7 @@ TEST_CASE( "test 2b", "should drop vertices" ) {
     g.line_to(1,1);
     std::string expected(
     "move_to(0,0)\n"
-    "line_to(0,0)\n" // TODO - drop this
+    "line_to(0,0)\n" // TODO - should we try to drop this?
     "line_to(1,1)\n"
     );
     CHECK(compare(g,1) == expected);
@@ -86,11 +86,11 @@ TEST_CASE( "test 4", "should not drop first move_to or last vertex in polygon" )
 TEST_CASE( "test 5", "can drop duplicate move_to" ) {
     mapnik::geometry_type g(mapnik::LineString);
     g.move_to(0,0);
-    g.move_to(1,1);
-    g.line_to(4,4);
+    g.move_to(1,1); // skipped
+    g.line_to(4,4); // skipped
     g.line_to(5,5);
     std::string expected(
-    "move_to(0,0)\n"
+    "move_to(0,0)\n" // TODO - should we keep move_to(1,1) instead?
     "line_to(5,5)\n"
     );
     CHECK(compare(g,2) == expected);
@@ -124,12 +124,12 @@ TEST_CASE( "test 5c", "can drop duplicate move_to but not second" ) {
     CHECK(compare(g,3) == expected);
 }
 
-TEST_CASE( "test 6", "should not drop last move_to if repeated" ) {
+TEST_CASE( "test 6", "should not drop last line_to if repeated" ) {
     mapnik::geometry_type g(mapnik::LineString);
     g.move_to(0,0);
     g.line_to(2,2);
-    g.line_to(1000,1000);
-    g.line_to(1001,1001);
+    g.line_to(1000,1000); // skipped
+    g.line_to(1001,1001); // skipped
     g.line_to(1001,1001);
     std::string expected(
     "move_to(0,0)\n"
@@ -139,13 +139,13 @@ TEST_CASE( "test 6", "should not drop last move_to if repeated" ) {
     CHECK(compare(g,2) == expected);
 }
 
-TEST_CASE( "test 7", "ensure proper handling of skipping and close commands" ) {
+TEST_CASE( "test 7", "ensure proper handling of skipping + close commands" ) {
     mapnik::geometry_type g(mapnik::Polygon);
     g.move_to(0,0);
     g.line_to(2,2);
     g.close_path();
     g.move_to(5,5);
-    g.line_to(10,10);
+    g.line_to(10,10); // skipped
     g.line_to(21,21);
     g.close_path();
     std::string expected(
@@ -178,7 +178,7 @@ TEST_CASE( "test 9a", "should not drop last vertex" ) {
     mapnik::geometry_type g(mapnik::LineString);
     g.move_to(0,0);
     g.line_to(9,0); // skipped
-    g.line_to(0,10); // skipped
+    g.line_to(0,10);
     std::string expected(
     "move_to(0,0)\n"
     "line_to(0,10)\n"
@@ -189,7 +189,7 @@ TEST_CASE( "test 9a", "should not drop last vertex" ) {
 TEST_CASE( "test 9b", "should not drop last vertex" ) {
     mapnik::geometry_type g(mapnik::Polygon);
     g.move_to(0,0);
-    g.line_to(10,0);
+    g.line_to(10,0); // skipped
     g.line_to(0,10);
     g.close_path();
     std::string expected(
@@ -217,18 +217,18 @@ TEST_CASE( "test 10", "should skip repeated close and coincident line_to command
     mapnik::geometry_type g(mapnik::Polygon);
     g.move_to(0,0);
     g.line_to(10,10);
-    g.line_to(10,10);
+    g.line_to(10,10); // skipped
     g.line_to(20,20);
-    g.line_to(20,20);
+    g.line_to(20,20); // skipped, but added back and replaces previous
     g.close_path();
-    g.close_path();
-    g.close_path();
-    g.close_path();
+    g.close_path(); // skipped
+    g.close_path(); // skipped
+    g.close_path(); // skipped
     g.move_to(0,0);
     g.line_to(10,10);
     g.line_to(20,20);
     g.close_path();
-    g.close_path();
+    g.close_path(); // skipped
     std::string expected(
     "move_to(0,0)\n"
     "line_to(10,10)\n"
