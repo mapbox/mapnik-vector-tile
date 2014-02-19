@@ -13,6 +13,8 @@
 #include <boost/unordered_map.hpp>
 #include <boost/foreach.hpp>
 
+#include "mapnik3x_compatibility.hpp"
+
 namespace mapnik { namespace vector {
 
     struct to_tile_value: public boost::static_visitor<>
@@ -99,8 +101,8 @@ namespace mapnik { namespace vector {
             feature_kv_iterator end = feature.end();
             for ( ;itr!=end; ++itr)
             {
-                std::string const& name = boost::get<0>(*itr);
-                mapnik::value const& val = boost::get<1>(*itr);
+                std::string const& name = MAPNIK_GET<0>(*itr);
+                mapnik::value const& val = MAPNIK_GET<1>(*itr);
                 if (!val.is_null())
                 {
                     // Insert the key index
@@ -162,7 +164,7 @@ namespace mapnik { namespace vector {
         }
 
         template <typename T>
-        inline unsigned add_path(T & path, unsigned tolerance, mapnik::eGeomType type)
+        inline unsigned add_path(T & path, unsigned tolerance, MAPNIK_GEOM_TYPE type)
         {
             if (current_feature_)
             {

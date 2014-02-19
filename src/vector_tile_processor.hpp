@@ -37,6 +37,10 @@
 #include <string>
 #include <stdexcept>
 
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_MAKE_SHARED_INCLUDE
+#include MAPNIK_SHARED_INCLUDE
+
 namespace mapnik { namespace vector {
 
 
@@ -253,7 +257,7 @@ namespace mapnik { namespace vector {
             unsigned path_count = 0;
             switch (geom.type())
             {
-            case mapnik::Point:
+            case MAPNIK_POINT:
             {
                 if (geom.size() > 0)
                 {
@@ -264,7 +268,7 @@ namespace mapnik { namespace vector {
                 }
                 break;
             }
-            case mapnik::LineString:
+            case MAPNIK_LINESTRING:
             {
                 if (geom.size() > 1)
                 {
@@ -281,7 +285,7 @@ namespace mapnik { namespace vector {
                 }
                 break;
             }
-            case mapnik::Polygon:
+            case MAPNIK_POLYGON:
             {
                 if (geom.size() > 2)
                 {
@@ -314,7 +318,7 @@ namespace mapnik { namespace vector {
                 }
                 break;
             }
-            case mapnik::Unknown:
+            case MAPNIK_UNKNOWN:
             default:
             {
                 throw std::runtime_error("unhandled geometry type");

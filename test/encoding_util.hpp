@@ -78,7 +78,7 @@ std::string compare(mapnik::geometry_type const & g,
     int32_t y = 0;
     encode_geometry(g,(tile_GeomType)g.type(),feature,x,y,tolerance,path_multiplier);
     // decode
-    mapnik::geometry_type g2(mapnik::Polygon);
+    mapnik::geometry_type g2(MAPNIK_POLYGON);
     double x0 = 0;
     double y0 = 0;
     decode_geometry(feature,g2,x0,y0,path_multiplier);

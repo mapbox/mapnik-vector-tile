@@ -3,12 +3,13 @@
 #define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
 
+#include "mapnik3x_compatibility.hpp"
 #include "encoding_util.hpp"
 
 // https://github.com/mapbox/mapnik-vector-tile/issues/36
 
 TEST_CASE( "test 1", "should round trip without changes" ) {
-    mapnik::geometry_type g(mapnik::Polygon);
+    mapnik::geometry_type g(MAPNIK_POLYGON);
     g.move_to(0,0);
     g.line_to(1,1);
     g.line_to(100,100);
@@ -23,7 +24,7 @@ TEST_CASE( "test 1", "should round trip without changes" ) {
 }
 
 TEST_CASE( "test 2", "should drop coincident line_to moves" ) {
-    mapnik::geometry_type g(mapnik::LineString);
+    mapnik::geometry_type g(MAPNIK_LINESTRING);
     g.move_to(0,0);
     g.line_to(3,3);
     g.line_to(3,3);
@@ -39,7 +40,7 @@ TEST_CASE( "test 2", "should drop coincident line_to moves" ) {
 }
 
 TEST_CASE( "test 2b", "should drop vertices" ) {
-    mapnik::geometry_type g(mapnik::LineString);
+    mapnik::geometry_type g(MAPNIK_LINESTRING);
     g.move_to(0,0);
     g.line_to(0,0);
     g.line_to(1,1);
@@ -52,7 +53,7 @@ TEST_CASE( "test 2b", "should drop vertices" ) {
 }
 
 TEST_CASE( "test 3", "should not drop first move_to or last vertex in line" ) {
-    mapnik::geometry_type g(mapnik::LineString);
+    mapnik::geometry_type g(MAPNIK_LINESTRING);
     g.move_to(0,0);
     g.line_to(1,1);
     g.move_to(0,0);
@@ -67,7 +68,7 @@ TEST_CASE( "test 3", "should not drop first move_to or last vertex in line" ) {
 }
 
 TEST_CASE( "test 4", "should not drop first move_to or last vertex in polygon" ) {
-    mapnik::geometry_type g(mapnik::Polygon);
+    mapnik::geometry_type g(MAPNIK_POLYGON);
     g.move_to(0,0);
     g.line_to(1,1);
     g.move_to(0,0);
@@ -84,7 +85,7 @@ TEST_CASE( "test 4", "should not drop first move_to or last vertex in polygon" )
 }
 
 TEST_CASE( "test 5", "can drop duplicate move_to" ) {
-    mapnik::geometry_type g(mapnik::LineString);
+    mapnik::geometry_type g(MAPNIK_LINESTRING);
     g.move_to(0,0);
     g.move_to(1,1); // skipped
     g.line_to(4,4); // skipped
@@ -97,7 +98,7 @@ TEST_CASE( "test 5", "can drop duplicate move_to" ) {
 }
 
 TEST_CASE( "test 5b", "can drop duplicate move_to" ) {
-    mapnik::geometry_type g(mapnik::LineString);
+    mapnik::geometry_type g(MAPNIK_LINESTRING);
     g.move_to(0,0);
     g.move_to(1,1);
     g.line_to(2,2);
@@ -109,7 +110,7 @@ TEST_CASE( "test 5b", "can drop duplicate move_to" ) {
 }
 
 TEST_CASE( "test 5c", "can drop duplicate move_to but not second" ) {
-    mapnik::geometry_type g(mapnik::LineString);
+    mapnik::geometry_type g(MAPNIK_LINESTRING);
     g.move_to(0,0);
     g.move_to(1,1);
     g.line_to(2,2);
@@ -125,7 +126,7 @@ TEST_CASE( "test 5c", "can drop duplicate move_to but not second" ) {
 }
 
 TEST_CASE( "test 6", "should not drop last line_to if repeated" ) {
-    mapnik::geometry_type g(mapnik::LineString);
+    mapnik::geometry_type g(MAPNIK_LINESTRING);
     g.move_to(0,0);
     g.line_to(2,2);
     g.line_to(1000,1000); // skipped
@@ -140,7 +141,7 @@ TEST_CASE( "test 6", "should not drop last line_to if repeated" ) {
 }
 
 TEST_CASE( "test 7", "ensure proper handling of skipping + close commands" ) {
-    mapnik::geometry_type g(mapnik::Polygon);
+    mapnik::geometry_type g(MAPNIK_POLYGON);
     g.move_to(0,0);
     g.line_to(2,2);
     g.close_path();
@@ -160,7 +161,7 @@ TEST_CASE( "test 7", "ensure proper handling of skipping + close commands" ) {
 }
 
 TEST_CASE( "test 8", "should drop repeated close commands" ) {
-    mapnik::geometry_type g(mapnik::Polygon);
+    mapnik::geometry_type g(MAPNIK_POLYGON);
     g.move_to(0,0);
     g.line_to(2,2);
     g.close_path();
@@ -175,7 +176,7 @@ TEST_CASE( "test 8", "should drop repeated close commands" ) {
 }
 
 TEST_CASE( "test 9a", "should not drop last vertex" ) {
-    mapnik::geometry_type g(mapnik::LineString);
+    mapnik::geometry_type g(MAPNIK_LINESTRING);
     g.move_to(0,0);
     g.line_to(9,0); // skipped
     g.line_to(0,10);
@@ -187,7 +188,7 @@ TEST_CASE( "test 9a", "should not drop last vertex" ) {
 }
 
 TEST_CASE( "test 9b", "should not drop last vertex" ) {
-    mapnik::geometry_type g(mapnik::Polygon);
+    mapnik::geometry_type g(MAPNIK_POLYGON);
     g.move_to(0,0);
     g.line_to(10,0); // skipped
     g.line_to(0,10);
@@ -201,7 +202,7 @@ TEST_CASE( "test 9b", "should not drop last vertex" ) {
 }
 
 TEST_CASE( "test 9c", "should not drop last vertex" ) {
-    mapnik::geometry_type g(mapnik::Polygon);
+    mapnik::geometry_type g(MAPNIK_POLYGON);
     g.move_to(0,0);
     g.line_to(0,10);
     g.close_path();
@@ -214,7 +215,7 @@ TEST_CASE( "test 9c", "should not drop last vertex" ) {
 }
 
 TEST_CASE( "test 10", "should skip repeated close and coincident line_to commands" ) {
-    mapnik::geometry_type g(mapnik::Polygon);
+    mapnik::geometry_type g(MAPNIK_POLYGON);
     g.move_to(0,0);
     g.line_to(10,10);
     g.line_to(10,10); // skipped
@@ -249,7 +250,7 @@ TEST_CASE( "test 11", "should correctly encode multiple paths" ) {
     int32_t y = 0;
     unsigned path_multiplier = 1;
     unsigned tolerance = 10000;
-    mapnik::geometry_type g0(mapnik::Polygon);
+    mapnik::geometry_type g0(MAPNIK_POLYGON);
     g0.move_to(0,0);
     g0.line_to(-10,-10);
     g0.line_to(-20,-20);
@@ -257,7 +258,7 @@ TEST_CASE( "test 11", "should correctly encode multiple paths" ) {
     encode_geometry(g0,(tile_GeomType)g0.type(),feature0,x,y,tolerance,path_multiplier);
     CHECK(x == -20);
     CHECK(y == -20);
-    mapnik::geometry_type g1(mapnik::Polygon);
+    mapnik::geometry_type g1(MAPNIK_POLYGON);
     g1.move_to(1000,1000);
     g1.line_to(1010,1010);
     g1.line_to(1020,1020);
@@ -265,7 +266,7 @@ TEST_CASE( "test 11", "should correctly encode multiple paths" ) {
     encode_geometry(g1,(tile_GeomType)g1.type(),feature0,x,y,tolerance,path_multiplier);
     CHECK(x == 1020);
     CHECK(y == 1020);
-    mapnik::geometry_type g2(mapnik::Polygon);
+    mapnik::geometry_type g2(MAPNIK_POLYGON);
     double x0 = 0;
     double y0 = 0;
     decode_geometry(feature0,g2,x0,y0,path_multiplier);
