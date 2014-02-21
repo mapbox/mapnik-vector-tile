@@ -113,6 +113,7 @@ unsigned encode_geometry(T & path,
                     int32_t dx = cur_x - x_;
                     int32_t dy = cur_y - y_;
                     bool sharp_turn_ahead = false;
+#if 1
                     if (output.size() > 1)
                     {
                         auto const& next_vtx = output[1];
@@ -120,12 +121,13 @@ unsigned encode_geometry(T & path,
                         {
                             uint32_t next_dx = std::abs(cur_x - static_cast<int32_t>(std::floor((next_vtx.x * path_multiplier) + 0.5)));
                             uint32_t next_dy = std::abs(cur_y - static_cast<int32_t>(std::floor((next_vtx.y * path_multiplier) + 0.5)));
-                            if ((next_dx == 0 && next_dy > 0) || (next_dy == 0 && next_dx > 0))
+                            if ((next_dx == 0 && next_dy >= tolerance) || (next_dy == 0 && next_dx >= tolerance))
                             {
                                 sharp_turn_ahead = true;
                             }
                         }
                     }
+#endif
                     // Keep all move_to commands, but omit other movements that are
                     // not >= the tolerance threshold and should be considered no-ops.
                     // NOTE: length == 0 indicates the command has changed and will
