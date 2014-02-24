@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.4.1
+
+ - Added initial support for Mapnik 3.x
+
 ## 0.4.0
 
  - Refactored geometry encoder with fixes to drop duplicated/no-op verticies and/or
