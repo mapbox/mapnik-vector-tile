@@ -15,7 +15,6 @@ inline void handle_skipped_last(tile_feature & current_feature,
                                 int32_t & x_,
                                 int32_t & y_)
 {
-    // if we skipped previous vertex we just update it to the last one here.
     uint32_t last_x = current_feature.geometry(skipped_index - 2);
     uint32_t last_y = current_feature.geometry(skipped_index - 1);
     int32_t last_dx = ((last_x >> 1) ^ (-(last_x & 1)));
@@ -24,7 +23,6 @@ inline void handle_skipped_last(tile_feature & current_feature,
     int32_t dy = cur_y - y_ + last_dy;
     x_ = cur_x;
     y_ = cur_y;
-    // FIXME : add tolerance check here to discard short segments
     current_feature.set_geometry(skipped_index - 2, ((dx << 1) ^ (dx >> 31)));
     current_feature.set_geometry(skipped_index - 1, ((dy << 1) ^ (dy >> 31)));
 }
@@ -118,7 +116,6 @@ unsigned encode_geometry(T & path,
                     int32_t dx = cur_x - x_;
                     int32_t dy = cur_y - y_;
                     bool sharp_turn_ahead = false;
-#if 1
                     if (output.size() > 1)
                     {
                         auto const& next_vtx = output[1];
@@ -132,7 +129,6 @@ unsigned encode_geometry(T & path,
                             }
                         }
                     }
-#endif
                     // Keep all move_to commands, but omit other movements that are
                     // not >= the tolerance threshold and should be considered no-ops.
                     // NOTE: length == 0 indicates the command has changed and will
@@ -177,9 +173,9 @@ unsigned encode_geometry(T & path,
             if (output.size() < 2) cache = true;
         }
     }
-    //
     if (skipped_last && skipped_index > 1) // at least one vertex + cmd/length
     {
+        // if we skipped previous vertex we just update it to the last one here.
         handle_skipped_last(current_feature, skipped_index, cur_x, cur_y, x_, y_);
     }
     // Update the last length/command value.
