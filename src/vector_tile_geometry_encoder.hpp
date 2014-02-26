@@ -118,7 +118,7 @@ unsigned encode_geometry(T & path,
                     bool sharp_turn_ahead = false;
                     if (output.size() > 1)
                     {
-                        auto const& next_vtx = output[1];
+                        vertex2d const& next_vtx = output[1];
                         if (next_vtx.cmd == SEG_LINETO)
                         {
                             uint32_t next_dx = std::abs(cur_x - static_cast<int32_t>(std::floor((next_vtx.x * path_multiplier) + 0.5)));
