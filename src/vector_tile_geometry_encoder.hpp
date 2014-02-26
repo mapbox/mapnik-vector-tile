@@ -4,6 +4,7 @@
 // vector tile
 #include "vector_tile.pb.h"
 #include <mapnik/vertex.hpp>
+#include <mapnik/version.hpp>
 
 namespace mapnik { namespace vector {
 
@@ -68,7 +69,11 @@ unsigned encode_geometry(T & path,
             vertex2d v(vertex2d::no_init);
             while ((v.cmd = path.vertex(&v.x, &v.y)) != SEG_END)
             {
+#if MAPNIK_VERSION >= 300000
                 output.push_back(std::move(v));
+#else
+                output.push_back(v);
+#endif
                 if (output.size() == buffer_size) break;
             }
             cache = false;
