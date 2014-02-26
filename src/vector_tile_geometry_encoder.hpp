@@ -4,36 +4,87 @@
 // vector tile
 #include "vector_tile.pb.h"
 #include <mapnik/vertex.hpp>
+#include <mapnik/version.hpp>
 
 namespace mapnik { namespace vector {
 
-        template <typename T>
-        unsigned encode_geometry(T & path,
-                                 tile_GeomType type,
-                                 tile_feature & current_feature,
-                                 int32_t & x_,
-                                 int32_t & y_,
-                                 unsigned tolerance,
-                                 unsigned path_multiplier)
+inline void handle_skipped_last(tile_feature & current_feature,
+                                int32_t skipped_index,
+                                int32_t cur_x,
+                                int32_t cur_y,
+                                int32_t & x_,
+                                int32_t & y_)
+{
+    uint32_t last_x = current_feature.geometry(skipped_index - 2);
+    uint32_t last_y = current_feature.geometry(skipped_index - 1);
+    int32_t last_dx = ((last_x >> 1) ^ (-(last_x & 1)));
+    int32_t last_dy = ((last_y >> 1) ^ (-(last_y & 1)));
+    int32_t dx = cur_x - x_ + last_dx;
+    int32_t dy = cur_y - y_ + last_dy;
+    x_ = cur_x;
+    y_ = cur_y;
+    current_feature.set_geometry(skipped_index - 2, ((dx << 1) ^ (dx >> 31)));
+    current_feature.set_geometry(skipped_index - 1, ((dy << 1) ^ (dy >> 31)));
+}
+
+template <typename T>
+unsigned encode_geometry(T & path,
+                         tile_GeomType type,
+                         tile_feature & current_feature,
+                         int32_t & x_,
+                         int32_t & y_,
+                         unsigned tolerance,
+                         unsigned path_multiplier)
+{
+    unsigned count = 0;
+    path.rewind(0);
+    current_feature.set_type(type);
+
+    vertex2d vtx(vertex2d::no_init);
+    int cmd = -1;
+    int prev_cmd = -1;
+    int cmd_idx = -1;
+    const int cmd_bits = 3;
+    unsigned length = 0;
+    bool skipped_last = false;
+    int32_t skipped_index = -1;
+    int32_t cur_x = 0;
+    int32_t cur_y = 0;
+
+    // See vector_tile.proto for a description of how vertex command
+    // encoding works.
+
+    std::vector<vertex2d> output;
+    const std::size_t buffer_size = 8;
+    output.reserve(buffer_size);
+    bool done = false;
+    bool cache = true;
+    while (true)
+    {
+        if (cache)
         {
-            unsigned count = 0;
-            path.rewind(0);
-            current_feature.set_type(type);
-
-            vertex2d vtx(vertex2d::no_init);
-            int cmd = -1;
-            int prev_cmd = -1;
-            int cmd_idx = -1;
-            const int cmd_bits = 3;
-            unsigned length = 0;
-            bool skipped_last = false;
-            int32_t skipped_index = -1;
-            int32_t cur_x = 0;
-            int32_t cur_y = 0;
-
-            // See vector_tile.proto for a description of how vertex command
-            // encoding works.
-            while ((vtx.cmd = path.vertex(&vtx.x, &vtx.y)) != SEG_END)
+            // read
+            vertex2d v(vertex2d::no_init);
+            while ((v.cmd = path.vertex(&v.x, &v.y)) != SEG_END)
+            {
+#if MAPNIK_VERSION >= 300000
+                output.push_back(std::move(v));
+#else
+                output.push_back(v);
+#endif
+                if (output.size() == buffer_size) break;
+            }
+            cache = false;
+            if (v.cmd == SEG_END)
+            {
+                done = true;
+            }
+        }
+        else
+        {
+            if (done && output.empty()) break;
+            // process
+            vtx = output.front();
             {
                 if (static_cast<int>(vtx.cmd) != cmd)
                 {
@@ -48,18 +99,41 @@ namespace mapnik { namespace vector {
                     current_feature.add_geometry(0); // placeholder added in first pass
                 }
 
-                if (cmd == SEG_MOVETO || cmd == SEG_LINETO)
+                switch (vtx.cmd)
                 {
+                case SEG_MOVETO:
+                case SEG_LINETO:
+                {
+                    if (cmd == SEG_MOVETO && skipped_last && skipped_index > 1) // at least one vertex + cmd/length
+                    {
+                        // if we skipped previous vertex we just update it to the last one here.
+                        handle_skipped_last(current_feature, skipped_index, cur_x, cur_y,  x_, y_);
+                    }
+
                     // Compute delta to the previous coordinate.
                     cur_x = static_cast<int32_t>(std::floor((vtx.x * path_multiplier) + 0.5));
                     cur_y = static_cast<int32_t>(std::floor((vtx.y * path_multiplier) + 0.5));
                     int32_t dx = cur_x - x_;
                     int32_t dy = cur_y - y_;
+                    bool sharp_turn_ahead = false;
+                    if (output.size() > 1)
+                    {
+                        vertex2d const& next_vtx = output[1];
+                        if (next_vtx.cmd == SEG_LINETO)
+                        {
+                            uint32_t next_dx = std::abs(cur_x - static_cast<int32_t>(std::floor((next_vtx.x * path_multiplier) + 0.5)));
+                            uint32_t next_dy = std::abs(cur_y - static_cast<int32_t>(std::floor((next_vtx.y * path_multiplier) + 0.5)));
+                            if ((next_dx == 0 && next_dy >= tolerance) || (next_dy == 0 && next_dx >= tolerance))
+                            {
+                                sharp_turn_ahead = true;
+                            }
+                        }
+                    }
                     // Keep all move_to commands, but omit other movements that are
                     // not >= the tolerance threshold and should be considered no-ops.
                     // NOTE: length == 0 indicates the command has changed and will
                     // preserve any non duplicate move_to or line_to
-                    if ( length == 0 ||
+                    if ( length == 0 || sharp_turn_ahead ||
                          (static_cast<unsigned>(std::abs(dx)) >= tolerance) ||
                          (static_cast<unsigned>(std::abs(dy)) >= tolerance)
                         )
@@ -77,46 +151,40 @@ namespace mapnik { namespace vector {
                         skipped_last = true;
                         skipped_index = current_feature.geometry_size();
                     }
+                    break;
                 }
-                else if (cmd == SEG_CLOSE)
+
+                case SEG_CLOSE:
                 {
                     if (prev_cmd != SEG_CLOSE) ++length;
+                    break;
                 }
-                else
-                {
+                default:
                     std::stringstream msg;
                     msg << "Unknown command type (backend_pbf): "
                         << cmd;
                     throw std::runtime_error(msg.str());
+                    break;
                 }
-
-                ++count;
-                prev_cmd = cmd;
             }
-
-            if (skipped_last && skipped_index > 1) // at least one vertex + cmd/length
-            {
-                // if we skipped previous vertex we just update it to the last one here.
-                uint32_t last_x = current_feature.geometry(skipped_index - 2);
-                uint32_t last_y = current_feature.geometry(skipped_index - 1);
-                int32_t last_dx = ((last_x >> 1) ^ (-(last_x & 1)));
-                int32_t last_dy = ((last_y >> 1) ^ (-(last_y & 1)));
-                int32_t dx = cur_x - x_ + last_dx;
-                int32_t dy = cur_y - y_ + last_dy;
-                x_ = cur_x;
-                y_ = cur_y;
-                // FIXME : add tolerance check here to discard short segments
-                current_feature.set_geometry(skipped_index - 2, ((dx << 1) ^ (dx >> 31)));
-                current_feature.set_geometry(skipped_index - 1, ((dy << 1) ^ (dy >> 31)));
-            }
-
-            // Update the last length/command value.
-            if (cmd_idx >= 0)
-            {
-                current_feature.set_geometry(cmd_idx, (length << cmd_bits) | (cmd & ((1 << cmd_bits) - 1)));
-            }
-            return count;
+            ++count;
+            prev_cmd = cmd;
+            output.erase(output.begin());
+            if (output.size() < 2) cache = true;
         }
+    }
+    if (skipped_last && skipped_index > 1) // at least one vertex + cmd/length
+    {
+        // if we skipped previous vertex we just update it to the last one here.
+        handle_skipped_last(current_feature, skipped_index, cur_x, cur_y, x_, y_);
+    }
+    // Update the last length/command value.
+    if (cmd_idx >= 0)
+    {
+        current_feature.set_geometry(cmd_idx, (length << cmd_bits) | (cmd & ((1 << cmd_bits) - 1)));
+    }
+    return count;
+}
 
 }} // end ns
 
