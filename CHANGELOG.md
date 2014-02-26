@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.4.2
+
+ - Additional optimizations and fixes to geometry encoding (#38 - avoid dropping vertex that forms horizontal or vertical right angle)
+
 ## 0.4.1
 
  - Added initial support for Mapnik 3.x
