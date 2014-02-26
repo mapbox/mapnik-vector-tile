@@ -281,6 +281,53 @@ TEST_CASE( "test 11", "should correctly encode multiple paths" ) {
     );
     CHECK(actual == expected);
 }
+
+TEST_CASE( "test 12", "should correctly encode multiple paths" ) {
+    using namespace mapnik::vector;
+    tile_feature feature0;
+    int32_t x = 0;
+    int32_t y = 0;
+    unsigned path_multiplier = 1;
+    unsigned tolerance = 10;
+    mapnik::geometry_type g(MAPNIK_POLYGON);
+    g.move_to(0,0);
+    g.line_to(100,0);
+    g.line_to(100,100);
+    g.line_to(0,100);
+    g.line_to(0,5);
+    g.line_to(0,0);
+    g.close_path();
+    g.move_to(20,20);
+    g.line_to(20,60);
+    g.line_to(60,60);
+    g.line_to(60,20);
+    g.line_to(25,20);
+    g.line_to(20,20);
+    g.close_path();
+    encode_geometry(g,(tile_GeomType)g.type(),feature0,x,y,tolerance,path_multiplier);
+
+    mapnik::geometry_type g2(MAPNIK_POLYGON);
+    double x0 = 0;
+    double y0 = 0;
+    decode_geometry(feature0,g2,x0,y0,path_multiplier);
+    std::string actual = show_path(g2);
+    std::string expected(
+        "move_to(0,0)\n"
+        "line_to(100,0)\n"
+        "line_to(100,100)\n"
+        "line_to(0,100)\n"
+        "line_to(0,0)\n"
+        "close_path(0,0)\n"
+        "move_to(20,20)\n"
+        "line_to(20,60)\n"
+        "line_to(60,60)\n"
+        "line_to(60,20)\n"
+        "line_to(20,20)\n"
+        "close_path(0,0)\n"
+        );
+    CHECK(actual == expected);
+}
+
 int main (int argc, char* const argv[])
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
