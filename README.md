@@ -16,17 +16,7 @@ and rendering vector tiles into images.
 
 Vector tiles in this code represent a direct serialization of Mapnik layers optimized for space efficient storage and fast deserialization. For those familiar with the Mapnik API vector tiles here can be considered a named array of `mapnik::featureset_ptr` whose geometries have been pre-tiled.
 
-A vector tile can consist of one or more ordered layers identified by name and containing one or more features.
-
-Features contain attributes and geometries: either point, linestring, or polygon.
-
-Geometries are stored as an x,y,command stream (where `command` is a rendering command like move_to or line_to). Geometries are clipped, reprojected into spherical mercator, converted to screen coordinates, and [delta](http://en.wikipedia.org/wiki/Delta_encoding) and [zigzag](https://developers.google.com/protocol-buffers/docs/encoding#types) encoded.
-
-Feature attributes are encoded as key:value pairs which are dictionary encoded at the layer level for compact storage of any repeated keys or values. Values use variant type encoding supporting both unicode strings, boolean values, and various integer and floating point types.
-
-Vector tiles are serialized as protobuf messages which are then zlib compressed.
-
-The assumed projection is Spherical Mercator (`epsg:3857`).
+For more details see [vector-tile-spec](https://github.com/mapbox/vector-tile-spec).
 
 ### Ubuntu Dependencies Installation
 
