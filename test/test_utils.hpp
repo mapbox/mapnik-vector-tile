@@ -26,8 +26,7 @@ MAPNIK_SHARED_PTR<mapnik::memory_datasource> build_ds(double x,double y) {
     ctx->push("name");
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
     mapnik::transcoder tr("utf-8");
-    UnicodeString ustr = tr.transcode("null island");
-    feature->put("name",ustr);
+    feature->put("name",tr.transcode("null island"));
     mapnik::geometry_type * pt = new mapnik::geometry_type(MAPNIK_POINT);
     pt->move_to(x,y);
     feature->add_geometry(pt);
