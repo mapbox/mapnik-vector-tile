@@ -78,6 +78,10 @@ namespace mapnik { namespace vector {
             {
                 mapnik::vector::tile_feature const& f = layer_.features(itr_);
                 mapnik::value_integer feature_id = itr_++;
+                if (f.geometry_size() <= 0)
+                {
+                    continue;
+                }
                 MAPNIK_UNIQUE_PTR<mapnik::geometry_type> geom(
                     new mapnik::geometry_type(
                         MAPNIK_GEOM_TYPE(f.type())));
