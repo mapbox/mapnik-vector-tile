@@ -16,6 +16,9 @@ mapnik::box2d<double> bbox;
 #include "vector_tile_backend_pbf.hpp"
 #include "vector_tile_util.hpp"
 
+// vector input api
+#include "vector_tile_datasource.hpp"
+
 TEST_CASE( "vector tile projection 1", "should support z/x/y to bbox conversion at 0/0/0" ) {
     mapnik::vector::spherical_mercator merc(256);
     double minx,miny,maxx,maxy;
@@ -135,10 +138,6 @@ TEST_CASE( "vector tile output 4", "adding layers with degenerate geometries sho
     ren.apply();
     CHECK(0 == tile.layers_size());
 }
-
-// vector input api
-#include "vector_tile_datasource.hpp"
-#include "vector_tile_backend_pbf.hpp"
 
 TEST_CASE( "vector tile input", "should be able to parse message and render point" ) {
     typedef mapnik::vector::backend_pbf backend_type;
