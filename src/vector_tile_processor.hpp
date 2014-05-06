@@ -226,7 +226,10 @@ namespace mapnik { namespace vector {
                 while (feature)
                 {
                     boost::ptr_vector<mapnik::geometry_type> & paths = feature->paths();
-                    if (paths.empty()) continue;
+                    if (paths.empty()) {
+                        feature = features->next();
+                        continue;
+                    }
                     backend_.start_tile_feature(*feature);
                     BOOST_FOREACH( mapnik::geometry_type & geom, paths)
                     {
@@ -246,7 +249,6 @@ namespace mapnik { namespace vector {
                     feature = features->next();
                 }
                 backend_.stop_tile_layer();
-
             }
         }
 
