@@ -35,6 +35,58 @@
 
 namespace mapnik { namespace vector {
 
+    void add_attributes(mapnik::feature_ptr feature,
+                        mapnik::vector::tile_feature const& f,
+                        mapnik::vector::tile_layer const& layer,
+                        mapnik::transcoder const& tr)
+    {
+        std::size_t num_keys = static_cast<std::size_t>(layer.keys_size());
+        std::size_t num_values = static_cast<std::size_t>(layer.values_size());
+        for (int m = 0; m < f.tags_size(); m += 2)
+        {
+            std::size_t key_name = f.tags(m);
+            std::size_t key_value = f.tags(m + 1);
+            if (key_name < num_keys
+                && key_value < num_values)
+            {
+                std::string const& name = layer.keys(key_name);
+                if (feature->has_key(name))
+                {
+                    mapnik::vector::tile_value const& value = layer.values(key_value);
+                    if (value.has_string_value())
+                    {
+                        std::string str = value.string_value();
+                        feature->put(name, tr.transcode(str.data(), str.length()));
+                    }
+                    else if (value.has_int_value())
+                    {
+                        feature->put(name, static_cast<mapnik::value_integer>(value.int_value()));
+                    }
+                    else if (value.has_double_value())
+                    {
+                        feature->put(name, static_cast<mapnik::value_double>(value.double_value()));
+                    }
+                    else if (value.has_float_value())
+                    {
+                        feature->put(name, static_cast<mapnik::value_double>(value.float_value()));
+                    }
+                    else if (value.has_bool_value())
+                    {
+                        feature->put(name, static_cast<mapnik::value_bool>(value.bool_value()));
+                    }
+                    else if (value.has_sint_value())
+                    {
+                        feature->put(name, static_cast<mapnik::value_integer>(value.sint_value()));
+                    }
+                    else if (value.has_uint_value())
+                    {
+                        feature->put(name, static_cast<mapnik::value_integer>(value.uint_value()));
+                    }
+                }
+            }
+        }
+    }
+
     template <typename Filter>
     class tile_featureset : public Featureset
     {
@@ -144,62 +196,13 @@ namespace mapnik { namespace vector {
                 {
                     continue;
                 }
-                // if encoded feature was given an id, respect it
-                // TODO: id should not be optional!
-                // https://github.com/mapbox/mapnik-vector-tile/issues/17
-                // https://github.com/mapbox/mapnik-vector-tile/issues/18
                 if (f.has_id())
                 {
                     feature_id = f.id();
                 }
-                mapnik::feature_ptr feature(
-                    mapnik::feature_factory::create(ctx_,feature_id));
+                mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
                 feature->paths().push_back(geom.release());
-
-                // attributes
-                for (int m = 0; m < f.tags_size(); m += 2)
-                {
-                    std::size_t key_name = f.tags(m);
-                    std::size_t key_value = f.tags(m + 1);
-                    if (key_name < static_cast<std::size_t>(layer_.keys_size())
-                        && key_value < static_cast<std::size_t>(layer_.values_size()))
-                    {
-                        std::string const& name = layer_.keys(key_name);
-                        if (feature->has_key(name))
-                        {
-                            mapnik::vector::tile_value const& value = layer_.values(key_value);
-                            if (value.has_string_value())
-                            {
-                                std::string str = value.string_value();
-                                feature->put(name, tr_.transcode(str.data(), str.length()));
-                            }
-                            else if (value.has_int_value())
-                            {
-                                feature->put(name, static_cast<mapnik::value_integer>(value.int_value()));
-                            }
-                            else if (value.has_double_value())
-                            {
-                                feature->put(name, static_cast<mapnik::value_double>(value.double_value()));
-                            }
-                            else if (value.has_float_value())
-                            {
-                                feature->put(name, static_cast<mapnik::value_double>(value.float_value()));
-                            }
-                            else if (value.has_bool_value())
-                            {
-                                feature->put(name, static_cast<mapnik::value_bool>(value.bool_value()));
-                            }
-                            else if (value.has_sint_value())
-                            {
-                                feature->put(name, static_cast<mapnik::value_integer>(value.sint_value()));
-                            }
-                            else if (value.has_uint_value())
-                            {
-                                feature->put(name, static_cast<mapnik::value_integer>(value.uint_value()));
-                            }
-                        }
-                    }
-                }
+                add_attributes(feature,f,layer_,tr_);
                 return feature;
             }
             return feature_ptr();
