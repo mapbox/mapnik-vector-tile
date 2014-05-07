@@ -20,6 +20,7 @@
 #include <mapnik/feature.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/geom_util.hpp>
+#include <mapnik/image_reader.hpp>
 
 #include <memory>
 #include <stdexcept>
@@ -130,6 +131,25 @@ namespace mapnik { namespace vector {
             {
                 mapnik::vector::tile_feature const& f = layer_.features(itr_);
                 mapnik::value_integer feature_id = itr_++;
+                if (f.has_raster())
+                {
+                    std::string const& image_buffer = f.raster();
+                    MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(image_buffer.data(),image_buffer.size()));
+                    if (reader.get())
+                    {
+                        if (f.has_id())
+                        {
+                            feature_id = f.id();
+                        }
+                        mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
+                        MAPNIK_SHARED_PTR<mapnik::image_32> image_ptr = MAPNIK_MAKE_SHARED<mapnik::image_32>(reader->width(),reader->height());
+                        mapnik::raster_ptr raster = std::make_shared<mapnik::raster>(filter_.box_,reader->width(),reader->height(),1);
+                        reader->read(0,0,raster->data_);
+                        feature->set_raster(raster);
+                        add_attributes(feature,f,layer_,tr_);
+                        return feature;
+                    }
+                }
                 if (f.geometry_size() <= 0)
                 {
                     continue;

@@ -77,6 +77,14 @@ namespace mapnik { namespace vector {
         {
         }
 
+        void add_tile_feature_raster(std::string const& image_buffer)
+        {
+            if (current_feature_)
+            {
+                current_feature_->set_raster(image_buffer);
+            }
+        }
+
         void stop_tile_feature()
         {
             if (current_feature_)

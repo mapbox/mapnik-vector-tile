@@ -18,6 +18,8 @@
 #include <mapnik/box2d.hpp>
 #include <mapnik/version.hpp>
 #include <mapnik/noncopyable.hpp>
+#include <mapnik/image_util.hpp>
+#include <mapnik/raster.hpp>
 
 // agg
 #ifdef CONV_CLIPPER
@@ -223,6 +225,27 @@ namespace mapnik { namespace vector {
             mapnik::feature_ptr feature = features->next();
             if (feature) {
                 backend_.start_tile_layer(lay.name());
+                raster_ptr const& source = feature->get_raster();
+                if (source)
+                {
+                    box2d<double> target_ext = box2d<double>(source->ext_);
+                    prj_trans.backward(target_ext, PROJ_ENVELOPE_POINTS);
+                    box2d<double> ext = t_.forward(target_ext);
+                    int start_x = static_cast<int>(std::floor(ext.minx()+.5));
+                    int start_y = static_cast<int>(std::floor(ext.miny()+.5));
+                    int end_x = static_cast<int>(std::floor(ext.maxx()+.5));
+                    int end_y = static_cast<int>(std::floor(ext.maxy()+.5));
+                    int raster_width = end_x - start_x;
+                    int raster_height = end_y - start_y;
+                    if (raster_width > 0 && raster_height > 0)
+                    {
+                        backend_.start_tile_feature(*feature);
+                        backend_.add_tile_feature_raster(mapnik::save_to_string(source->data_,"png"));
+                    }
+                    backend_.stop_tile_layer();
+                    return;
+                }
+                // vector pathway
                 while (feature)
                 {
                     boost::ptr_vector<mapnik::geometry_type> & paths = feature->paths();

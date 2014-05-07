@@ -60,6 +60,9 @@ message tile {
                 // also encoded as deltas to the previous position. The original
                 // position is (0,0)
                 repeated uint32 geometry = 4 [ packed = true ];
+
+                optional bytes raster = 5;
+
         }
 
         message layer {
