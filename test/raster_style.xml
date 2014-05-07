@@ -1,0 +1,7 @@
+<Map>
+<Style name="style">
+    <Rule>
+        <RasterSymbolizer />
+    </Rule>
+</Style>
+</Map>
