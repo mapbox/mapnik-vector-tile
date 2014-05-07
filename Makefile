@@ -4,8 +4,11 @@ MAPNIK_CXXFLAGS=$(shell mapnik-config --cflags) -Wsign-compare
 MAPNIK_LDFLAGS=$(shell mapnik-config --libs --ldflags --dep-libs)
 COMMON_FLAGS = -Wall -Wshadow -pedantic -Wno-c++11-long-long -Wno-c++11-extensions
 #-Wsign-compare -Wsign-conversion -Wunused-parameter
-CXXFLAGS := $(CXXFLAGS) # inherit from env
-LDFLAGS := $(LDFLAGS) # inherit from env
+# inherit from env
+CXX := $(CXX)
+CXXFLAGS := $(CXXFLAGS)
+LDFLAGS := $(LDFLAGS)
+MAPNIK_PLUGINDIR := $(shell mapnik-config --input-plugins)
 
 all: mapnik-vector-tile
 
@@ -22,7 +25,10 @@ python: python/vector_tile_pb2.py
 test/run-test: Makefile src/vector_tile.pb.cc test/vector_tile.cpp test/test_utils.hpp src/*
 	@$(CXX) -o ./test/run-test test/vector_tile.cpp src/vector_tile.pb.cc -I./src $(CXXFLAGS) $(MAPNIK_CXXFLAGS) $(PROTOBUF_CXXFLAGS) $(COMMON_FLAGS) $(MAPNIK_LDFLAGS) $(PROTOBUF_LDFLAGS) $(LDFLAGS) -Wno-unused-private-field
 
-test: test/run-test test/run-geom-test ./test/run-raster-test src/vector_tile.pb.cc test/catch.hpp
+test/test-cfg.h:
+	echo "#define MAPNIK_PLUGINDIR \"$(MAPNIK_PLUGINDIR)\"" > test/test-cfg.h
+
+test: test/test-cfg.h test/run-test test/run-geom-test ./test/run-raster-test src/vector_tile.pb.cc test/catch.hpp
 	./test/run-test
 	./test/run-geom-test
 	./test/run-raster-test
@@ -44,6 +50,8 @@ clean:
 	@rm -f ./src/vector_tile.pb.cc
 	@rm -f ./src/vector_tile.pb.h
 	@rm -f ./test/run-test
+	@rm -f ./test/run-geom-test
+	@rm -f ./test/run-raster-test
 	@rm -f ./python/vector_tile_pb2.py
 	@rm -f ./python/*pyc
 

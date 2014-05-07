@@ -4,6 +4,7 @@
 
 // test utils
 #include "test_utils.hpp"
+#include "test-cfg.h"
 
 #include "vector_tile_projection.hpp"
 
@@ -22,7 +23,7 @@ mapnik::box2d<double> bbox;
 #include <mapnik/datasource_cache.hpp>
 
 TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) {
-    mapnik::datasource_cache::instance().register_datasources("/opt/mapnik-3.x/lib/mapnik/input/");
+    mapnik::datasource_cache::instance().register_datasources(MAPNIK_PLUGINDIR);
     typedef mapnik::vector::backend_pbf backend_type;
     typedef mapnik::vector::processor<backend_type> renderer_type;
     typedef mapnik::vector::tile tile_type;
