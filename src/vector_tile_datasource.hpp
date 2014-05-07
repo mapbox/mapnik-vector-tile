@@ -142,8 +142,7 @@ namespace mapnik { namespace vector {
                             feature_id = f.id();
                         }
                         mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
-                        MAPNIK_SHARED_PTR<mapnik::image_32> image_ptr = MAPNIK_MAKE_SHARED<mapnik::image_32>(reader->width(),reader->height());
-                        mapnik::raster_ptr raster = std::make_shared<mapnik::raster>(filter_.box_,reader->width(),reader->height(),1);
+                        mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(filter_.box_,reader->width(),reader->height(),1);
                         reader->read(0,0,raster->data_);
                         feature->set_raster(raster);
                         add_attributes(feature,f,layer_,tr_);
