@@ -14,7 +14,7 @@
 #include <mapnik/version.hpp>
 #include <mapnik/value_types.hpp>
 #include <mapnik/well_known_srs.hpp>
-
+#include <mapnik/version.hpp>
 #include <mapnik/vertex.hpp>
 #include <mapnik/datasource.hpp>
 #include <mapnik/feature.hpp>
@@ -142,8 +142,20 @@ namespace mapnik { namespace vector {
                         {
                             feature_id = f.id();
                         }
+                        #if MAPNIK_VERSION >= 300000
+                        bool premultiplied = false;
+                        #endif
+                        double filter_factor = 1.0;
                         mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
-                        mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(filter_.box_,reader->width(),reader->height(),1);
+                        mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(
+                                    filter_.box_,
+                                    reader->width(),
+                                    reader->height(),
+                                    filter_factor
+                        #if MAPNIK_VERSION >= 300000
+                                    ,premultiplied
+                        #endif
+                                    );
                         reader->read(0,0,raster->data_);
                         feature->set_raster(raster);
                         add_attributes(feature,f,layer_,tr_);
