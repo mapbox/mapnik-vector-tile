@@ -20,6 +20,7 @@
 #include <mapnik/noncopyable.hpp>
 #include <mapnik/image_util.hpp>
 #include <mapnik/raster.hpp>
+#include <mapnik/warp.hpp>
 
 // agg
 #ifdef CONV_CLIPPER
@@ -30,6 +31,8 @@
 #endif
 
 #include "agg_conv_clip_polyline.h"
+#include "agg_rendering_buffer.h"
+#include "agg_pixfmt_rgba.h"
 
 #include <boost/foreach.hpp>
 #include <boost/optional.hpp>
@@ -239,8 +242,51 @@ namespace mapnik { namespace vector {
                     int raster_height = end_y - start_y;
                     if (raster_width > 0 && raster_height > 0)
                     {
+                        raster target(target_ext, raster_width, raster_height);
+                        if (!source->premultiplied_alpha_)
+                        {
+                            agg::rendering_buffer buffer(source->data_.getBytes(),
+                                                         source->data_.width(),
+                                                         source->data_.height(),
+                                                         source->data_.width() * 4);
+                            agg::pixfmt_rgba32 pixf(buffer);
+                            pixf.premultiply();
+                        }
+                        if (!prj_trans.equal())
+                        {
+                            double offset_x = ext.minx() - start_x;
+                            double offset_y = ext.miny() - start_y;
+                            reproject_and_scale_raster(target, *source, prj_trans,
+                                             offset_x, offset_y,
+                                             width,
+                                             2.0,
+                                             SCALING_BILINEAR);
+                        }
+                        else
+                        {
+                            double image_ratio_x = ext.width() / source->data_.width();
+                            double image_ratio_y = ext.height() / source->data_.height();
+                            scale_image_agg<image_data_32>(target.data_,
+                                                           source->data_,
+                                                           SCALING_BILINEAR,
+                                                           image_ratio_x,
+                                                           image_ratio_y,
+                                                           0.0,
+                                                           0.0,
+                                                           2.0);
+                        }
+                        mapnik::image_data_32 im_tile(width,height);
+                        composite(im_tile, target.data_,
+                                  src_over, 1,
+                                  start_x, start_y, false);
+                        agg::rendering_buffer buffer(im_tile.getBytes(),
+                                                     im_tile.width(),
+                                                     im_tile.height(),
+                                                     im_tile.width() * 4);
+                        agg::pixfmt_rgba32 pixf(buffer);
+                        pixf.demultiply();
                         backend_.start_tile_feature(*feature);
-                        backend_.add_tile_feature_raster(mapnik::save_to_string(source->data_,"png"));
+                        backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,"webp"));
                     }
                     backend_.stop_tile_layer();
                     return;

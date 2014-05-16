@@ -8,10 +8,6 @@
 
 #include "vector_tile_projection.hpp"
 
-const unsigned _x=0,_y=0,_z=0;
-const unsigned tile_size = 256;
-mapnik::box2d<double> bbox;
-
 // vector output api
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
@@ -27,6 +23,13 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
     typedef mapnik::vector::backend_pbf backend_type;
     typedef mapnik::vector::processor<backend_type> renderer_type;
     typedef mapnik::vector::tile tile_type;
+    unsigned _x=0,_y=0,_z=0;
+    double minx,miny,maxx,maxy;
+    mapnik::vector::spherical_mercator merc(256);
+    merc.xyz(_x,_y,_z,minx,miny,maxx,maxy);
+    mapnik::box2d<double> bbox;
+    bbox.init(minx,miny,maxx,maxy);
+    unsigned tile_size = 512;
     tile_type tile;
     backend_type backend(tile,16);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
@@ -54,16 +57,25 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
     CHECK(f.has_raster());
     std::string const& ras_buffer = f.raster();
     CHECK(!ras_buffer.empty());
-    CHECK(44359 == ras_buffer.size());
-    /*
-    std::ofstream file("out.png", std::ios::out|std::ios::trunc|std::ios::binary);
-    file << ras_buffer;
-    file.close();
-    */
-    CHECK(44385 == tile.ByteSize());
+    // debug
+    bool debug = false;
+    if (debug) {
+        std::ofstream file("out.webp", std::ios::out|std::ios::trunc|std::ios::binary);
+        file << ras_buffer;
+        file.close();
+    }
+
+    std::size_t expected_image_size = 30692;
+    int expected_vtile_size = expected_image_size + 26;
+    if (!debug) {
+        CHECK(expected_image_size == ras_buffer.size());
+        CHECK(expected_vtile_size == tile.ByteSize());
+    }
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(44385 == buffer.size());
+    if (!debug) {
+        CHECK(expected_vtile_size == buffer.size());
+    }
     // now read back and render image
     mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
     tile_type tile2;
@@ -77,8 +89,9 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
     CHECK(0 == f2.geometry_size());
     CHECK(f2.has_raster());
     CHECK(!f2.raster().empty());
-    CHECK(44359 == f2.raster().size());
-
+    if (!debug) {
+        CHECK(expected_image_size == f2.raster().size());
+    }
     mapnik::layer lyr2("layer",map2.srs());
     MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds2 = MAPNIK_MAKE_SHARED<
                                     mapnik::vector::tile_datasource>(
@@ -92,19 +105,16 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
     mapnik::image_32 im(map2.width(),map2.height());
     mapnik::agg_renderer<mapnik::image_32> ren2(map2,im);
     ren2.apply();
-    //mapnik::save_to_file(im,"image.png");
+    if (debug) {
+        mapnik::save_to_file(im,"image.png");
+    }
     unsigned rgba = im.data()(128,128);
-    CHECK(0xffc29c66 == rgba);
+    CHECK(rgba != 0);
 }
 
 int main (int argc, char* const argv[])
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
-    // set up bbox
-    double minx,miny,maxx,maxy;
-    mapnik::vector::spherical_mercator merc(256);
-    merc.xyz(_x,_y,_z,minx,miny,maxx,maxy);
-    bbox.init(minx,miny,maxx,maxy);
     int result = Catch::Session().run( argc, argv );
     if (!result) printf("\x1b[1;32m ✓ \x1b[0m\n");
     google::protobuf::ShutdownProtobufLibrary();
