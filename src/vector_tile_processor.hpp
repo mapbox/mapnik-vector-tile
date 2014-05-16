@@ -21,6 +21,7 @@
 #include <mapnik/image_util.hpp>
 #include <mapnik/raster.hpp>
 #include <mapnik/warp.hpp>
+#include <mapnik/version.hpp>
 
 // agg
 #ifdef CONV_CLIPPER
@@ -242,7 +243,11 @@ namespace mapnik { namespace vector {
                     int raster_height = end_y - start_y;
                     if (raster_width > 0 && raster_height > 0)
                     {
+                        #if MAPNIK_VERSION >= 300000
+                        raster target(target_ext, raster_width, raster_height, source->get_filter_factor());
+                        #else
                         raster target(target_ext, raster_width, raster_height);
+                        #endif
                         if (!source->premultiplied_alpha_)
                         {
                             agg::rendering_buffer buffer(source->data_.getBytes(),
@@ -256,16 +261,33 @@ namespace mapnik { namespace vector {
                         {
                             double offset_x = ext.minx() - start_x;
                             double offset_y = ext.miny() - start_y;
+                            #if MAPNIK_VERSION >= 300000
+                            reproject_and_scale_raster(target, *source, prj_trans,
+                                             offset_x, offset_y,
+                                             width,
+                                             SCALING_BILINEAR);
+                            #else
                             reproject_and_scale_raster(target, *source, prj_trans,
                                              offset_x, offset_y,
                                              width,
                                              2.0,
                                              SCALING_BILINEAR);
+                            #endif
                         }
                         else
                         {
                             double image_ratio_x = ext.width() / source->data_.width();
                             double image_ratio_y = ext.height() / source->data_.height();
+                            #if MAPNIK_VERSION >= 300000
+                            scale_image_agg<image_data_32>(target.data_,
+                                                           source->data_,
+                                                           SCALING_BILINEAR,
+                                                           image_ratio_x,
+                                                           image_ratio_y,
+                                                           0.0,
+                                                           0.0,
+                                                           source->get_filter_factor());
+                            #else
                             scale_image_agg<image_data_32>(target.data_,
                                                            source->data_,
                                                            SCALING_BILINEAR,
@@ -274,6 +296,7 @@ namespace mapnik { namespace vector {
                                                            0.0,
                                                            0.0,
                                                            2.0);
+                            #endif
                         }
                         mapnik::image_data_32 im_tile(width,height);
                         composite(im_tile, target.data_,
