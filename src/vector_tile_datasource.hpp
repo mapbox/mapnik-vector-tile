@@ -21,6 +21,7 @@
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/geom_util.hpp>
 #include <mapnik/image_reader.hpp>
+#include <mapnik/raster.hpp>
 
 #include <memory>
 #include <stdexcept>
