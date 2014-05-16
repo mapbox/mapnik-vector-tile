@@ -286,7 +286,7 @@ namespace mapnik { namespace vector {
                         agg::pixfmt_rgba32 pixf(buffer);
                         pixf.demultiply();
                         backend_.start_tile_feature(*feature);
-                        backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,"webp"));
+                        backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,"jpeg"));
                     }
                     backend_.stop_tile_layer();
                     return;

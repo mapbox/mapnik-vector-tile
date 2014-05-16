@@ -65,7 +65,7 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
         file.close();
     }
 
-    std::size_t expected_image_size = 30692;
+    std::size_t expected_image_size = 56905;
     int expected_vtile_size = expected_image_size + 26;
     if (!debug) {
         CHECK(expected_image_size == ras_buffer.size());
