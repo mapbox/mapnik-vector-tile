@@ -94,12 +94,14 @@ namespace mapnik { namespace vector {
     {
     public:
         tile_featureset(Filter const& filter,
+                        mapnik::box2d<double> const& tile_extent,
                         std::set<std::string> const& attribute_names,
                         mapnik::vector::tile_layer const& layer,
                         double tile_x,
                         double tile_y,
                         double scale)
             : filter_(filter),
+              tile_extent_(tile_extent),
               layer_(layer),
               tile_x_(tile_x),
               tile_y_(tile_y),
@@ -148,7 +150,7 @@ namespace mapnik { namespace vector {
                         double filter_factor = 1.0;
                         mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
                         mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(
-                                    filter_.box_,
+                                    tile_extent_,
                                     reader->width(),
                                     reader->height(),
                                     filter_factor
@@ -242,6 +244,7 @@ namespace mapnik { namespace vector {
 
     private:
         Filter filter_;
+        mapnik::box2d<double> tile_extent_;
         mapnik::vector::tile_layer const& layer_;
         double tile_x_;
         double tile_y_;
@@ -265,6 +268,7 @@ namespace mapnik { namespace vector {
         featureset_ptr features(query const& q) const;
         featureset_ptr features_at_point(coord2d const& pt, double tol = 0) const;
         void set_envelope(box2d<double> const& bbox);
+        box2d<double> get_tile_extent() const;
         box2d<double> envelope() const;
         boost::optional<geometry_t> get_geometry_type() const;
         layer_descriptor get_descriptor() const;
@@ -315,7 +319,7 @@ namespace mapnik { namespace vector {
     {
         mapnik::filter_in_box filter(q.get_bbox());
         return MAPNIK_MAKE_SHARED<tile_featureset<mapnik::filter_in_box> >
-            (filter, q.property_names(), layer_, tile_x_, tile_y_, scale_);
+            (filter, get_tile_extent(), q.property_names(), layer_, tile_x_, tile_y_, scale_);
     }
 
     inline featureset_ptr tile_datasource::features_at_point(coord2d const& pt, double tol) const
@@ -327,7 +331,7 @@ namespace mapnik { namespace vector {
             names.insert(layer_.keys(i));
         }
         return MAPNIK_MAKE_SHARED<tile_featureset<filter_at_point> >
-            (filter, names, layer_, tile_x_, tile_y_, scale_);
+            (filter, get_tile_extent(), names, layer_, tile_x_, tile_y_, scale_);
     }
 
     inline void tile_datasource::set_envelope(box2d<double> const& bbox)
@@ -336,14 +340,19 @@ namespace mapnik { namespace vector {
         extent_ = bbox;
     }
 
+    inline box2d<double> tile_datasource::get_tile_extent() const
+    {
+        mapnik::vector::spherical_mercator merc(tile_size_);
+        double minx,miny,maxx,maxy;
+        merc.xyz(x_,y_,z_,minx,miny,maxx,maxy);
+        return box2d<double>(minx,miny,maxx,maxy);
+    }
+
     inline box2d<double> tile_datasource::envelope() const
     {
         if (!extent_initialized_)
         {
-            mapnik::vector::spherical_mercator merc(tile_size_);
-            double minx,miny,maxx,maxy;
-            merc.xyz(x_,y_,z_,minx,miny,maxx,maxy);
-            extent_.init(minx,miny,maxx,maxy);
+            extent_ = get_tile_extent();
             extent_initialized_ = true;
         }
         return extent_;

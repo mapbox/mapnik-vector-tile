@@ -23,9 +23,9 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
     typedef mapnik::vector::backend_pbf backend_type;
     typedef mapnik::vector::processor<backend_type> renderer_type;
     typedef mapnik::vector::tile tile_type;
-    unsigned _x=0,_y=0,_z=0;
+    unsigned _x=0,_y=0,_z=1;
     double minx,miny,maxx,maxy;
-    mapnik::vector::spherical_mercator merc(256);
+    mapnik::vector::spherical_mercator merc(512);
     merc.xyz(_x,_y,_z,minx,miny,maxx,maxy);
     mapnik::box2d<double> bbox;
     bbox.init(minx,miny,maxx,maxy);
@@ -33,6 +33,7 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
     tile_type tile;
     backend_type backend(tile,16);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    map.set_buffer_size(256);
     mapnik::layer lyr("layer",map.srs());
     mapnik::parameters params;
     params["type"] = "gdal";
@@ -45,6 +46,7 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
     lyr.set_datasource(ds);
     map.MAPNIK_ADD_LAYER(lyr);
     mapnik::request m_req(tile_size,tile_size,bbox);
+    m_req.set_buffer_size(map.buffer_size());
     renderer_type ren(backend,map,m_req);
     ren.apply();
     CHECK(1 == tile.layers_size());
@@ -60,12 +62,12 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
     // debug
     bool debug = false;
     if (debug) {
-        std::ofstream file("out.webp", std::ios::out|std::ios::trunc|std::ios::binary);
+        std::ofstream file("out.jpeg", std::ios::out|std::ios::trunc|std::ios::binary);
         file << ras_buffer;
         file.close();
     }
 
-    std::size_t expected_image_size = 56905;
+    std::size_t expected_image_size = 45660;
     int expected_vtile_size = expected_image_size + 26;
     if (!debug) {
         CHECK(expected_image_size == ras_buffer.size());
@@ -78,6 +80,7 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
     }
     // now read back and render image
     mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
+    map2.set_buffer_size(256);
     tile_type tile2;
     CHECK(tile2.ParseFromString(buffer));
     CHECK(1 == tile2.layers_size());
