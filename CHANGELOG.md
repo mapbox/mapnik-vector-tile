@@ -1,5 +1,10 @@
 # Changlog
 
+## 0.5.0
+
+ - Experimental support for encoding images in vector tile features.
+ - Fixed potential hang if trying to render a feature without geometries
+
 ## 0.4.2
 
  - Additional optimizations and fixes to geometry encoding (#38 - avoid dropping vertex that forms horizontal or vertical right angle)
