@@ -11,7 +11,7 @@ before_install:
  - sudo apt-get update -y
 
 install:
- - sudo apt-get -y install install libprotobuf7 libprotobuf-dev protobuf-compiler g++ gcc
+ - sudo apt-get -y install libprotobuf7 libprotobuf-dev protobuf-compiler g++ gcc
  - sudo apt-get -y install gcc-4.8 g++-4.8
 
 before_script:
