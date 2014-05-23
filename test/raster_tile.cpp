@@ -47,7 +47,7 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
     map.MAPNIK_ADD_LAYER(lyr);
     mapnik::request m_req(tile_size,tile_size,bbox);
     m_req.set_buffer_size(map.buffer_size());
-    renderer_type ren(backend,map,m_req);
+    renderer_type ren(backend,map,m_req,1.0,0,0,1,"jpeg",mapnik::SCALING_BILINEAR);
     ren.apply();
     CHECK(1 == tile.layers_size());
     mapnik::vector::tile_layer const& layer = tile.layers(0);

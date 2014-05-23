@@ -22,6 +22,7 @@
 #include <mapnik/raster.hpp>
 #include <mapnik/warp.hpp>
 #include <mapnik/version.hpp>
+#include <mapnik/image_scaling.hpp>
 
 // agg
 #ifdef CONV_CLIPPER
@@ -71,6 +72,8 @@ namespace mapnik { namespace vector {
         double scale_factor_;
         mapnik::CoordTransform t_;
         unsigned tolerance_;
+        std::string image_format_;
+        scaling_method_e scaling_method_;
         bool painted_;
     public:
         processor(T & backend,
@@ -79,13 +82,18 @@ namespace mapnik { namespace vector {
                   double scale_factor=1.0,
                   unsigned offset_x=0,
                   unsigned offset_y=0,
-                  unsigned tolerance=1)
+                  unsigned tolerance=1,
+                  std::string const& image_format="jpeg",
+                  scaling_method_e scaling_method=SCALING_NEAR
+                  )
             : backend_(backend),
               m_(map),
               m_req_(m_req),
               scale_factor_(scale_factor),
               t_(m_req.width(),m_req.height(),m_req.extent(),offset_x,offset_y),
               tolerance_(tolerance),
+              image_format_(image_format),
+              scaling_method_(scaling_method),
               painted_(false) {}
 
         void apply(double scale_denom=0.0)
@@ -265,13 +273,13 @@ namespace mapnik { namespace vector {
                             reproject_and_scale_raster(target, *source, prj_trans,
                                              offset_x, offset_y,
                                              width,
-                                             SCALING_BILINEAR);
+                                             scaling_method_);
                             #else
                             reproject_and_scale_raster(target, *source, prj_trans,
                                              offset_x, offset_y,
                                              width,
                                              2.0,
-                                             SCALING_BILINEAR);
+                                             scaling_method_);
                             #endif
                         }
                         else
@@ -281,7 +289,7 @@ namespace mapnik { namespace vector {
                             #if MAPNIK_VERSION >= 300000
                             scale_image_agg<image_data_32>(target.data_,
                                                            source->data_,
-                                                           SCALING_BILINEAR,
+                                                           scaling_method_,
                                                            image_ratio_x,
                                                            image_ratio_y,
                                                            0.0,
@@ -290,7 +298,7 @@ namespace mapnik { namespace vector {
                             #else
                             scale_image_agg<image_data_32>(target.data_,
                                                            source->data_,
-                                                           SCALING_BILINEAR,
+                                                           scaling_method_,
                                                            image_ratio_x,
                                                            image_ratio_y,
                                                            0.0,
@@ -309,7 +317,7 @@ namespace mapnik { namespace vector {
                         agg::pixfmt_rgba32 pixf(buffer);
                         pixf.demultiply();
                         backend_.start_tile_feature(*feature);
-                        backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,"jpeg"));
+                        backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
                     }
                     backend_.stop_tile_layer();
                     return;
