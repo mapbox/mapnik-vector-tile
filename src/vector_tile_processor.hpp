@@ -18,6 +18,11 @@
 #include <mapnik/box2d.hpp>
 #include <mapnik/version.hpp>
 #include <mapnik/noncopyable.hpp>
+#include <mapnik/image_util.hpp>
+#include <mapnik/raster.hpp>
+#include <mapnik/warp.hpp>
+#include <mapnik/version.hpp>
+#include <mapnik/image_scaling.hpp>
 
 // agg
 #ifdef CONV_CLIPPER
@@ -28,6 +33,8 @@
 #endif
 
 #include "agg_conv_clip_polyline.h"
+#include "agg_rendering_buffer.h"
+#include "agg_pixfmt_rgba.h"
 
 #include <boost/foreach.hpp>
 #include <boost/optional.hpp>
@@ -65,6 +72,8 @@ namespace mapnik { namespace vector {
         double scale_factor_;
         mapnik::CoordTransform t_;
         unsigned tolerance_;
+        std::string image_format_;
+        scaling_method_e scaling_method_;
         bool painted_;
     public:
         processor(T & backend,
@@ -73,13 +82,18 @@ namespace mapnik { namespace vector {
                   double scale_factor=1.0,
                   unsigned offset_x=0,
                   unsigned offset_y=0,
-                  unsigned tolerance=1)
+                  unsigned tolerance=1,
+                  std::string const& image_format="jpeg",
+                  scaling_method_e scaling_method=SCALING_NEAR
+                  )
             : backend_(backend),
               m_(map),
               m_req_(m_req),
               scale_factor_(scale_factor),
               t_(m_req.width(),m_req.height(),m_req.extent(),offset_x,offset_y),
               tolerance_(tolerance),
+              image_format_(image_format),
+              scaling_method_(scaling_method),
               painted_(false) {}
 
         void apply(double scale_denom=0.0)
@@ -223,6 +237,92 @@ namespace mapnik { namespace vector {
             mapnik::feature_ptr feature = features->next();
             if (feature) {
                 backend_.start_tile_layer(lay.name());
+                raster_ptr const& source = feature->get_raster();
+                if (source)
+                {
+                    box2d<double> target_ext = box2d<double>(source->ext_);
+                    prj_trans.backward(target_ext, PROJ_ENVELOPE_POINTS);
+                    box2d<double> ext = t_.forward(target_ext);
+                    int start_x = static_cast<int>(std::floor(ext.minx()+.5));
+                    int start_y = static_cast<int>(std::floor(ext.miny()+.5));
+                    int end_x = static_cast<int>(std::floor(ext.maxx()+.5));
+                    int end_y = static_cast<int>(std::floor(ext.maxy()+.5));
+                    int raster_width = end_x - start_x;
+                    int raster_height = end_y - start_y;
+                    if (raster_width > 0 && raster_height > 0)
+                    {
+                        #if MAPNIK_VERSION >= 300000
+                        raster target(target_ext, raster_width, raster_height, source->get_filter_factor());
+                        #else
+                        raster target(target_ext, raster_width, raster_height);
+                        #endif
+                        if (!source->premultiplied_alpha_)
+                        {
+                            agg::rendering_buffer buffer(source->data_.getBytes(),
+                                                         source->data_.width(),
+                                                         source->data_.height(),
+                                                         source->data_.width() * 4);
+                            agg::pixfmt_rgba32 pixf(buffer);
+                            pixf.premultiply();
+                        }
+                        if (!prj_trans.equal())
+                        {
+                            double offset_x = ext.minx() - start_x;
+                            double offset_y = ext.miny() - start_y;
+                            #if MAPNIK_VERSION >= 300000
+                            reproject_and_scale_raster(target, *source, prj_trans,
+                                             offset_x, offset_y,
+                                             width,
+                                             scaling_method_);
+                            #else
+                            reproject_and_scale_raster(target, *source, prj_trans,
+                                             offset_x, offset_y,
+                                             width,
+                                             2.0,
+                                             scaling_method_);
+                            #endif
+                        }
+                        else
+                        {
+                            double image_ratio_x = ext.width() / source->data_.width();
+                            double image_ratio_y = ext.height() / source->data_.height();
+                            #if MAPNIK_VERSION >= 300000
+                            scale_image_agg<image_data_32>(target.data_,
+                                                           source->data_,
+                                                           scaling_method_,
+                                                           image_ratio_x,
+                                                           image_ratio_y,
+                                                           0.0,
+                                                           0.0,
+                                                           source->get_filter_factor());
+                            #else
+                            scale_image_agg<image_data_32>(target.data_,
+                                                           source->data_,
+                                                           scaling_method_,
+                                                           image_ratio_x,
+                                                           image_ratio_y,
+                                                           0.0,
+                                                           0.0,
+                                                           2.0);
+                            #endif
+                        }
+                        mapnik::image_data_32 im_tile(width,height);
+                        composite(im_tile, target.data_,
+                                  src_over, 1,
+                                  start_x, start_y, false);
+                        agg::rendering_buffer buffer(im_tile.getBytes(),
+                                                     im_tile.width(),
+                                                     im_tile.height(),
+                                                     im_tile.width() * 4);
+                        agg::pixfmt_rgba32 pixf(buffer);
+                        pixf.demultiply();
+                        backend_.start_tile_feature(*feature);
+                        backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
+                    }
+                    backend_.stop_tile_layer();
+                    return;
+                }
+                // vector pathway
                 while (feature)
                 {
                     boost::ptr_vector<mapnik::geometry_type> & paths = feature->paths();
