@@ -23,6 +23,7 @@
 #include <mapnik/warp.hpp>
 #include <mapnik/version.hpp>
 #include <mapnik/image_scaling.hpp>
+#include <mapnik/image_compositing.hpp>
 
 // agg
 #ifdef CONV_CLIPPER
