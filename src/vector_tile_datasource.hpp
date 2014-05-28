@@ -144,19 +144,19 @@ namespace mapnik { namespace vector {
                         {
                             feature_id = f.id();
                         }
-                        bool premultiplied = false;
                         #if MAPNIK_VERSION >= 300000
                         double filter_factor = 1.0;
                         #endif
+                        bool premultiplied = false;
                         mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
                         mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(
                                     tile_extent_,
                                     reader->width(),
                                     reader->height(),
                         #if MAPNIK_VERSION >= 300000
-                                    filter_factor
+                                    filter_factor,
                         #endif
-                                    ,premultiplied
+                                    premultiplied
                                     );
                         reader->read(0,0,raster->data_);
                         feature->set_raster(raster);
