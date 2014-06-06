@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.5.1
+
+ - Minor build fixes
+
 ## 0.5.0
 
  - Experimental support for encoding images in vector tile features.
