@@ -23,7 +23,7 @@ python/vector_tile_pb2.py: proto/vector_tile.proto
 python: python/vector_tile_pb2.py
 
 test/run-test: Makefile src/vector_tile.pb.cc test/vector_tile.cpp test/test_utils.hpp src/*
-	@$(CXX) -o ./test/run-test test/vector_tile.cpp src/vector_tile.pb.cc -I./src $(CXXFLAGS) $(MAPNIK_CXXFLAGS) $(PROTOBUF_CXXFLAGS) $(COMMON_FLAGS) $(MAPNIK_LDFLAGS) $(PROTOBUF_LDFLAGS) $(LDFLAGS) -Wno-unused-private-field
+	$(CXX) -o ./test/run-test test/vector_tile.cpp src/vector_tile.pb.cc -I./src $(CXXFLAGS) $(MAPNIK_CXXFLAGS) $(PROTOBUF_CXXFLAGS) $(COMMON_FLAGS) $(MAPNIK_LDFLAGS) $(PROTOBUF_LDFLAGS) $(LDFLAGS) -Wno-unused-private-field
 
 test/test-cfg.h:
 	echo "#define MAPNIK_PLUGINDIR \"$(MAPNIK_PLUGINDIR)\"" > test/test-cfg.h
@@ -34,7 +34,7 @@ test: test/test-cfg.h test/run-test test/run-geom-test ./test/run-raster-test sr
 	./test/run-raster-test
 
 ./test/run-raster-test: Makefile src/vector_tile.pb.cc test/raster_tile.cpp test/encoding_util.hpp test/catch.hpp
-	@$(CXX) -o ./test/run-raster-test test/raster_tile.cpp src/vector_tile.pb.cc -I./src $(CXXFLAGS) $(MAPNIK_CXXFLAGS) $(PROTOBUF_CXXFLAGS) $(COMMON_FLAGS) $(MAPNIK_LDFLAGS) $(PROTOBUF_LDFLAGS) $(LDFLAGS) -Wno-unused-private-field
+	$(CXX) -o ./test/run-raster-test test/raster_tile.cpp src/vector_tile.pb.cc -I./src $(CXXFLAGS) $(MAPNIK_CXXFLAGS) $(PROTOBUF_CXXFLAGS) $(COMMON_FLAGS) $(MAPNIK_LDFLAGS) $(PROTOBUF_LDFLAGS) $(LDFLAGS) -Wno-unused-private-field
 	./test/run-raster-test
 
 ./test/run-geom-test: Makefile src/vector_tile.pb.cc test/geometry_encoding.cpp test/encoding_util.hpp src/vector_tile_geometry_encoder.hpp test/catch.hpp
@@ -54,5 +54,6 @@ clean:
 	@rm -f ./test/run-raster-test
 	@rm -f ./python/vector_tile_pb2.py
 	@rm -f ./python/*pyc
+	@rm -f ./test/test-cfg.h
 
 .PHONY: test
