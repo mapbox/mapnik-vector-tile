@@ -4,7 +4,6 @@
 
 // test utils
 #include "test_utils.hpp"
-#include "test-cfg.h"
 
 #include "vector_tile_projection.hpp"
 
