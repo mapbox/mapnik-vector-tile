@@ -46,6 +46,7 @@ python-test: python/vector_tile_pb2.py
 clean:
 	@rm -f ./src/vector_tile.pb.cc
 	@rm -f ./src/vector_tile.pb.h
+	@rm -f ./test/test-cfg.h
 	@rm -f ./test/run-test
 	@rm -f ./test/run-geom-test
 	@rm -f ./test/run-raster-test
