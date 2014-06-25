@@ -51,22 +51,6 @@ Run the C++ tests like:
 
 See examples in examples/c++
 
-### Python
-
-These require the protobuf python bindings and the `rtree` library
-which can be installed like:
-
-    sudo apt-get install libspatialindex-dev
-    pip install protobuf rtree
-
-To build and test the python example code do:
-
-    make python && make python-test
-
-Run the example code:
-
-    python examples/python/hello-world.py
-
 ## Authors
 
 - [Artem Pavlenko](https://github.com/artemp)
