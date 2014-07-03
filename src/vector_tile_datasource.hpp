@@ -140,28 +140,33 @@ namespace mapnik { namespace vector {
                     MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(image_buffer.data(),image_buffer.size()));
                     if (reader.get())
                     {
-                        if (f.has_id())
+                        int image_width = reader->width();
+                        int image_height = reader->height();
+                        if (image_width > 0 && image_height > 0)
                         {
-                            feature_id = f.id();
+                            if (f.has_id())
+                            {
+                                feature_id = f.id();
+                            }
+                            #if MAPNIK_VERSION >= 300000
+                            double filter_factor = 1.0;
+                            #endif
+                            bool premultiplied = false;
+                            mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
+                            mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(
+                                        tile_extent_,
+                                        image_width,
+                                        image_height,
+                            #if MAPNIK_VERSION >= 300000
+                                        filter_factor,
+                            #endif
+                                        premultiplied
+                                        );
+                            reader->read(0,0,raster->data_);
+                            feature->set_raster(raster);
+                            add_attributes(feature,f,layer_,tr_);
+                            return feature;
                         }
-                        #if MAPNIK_VERSION >= 300000
-                        double filter_factor = 1.0;
-                        #endif
-                        bool premultiplied = false;
-                        mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
-                        mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(
-                                    tile_extent_,
-                                    reader->width(),
-                                    reader->height(),
-                        #if MAPNIK_VERSION >= 300000
-                                    filter_factor,
-                        #endif
-                                    premultiplied
-                                    );
-                        reader->read(0,0,raster->data_);
-                        feature->set_raster(raster);
-                        add_attributes(feature,f,layer_,tr_);
-                        return feature;
                     }
                 }
                 if (f.geometry_size() <= 0)
