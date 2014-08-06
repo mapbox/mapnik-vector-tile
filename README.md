@@ -60,5 +60,5 @@ See examples in examples/c++
 ## See also
 
 - http://mike.teczno.com/notes/postgreslessness-mapnik-vectiles.html
-- https://github.com/mdaines/ceramic
-- https://github.com/opensciencemap/VectorTileMap
+- https://github.com/jones139/ceramic
+- https://github.com/opensciencemap/vtm
