@@ -132,7 +132,7 @@ namespace mapnik { namespace vector {
                     }
 
                     // Insert the value index
-                    values_container::const_iterator val_itr = values_.find(val);
+                    values_container::const_iterator val_itr = values_.end();//values_.find(val);
                     if (val_itr == values_.end())
                     {
                         // The value doesn't exist yet in the dictionary.
@@ -140,7 +140,7 @@ namespace mapnik { namespace vector {
                         MAPNIK_APPLY_VISITOR(visitor, val.base());
 
                         size_t index = values_.size();
-                        values_.insert(values_container::value_type(val, index));
+                        //values_.insert(values_container::value_type(val, index));
                         current_feature_->add_tags(index);
                     }
                     else
