@@ -51,7 +51,7 @@ TEST_CASE( "vector tile projection 2", "should support z/x/y to bbox conversion 
     CHECK(std::fabs(map_extent.maxy() - e.maxy()) < epsilon);
 }
 
-TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) {
+TEST_CASE( "vector tile output 1", "should create vector tile with two points" ) {
     typedef mapnik::vector::backend_pbf backend_type;
     typedef mapnik::vector::processor<backend_type> renderer_type;
     typedef mapnik::vector::tile tile_type;
@@ -59,7 +59,7 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
     backend_type backend(tile,16);
     mapnik::Map map(tile_size,tile_size);
     mapnik::layer lyr("layer");
-    lyr.set_datasource(build_ds(0,0));
+    lyr.set_datasource(build_ds(0,0,true));
     map.MAPNIK_ADD_LAYER(lyr);
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
@@ -67,17 +67,17 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
     CHECK(1 == tile.layers_size());
     mapnik::vector::tile_layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
-    CHECK(1 == layer.features_size());
+    CHECK(2 == layer.features_size());
     mapnik::vector::tile_feature const& f = layer.features(0);
     CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
     CHECK(3 == f.geometry_size());
     CHECK(9 == f.geometry(0));
     CHECK(4096 == f.geometry(1));
     CHECK(4096 == f.geometry(2));
-    CHECK(52 == tile.ByteSize());
+    CHECK(95 == tile.ByteSize());
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(52 == buffer.size());
+    CHECK(95 == buffer.size());
 }
 
 TEST_CASE( "vector tile output 2", "adding empty layers should result in empty tile" ) {
