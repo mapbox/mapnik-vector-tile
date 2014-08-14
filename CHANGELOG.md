@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.5.2
+
+ - Build fixes to work against latest Mapnik 3.x
+
 ## 0.5.1
 
  - Minor build fixes
