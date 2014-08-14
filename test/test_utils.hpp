@@ -30,7 +30,13 @@ MAPNIK_SHARED_PTR<mapnik::memory_datasource> build_ds(double x,double y) {
     mapnik::geometry_type * pt = new mapnik::geometry_type(MAPNIK_POINT);
     pt->move_to(x,y);
     feature->add_geometry(pt);
+#if MAPNIK_VERSION >= 300000
+    mapnik::parameters params;
+    params["type"] = "memory";
+    MAPNIK_SHARED_PTR<mapnik::memory_datasource> ds = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>(params);
+#else
     MAPNIK_SHARED_PTR<mapnik::memory_datasource> ds = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>();
+#endif
     ds->push(feature);
     return ds;
 }

@@ -3,8 +3,11 @@
 #include "catch.hpp"
 
 // test utils
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_SHARED_INCLUDE
+#include MAPNIK_MAKE_SHARED_INCLUDE
 #include "test_utils.hpp"
-
+#include <mapnik/memory_datasource.hpp>
 #include "vector_tile_projection.hpp"
 
 const unsigned _x=0,_y=0,_z=0;
@@ -106,7 +109,13 @@ TEST_CASE( "vector tile output 3", "adding layers with geometries outside render
     g->move_to(0,0);
     g->line_to(1,1);
     feature->add_geometry(g.release());
+#if MAPNIK_VERSION >= 300000
+    mapnik::parameters params;
+    params["type"] = "memory";
+    MAPNIK_SHARED_PTR<mapnik::memory_datasource> ds = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>(params);
+#else
     MAPNIK_SHARED_PTR<mapnik::memory_datasource> ds = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>();
+#endif
     ds->push(feature);
     lyr.set_datasource(ds);
     map.MAPNIK_ADD_LAYER(lyr);
