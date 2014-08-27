@@ -194,19 +194,19 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     lyr2.set_datasource(ds);
     lyr2.add_style("style");
     map2.MAPNIK_ADD_LAYER(lyr2);
-    mapnik::load_map(map2,"test/style.xml");
+    mapnik::load_map(map2,"test/data/style.xml");
     //std::clog << mapnik::save_map_to_string(map2) << "\n";
     map2.zoom_to_box(bbox);
     mapnik::image_32 im(map2.width(),map2.height());
     mapnik::agg_renderer<mapnik::image_32> ren2(map2,im);
     ren2.apply();
-    if (!mapnik::util::exists("test/expected-1.png")) {
-        mapnik::save_to_file(im,"test/expected-1.png","png32");
+    if (!mapnik::util::exists("test/fixtures/expected-1.png")) {
+        mapnik::save_to_file(im,"test/fixtures/expected-1.png","png32");
     }
-    unsigned diff = testing::compare_images(im.data(),"test/expected-1.png");
+    unsigned diff = testing::compare_images(im.data(),"test/fixtures/expected-1.png");
     CHECK(0 == diff);
     if (diff > 0) {
-        mapnik::save_to_file(im,"test/actual-1.png","png32");
+        mapnik::save_to_file(im,"test/fixtures/actual-1.png","png32");
     }
 }
 
