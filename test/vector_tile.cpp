@@ -7,7 +7,9 @@
 #include MAPNIK_SHARED_INCLUDE
 #include MAPNIK_MAKE_SHARED_INCLUDE
 #include "test_utils.hpp"
+#include "compare_image.hpp"
 #include <mapnik/memory_datasource.hpp>
+#include <mapnik/util/fs.hpp>
 #include "vector_tile_projection.hpp"
 
 const unsigned _x=0,_y=0,_z=0;
@@ -57,8 +59,8 @@ TEST_CASE( "vector tile output 1", "should create vector tile with two points" )
     typedef mapnik::vector::tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
-    mapnik::Map map(tile_size,tile_size);
-    mapnik::layer lyr("layer");
+    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(build_ds(0,0,true));
     map.MAPNIK_ADD_LAYER(lyr);
     mapnik::request m_req(tile_size,tile_size,bbox);
@@ -86,8 +88,8 @@ TEST_CASE( "vector tile output 2", "adding empty layers should result in empty t
     typedef mapnik::vector::tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
-    mapnik::Map map(tile_size,tile_size);
-    map.MAPNIK_ADD_LAYER(mapnik::layer("layer"));
+    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    map.MAPNIK_ADD_LAYER(mapnik::layer("layer",map.srs()));
     map.zoom_to_box(bbox);
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
@@ -101,8 +103,8 @@ TEST_CASE( "vector tile output 3", "adding layers with geometries outside render
     typedef mapnik::vector::tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
-    mapnik::Map map(tile_size,tile_size);
-    mapnik::layer lyr("layer");
+    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::layer lyr("layer",map.srs());
     mapnik::context_ptr ctx = MAPNIK_MAKE_SHARED<mapnik::context_type>();
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
     MAPNIK_UNIQUE_PTR<mapnik::geometry_type> g(new mapnik::geometry_type(MAPNIK_LINESTRING));
@@ -132,8 +134,8 @@ TEST_CASE( "vector tile output 4", "adding layers with degenerate geometries sho
     typedef mapnik::vector::tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
-    mapnik::Map map(tile_size,tile_size);
-    mapnik::layer lyr("layer");
+    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::layer lyr("layer",map.srs());
     // create a datasource with a feature outside the map
     MAPNIK_SHARED_PTR<mapnik::memory_datasource> ds = build_ds(bbox.minx()-1,bbox.miny()-1);
     // but fake the overall envelope to ensure the layer is still processed
@@ -154,8 +156,8 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     typedef mapnik::vector::tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
-    mapnik::Map map(tile_size,tile_size);
-    mapnik::layer lyr("layer");
+    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(build_ds(0,0));
     map.MAPNIK_ADD_LAYER(lyr);
     map.zoom_to_box(bbox);
@@ -167,13 +169,15 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     CHECK(tile.SerializeToString(&buffer));
     CHECK(52 == buffer.size());
     // now create new objects
-    mapnik::Map map2(tile_size,tile_size);
+    mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
     tile_type tile2;
     CHECK(tile2.ParseFromString(buffer));
     CHECK(1 == tile2.layers_size());
     mapnik::vector::tile_layer const& layer2 = tile2.layers(0);
     CHECK(std::string("layer") == layer2.name());
-    mapnik::layer lyr2("layer");
+    CHECK(1 == layer2.features_size());
+
+    mapnik::layer lyr2("layer",map.srs());
     MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
                                     mapnik::vector::tile_datasource>(
                                         layer2,_x,_y,_z,map2.width());
@@ -188,15 +192,22 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     }
     CHECK(names == expected_names);
     lyr2.set_datasource(ds);
+    lyr2.add_style("style");
     map2.MAPNIK_ADD_LAYER(lyr2);
     mapnik::load_map(map2,"test/style.xml");
+    //std::clog << mapnik::save_map_to_string(map2) << "\n";
     map2.zoom_to_box(bbox);
     mapnik::image_32 im(map2.width(),map2.height());
     mapnik::agg_renderer<mapnik::image_32> ren2(map2,im);
     ren2.apply();
-    unsigned rgba = im.data()(128,128);
-    CHECK(0 == rgba);
-    //mapnik::save_to_file(im,"test.png");
+    if (!mapnik::util::exists("test/expected-1.png")) {
+        mapnik::save_to_file(im,"test/expected-1.png","png32");
+    }
+    unsigned diff = testing::compare_images(im.data(),"test/expected-1.png");
+    CHECK(0 == diff);
+    if (diff > 0) {
+        mapnik::save_to_file(im,"test/actual-1.png","png32");
+    }
 }
 
 TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
@@ -205,8 +216,8 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     typedef mapnik::vector::tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
-    mapnik::Map map(tile_size,tile_size);
-    mapnik::layer lyr("layer");
+    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(build_ds(0,0));
     map.MAPNIK_ADD_LAYER(lyr);
     mapnik::request m_req(tile_size,tile_size,bbox);
