@@ -96,6 +96,7 @@ namespace mapnik { namespace vector {
     public:
         tile_featureset(Filter const& filter,
                         mapnik::box2d<double> const& tile_extent,
+                        mapnik::box2d<double> const& unbuffered_query,
                         std::set<std::string> const& attribute_names,
                         mapnik::vector::tile_layer const& layer,
                         double tile_x,
@@ -103,6 +104,7 @@ namespace mapnik { namespace vector {
                         double scale)
             : filter_(filter),
               tile_extent_(tile_extent),
+              unbuffered_query_(unbuffered_query),
               layer_(layer),
               tile_x_(tile_x),
               tile_y_(tile_y),
@@ -146,7 +148,10 @@ namespace mapnik { namespace vector {
                         if (image_width > 0 && image_height > 0)
                         {
                             mapnik::CoordTransform t(image_width, image_height, tile_extent_, 0, 0);
-                            box2d<double> intersect = tile_extent_.intersect(filter_.box_);
+                            // filter_.box is buffered
+                            //box2d<double> intersect = tile_extent_.intersect(filter_.box_);
+                            box2d<double> intersect = tile_extent_.intersect(unbuffered_query_);
+                            std::clog << "unbuffered_query_ " << std::fixed << unbuffered_query_ << "\n";
                             std::clog << "filter_.box_.width() " << std::fixed << filter_.box_.width() << "\n";
                             std::clog << "tile_extent_.width() " << std::fixed << tile_extent_.width() << "\n";
                             std::clog << "intersect.width()    " << std::fixed << intersect.width() << "\n";
@@ -284,6 +289,7 @@ namespace mapnik { namespace vector {
     private:
         Filter filter_;
         mapnik::box2d<double> tile_extent_;
+        mapnik::box2d<double> unbuffered_query_;
         mapnik::vector::tile_layer const& layer_;
         double tile_x_;
         double tile_y_;
@@ -358,7 +364,7 @@ namespace mapnik { namespace vector {
     {
         mapnik::filter_in_box filter(q.get_bbox());
         return MAPNIK_MAKE_SHARED<tile_featureset<mapnik::filter_in_box> >
-            (filter, get_tile_extent(), q.property_names(), layer_, tile_x_, tile_y_, scale_);
+            (filter, get_tile_extent(), q.get_unbuffered_bbox(), q.property_names(), layer_, tile_x_, tile_y_, scale_);
     }
 
     inline featureset_ptr tile_datasource::features_at_point(coord2d const& pt, double tol) const
@@ -370,7 +376,7 @@ namespace mapnik { namespace vector {
             names.insert(layer_.keys(i));
         }
         return MAPNIK_MAKE_SHARED<tile_featureset<filter_at_point> >
-            (filter, get_tile_extent(), names, layer_, tile_x_, tile_y_, scale_);
+            (filter, get_tile_extent(), get_tile_extent(), names, layer_, tile_x_, tile_y_, scale_);
     }
 
     inline void tile_datasource::set_envelope(box2d<double> const& bbox)
