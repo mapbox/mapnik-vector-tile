@@ -149,7 +149,7 @@ TEST_CASE( "vector tile output 2", "should be able to overzoom raster" ) {
         map.set_buffer_size(1024);
         mapnik::layer lyr("layer",map.srs());
         mapnik::parameters params;
-        params["type"] = "raster";
+        params["type"] = "gdal";
         std::ostringstream s;
         s << std::fixed << std::setprecision(16)
           << bbox.minx() << ',' << bbox.miny() << ','
