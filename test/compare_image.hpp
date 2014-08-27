@@ -1,6 +1,9 @@
 #ifndef __MAPNIK_VTILE_COMPARE_IMAGES_HPP__
 #define __MAPNIK_VTILE_COMPARE_IMAGES_HPP__ 
 
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_SHARED_INCLUDE
+#include MAPNIK_MAKE_SHARED_INCLUDE
 #include <mapnik/graphics.hpp>
 #include <mapnik/image_data.hpp>
 #include <mapnik/image_util.hpp>
@@ -62,12 +65,12 @@ namespace testing {
         {
             throw mapnik::image_reader_exception("Failed to detect type of: " + dest_fn);
         }
-        std::unique_ptr<mapnik::image_reader> reader1(mapnik::get_image_reader(dest_fn,*type));
+        MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader1(mapnik::get_image_reader(dest_fn,*type));
         if (!reader1.get())
         {
             throw mapnik::image_reader_exception("Failed to load: " + dest_fn);
         }
-        std::shared_ptr<image_32> image_ptr1 = std::make_shared<image_32>(reader1->width(),reader1->height());
+        MAPNIK_SHARED_PTR<image_32> image_ptr1 = MAPNIK_MAKE_SHARED<image_32>(reader1->width(),reader1->height());
         reader1->read(0,0,image_ptr1->data());
 
         boost::optional<std::string> type2 = mapnik::type_from_filename(src_fn);
@@ -75,12 +78,12 @@ namespace testing {
         {
             throw mapnik::image_reader_exception("Failed to detect type of: " + src_fn);
         }
-        std::unique_ptr<mapnik::image_reader> reader2(mapnik::get_image_reader(src_fn,*type2));
+        MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader2(mapnik::get_image_reader(src_fn,*type2));
         if (!reader2.get())
         {
             throw mapnik::image_reader_exception("Failed to load: " + src_fn);
         }
-        std::shared_ptr<image_32> image_ptr2 = std::make_shared<image_32>(reader2->width(),reader2->height());
+        MAPNIK_SHARED_PTR<image_32> image_ptr2 = MAPNIK_MAKE_SHARED<image_32>(reader2->width(),reader2->height());
         reader2->read(0,0,image_ptr2->data());
 
         image_data_32 const& src1 = image_ptr1->data();
@@ -98,12 +101,12 @@ namespace testing {
         {
             throw mapnik::image_reader_exception("Failed to detect type of: " + filepath);
         }
-        std::unique_ptr<mapnik::image_reader> reader2(mapnik::get_image_reader(filepath,*type));
+        MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader2(mapnik::get_image_reader(filepath,*type));
         if (!reader2.get())
         {
             throw mapnik::image_reader_exception("Failed to load: " + filepath);
         }
-        std::shared_ptr<image_32> image_ptr2 = std::make_shared<image_32>(reader2->width(),reader2->height());
+        MAPNIK_SHARED_PTR<image_32> image_ptr2 = MAPNIK_MAKE_SHARED<image_32>(reader2->width(),reader2->height());
         reader2->read(0,0,image_ptr2->data());
 
         image_data_32 const& src2 = image_ptr2->data();
