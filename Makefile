@@ -25,11 +25,11 @@ test: test/run-test test/run-geom-test ./test/run-raster-test src/vector_tile.pb
 	./test/run-geom-test
 	./test/run-raster-test
 
-./test/run-raster-test: Makefile src/vector_tile.pb.cc test/raster_tile.cpp test/encoding_util.hpp test/catch.hpp
+./test/run-raster-test: Makefile src/vector_tile.pb.cc test/raster_tile.cpp test/encoding_util.hpp src/*
 	$(CXX) -o ./test/run-raster-test test/raster_tile.cpp src/vector_tile.pb.cc -DMAPNIK_PLUGINDIR=\"$(MAPNIK_PLUGINDIR)\" -I./src $(CXXFLAGS) $(MAPNIK_CXXFLAGS) $(PROTOBUF_CXXFLAGS) $(COMMON_FLAGS) $(MAPNIK_LDFLAGS) $(PROTOBUF_LDFLAGS) $(LDFLAGS) -Wno-unused-private-field
 	./test/run-raster-test
 
-./test/run-geom-test: Makefile src/vector_tile.pb.cc test/geometry_encoding.cpp test/encoding_util.hpp src/vector_tile_geometry_encoder.hpp test/catch.hpp
+./test/run-geom-test: Makefile src/vector_tile.pb.cc test/geometry_encoding.cpp test/encoding_util.hpp src/vector_tile_geometry_encoder.hpp src/*
 	@$(CXX) -o ./test/run-geom-test test/geometry_encoding.cpp src/vector_tile.pb.cc -I./src $(CXXFLAGS) $(MAPNIK_CXXFLAGS) $(PROTOBUF_CXXFLAGS) $(COMMON_FLAGS) $(MAPNIK_LDFLAGS) $(PROTOBUF_LDFLAGS) $(LDFLAGS) -Wno-unused-private-field
 
 geom: test/run-geom-test src/vector_tile.pb.cc
