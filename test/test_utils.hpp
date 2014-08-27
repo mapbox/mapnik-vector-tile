@@ -21,7 +21,14 @@
 
 #include <string>
 
-MAPNIK_SHARED_PTR<mapnik::memory_datasource> build_ds(double x,double y) {
+MAPNIK_SHARED_PTR<mapnik::memory_datasource> build_ds(double x,double y, bool second=false) {
+#if MAPNIK_VERSION >= 300000
+    mapnik::parameters params;
+    params["type"] = "memory";
+    MAPNIK_SHARED_PTR<mapnik::memory_datasource> ds = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>(params);
+#else
+    MAPNIK_SHARED_PTR<mapnik::memory_datasource> ds = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>();
+#endif
     mapnik::context_ptr ctx = MAPNIK_MAKE_SHARED<mapnik::context_type>();
     ctx->push("name");
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
@@ -30,7 +37,17 @@ MAPNIK_SHARED_PTR<mapnik::memory_datasource> build_ds(double x,double y) {
     mapnik::geometry_type * pt = new mapnik::geometry_type(MAPNIK_POINT);
     pt->move_to(x,y);
     feature->add_geometry(pt);
-    MAPNIK_SHARED_PTR<mapnik::memory_datasource> ds = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>();
     ds->push(feature);
+    if (second) {
+        ctx->push("name2");
+        mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
+        mapnik::transcoder tr("utf-8");
+        feature->put("name",tr.transcode("null island"));
+        feature->put("name2",tr.transcode("null island 2"));
+        mapnik::geometry_type * pt = new mapnik::geometry_type(MAPNIK_POINT);
+        pt->move_to(x+1,y+1);
+        feature->add_geometry(pt);
+        ds->push(feature);
+    }
     return ds;
 }

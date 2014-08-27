@@ -1,6 +1,9 @@
 #ifndef __MAPNIK_VECTOR_TILE_BACKEND_PBF_H__
 #define __MAPNIK_VECTOR_TILE_BACKEND_PBF_H__
 
+#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_VARIANT_INCLUDE
+
 // mapnik
 #include <mapnik/feature.hpp>
 #include <mapnik/value_types.hpp>
@@ -13,11 +16,11 @@
 #include <boost/unordered_map.hpp>
 #include <boost/foreach.hpp>
 
-#include "mapnik3x_compatibility.hpp"
+#include MAPNIK_VARIANT_INCLUDE
 
 namespace mapnik { namespace vector {
 
-    struct to_tile_value: public boost::static_visitor<>
+    struct to_tile_value: public MAPNIK_STATIC_VISITOR<>
     {
     public:
         to_tile_value(tile_value * value):
@@ -134,7 +137,7 @@ namespace mapnik { namespace vector {
                     {
                         // The value doesn't exist yet in the dictionary.
                         to_tile_value visitor(current_layer_->add_values());
-                        boost::apply_visitor(visitor, val.base());
+                        MAPNIK_APPLY_VISITOR(visitor, val.base());
 
                         size_t index = values_.size();
                         values_.insert(values_container::value_type(val, index));

@@ -1,6 +1,7 @@
 #ifndef __MAPNIK_VECTOR_TILE_COMPATIBILITY_H__
 #define __MAPNIK_VECTOR_TILE_COMPATIBILITY_H__
 
+#include <mapnik/config.hpp>
 #include <mapnik/version.hpp>
 
 #if MAPNIK_VERSION >= 300000
@@ -16,6 +17,9 @@
     #define MAPNIK_POLYGON mapnik::geometry_type::types::Polygon
     #define MAPNIK_LINESTRING mapnik::geometry_type::types::LineString
     #define MAPNIK_UNKNOWN mapnik::geometry_type::types::Unknown
+    #define MAPNIK_VARIANT_INCLUDE <mapnik/util/variant.hpp>
+    #define MAPNIK_APPLY_VISITOR mapnik::util::apply_visitor
+    #define MAPNIK_STATIC_VISITOR mapnik::util::static_visitor
 #else
     #define MAPNIK_UNIQUE_PTR std::auto_ptr
     #define MAPNIK_SHARED_INCLUDE <boost/shared_ptr.hpp>
@@ -29,6 +33,9 @@
     #define MAPNIK_POLYGON mapnik::Polygon
     #define MAPNIK_LINESTRING mapnik::LineString
     #define MAPNIK_UNKNOWN mapnik::Unknown
+    #define MAPNIK_VARIANT_INCLUDE <boost/variant.hpp>
+    #define MAPNIK_APPLY_VISITOR boost::apply_visitor
+    #define MAPNIK_STATIC_VISITOR boost::static_visitor
 #endif
 
 #endif
