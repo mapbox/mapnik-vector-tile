@@ -35,6 +35,7 @@
 #include "mapnik3x_compatibility.hpp"
 #include MAPNIK_MAKE_SHARED_INCLUDE
 #include MAPNIK_SHARED_INCLUDE
+#include MAPNIK_VIEW_TRANSFORM_INCLUDE
 
 namespace mapnik { namespace vector {
 

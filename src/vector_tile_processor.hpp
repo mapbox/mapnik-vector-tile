@@ -5,7 +5,6 @@
 #include <mapnik/request.hpp>
 #include <mapnik/layer.hpp>
 #include <mapnik/query.hpp>
-#include <mapnik/ctrans.hpp>
 #include <mapnik/geometry.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/datasource.hpp>
@@ -48,6 +47,8 @@
 #include "mapnik3x_compatibility.hpp"
 #include MAPNIK_MAKE_SHARED_INCLUDE
 #include MAPNIK_SHARED_INCLUDE
+#include MAPNIK_VIEW_TRANSFORM_INCLUDE
+#include MAPNIK_TRANSFORM_PATH_INCLUDE
 
 namespace mapnik { namespace vector {
 
@@ -71,7 +72,7 @@ namespace mapnik { namespace vector {
         mapnik::Map const& m_;
         mapnik::request const& m_req_;
         double scale_factor_;
-        mapnik::CoordTransform t_;
+        MAPNIK_VIEW_TRANSFORM t_;
         unsigned tolerance_;
         std::string image_format_;
         scaling_method_e scaling_method_;
@@ -364,7 +365,7 @@ namespace mapnik { namespace vector {
             {
                 if (geom.size() > 0)
                 {
-                    typedef mapnik::coord_transform<mapnik::CoordTransform,
+                    typedef MAPNIK_TRANSFORM_PATH<MAPNIK_VIEW_TRANSFORM,
                         mapnik::geometry_type> path_type;
                     path_type path(t_, geom, prj_trans);
                     path_count = backend_.add_path(path, tolerance_, geom.type());
@@ -382,7 +383,7 @@ namespace mapnik { namespace vector {
                         buffered_query_ext.miny(),
                         buffered_query_ext.maxx(),
                         buffered_query_ext.maxy());
-                    typedef mapnik::coord_transform<mapnik::CoordTransform, line_clipper> path_type;
+                    typedef MAPNIK_TRANSFORM_PATH<MAPNIK_VIEW_TRANSFORM, line_clipper> path_type;
                     path_type path(t_, clipped, prj_trans);
                     path_count = backend_.add_path(path, tolerance_, geom.type());
                 }
@@ -415,7 +416,7 @@ namespace mapnik { namespace vector {
                         buffered_query_ext.maxx(),
                         buffered_query_ext.maxy());
 #endif
-                    typedef mapnik::coord_transform<mapnik::CoordTransform, poly_clipper> path_type;
+                    typedef MAPNIK_TRANSFORM_PATH<MAPNIK_VIEW_TRANSFORM, poly_clipper> path_type;
                     path_type path(t_, clipped, prj_trans);
                     path_count = backend_.add_path(path, tolerance_, geom.type());
                 }
