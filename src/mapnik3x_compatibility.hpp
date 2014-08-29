@@ -5,6 +5,10 @@
 #include <mapnik/version.hpp>
 
 #if MAPNIK_VERSION >= 300000
+    #define MAPNIK_TRANSFORM_PATH mapnik::transform_path_adapter
+    #define MAPNIK_TRANSFORM_PATH_INCLUDE <mapnik/transform_path_adapter.hpp>
+    #define MAPNIK_VIEW_TRANSFORM mapnik::view_transform
+    #define MAPNIK_VIEW_TRANSFORM_INCLUDE <mapnik/view_transform.hpp>
     #define MAPNIK_UNIQUE_PTR std::unique_ptr
     #define MAPNIK_SHARED_INCLUDE <memory>
     #define MAPNIK_MAKE_SHARED_INCLUDE <memory>
@@ -21,6 +25,10 @@
     #define MAPNIK_APPLY_VISITOR mapnik::util::apply_visitor
     #define MAPNIK_STATIC_VISITOR mapnik::util::static_visitor
 #else
+    #define MAPNIK_TRANSFORM_PATH mapnik::coord_transform
+    #define MAPNIK_TRANSFORM_PATH_INCLUDE <mapnik/ctrans.hpp>
+    #define MAPNIK_VIEW_TRANSFORM mapnik::CoordTransform
+    #define MAPNIK_VIEW_TRANSFORM_INCLUDE <mapnik/ctrans.hpp>
     #define MAPNIK_UNIQUE_PTR std::auto_ptr
     #define MAPNIK_SHARED_INCLUDE <boost/shared_ptr.hpp>
     #define MAPNIK_MAKE_SHARED_INCLUDE <boost/make_shared.hpp>
