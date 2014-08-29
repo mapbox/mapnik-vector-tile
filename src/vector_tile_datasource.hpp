@@ -22,7 +22,6 @@
 #include <mapnik/geom_util.hpp>
 #include <mapnik/image_reader.hpp>
 #include <mapnik/raster.hpp>
-#include <mapnik/ctrans.hpp>
 
 #include <memory>
 #include <stdexcept>
@@ -148,7 +147,7 @@ namespace mapnik { namespace vector {
                         int image_height = reader->height();
                         if (image_width > 0 && image_height > 0)
                         {
-                            mapnik::CoordTransform t(image_width, image_height, tile_extent_, 0, 0);
+                            MAPNIK_VIEW_TRANSFORM t(image_width, image_height, tile_extent_, 0, 0);
                             // filter_.box is buffered
                             //box2d<double> intersect = tile_extent_.intersect(filter_.box_);
                             box2d<double> intersect = tile_extent_.intersect(unbuffered_query_);
