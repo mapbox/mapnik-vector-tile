@@ -2,10 +2,9 @@
 
 [![Build Status](https://secure.travis-ci.org/mapbox/mapnik-vector-tile.png)](http://travis-ci.org/mapbox/mapnik-vector-tile)
 
-A high performance library for working with vector tiles.
+A Mapnik implemention of [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec).
 
-Provides C++ headers that support rendering geodata into vector tiles
-and rendering vector tiles into images.
+Provides C++ headers that support rendering geodata into vector tiles and rendering vector tiles into images.
 
 ## Depends
 
