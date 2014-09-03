@@ -96,6 +96,7 @@ namespace mapnik { namespace vector {
     public:
         tile_featureset(Filter const& filter,
                         mapnik::box2d<double> const& tile_extent,
+                        mapnik::box2d<double> const& unbuffered_query,
                         std::set<std::string> const& attribute_names,
                         mapnik::vector::tile_layer const& layer,
                         double tile_x,
@@ -103,6 +104,7 @@ namespace mapnik { namespace vector {
                         double scale)
             : filter_(filter),
               tile_extent_(tile_extent),
+              unbuffered_query_(unbuffered_query),
               layer_(layer),
               tile_x_(tile_x),
               tile_y_(tile_y),
@@ -145,28 +147,55 @@ namespace mapnik { namespace vector {
                         int image_height = reader->height();
                         if (image_width > 0 && image_height > 0)
                         {
-                            if (f.has_id())
+                            MAPNIK_VIEW_TRANSFORM t(image_width, image_height, tile_extent_, 0, 0);
+                            box2d<double> intersect = tile_extent_.intersect(unbuffered_query_);
+                            box2d<double> ext = t.forward(intersect);
+                            if (ext.width() > 0.5 && ext.height() > 0.5 )
                             {
-                                feature_id = f.id();
+                                // select minimum raster containing whole ext
+                                int x_off = static_cast<int>(std::floor(ext.minx() +.5));
+                                int y_off = static_cast<int>(std::floor(ext.miny() +.5));
+                                int end_x = static_cast<int>(std::floor(ext.maxx() +.5));
+                                int end_y = static_cast<int>(std::floor(ext.maxy() +.5));
+
+                                // clip to available data
+                                if (x_off < 0)
+                                    x_off = 0;
+                                if (y_off < 0)
+                                    y_off = 0;
+                                if (end_x > image_width)
+                                    end_x = image_width;
+                                if (end_y > image_height)
+                                    end_y = image_height;
+                                int width = end_x - x_off;
+                                int height = end_y - y_off;
+                                box2d<double> feature_raster_extent(x_off,
+                                                                    y_off,
+                                                                    x_off + width,
+                                                                    y_off + height);
+                                intersect = t.backward(feature_raster_extent);
+                                #if MAPNIK_VERSION >= 300000
+                                double filter_factor = 1.0;
+                                #endif
+                                bool premultiplied = false;
+                                mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(intersect,
+                                                              width,
+                                                              height,
+                                                              #if MAPNIK_VERSION >= 300000
+                                                              filter_factor,
+                                                              #endif
+                                                              premultiplied
+                                                              );
+                                reader->read(x_off, y_off, raster->data_);
+                                if (f.has_id())
+                                {
+                                    feature_id = f.id();
+                                }
+                                mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
+                                feature->set_raster(raster);
+                                add_attributes(feature,f,layer_,tr_);
+                                return feature;
                             }
-                            #if MAPNIK_VERSION >= 300000
-                            double filter_factor = 1.0;
-                            #endif
-                            bool premultiplied = false;
-                            mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
-                            mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(
-                                        tile_extent_,
-                                        image_width,
-                                        image_height,
-                            #if MAPNIK_VERSION >= 300000
-                                        filter_factor,
-                            #endif
-                                        premultiplied
-                                        );
-                            reader->read(0,0,raster->data_);
-                            feature->set_raster(raster);
-                            add_attributes(feature,f,layer_,tr_);
-                            return feature;
                         }
                     }
                 }
@@ -251,6 +280,7 @@ namespace mapnik { namespace vector {
     private:
         Filter filter_;
         mapnik::box2d<double> tile_extent_;
+        mapnik::box2d<double> unbuffered_query_;
         mapnik::vector::tile_layer const& layer_;
         double tile_x_;
         double tile_y_;
@@ -325,7 +355,7 @@ namespace mapnik { namespace vector {
     {
         mapnik::filter_in_box filter(q.get_bbox());
         return MAPNIK_MAKE_SHARED<tile_featureset<mapnik::filter_in_box> >
-            (filter, get_tile_extent(), q.property_names(), layer_, tile_x_, tile_y_, scale_);
+            (filter, get_tile_extent(), q.get_unbuffered_bbox(), q.property_names(), layer_, tile_x_, tile_y_, scale_);
     }
 
     inline featureset_ptr tile_datasource::features_at_point(coord2d const& pt, double tol) const
@@ -337,7 +367,7 @@ namespace mapnik { namespace vector {
             names.insert(layer_.keys(i));
         }
         return MAPNIK_MAKE_SHARED<tile_featureset<filter_at_point> >
-            (filter, get_tile_extent(), names, layer_, tile_x_, tile_y_, scale_);
+            (filter, get_tile_extent(), get_tile_extent(), names, layer_, tile_x_, tile_y_, scale_);
     }
 
     inline void tile_datasource::set_envelope(box2d<double> const& bbox)
