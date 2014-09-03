@@ -140,12 +140,10 @@ namespace mapnik { namespace vector {
         float b = (-s2_x * s1_y + s1_x * s2_y);
         if (b == 0 ) return false;
         float s = a / b;
-        if (s > 1 || s < 1) return false;
         float c = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x));
         float d = (-s2_x * s1_y + s1_x * s2_y);
         if (d == 0 ) return false;
         float t = c / d;
-        if (t > 1 || t < 1) return false;
         if (s >= 0 && s <= 1 && t >= 0 && t <= 1) return true;
         return false;
     }

@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.5.4
+
+ - Fixed bug in line intersection test
+
 ## 0.5.3
 
  - Fixed setting of `painted` property when a raster is successfully added
