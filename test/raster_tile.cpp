@@ -19,7 +19,7 @@
 
 #include <sstream>
 
-TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) {
+TEST_CASE( "vector tile output 1", "should create vector tile with one raster layer" ) {
     mapnik::datasource_cache::instance().register_datasources(MAPNIK_PLUGINDIR);
     typedef mapnik::vector::backend_pbf backend_type;
     typedef mapnik::vector::processor<backend_type> renderer_type;
@@ -50,6 +50,9 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
     m_req.set_buffer_size(map.buffer_size());
     renderer_type ren(backend,map,m_req,1.0,0,0,1,"jpeg",mapnik::SCALING_BILINEAR);
     ren.apply();
+    std::string key("");
+    CHECK(false == is_solid_extent(tile,key));
+    CHECK("" == key);
     CHECK(1 == tile.layers_size());
     mapnik::vector::tile_layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -99,6 +102,9 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one point" ) 
     map2.set_buffer_size(256);
     tile_type tile2;
     CHECK(tile2.ParseFromString(buffer));
+    std::string key2("");
+    CHECK(false == is_solid_extent(tile,key2));
+    CHECK("" == key2);
     CHECK(1 == tile2.layers_size());
     mapnik::vector::tile_layer const& layer2 = tile2.layers(0);
     CHECK(std::string("layer") == layer2.name());

@@ -1,5 +1,16 @@
 # Changlog
 
+## 0.5.4
+
+ - Fixed bug in line intersection test
+
+## 0.5.3
+
+ - Fixed setting of `painted` property when a raster is successfully added
+ - Added support for testing line intersections in is_solid check
+ - Updated to work with latest Mapnik 3.x
+ - Improved test coverage
+
 ## 0.5.2
 
  - Build fixes to work against latest Mapnik 3.x

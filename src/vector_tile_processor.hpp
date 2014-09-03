@@ -320,6 +320,7 @@ namespace mapnik { namespace vector {
                         pixf.demultiply();
                         backend_.start_tile_feature(*feature);
                         backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
+                        painted_ = true;
                     }
                     backend_.stop_tile_layer();
                     return;

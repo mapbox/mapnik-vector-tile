@@ -66,6 +66,9 @@ TEST_CASE( "vector tile output 1", "should create vector tile with two points" )
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
+    std::string key("");
+    CHECK(false == is_solid_extent(tile,key));
+    CHECK("" == key);
     CHECK(1 == tile.layers_size());
     mapnik::vector::tile_layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -94,6 +97,9 @@ TEST_CASE( "vector tile output 2", "adding empty layers should result in empty t
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
+    std::string key("");
+    CHECK(true == is_solid_extent(tile,key));
+    CHECK("" == key);
     CHECK(0 == tile.layers_size());
 }
 
@@ -108,8 +114,8 @@ TEST_CASE( "vector tile output 3", "adding layers with geometries outside render
     mapnik::context_ptr ctx = MAPNIK_MAKE_SHARED<mapnik::context_type>();
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
     MAPNIK_UNIQUE_PTR<mapnik::geometry_type> g(new mapnik::geometry_type(MAPNIK_LINESTRING));
-    g->move_to(0,0);
-    g->line_to(1,1);
+    g->move_to(-10,-10);
+    g->line_to(-11,-11);
     feature->add_geometry(g.release());
 #if MAPNIK_VERSION >= 300000
     mapnik::parameters params;
@@ -121,11 +127,15 @@ TEST_CASE( "vector tile output 3", "adding layers with geometries outside render
     ds->push(feature);
     lyr.set_datasource(ds);
     map.MAPNIK_ADD_LAYER(lyr);
-    map.zoom_to_box(bbox);
-    mapnik::request m_req(tile_size,tile_size,bbox);
+    mapnik::box2d<double> custom_bbox(0,0,10,10);
+    map.zoom_to_box(custom_bbox);
+    mapnik::request m_req(tile_size,tile_size,custom_bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
-    CHECK(1 == tile.layers_size());
+    std::string key("");
+    CHECK(true == is_solid_extent(tile,key));
+    CHECK("" == key);
+    CHECK(0 == tile.layers_size());
 }
 
 TEST_CASE( "vector tile output 4", "adding layers with degenerate geometries should not add layer" ) {
@@ -147,6 +157,9 @@ TEST_CASE( "vector tile output 4", "adding layers with degenerate geometries sho
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
+    std::string key("");
+    CHECK(true == is_solid_extent(tile,key));
+    CHECK("" == key);
     CHECK(0 == tile.layers_size());
 }
 
@@ -172,6 +185,9 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
     tile_type tile2;
     CHECK(tile2.ParseFromString(buffer));
+    std::string key("");
+    CHECK(false == is_solid_extent(tile2,key));
+    CHECK("" == key);
     CHECK(1 == tile2.layers_size());
     mapnik::vector::tile_layer const& layer2 = tile2.layers(0);
     CHECK(std::string("layer") == layer2.name());
@@ -223,6 +239,9 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
+    std::string key("");
+    CHECK(false == is_solid_extent(tile,key));
+    CHECK("" == key);
     CHECK(1 == tile.layers_size());
     mapnik::vector::tile_layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -309,6 +328,9 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     // done encoding single feature/geometry
+    std::string key("");
+    CHECK(false == is_solid_extent(tile,key));
+    CHECK("" == key);
     CHECK(1 == tile.layers_size());
     mapnik::vector::tile_layer const& layer = tile.layers(0);
     CHECK(1 == layer.features_size());
@@ -353,6 +375,9 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     // done encoding single feature/geometry
+    std::string key("");
+    CHECK(false == is_solid_extent(tile,key));
+    CHECK("" == key);
     CHECK(1 == tile.layers_size());
     mapnik::vector::tile_layer const& layer = tile.layers(0);
     CHECK(1 == layer.features_size());
@@ -419,8 +444,9 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
     backend.add_path(*g, tolerance, g->type());
     backend.stop_tile_feature();
     backend.stop_tile_layer();
-    std::string key("test");
-    is_solid_extent(tile,key); // should not throw!
+    std::string key("");
+    CHECK(false == is_solid_extent(tile,key));
+    CHECK("" == key);
     CHECK(1 == tile.layers_size());
     mapnik::vector::tile_layer const& layer = tile.layers(0);
     CHECK(1 == layer.features_size());
