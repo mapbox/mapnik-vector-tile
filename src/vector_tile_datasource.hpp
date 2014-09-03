@@ -148,13 +148,7 @@ namespace mapnik { namespace vector {
                         if (image_width > 0 && image_height > 0)
                         {
                             MAPNIK_VIEW_TRANSFORM t(image_width, image_height, tile_extent_, 0, 0);
-                            // filter_.box is buffered
-                            //box2d<double> intersect = tile_extent_.intersect(filter_.box_);
                             box2d<double> intersect = tile_extent_.intersect(unbuffered_query_);
-                            std::clog << "unbuffered_query_ " << std::fixed << unbuffered_query_ << "\n";
-                            std::clog << "filter_.box_.width() " << std::fixed << filter_.box_.width() << "\n";
-                            std::clog << "tile_extent_.width() " << std::fixed << tile_extent_.width() << "\n";
-                            std::clog << "intersect.width()    " << std::fixed << intersect.width() << "\n";
                             box2d<double> ext = t.forward(intersect);
                             if (ext.width() > 0.5 && ext.height() > 0.5 )
                             {
@@ -179,14 +173,11 @@ namespace mapnik { namespace vector {
                                                                     y_off,
                                                                     x_off + width,
                                                                     y_off + height);
-                                std::clog << "feature_raster_extent " << feature_raster_extent << "\n";
                                 intersect = t.backward(feature_raster_extent);
-                                std::clog << "intersect " << intersect << "\n";
                                 #if MAPNIK_VERSION >= 300000
                                 double filter_factor = 1.0;
                                 #endif
                                 bool premultiplied = false;
-                                std::clog << "w/h " << width << " " << height << " " << image_width << " " << image_height << "\n"; 
                                 mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(intersect,
                                                               width,
                                                               height,
