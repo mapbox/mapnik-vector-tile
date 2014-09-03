@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.5.5
+
+ - Optimize raster rendering by clipping rasters to unbuffered tile extent when overzooming
+
 ## 0.5.4
 
  - Fixed bug in line intersection test
