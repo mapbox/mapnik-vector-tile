@@ -5,6 +5,7 @@
 #include MAPNIK_VARIANT_INCLUDE
 
 // mapnik
+#include <mapnik/version.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/value_types.hpp>
 
@@ -137,8 +138,11 @@ namespace mapnik { namespace vector {
                     {
                         // The value doesn't exist yet in the dictionary.
                         to_tile_value visitor(current_layer_->add_values());
+#if MAPNIK_VERSION >= 300000
+                        MAPNIK_APPLY_VISITOR(visitor, val);
+#else
                         MAPNIK_APPLY_VISITOR(visitor, val.base());
-
+#endif
                         size_t index = values_.size();
                         values_.insert(values_container::value_type(val, index));
                         current_feature_->add_tags(index);
