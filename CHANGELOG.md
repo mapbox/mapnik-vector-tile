@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.5.6
+
+ - Fix build against latest Mapnik 3.x
+
 ## 0.5.5
 
  - Optimize raster rendering by clipping rasters to unbuffered tile extent when overzooming
