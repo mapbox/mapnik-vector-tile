@@ -10,8 +10,6 @@
 #include "compare_image.hpp"
 #include <mapnik/memory_datasource.hpp>
 #include <mapnik/util/fs.hpp>
-#include "vector_tile_projection.hpp"
-
 const unsigned _x=0,_y=0,_z=0;
 const unsigned tile_size = 256;
 mapnik::box2d<double> bbox;
@@ -20,9 +18,21 @@ mapnik::box2d<double> bbox;
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
 #include "vector_tile_util.hpp"
+#include "vector_tile_projection.hpp"
 
 // vector input api
 #include "vector_tile_datasource.hpp"
+
+/*
+TEST_CASE( "vector tile negative id", "hmm" ) {
+    mapnik::vector::tile tile;
+    mapnik::vector::tile_layer * layer = tile.add_layers();
+    mapnik::vector::tile_feature * feat = layer->add_features();
+    feat->set_id(-1);
+    std::clog << feat->id() << "\n";
+    //CHECK(std::fabs(map_extent.maxy() - e.maxy()) < epsilon);
+}
+*/
 
 TEST_CASE( "vector tile projection 1", "should support z/x/y to bbox conversion at 0/0/0" ) {
     mapnik::vector::spherical_mercator merc(256);
