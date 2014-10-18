@@ -2,7 +2,7 @@
 #include <mapnik/geometry.hpp>
 #include "vector_tile_geometry_encoder.hpp"
 
-void decode_geometry(mapnik::vector::tile_feature const& f,
+void decode_geometry(vector_tile::Tile_Feature const& f,
                      mapnik::geometry_type & geom,
                      double & x,
                      double & y,
@@ -71,12 +71,12 @@ std::string compare(mapnik::geometry_type const & g,
                     unsigned tolerance=0,
                     unsigned path_multiplier=1)
 {
-    using namespace mapnik::vector;
+    using namespace mapnik::vector_tile_impl;
     // encode
-    tile_feature feature;
+    vector_tile::Tile_Feature feature;
     int32_t x = 0;
     int32_t y = 0;
-    encode_geometry(g,(tile_GeomType)g.type(),feature,x,y,tolerance,path_multiplier);
+    encode_geometry(g,(vector_tile::Tile_GeomType)g.type(),feature,x,y,tolerance,path_multiplier);
     // decode
     mapnik::geometry_type g2(MAPNIK_POLYGON);
     double x0 = 0;

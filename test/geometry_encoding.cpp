@@ -244,8 +244,8 @@ TEST_CASE( "test 10", "should skip repeated close and coincident line_to command
 }
 
 TEST_CASE( "test 11", "should correctly encode multiple paths" ) {
-    using namespace mapnik::vector;
-    tile_feature feature0;
+    using namespace mapnik::vector_tile_impl;
+    vector_tile::Tile_Feature feature0;
     int32_t x = 0;
     int32_t y = 0;
     unsigned path_multiplier = 1;
@@ -255,7 +255,7 @@ TEST_CASE( "test 11", "should correctly encode multiple paths" ) {
     g0.line_to(-10,-10);
     g0.line_to(-20,-20);
     g0.close_path();
-    encode_geometry(g0,(tile_GeomType)g0.type(),feature0,x,y,tolerance,path_multiplier);
+    encode_geometry(g0,(vector_tile::Tile_GeomType)g0.type(),feature0,x,y,tolerance,path_multiplier);
     CHECK(x == -20);
     CHECK(y == -20);
     mapnik::geometry_type g1(MAPNIK_POLYGON);
@@ -263,7 +263,7 @@ TEST_CASE( "test 11", "should correctly encode multiple paths" ) {
     g1.line_to(1010,1010);
     g1.line_to(1020,1020);
     g1.close_path();
-    encode_geometry(g1,(tile_GeomType)g1.type(),feature0,x,y,tolerance,path_multiplier);
+    encode_geometry(g1,(vector_tile::Tile_GeomType)g1.type(),feature0,x,y,tolerance,path_multiplier);
     CHECK(x == 1020);
     CHECK(y == 1020);
     mapnik::geometry_type g2(MAPNIK_POLYGON);
@@ -283,8 +283,8 @@ TEST_CASE( "test 11", "should correctly encode multiple paths" ) {
 }
 
 TEST_CASE( "test 12", "should correctly encode multiple paths" ) {
-    using namespace mapnik::vector;
-    tile_feature feature0;
+    using namespace mapnik::vector_tile_impl;
+    vector_tile::Tile_Feature feature0;
     int32_t x = 0;
     int32_t y = 0;
     unsigned path_multiplier = 1;
@@ -304,7 +304,7 @@ TEST_CASE( "test 12", "should correctly encode multiple paths" ) {
     g.line_to(25,20);
     g.line_to(20,20);
     g.close_path();
-    encode_geometry(g,(tile_GeomType)g.type(),feature0,x,y,tolerance,path_multiplier);
+    encode_geometry(g,(vector_tile::Tile_GeomType)g.type(),feature0,x,y,tolerance,path_multiplier);
 
     mapnik::geometry_type g2(MAPNIK_POLYGON);
     double x0 = 0;

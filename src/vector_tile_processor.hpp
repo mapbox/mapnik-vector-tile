@@ -50,7 +50,7 @@
 #include MAPNIK_VIEW_TRANSFORM_INCLUDE
 #include MAPNIK_TRANSFORM_PATH_INCLUDE
 
-namespace mapnik { namespace vector {
+namespace mapnik { namespace vector_tile_impl {
 
 
 /*

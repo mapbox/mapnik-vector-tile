@@ -54,7 +54,7 @@ int main(int argc, char** argv)
         stream.close();
 
         // now attemp to open protobuf
-        mapnik::vector::tile tile;
+        vector_tile::Tile tile;
         if (mapnik::vector::is_compressed(message))
         {
             std::string uncompressed;
@@ -75,7 +75,7 @@ int main(int argc, char** argv)
             std::cout << "layers: " << tile.layers_size() << "\n";
             for (unsigned i=0;i<tile.layers_size();++i)
             {
-                mapnik::vector::tile_layer const& layer = tile.layers(i);
+                vector_tile::Tile_Layer const& layer = tile.layers(i);
                 std::cout << layer.name() << ":\n";
                 std::cout << "  version: " << layer.version() << "\n";
                 std::cout << "  extent: " << layer.extent() << "\n";
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
                 unsigned degenerate = 0;
                 for (unsigned j=0;j<layer.features_size();++j)
                 {
-                    mapnik::vector::tile_feature const & f = layer.features(j);
+                    vector_tile::Tile_Feature const & f = layer.features(j);
                     total_repeated += f.geometry_size();
                     eGeomType g_type = static_cast<eGeomType>(f.type());
                     int cmd = -1;
@@ -150,7 +150,7 @@ int main(int argc, char** argv)
         } else {
             for (unsigned i=0;i<tile.layers_size();++i)
             {
-                mapnik::vector::tile_layer const& layer = tile.layers(i);
+                vector_tile::Tile_Layer const& layer = tile.layers(i);
                 std::cout << "layer: " << layer.name() << "\n";
                 std::cout << "  version: " << layer.version() << "\n";
                 std::cout << "  extent: " << layer.extent() << "\n";
@@ -167,7 +167,7 @@ int main(int argc, char** argv)
                 std::cout << "  values: ";
                 for (unsigned i=0;i<layer.values_size();++i)
                 {
-                     mapnik::vector::tile_value const & value = layer.values(i);
+                     vector_tile::Tile_Value const & value = layer.values(i);
                      if (value.has_string_value()) {
                           std::cout << value.string_value();
                      } else if (value.has_int_value()) {
@@ -192,7 +192,7 @@ int main(int argc, char** argv)
                  std::cout << "\n";
                  for (unsigned i=0;i<layer.features_size();++i)
                  {
-                     mapnik::vector::tile_feature const & feat = layer.features(i);
+                     vector_tile::Tile_Feature const & feat = layer.features(i);
                      std::cout << "  feature: " << feat.id() << "\n";
                      std::cout << "    type: ";
                      unsigned feat_type = feat.type();

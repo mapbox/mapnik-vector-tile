@@ -25,9 +25,9 @@ mapnik::box2d<double> bbox;
 
 /*
 TEST_CASE( "vector tile negative id", "hmm" ) {
-    mapnik::vector::tile tile;
-    mapnik::vector::tile_layer * layer = tile.add_layers();
-    mapnik::vector::tile_feature * feat = layer->add_features();
+    vector_tile::Tile tile;
+    vector_tile::Tile_Layer * layer = tile.add_layers();
+    vector_tile::Tile_Feature * feat = layer->add_features();
     feat->set_id(-1);
     std::clog << feat->id() << "\n";
     //CHECK(std::fabs(map_extent.maxy() - e.maxy()) < epsilon);
@@ -35,7 +35,7 @@ TEST_CASE( "vector tile negative id", "hmm" ) {
 */
 
 TEST_CASE( "vector tile projection 1", "should support z/x/y to bbox conversion at 0/0/0" ) {
-    mapnik::vector::spherical_mercator merc(256);
+    mapnik::vector_tile_impl::spherical_mercator merc(256);
     double minx,miny,maxx,maxy;
     merc.xyz(_x,_y,_z,minx,miny,maxx,maxy);
     mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
@@ -48,7 +48,7 @@ TEST_CASE( "vector tile projection 1", "should support z/x/y to bbox conversion 
 }
 
 TEST_CASE( "vector tile projection 2", "should support z/x/y to bbox conversion up to z33" ) {
-    mapnik::vector::spherical_mercator merc(256);
+    mapnik::vector_tile_impl::spherical_mercator merc(256);
     int x = 2145960701;
     int y = 1428172928;
     int z = 32;
@@ -64,9 +64,9 @@ TEST_CASE( "vector tile projection 2", "should support z/x/y to bbox conversion 
 }
 
 TEST_CASE( "vector tile output 1", "should create vector tile with two points" ) {
-    typedef mapnik::vector::backend_pbf backend_type;
-    typedef mapnik::vector::processor<backend_type> renderer_type;
-    typedef mapnik::vector::tile tile_type;
+    typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+    typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+    typedef vector_tile::Tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
@@ -77,13 +77,13 @@ TEST_CASE( "vector tile output 1", "should create vector tile with two points" )
     renderer_type ren(backend,map,m_req);
     ren.apply();
     std::string key("");
-    CHECK(false == is_solid_extent(tile,key));
+    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
     CHECK(1 == tile.layers_size());
-    mapnik::vector::tile_layer const& layer = tile.layers(0);
+    vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
     CHECK(2 == layer.features_size());
-    mapnik::vector::tile_feature const& f = layer.features(0);
+    vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
     CHECK(3 == f.geometry_size());
     CHECK(9 == f.geometry(0));
@@ -96,9 +96,9 @@ TEST_CASE( "vector tile output 1", "should create vector tile with two points" )
 }
 
 TEST_CASE( "vector tile output 2", "adding empty layers should result in empty tile" ) {
-    typedef mapnik::vector::backend_pbf backend_type;
-    typedef mapnik::vector::processor<backend_type> renderer_type;
-    typedef mapnik::vector::tile tile_type;
+    typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+    typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+    typedef vector_tile::Tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
@@ -108,15 +108,15 @@ TEST_CASE( "vector tile output 2", "adding empty layers should result in empty t
     renderer_type ren(backend,map,m_req);
     ren.apply();
     std::string key("");
-    CHECK(true == is_solid_extent(tile,key));
+    CHECK(true == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
     CHECK(0 == tile.layers_size());
 }
 
 TEST_CASE( "vector tile output 3", "adding layers with geometries outside rendering extent should not add layer" ) {
-    typedef mapnik::vector::backend_pbf backend_type;
-    typedef mapnik::vector::processor<backend_type> renderer_type;
-    typedef mapnik::vector::tile tile_type;
+    typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+    typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+    typedef vector_tile::Tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
@@ -143,15 +143,15 @@ TEST_CASE( "vector tile output 3", "adding layers with geometries outside render
     renderer_type ren(backend,map,m_req);
     ren.apply();
     std::string key("");
-    CHECK(true == is_solid_extent(tile,key));
+    CHECK(true == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
     CHECK(0 == tile.layers_size());
 }
 
 TEST_CASE( "vector tile output 4", "adding layers with degenerate geometries should not add layer" ) {
-    typedef mapnik::vector::backend_pbf backend_type;
-    typedef mapnik::vector::processor<backend_type> renderer_type;
-    typedef mapnik::vector::tile tile_type;
+    typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+    typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+    typedef vector_tile::Tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
@@ -168,15 +168,15 @@ TEST_CASE( "vector tile output 4", "adding layers with degenerate geometries sho
     renderer_type ren(backend,map,m_req);
     ren.apply();
     std::string key("");
-    CHECK(true == is_solid_extent(tile,key));
+    CHECK(true == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
     CHECK(0 == tile.layers_size());
 }
 
 TEST_CASE( "vector tile input", "should be able to parse message and render point" ) {
-    typedef mapnik::vector::backend_pbf backend_type;
-    typedef mapnik::vector::processor<backend_type> renderer_type;
-    typedef mapnik::vector::tile tile_type;
+    typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+    typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+    typedef vector_tile::Tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
@@ -196,16 +196,16 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     tile_type tile2;
     CHECK(tile2.ParseFromString(buffer));
     std::string key("");
-    CHECK(false == is_solid_extent(tile2,key));
+    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
     CHECK("" == key);
     CHECK(1 == tile2.layers_size());
-    mapnik::vector::tile_layer const& layer2 = tile2.layers(0);
+    vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
     CHECK(std::string("layer") == layer2.name());
     CHECK(1 == layer2.features_size());
 
     mapnik::layer lyr2("layer",map.srs());
-    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds = MAPNIK_MAKE_SHARED<
-                                    mapnik::vector::tile_datasource>(
+    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+                                    mapnik::vector_tile_impl::tile_datasource>(
                                         layer2,_x,_y,_z,map2.width());
     ds->set_envelope(bbox);
     mapnik::layer_descriptor lay_desc = ds->get_descriptor();
@@ -237,9 +237,9 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
 }
 
 TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
-    typedef mapnik::vector::backend_pbf backend_type;
-    typedef mapnik::vector::processor<backend_type> renderer_type;
-    typedef mapnik::vector::tile tile_type;
+    typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+    typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+    typedef vector_tile::Tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
@@ -250,20 +250,20 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     renderer_type ren(backend,map,m_req);
     ren.apply();
     std::string key("");
-    CHECK(false == is_solid_extent(tile,key));
+    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
     CHECK(1 == tile.layers_size());
-    mapnik::vector::tile_layer const& layer = tile.layers(0);
+    vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
     CHECK(1 == layer.features_size());
-    mapnik::vector::tile_feature const& f = layer.features(0);
+    vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
     CHECK(3 == f.geometry_size());
     CHECK(9 == f.geometry(0));
     CHECK(4096 == f.geometry(1));
     CHECK(4096 == f.geometry(2));
     // now actually start the meat of the test
-    mapnik::vector::tile_datasource ds(layer,_x,_y,_z,tile_size);
+    mapnik::vector_tile_impl::tile_datasource ds(layer,_x,_y,_z,tile_size);
     mapnik::featureset_ptr fs;
 
     // ensure we can query single feature
@@ -324,8 +324,8 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     // the tolerance because we never want to drop a move_to or the first line_to
     unsigned tolerance = 2000000;
     // now create the testing data
-    mapnik::vector::tile tile;
-    mapnik::vector::backend_pbf backend(tile,path_multiplier);
+    vector_tile::Tile tile;
+    mapnik::vector_tile_impl::backend_pbf backend(tile,path_multiplier);
     backend.start_tile_layer("layer");
     mapnik::feature_ptr feature(mapnik::feature_factory::create(MAPNIK_MAKE_SHARED<mapnik::context_type>(),1));
     backend.start_tile_feature(*feature);
@@ -339,12 +339,12 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     backend.stop_tile_layer();
     // done encoding single feature/geometry
     std::string key("");
-    CHECK(false == is_solid_extent(tile,key));
+    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
     CHECK(1 == tile.layers_size());
-    mapnik::vector::tile_layer const& layer = tile.layers(0);
+    vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(1 == layer.features_size());
-    mapnik::vector::tile_feature const& f = layer.features(0);
+    vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(12 == f.geometry_size());
     CHECK(9 == f.geometry(0)); // 1 move_to
     CHECK(0 == f.geometry(1)); // x:0
@@ -370,8 +370,8 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     // in both the x and y from the previous vertex
     unsigned tolerance = 2;
     // now create the testing data
-    mapnik::vector::tile tile;
-    mapnik::vector::backend_pbf backend(tile,path_multiplier);
+    vector_tile::Tile tile;
+    mapnik::vector_tile_impl::backend_pbf backend(tile,path_multiplier);
     backend.start_tile_layer("layer");
     mapnik::feature_ptr feature(mapnik::feature_factory::create(MAPNIK_MAKE_SHARED<mapnik::context_type>(),1));
     backend.start_tile_feature(*feature);
@@ -386,12 +386,12 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     backend.stop_tile_layer();
     // done encoding single feature/geometry
     std::string key("");
-    CHECK(false == is_solid_extent(tile,key));
+    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
     CHECK(1 == tile.layers_size());
-    mapnik::vector::tile_layer const& layer = tile.layers(0);
+    vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(1 == layer.features_size());
-    mapnik::vector::tile_feature const& f = layer.features(0);
+    vector_tile::Tile_Feature const& f = layer.features(0);
     // sequence of 10 geometries given tolerance of 2
     CHECK(8 == f.geometry_size());
     // first geometry is 9, which packs both the command and how many verticies are encoded with that same command
@@ -430,15 +430,15 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     CHECK(1998 == f.geometry(7));
 }
 
-// testcase for avoiding error in is_solid_extent of
+// testcase for avoiding error in mapnik::vector_tile_impl::is_solid_extent of
 // "Unknown command type (is_solid_extent): 0"
 // not yet clear if this test is correct
 // ported from shapefile test in tilelive-bridge (a:should render a (1.0.1))
 TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
     unsigned path_multiplier = 16;
     unsigned tolerance = 5;
-    mapnik::vector::tile tile;
-    mapnik::vector::backend_pbf backend(tile,path_multiplier);
+    vector_tile::Tile tile;
+    mapnik::vector_tile_impl::backend_pbf backend(tile,path_multiplier);
     backend.start_tile_layer("layer");
     mapnik::feature_ptr feature(mapnik::feature_factory::create(MAPNIK_MAKE_SHARED<mapnik::context_type>(),1));
     backend.start_tile_feature(*feature);
@@ -455,12 +455,12 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     std::string key("");
-    CHECK(false == is_solid_extent(tile,key));
+    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
     CHECK(1 == tile.layers_size());
-    mapnik::vector::tile_layer const& layer = tile.layers(0);
+    vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(1 == layer.features_size());
-    mapnik::vector::tile_feature const& f = layer.features(0);
+    vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(7 == f.geometry_size());
 }
 
@@ -469,7 +469,7 @@ int main (int argc, char* const argv[])
     GOOGLE_PROTOBUF_VERIFY_VERSION;
     // set up bbox
     double minx,miny,maxx,maxy;
-    mapnik::vector::spherical_mercator merc(256);
+    mapnik::vector_tile_impl::spherical_mercator merc(256);
     merc.xyz(_x,_y,_z,minx,miny,maxx,maxy);
     bbox.init(minx,miny,maxx,maxy);
     int result = Catch::Session().run( argc, argv );
