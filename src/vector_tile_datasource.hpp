@@ -36,11 +36,11 @@
 #include MAPNIK_SHARED_INCLUDE
 #include MAPNIK_VIEW_TRANSFORM_INCLUDE
 
-namespace mapnik { namespace vector {
+namespace mapnik { namespace vector_tile_impl {
 
     void add_attributes(mapnik::feature_ptr feature,
-                        mapnik::vector::tile_feature const& f,
-                        mapnik::vector::tile_layer const& layer,
+                        vector_tile::Tile_Feature const& f,
+                        vector_tile::Tile_Layer const& layer,
                         mapnik::transcoder const& tr)
     {
         std::size_t num_keys = static_cast<std::size_t>(layer.keys_size());
@@ -55,7 +55,7 @@ namespace mapnik { namespace vector {
                 std::string const& name = layer.keys(key_name);
                 if (feature->has_key(name))
                 {
-                    mapnik::vector::tile_value const& value = layer.values(key_value);
+                    vector_tile::Tile_Value const& value = layer.values(key_value);
                     if (value.has_string_value())
                     {
                         std::string str = value.string_value();
@@ -98,7 +98,7 @@ namespace mapnik { namespace vector {
                         mapnik::box2d<double> const& tile_extent,
                         mapnik::box2d<double> const& unbuffered_query,
                         std::set<std::string> const& attribute_names,
-                        mapnik::vector::tile_layer const& layer,
+                        vector_tile::Tile_Layer const& layer,
                         double tile_x,
                         double tile_y,
                         double scale)
@@ -135,7 +135,7 @@ namespace mapnik { namespace vector {
         {
             while (itr_ < end_)
             {
-                mapnik::vector::tile_feature const& f = layer_.features(itr_);
+                vector_tile::Tile_Feature const& f = layer_.features(itr_);
                 mapnik::value_integer feature_id = itr_++;
                 if (f.has_raster())
                 {
@@ -281,7 +281,7 @@ namespace mapnik { namespace vector {
         Filter filter_;
         mapnik::box2d<double> tile_extent_;
         mapnik::box2d<double> unbuffered_query_;
-        mapnik::vector::tile_layer const& layer_;
+        vector_tile::Tile_Layer const& layer_;
         double tile_x_;
         double tile_y_;
         double scale_;
@@ -294,7 +294,7 @@ namespace mapnik { namespace vector {
     class tile_datasource : public datasource
     {
     public:
-        tile_datasource(mapnik::vector::tile_layer const& layer,
+        tile_datasource(vector_tile::Tile_Layer const& layer,
                         unsigned x,
                         unsigned y,
                         unsigned z,
@@ -311,7 +311,7 @@ namespace mapnik { namespace vector {
     private:
         mutable mapnik::layer_descriptor desc_;
         mutable bool attributes_added_;
-        mapnik::vector::tile_layer const& layer_;
+        vector_tile::Tile_Layer const& layer_;
         unsigned x_;
         unsigned y_;
         unsigned z_;
@@ -324,7 +324,7 @@ namespace mapnik { namespace vector {
     };
 
 // tile_datasource impl
-    inline tile_datasource::tile_datasource(mapnik::vector::tile_layer const& layer,
+    inline tile_datasource::tile_datasource(vector_tile::Tile_Layer const& layer,
                                      unsigned x,
                                      unsigned y,
                                      unsigned z,
@@ -378,7 +378,7 @@ namespace mapnik { namespace vector {
 
     inline box2d<double> tile_datasource::get_tile_extent() const
     {
-        mapnik::vector::spherical_mercator merc(tile_size_);
+        spherical_mercator merc(tile_size_);
         double minx,miny,maxx,maxy;
         merc.xyz(x_,y_,z_,minx,miny,maxx,maxy);
         return box2d<double>(minx,miny,maxx,maxy);

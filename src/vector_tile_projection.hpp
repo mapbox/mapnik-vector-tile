@@ -9,7 +9,7 @@
 #define M_PI 3.141592653589793238462643
 #endif
 
-namespace mapnik { namespace vector {
+namespace mapnik { namespace vector_tile_impl {
 
     class spherical_mercator
     {

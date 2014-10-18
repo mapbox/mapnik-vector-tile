@@ -21,12 +21,12 @@
 
 TEST_CASE( "vector tile output 1", "should create vector tile with one raster layer" ) {
     mapnik::datasource_cache::instance().register_datasources(MAPNIK_PLUGINDIR);
-    typedef mapnik::vector::backend_pbf backend_type;
-    typedef mapnik::vector::processor<backend_type> renderer_type;
-    typedef mapnik::vector::tile tile_type;
+    typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+    typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+    typedef vector_tile::Tile tile_type;
     unsigned _x=0,_y=0,_z=1;
     double minx,miny,maxx,maxy;
-    mapnik::vector::spherical_mercator merc(512);
+    mapnik::vector_tile_impl::spherical_mercator merc(512);
     merc.xyz(_x,_y,_z,minx,miny,maxx,maxy);
     mapnik::box2d<double> bbox;
     bbox.init(minx,miny,maxx,maxy);
@@ -51,13 +51,13 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one raster la
     renderer_type ren(backend,map,m_req,1.0,0,0,1,"jpeg",mapnik::SCALING_BILINEAR);
     ren.apply();
     std::string key("");
-    CHECK(false == is_solid_extent(tile,key));
+    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
     CHECK(1 == tile.layers_size());
-    mapnik::vector::tile_layer const& layer = tile.layers(0);
+    vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
     CHECK(1 == layer.features_size());
-    mapnik::vector::tile_feature const& f = layer.features(0);
+    vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
     CHECK(0 == f.geometry_size());
     CHECK(f.has_raster());
@@ -103,13 +103,13 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one raster la
     tile_type tile2;
     CHECK(tile2.ParseFromString(buffer));
     std::string key2("");
-    CHECK(false == is_solid_extent(tile,key2));
+    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key2));
     CHECK("" == key2);
     CHECK(1 == tile2.layers_size());
-    mapnik::vector::tile_layer const& layer2 = tile2.layers(0);
+    vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
     CHECK(std::string("layer") == layer2.name());
     CHECK(1 == layer2.features_size());
-    mapnik::vector::tile_feature const& f2 = layer2.features(0);
+    vector_tile::Tile_Feature const& f2 = layer2.features(0);
     CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f2.id()));
     CHECK(0 == f2.geometry_size());
     CHECK(f2.has_raster());
@@ -118,8 +118,8 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one raster la
         CHECK(expected_image_size == f2.raster().size());
     }
     mapnik::layer lyr2("layer",map2.srs());
-    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds2 = MAPNIK_MAKE_SHARED<
-                                    mapnik::vector::tile_datasource>(
+    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds2 = MAPNIK_MAKE_SHARED<
+                                    mapnik::vector_tile_impl::tile_datasource>(
                                         layer2,_x,_y,_z,map2.width());
     lyr2.set_datasource(ds2);
     lyr2.add_style("style");
@@ -141,13 +141,13 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one raster la
 
 TEST_CASE( "vector tile output 2", "should be able to overzoom raster" ) {
     mapnik::datasource_cache::instance().register_datasources(MAPNIK_PLUGINDIR);
-    typedef mapnik::vector::tile tile_type;
+    typedef vector_tile::Tile tile_type;
     tile_type tile;
     {
-        typedef mapnik::vector::backend_pbf backend_type;
-        typedef mapnik::vector::processor<backend_type> renderer_type;
+        typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+        typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
         double minx,miny,maxx,maxy;
-        mapnik::vector::spherical_mercator merc(256);
+        mapnik::vector_tile_impl::spherical_mercator merc(256);
         merc.xyz(0,0,0,minx,miny,maxx,maxy);
         mapnik::box2d<double> bbox(minx,miny,maxx,maxy);
         backend_type backend(tile,16);
@@ -173,10 +173,10 @@ TEST_CASE( "vector tile output 2", "should be able to overzoom raster" ) {
     }
     // Done creating test data, now test created tile
     CHECK(1 == tile.layers_size());
-    mapnik::vector::tile_layer const& layer = tile.layers(0);
+    vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
     CHECK(1 == layer.features_size());
-    mapnik::vector::tile_feature const& f = layer.features(0);
+    vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
     CHECK(0 == f.geometry_size());
     CHECK(f.has_raster());
@@ -205,10 +205,10 @@ TEST_CASE( "vector tile output 2", "should be able to overzoom raster" ) {
     tile_type tile2;
     CHECK(tile2.ParseFromString(buffer));
     CHECK(1 == tile2.layers_size());
-    mapnik::vector::tile_layer const& layer2 = tile2.layers(0);
+    vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
     CHECK(std::string("layer") == layer2.name());
     CHECK(1 == layer2.features_size());
-    mapnik::vector::tile_feature const& f2 = layer2.features(0);
+    vector_tile::Tile_Feature const& f2 = layer2.features(0);
     CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f2.id()));
     CHECK(0 == f2.geometry_size());
     CHECK(f2.has_raster());
@@ -220,15 +220,15 @@ TEST_CASE( "vector tile output 2", "should be able to overzoom raster" ) {
     // now read back and render image at larger size
     // and zoomed in
     double minx,miny,maxx,maxy;
-    mapnik::vector::spherical_mercator merc(256);
+    mapnik::vector_tile_impl::spherical_mercator merc(256);
     // 2/0/1.png
     merc.xyz(0,1,2,minx,miny,maxx,maxy);
     mapnik::box2d<double> bbox(minx,miny,maxx,maxy);
     mapnik::Map map2(256,256,"+init=epsg:3857");
     map2.set_buffer_size(1024);
     mapnik::layer lyr2("layer",map2.srs());
-    MAPNIK_SHARED_PTR<mapnik::vector::tile_datasource> ds2 = MAPNIK_MAKE_SHARED<
-                                    mapnik::vector::tile_datasource>(
+    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds2 = MAPNIK_MAKE_SHARED<
+                                    mapnik::vector_tile_impl::tile_datasource>(
                                         layer2,0,0,0,256);
     lyr2.set_datasource(ds2);
     lyr2.add_style("style");

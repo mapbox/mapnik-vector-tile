@@ -1,7 +1,7 @@
 #include <stdexcept>
 #include <zlib.h>
 
-namespace mapnik { namespace vector {
+namespace mapnik { namespace vector_tile_impl {
 
 inline bool is_compressed(std::string const& data)
 {

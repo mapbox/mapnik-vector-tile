@@ -12,16 +12,16 @@
 #include "clipper.hpp"
 #endif
 
-namespace mapnik { namespace vector {
+namespace mapnik { namespace vector_tile_impl {
 
 #ifdef CONV_CLIPPER
-    bool is_solid_clipper(mapnik::vector::tile const& tile, std::string & key)
+    bool is_solid_clipper(vector_tile::Tile const& tile, std::string & key)
     {
         ClipperLib::Clipper clipper;
 
         for (int i = 0; i < tile.layers_size(); i++)
         {
-            mapnik::vector::tile_layer const& layer = tile.layers(i);
+            vector_tile::Tile_Layer const& layer = tile.layers(i);
             unsigned extent = layer.extent();
             unsigned side = extent - 1;
             double extent_area = side * side;
@@ -35,7 +35,7 @@ namespace mapnik { namespace vector {
 
             for (int j = 0; j < layer.features_size(); j++)
             {
-                mapnik::vector::tile_feature const& feature = layer.features(j);
+                vector_tile::Tile_Feature const& feature = layer.features(j);
 
                 int cmd = -1;
                 const int cmd_bits = 3;
@@ -183,11 +183,11 @@ namespace mapnik { namespace vector {
         return false;
     }
 
-    bool is_solid_extent(mapnik::vector::tile const& tile, std::string & key)
+    bool is_solid_extent(vector_tile::Tile const& tile, std::string & key)
     {
         for (int i = 0; i < tile.layers_size(); i++)
         {
-            mapnik::vector::tile_layer const& layer = tile.layers(i);
+            vector_tile::Tile_Layer const& layer = tile.layers(i);
             unsigned extent = layer.extent();
             unsigned side = extent - 1;
             // TODO: need to account for buffer here
@@ -197,7 +197,7 @@ namespace mapnik { namespace vector {
             double extent_area = side * side;
             for (int j = 0; j < layer.features_size(); j++)
             {
-                mapnik::vector::tile_feature const& feature = layer.features(j);
+                vector_tile::Tile_Feature const& feature = layer.features(j);
                 int cmd = -1;
                 const int cmd_bits = 3;
                 unsigned length = 0;
