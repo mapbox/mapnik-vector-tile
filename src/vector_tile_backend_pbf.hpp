@@ -10,7 +10,11 @@
 #include <mapnik/value_types.hpp>
 
 // vector tile
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include "vector_tile.pb.h"
+#pragma GCC diagnostic pop
+
 #include "vector_tile_geometry_encoder.hpp"
 
 // boost

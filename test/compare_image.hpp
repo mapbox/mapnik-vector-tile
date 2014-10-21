@@ -88,7 +88,7 @@ namespace testing {
 
         image_data_32 const& src1 = image_ptr1->data();
         image_data_32 const& src2 = image_ptr2->data();
-        return compare_images(src1,src2);
+        return compare_images(src1,src2,threshold,alpha);
     }
 
     unsigned compare_images(image_data_32 const& src1,
@@ -110,7 +110,7 @@ namespace testing {
         reader2->read(0,0,image_ptr2->data());
 
         image_data_32 const& src2 = image_ptr2->data();
-        return compare_images(src1,src2);
+        return compare_images(src1,src2,threshold,alpha);
     }
 
 }

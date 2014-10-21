@@ -2,7 +2,7 @@ PROTOBUF_CXXFLAGS=$(shell pkg-config protobuf --cflags)
 PROTOBUF_LDFLAGS=$(shell pkg-config protobuf --libs-only-L) -lprotobuf-lite
 MAPNIK_CXXFLAGS=$(shell mapnik-config --cflags) -Wsign-compare
 MAPNIK_LDFLAGS=$(shell mapnik-config --libs --ldflags --dep-libs)
-COMMON_FLAGS = -Wall -pedantic -Wno-c++11-long-long -Wno-c++11-extensions
+COMMON_FLAGS = -Wall -pedantic -Wno-c++11-long-long -Wno-c++11-extensions -Wno-unknown-pragmas
 # -Wshadow -Wsign-compare -Wsign-conversion -Wunused-parameter
 # inherit from env
 CXX := $(CXX)
