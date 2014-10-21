@@ -3,12 +3,12 @@
 
 namespace mapnik { namespace vector_tile_impl {
 
-inline bool is_compressed(std::string const& data)
+inline bool is_zlib_compressed(std::string const& data)
 {
     return data.size() > 2 && (uint8_t)data[0] == 0x78 && (uint8_t)data[1] == 0x9C;
 }
 
-inline void decompress(std::string const& input, std::string & output)
+inline void zlib_decompress(std::string const& input, std::string & output)
 {
     z_stream inflate_s;
     inflate_s.zalloc = Z_NULL;
@@ -35,7 +35,7 @@ inline void decompress(std::string const& input, std::string & output)
     output.resize(length);
 }
 
-inline void compress(std::string const& input, std::string & output)
+inline void zlib_compress(std::string const& input, std::string & output)
 {
     z_stream deflate_s;
     deflate_s.zalloc = Z_NULL;

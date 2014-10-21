@@ -55,10 +55,10 @@ int main(int argc, char** argv)
 
         // now attemp to open protobuf
         vector_tile::Tile tile;
-        if (mapnik::vector::is_compressed(message))
+        if (mapnik::vector_tile_impl::is_zlib_compressed(message))
         {
             std::string uncompressed;
-            mapnik::vector::decompress(message,uncompressed);
+            mapnik::vector_tile_impl::zlib_decompress(message,uncompressed);
             if (!tile.ParseFromString(uncompressed))
             {
                 std::clog << "failed to parse compressed protobuf\n";
