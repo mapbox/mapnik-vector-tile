@@ -184,7 +184,7 @@ namespace mapnik { namespace vector_tile_impl {
             if (current_feature_)
             {
                 return encode_geometry(path,
-                                       static_cast<::vector_tile::Tile_GeomType>(type),
+                                       static_cast< ::vector_tile::Tile_GeomType>(type),
                                        *current_feature_,
                                        x_,
                                        y_,
