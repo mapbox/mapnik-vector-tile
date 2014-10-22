@@ -1,5 +1,10 @@
 # Changlog
 
+## 0.6.0
+
+ - Adapted to vector tile v1.0.1 spec
+ - Fixed compile with g++ / clashing namespace with protobuf
+
 ## 0.5.6
 
  - Fix build against latest Mapnik 3.x
