@@ -101,7 +101,8 @@ namespace mapnik { namespace vector_tile_impl {
                         vector_tile::Tile_Layer const& layer,
                         double tile_x,
                         double tile_y,
-                        double scale)
+                        double scale,
+                        bool multi_geom=false)
             : filter_(filter),
               tile_extent_(tile_extent),
               unbuffered_query_(unbuffered_query),
@@ -112,6 +113,7 @@ namespace mapnik { namespace vector_tile_impl {
               itr_(0),
               end_(layer_.features_size()),
               tr_("utf-8"),
+              multi_geom_(multi_geom),
               ctx_(MAPNIK_MAKE_SHARED<mapnik::context_type>())
         {
             std::set<std::string>::const_iterator pos = attribute_names.begin();
@@ -137,6 +139,10 @@ namespace mapnik { namespace vector_tile_impl {
             {
                 vector_tile::Tile_Feature const& f = layer_.features(itr_);
                 mapnik::value_integer feature_id = itr_++;
+                if (f.has_id())
+                {
+                    feature_id = f.id();
+                }
                 if (f.has_raster())
                 {
                     std::string const& image_buffer = f.raster();
@@ -187,10 +193,6 @@ namespace mapnik { namespace vector_tile_impl {
                                                               premultiplied
                                                               );
                                 reader->read(x_off, y_off, raster->data_);
-                                if (f.has_id())
-                                {
-                                    feature_id = f.id();
-                                }
                                 mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
                                 feature->set_raster(raster);
                                 add_attributes(feature,f,layer_,tr_);
@@ -203,9 +205,6 @@ namespace mapnik { namespace vector_tile_impl {
                 {
                     continue;
                 }
-                MAPNIK_UNIQUE_PTR<mapnik::geometry_type> geom(
-                    new mapnik::geometry_type(
-                        MAPNIK_GEOM_TYPE(f.type())));
                 int cmd = -1;
                 const int cmd_bits = 3;
                 unsigned length = 0;
@@ -214,6 +213,9 @@ namespace mapnik { namespace vector_tile_impl {
                 mapnik::box2d<double> envelope;
                 double first_x=0;
                 double first_y=0;
+                mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
+                feature->paths().push_back(new mapnik::geometry_type(MAPNIK_GEOM_TYPE(f.type())));
+                mapnik::geometry_type * geom = &feature->paths().front();
                 for (int k = 0; k < f.geometry_size();)
                 {
                     if (!length) {
@@ -233,6 +235,10 @@ namespace mapnik { namespace vector_tile_impl {
                             y -= (static_cast<double>(dy) / scale_);
                             if (cmd == mapnik::SEG_MOVETO)
                             {
+                                if (multi_geom_ && !first) {
+                                    feature->paths().push_back(new mapnik::geometry_type(MAPNIK_GEOM_TYPE(f.type())));
+                                    geom = &feature->paths().back();
+                                }
                                 first_x = x;
                                 first_y = y;
                             }
@@ -265,12 +271,6 @@ namespace mapnik { namespace vector_tile_impl {
                 {
                     continue;
                 }
-                if (f.has_id())
-                {
-                    feature_id = f.id();
-                }
-                mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
-                feature->paths().push_back(geom.release());
                 add_attributes(feature,f,layer_,tr_);
                 return feature;
             }
@@ -288,6 +288,7 @@ namespace mapnik { namespace vector_tile_impl {
         unsigned itr_;
         unsigned end_;
         mapnik::transcoder tr_;
+        bool multi_geom_;
         mapnik::context_ptr ctx_;
     };
 
@@ -298,7 +299,8 @@ namespace mapnik { namespace vector_tile_impl {
                         unsigned x,
                         unsigned y,
                         unsigned z,
-                        unsigned tile_size);
+                        unsigned tile_size,
+                        bool multi_geom=false);
         virtual ~tile_datasource();
         datasource::datasource_t type() const;
         featureset_ptr features(query const& q) const;
@@ -317,18 +319,20 @@ namespace mapnik { namespace vector_tile_impl {
         unsigned z_;
         unsigned tile_size_;
         mutable bool extent_initialized_;
+        bool multi_geom_;
         mutable mapnik::box2d<double> extent_;
         double tile_x_;
         double tile_y_;
         double scale_;
     };
 
-// tile_datasource impl
+    // tile_datasource impl
     inline tile_datasource::tile_datasource(vector_tile::Tile_Layer const& layer,
                                      unsigned x,
                                      unsigned y,
                                      unsigned z,
-                                     unsigned tile_size)
+                                     unsigned tile_size,
+                                     bool multi_geom)
         : datasource(parameters()),
           desc_("in-memory datasource","utf-8"),
           attributes_added_(false),
@@ -337,7 +341,8 @@ namespace mapnik { namespace vector_tile_impl {
           y_(y),
           z_(z),
           tile_size_(tile_size),
-          extent_initialized_(false) {
+          extent_initialized_(false),
+          multi_geom_(multi_geom) {
         double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z_);
         tile_x_ = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x_ * resolution;
         tile_y_ =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y_ * resolution;
@@ -355,7 +360,7 @@ namespace mapnik { namespace vector_tile_impl {
     {
         mapnik::filter_in_box filter(q.get_bbox());
         return MAPNIK_MAKE_SHARED<tile_featureset<mapnik::filter_in_box> >
-            (filter, get_tile_extent(), q.get_unbuffered_bbox(), q.property_names(), layer_, tile_x_, tile_y_, scale_);
+            (filter, get_tile_extent(), q.get_unbuffered_bbox(), q.property_names(), layer_, tile_x_, tile_y_, scale_, multi_geom_);
     }
 
     inline featureset_ptr tile_datasource::features_at_point(coord2d const& pt, double tol) const
@@ -367,7 +372,7 @@ namespace mapnik { namespace vector_tile_impl {
             names.insert(layer_.keys(i));
         }
         return MAPNIK_MAKE_SHARED<tile_featureset<filter_at_point> >
-            (filter, get_tile_extent(), get_tile_extent(), names, layer_, tile_x_, tile_y_, scale_);
+            (filter, get_tile_extent(), get_tile_extent(), names, layer_, tile_x_, tile_y_, scale_, multi_geom_);
     }
 
     inline void tile_datasource::set_envelope(box2d<double> const& bbox)

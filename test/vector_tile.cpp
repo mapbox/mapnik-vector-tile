@@ -311,10 +311,11 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     CHECK(f_ptr->context()->size() == 1);
 }
 
-// NOTE: encoding a multiple lines as one path is technically incorrect
-// because in Mapnik the protocol is to split geometry parts into separate paths
-// however this case should still be supported in error and its an optimization in the
-// case where you know that lines do not need to be labeled in custom ways.
+// NOTE: encoding multiple lines as one path is technically incorrect
+// because in Mapnik the protocol is to split geometry parts into separate paths.
+// However this case should still be supported because keeping a single flat array is an
+// important optimization in the case that lines do not need to be labeled in custom ways
+// or represented as GeoJSON
 TEST_CASE( "encoding multi line as one path", "should maintain second move_to command" ) {
     // Options
     // here we use a multiplier of 1 to avoid rounding numbers
@@ -358,6 +359,28 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     CHECK(10 == f.geometry(9)); // 1 line_to
     CHECK(2 == f.geometry(10)); // x:2
     CHECK(2 == f.geometry(11)); // y:2
+
+    mapnik::featureset_ptr fs;
+    mapnik::feature_ptr f_ptr;
+
+    mapnik::vector_tile_impl::tile_datasource ds(layer,_x,_y,_z,tile_size);
+    fs = ds.features(mapnik::query(bbox));
+    f_ptr = fs->next();
+    CHECK(f_ptr != mapnik::feature_ptr());
+    // no attributes
+    CHECK(f_ptr->context()->size() == 0);
+
+    // by default the single geometry array should decode into a single mapnik path
+    CHECK(f_ptr->paths().size() == 1);
+
+    // but we can pass multi_geom=true to request true multipart features which may
+    // be needed for labeling or correctly representing geom as GeoJSON
+    mapnik::vector_tile_impl::tile_datasource ds2(layer,_x,_y,_z,tile_size,true);
+    fs = ds2.features(mapnik::query(bbox));
+    f_ptr = fs->next();
+    CHECK(f_ptr != mapnik::feature_ptr());
+    CHECK(f_ptr->paths().size() == 2);
+
 }
 
 TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
