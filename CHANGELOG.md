@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.6.1
+
+ - `tile_datasource` now has optional 6th arg to trigger exploding multipart geometries when decoding
+
 ## 0.6.0
 
  - Adapted to vector tile v1.0.1 spec
