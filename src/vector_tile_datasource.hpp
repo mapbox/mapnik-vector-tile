@@ -58,7 +58,7 @@ namespace mapnik { namespace vector_tile_impl {
                     vector_tile::Tile_Value const& value = layer.values(key_value);
                     if (value.has_string_value())
                     {
-                        std::string str = value.string_value();
+                        std::string const& str = value.string_value();
                         feature->put(name, tr.transcode(str.data(), str.length()));
                     }
                     else if (value.has_int_value())
