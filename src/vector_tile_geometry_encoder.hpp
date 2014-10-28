@@ -8,7 +8,7 @@
 
 namespace mapnik { namespace vector_tile_impl {
 
-inline void handle_skipped_last(vector_tile::Tile_Feature & current_feature,
+inline void handle_skipped_last(::vector_tile::Tile_Feature & current_feature,
                                 int32_t skipped_index,
                                 int32_t cur_x,
                                 int32_t cur_y,
@@ -29,8 +29,8 @@ inline void handle_skipped_last(vector_tile::Tile_Feature & current_feature,
 
 template <typename T>
 unsigned encode_geometry(T & path,
-                         vector_tile::Tile_GeomType type,
-                         vector_tile::Tile_Feature & current_feature,
+                         ::vector_tile::Tile_GeomType type,
+                         ::vector_tile::Tile_Feature & current_feature,
                          int32_t & x_,
                          int32_t & y_,
                          unsigned tolerance,

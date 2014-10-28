@@ -28,7 +28,7 @@ namespace mapnik { namespace vector_tile_impl {
     struct to_tile_value: public MAPNIK_STATIC_VISITOR<>
     {
     public:
-        to_tile_value(vector_tile::Tile_Value * value):
+        to_tile_value(::vector_tile::Tile_Value * value):
             value_(value) {}
 
         void operator () ( value_integer val ) const
@@ -60,7 +60,7 @@ namespace mapnik { namespace vector_tile_impl {
             // do nothing
         }
     private:
-        vector_tile::Tile_Value * value_;
+        ::vector_tile::Tile_Value * value_;
     };
 
     struct backend_pbf
@@ -68,15 +68,15 @@ namespace mapnik { namespace vector_tile_impl {
         typedef std::map<std::string, unsigned> keys_container;
         typedef boost::unordered_map<mapnik::value, unsigned> values_container;
     private:
-        vector_tile::Tile & tile_;
+        ::vector_tile::Tile & tile_;
         unsigned path_multiplier_;
-        mutable vector_tile::Tile_Layer * current_layer_;
-        mutable vector_tile::Tile_Feature * current_feature_;
+        mutable ::vector_tile::Tile_Layer * current_layer_;
+        mutable ::vector_tile::Tile_Feature * current_feature_;
         keys_container keys_;
         values_container values_;
         int32_t x_, y_;
     public:
-        explicit backend_pbf(vector_tile::Tile & _tile,
+        explicit backend_pbf(::vector_tile::Tile & _tile,
                              unsigned path_multiplier)
             : tile_(_tile),
               path_multiplier_(path_multiplier),
@@ -188,7 +188,7 @@ namespace mapnik { namespace vector_tile_impl {
             if (current_feature_)
             {
                 return encode_geometry(path,
-                                       static_cast<vector_tile::Tile_GeomType>(type),
+                                       static_cast< ::vector_tile::Tile_GeomType>(type),
                                        *current_feature_,
                                        x_,
                                        y_,
