@@ -254,7 +254,8 @@ namespace mapnik { namespace vector_tile_impl {
                     if (raster_width > 0 && raster_height > 0)
                     {
                         #if MAPNIK_VERSION >= 300000
-                        raster target(target_ext, raster_width, raster_height, source->get_filter_factor());
+                        mapnik::image_data_rgba8 data(raster_width, raster_height);
+                        raster target(target_ext, data, source->get_filter_factor());
                         #else
                         raster target(target_ext, raster_width, raster_height);
                         #endif
@@ -289,8 +290,8 @@ namespace mapnik { namespace vector_tile_impl {
                             double image_ratio_x = ext.width() / source->data_.width();
                             double image_ratio_y = ext.height() / source->data_.height();
                             #if MAPNIK_VERSION >= 300000
-                            scale_image_agg<image_data_32>(target.data_,
-                                                           source->data_,
+                            scale_image_agg(util::get<image_data_rgba8>(target.data_),
+                                                           util::get<image_data_rgba8>(source->data_),
                                                            scaling_method_,
                                                            image_ratio_x,
                                                            image_ratio_y,
@@ -308,6 +309,26 @@ namespace mapnik { namespace vector_tile_impl {
                                                            2.0);
                             #endif
                         }
+                        #if MAPNIK_VERSION >= 300000
+                        mapnik::image_data_rgba8 im_tile(width,height);
+                        if (target.data_.is<image_data_rgba8>())
+                        {
+                            composite(im_tile, util::get<image_data_rgba8>(target.data_),
+                                      src_over, 1,
+                                      start_x, start_y, false);
+                            agg::rendering_buffer buffer(im_tile.getBytes(),
+                                                         im_tile.width(),
+                                                         im_tile.height(),
+                                                         im_tile.width() * 4);
+                            agg::pixfmt_rgba32 pixf(buffer);
+                            pixf.demultiply();
+                            backend_.start_tile_feature(*feature);
+                            backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
+                            painted_ = true;
+                        } else {
+                            std::clog << "TODO: support other pixel types\n";
+                        }
+                        #else
                         mapnik::image_data_32 im_tile(width,height);
                         composite(im_tile, target.data_,
                                   src_over, 1,
@@ -321,6 +342,7 @@ namespace mapnik { namespace vector_tile_impl {
                         backend_.start_tile_feature(*feature);
                         backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
                         painted_ = true;
+                        #endif
                     }
                     backend_.stop_tile_layer();
                     return;
