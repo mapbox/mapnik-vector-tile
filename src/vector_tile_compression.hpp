@@ -8,6 +8,11 @@ inline bool is_zlib_compressed(std::string const& data)
     return data.size() > 2 && (uint8_t)data[0] == 0x78 && (uint8_t)data[1] == 0x9C;
 }
 
+inline bool is_gzip_compressed(std::string const& data)
+{
+    return data.size() > 2 && (uint8_t)data[0] == 0x1F && (uint8_t)data[1] == 0x8B;
+}
+
 inline void zlib_decompress(std::string const& input, std::string & output)
 {
     z_stream inflate_s;
@@ -16,7 +21,7 @@ inline void zlib_decompress(std::string const& input, std::string & output)
     inflate_s.opaque = Z_NULL;
     inflate_s.avail_in = 0;
     inflate_s.next_in = Z_NULL;
-    inflateInit(&inflate_s);
+    inflateInit2(&inflate_s, 32 + 15);
     inflate_s.next_in = (Bytef *)input.data();
     inflate_s.avail_in = input.size();
     size_t length = 0;
