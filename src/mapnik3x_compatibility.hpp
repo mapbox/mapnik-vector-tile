@@ -24,6 +24,7 @@
     #define MAPNIK_VARIANT_INCLUDE <mapnik/util/variant.hpp>
     #define MAPNIK_APPLY_VISITOR mapnik::util::apply_visitor
     #define MAPNIK_STATIC_VISITOR mapnik::util::static_visitor
+    #define MAPNIK_IMAGE_RGBA mapnik::image_data_rgba8
 #else
     #define MAPNIK_TRANSFORM_PATH mapnik::coord_transform
     #define MAPNIK_TRANSFORM_PATH_INCLUDE <mapnik/ctrans.hpp>
@@ -44,6 +45,7 @@
     #define MAPNIK_VARIANT_INCLUDE <boost/variant.hpp>
     #define MAPNIK_APPLY_VISITOR boost::apply_visitor
     #define MAPNIK_STATIC_VISITOR boost::static_visitor
+    #define MAPNIK_IMAGE_RGBA mapnik::image_data_32
 #endif
 
 #endif

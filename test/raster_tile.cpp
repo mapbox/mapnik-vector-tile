@@ -7,6 +7,8 @@
 #include "compare_image.hpp"
 #include "vector_tile_projection.hpp"
 
+#include "mapnik3x_compatibility.hpp"
+
 // vector output api
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
@@ -78,7 +80,7 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one raster la
     if (!reader.get()) {
         throw std::runtime_error("could not open image bytes");
     }
-    mapnik::image_data_32 im_data(reader->width(),reader->height());
+    MAPNIK_IMAGE_RGBA im_data(reader->width(),reader->height());
     reader->read(0,0,im_data);
     unsigned diff = testing::compare_images(im_data,"test/fixtures/expected-2.jpeg");
     CHECK(0 == diff);

@@ -182,17 +182,23 @@ namespace mapnik { namespace vector_tile_impl {
                                 intersect = t.backward(feature_raster_extent);
                                 #if MAPNIK_VERSION >= 300000
                                 double filter_factor = 1.0;
-                                #endif
-                                bool premultiplied = false;
+                                mapnik::image_data_any data = reader->read(x_off, y_off, width, height);
                                 mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(intersect,
-                                                              width,
-                                                              height,
+                                                              data,
                                                               #if MAPNIK_VERSION >= 300000
                                                               filter_factor,
                                                               #endif
-                                                              premultiplied
+                                                              reader->premultiplied_alpha()
                                                               );
+                                #else
+                                bool premultiplied = false;
+                                mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(intersect,
+                                                               width,
+                                                               height,
+                                                               premultiplied
+                                                               );
                                 reader->read(x_off, y_off, raster->data_);
+                                #endif
                                 mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
                                 feature->set_raster(raster);
                                 add_attributes(feature,f,layer_,tr_);

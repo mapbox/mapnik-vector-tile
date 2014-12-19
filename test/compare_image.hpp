@@ -13,8 +13,8 @@ using namespace mapnik;
 
 namespace testing {
 
-    unsigned compare_images(image_data_32 const& src1,
-                            image_data_32 const& src2,
+    unsigned compare_images(MAPNIK_IMAGE_RGBA const& src1,
+                            MAPNIK_IMAGE_RGBA const& src2,
                             int threshold=16,
                             bool alpha=true)
     {
@@ -86,12 +86,12 @@ namespace testing {
         MAPNIK_SHARED_PTR<image_32> image_ptr2 = MAPNIK_MAKE_SHARED<image_32>(reader2->width(),reader2->height());
         reader2->read(0,0,image_ptr2->data());
 
-        image_data_32 const& src1 = image_ptr1->data();
-        image_data_32 const& src2 = image_ptr2->data();
+        MAPNIK_IMAGE_RGBA const& src1 = image_ptr1->data();
+        MAPNIK_IMAGE_RGBA const& src2 = image_ptr2->data();
         return compare_images(src1,src2,threshold,alpha);
     }
 
-    unsigned compare_images(image_data_32 const& src1,
+    unsigned compare_images(MAPNIK_IMAGE_RGBA const& src1,
                             std::string const& filepath,
                             int threshold=16,
                             bool alpha=true)
@@ -109,7 +109,7 @@ namespace testing {
         MAPNIK_SHARED_PTR<image_32> image_ptr2 = MAPNIK_MAKE_SHARED<image_32>(reader2->width(),reader2->height());
         reader2->read(0,0,image_ptr2->data());
 
-        image_data_32 const& src2 = image_ptr2->data();
+        MAPNIK_IMAGE_RGBA const& src2 = image_ptr2->data();
         return compare_images(src1,src2,threshold,alpha);
     }
 
