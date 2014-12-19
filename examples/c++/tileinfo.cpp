@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 
         // now attemp to open protobuf
         vector_tile::Tile tile;
-        if (mapnik::vector_tile_impl::is_zlib_compressed(message))
+        if (mapnik::vector_tile_impl::is_zlib_compressed(message) || mapnik::vector_tile_impl::is_gzip_compressed(message))
         {
             std::string uncompressed;
             mapnik::vector_tile_impl::zlib_decompress(message,uncompressed);
