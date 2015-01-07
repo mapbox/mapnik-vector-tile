@@ -16,7 +16,6 @@
 #include <mapnik/config.hpp>
 #include <mapnik/box2d.hpp>
 #include <mapnik/version.hpp>
-#include <mapnik/noncopyable.hpp>
 #include <mapnik/image_util.hpp>
 #include <mapnik/raster.hpp>
 #include <mapnik/warp.hpp>
@@ -49,6 +48,7 @@
 #include MAPNIK_SHARED_INCLUDE
 #include MAPNIK_VIEW_TRANSFORM_INCLUDE
 #include MAPNIK_TRANSFORM_PATH_INCLUDE
+#include MAPNIK_NONCOPYABLE_INCLUDE
 
 namespace mapnik { namespace vector_tile_impl {
 
@@ -63,7 +63,7 @@ namespace mapnik { namespace vector_tile_impl {
 */
 
     template <typename T>
-    class processor : private mapnik::noncopyable
+    class processor : private MAPNIK_NONCOPYABLE
     {
     public:
         typedef T backend_type;

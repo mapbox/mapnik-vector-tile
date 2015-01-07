@@ -25,6 +25,8 @@
     #define MAPNIK_APPLY_VISITOR mapnik::util::apply_visitor
     #define MAPNIK_STATIC_VISITOR mapnik::util::static_visitor
     #define MAPNIK_IMAGE_RGBA mapnik::image_data_rgba8
+    #define MAPNIK_NONCOPYABLE mapnik::util::noncopyable
+    #define MAPNIK_NONCOPYABLE_INCLUDE <mapnik/util/noncopyable.hpp>
 #else
     #define MAPNIK_TRANSFORM_PATH mapnik::coord_transform
     #define MAPNIK_TRANSFORM_PATH_INCLUDE <mapnik/ctrans.hpp>
@@ -46,6 +48,8 @@
     #define MAPNIK_APPLY_VISITOR boost::apply_visitor
     #define MAPNIK_STATIC_VISITOR boost::static_visitor
     #define MAPNIK_IMAGE_RGBA mapnik::image_data_32
+    #define MAPNIK_NONCOPYABLE mapnik::noncopyable
+    #define MAPNIK_NONCOPYABLE_INCLUDE <mapnik/noncopyable.hpp>
 #endif
 
 #endif
