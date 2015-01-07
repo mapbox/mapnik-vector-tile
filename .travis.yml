@@ -12,7 +12,7 @@ before_install:
 
 install:
  - sudo apt-get -y install libprotobuf7 libprotobuf-dev protobuf-compiler g++ gcc
- - sudo apt-get -y install gcc-4.8 g++-4.8
+ #- sudo apt-get -y install gcc-4.8 g++-4.8
 
 before_script:
  #- sudo apt-get -y install libmapnik=2.2.0* mapnik-utils=2.2.0* libmapnik-dev=2.2.0*
