@@ -1,3 +1,4 @@
+*.swp
 archive
 python
 .DS_Store

@@ -52,6 +52,107 @@
 
 namespace mapnik { namespace vector_tile_impl {
 
+    #if MAPNIK_VERSION >= 300000
+    struct target_raster_creator : public mapnik::util::static_visitor<mapnik::raster_ptr>
+    {
+        target_raster_creator(int width, int height, mapnik::box2d<double> extent, double filter_factor):
+            _width(width),
+            _height(height),
+            _ext(extent),
+            _filter_factor(filter_factor) {}
+        
+        inline mapnik::raster_ptr operator() (mapnik::image_data_rgba8 const&) const
+        {
+            mapnik::image_data_rgba8 data(_width, _height);
+            return std::make_shared<mapnik::raster>(_ext, data, _filter_factor);
+        }
+
+        inline mapnik::raster_ptr operator() (image_data_gray32f const&) const
+        {
+            mapnik::image_data_gray32f data(_width, _height);
+            return std::make_shared<mapnik::raster>(_ext, data, _filter_factor);
+        }
+
+        inline mapnik::raster_ptr operator() (image_data_gray16 const&) const
+        {
+            mapnik::image_data_gray16 data(_width, _height);
+            return std::make_shared<mapnik::raster>(_ext, data, _filter_factor);
+        }
+
+        inline mapnik::raster_ptr operator() (image_data_gray8 const&) const
+        {
+            mapnik::image_data_gray8 data(_width, _height);
+            return std::make_shared<mapnik::raster>(_ext, data, _filter_factor);
+        }
+
+        inline mapnik::raster_ptr operator() (image_data_null const&) const
+        {
+            throw std::runtime_error("null data passed");
+        }
+
+      private:
+        int _width;
+        int _height;
+        mapnik::box2d<double> _ext;
+        double _filter_factor;
+    };
+
+    struct render_tile : public mapnik::util::static_visitor<std::string>
+    {
+        render_tile(int width, 
+                    int height, 
+                    int start_x, 
+                    int start_y,
+                    std::string format):
+            _width(width),
+            _height(height),
+            _start_x(start_x),
+            _start_y(start_y),
+            _format(format) {}
+        
+        std::string operator() (mapnik::image_data_rgba8 & target_data) const
+        {
+            mapnik::image_data_rgba8 im_tile(_width,_height);
+            composite(im_tile, target_data,
+                      src_over, 1,
+                      _start_x, _start_y, false);
+            agg::rendering_buffer buffer(im_tile.getBytes(),
+                                         im_tile.width(),
+                                         im_tile.height(),
+                                         im_tile.width() * 4);
+            agg::pixfmt_rgba32 pixf(buffer);
+            pixf.demultiply();
+            return mapnik::save_to_string<image_data_rgba8>(im_tile, _format);
+        }
+
+        std::string operator() (image_data_gray32f & target_data) const
+        {
+            return mapnik::save_to_string<image_data_gray32f>(target_data, _format);
+        }
+
+        std::string operator() (image_data_gray16 & target_data) const
+        {
+            return mapnik::save_to_string<image_data_gray16>(target_data, _format);
+        }
+
+        std::string operator() (image_data_gray8 & target_data) const
+        {
+            return mapnik::save_to_string<image_data_gray8>(target_data, _format);
+        }
+
+        std::string operator() (image_data_null & target_data) const
+        {
+            throw std::runtime_error("null data passed");
+        }
+
+      private:
+        int _width;
+        int _height;
+        int _start_x;
+        int _start_y;
+        std::string _format;
+    };
+    #endif
 
 /*
   This processor combines concepts from mapnik's
@@ -254,12 +355,18 @@ namespace mapnik { namespace vector_tile_impl {
                     if (raster_width > 0 && raster_height > 0)
                     {
                         #if MAPNIK_VERSION >= 300000
-                        mapnik::image_data_rgba8 data(raster_width, raster_height);
-                        raster target(target_ext, data, source->get_filter_factor());
+                        mapnik::raster_ptr target = mapnik::util::apply_visitor(
+                                    target_raster_creator(raster_width, 
+                                                          raster_height,
+                                                          target_ext,
+                                                          source->get_filter_factor()),
+                                    source->data_);
                         #else
-                        raster target(target_ext, raster_width, raster_height);
+                        mapnik::raster_ptr target = std::make_shared<mapnik::raster>(target_ext, 
+                                                                                     raster_width, 
+                                                                                     raster_height);
                         #endif
-                        if (!source->premultiplied_alpha_)
+                        if (!source->premultiplied_alpha_ && target->data_.is<image_data_rgba8>())
                         {
                             agg::rendering_buffer buffer(source->data_.getBytes(),
                                                          source->data_.width(),
@@ -273,12 +380,12 @@ namespace mapnik { namespace vector_tile_impl {
                             double offset_x = ext.minx() - start_x;
                             double offset_y = ext.miny() - start_y;
                             #if MAPNIK_VERSION >= 300000
-                            reproject_and_scale_raster(target, *source, prj_trans,
+                            reproject_and_scale_raster(*target, *source, prj_trans,
                                              offset_x, offset_y,
                                              width,
                                              scaling_method_);
                             #else
-                            reproject_and_scale_raster(target, *source, prj_trans,
+                            reproject_and_scale_raster(*target, *source, prj_trans,
                                              offset_x, offset_y,
                                              width,
                                              2.0,
@@ -290,16 +397,16 @@ namespace mapnik { namespace vector_tile_impl {
                             double image_ratio_x = ext.width() / source->data_.width();
                             double image_ratio_y = ext.height() / source->data_.height();
                             #if MAPNIK_VERSION >= 300000
-                            scale_image_agg(util::get<image_data_rgba8>(target.data_),
-                                                           util::get<image_data_rgba8>(source->data_),
-                                                           scaling_method_,
-                                                           image_ratio_x,
-                                                           image_ratio_y,
-                                                           0.0,
-                                                           0.0,
-                                                           source->get_filter_factor());
+                            scale_image_agg(target->data_,
+                                            source->data_,
+                                            scaling_method_,
+                                            image_ratio_x,
+                                            image_ratio_y,
+                                            0.0,
+                                            0.0,
+                                            source->get_filter_factor());
                             #else
-                            scale_image_agg<image_data_32>(target.data_,
+                            scale_image_agg<image_data_32>(target->data_,
                                                            source->data_,
                                                            scaling_method_,
                                                            image_ratio_x,
@@ -310,27 +417,14 @@ namespace mapnik { namespace vector_tile_impl {
                             #endif
                         }
                         #if MAPNIK_VERSION >= 300000
-                        mapnik::image_data_rgba8 im_tile(width,height);
-                        if (target.data_.is<image_data_rgba8>())
-                        {
-                            composite(im_tile, util::get<image_data_rgba8>(target.data_),
-                                      src_over, 1,
-                                      start_x, start_y, false);
-                            agg::rendering_buffer buffer(im_tile.getBytes(),
-                                                         im_tile.width(),
-                                                         im_tile.height(),
-                                                         im_tile.width() * 4);
-                            agg::pixfmt_rgba32 pixf(buffer);
-                            pixf.demultiply();
-                            backend_.start_tile_feature(*feature);
-                            backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
-                            painted_ = true;
-                        } else {
-                            std::clog << "TODO: support other pixel types\n";
-                        }
+                        render_tile rend(width, height, start_x, start_y, image_format_);
+                        std::string rendered_tile = util::apply_visitor(rend, target->data_);
+                        backend_.start_tile_feature(*feature);
+                        backend_.add_tile_feature_raster(rendered_tile);
+                        painted_ = true;
                         #else
                         mapnik::image_data_32 im_tile(width,height);
-                        composite(im_tile, target.data_,
+                        composite(im_tile, target->data_,
                                   src_over, 1,
                                   start_x, start_y, false);
                         agg::rendering_buffer buffer(im_tile.getBytes(),
