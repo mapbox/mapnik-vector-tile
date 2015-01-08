@@ -227,12 +227,12 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     mapnik::agg_renderer<mapnik::image_32> ren2(map2,im);
     ren2.apply();
     if (!mapnik::util::exists("test/fixtures/expected-1.png")) {
-        mapnik::save_to_file(im,"test/fixtures/expected-1.png","png32");
+        mapnik::save_to_file(im.data(),"test/fixtures/expected-1.png","png32");
     }
     unsigned diff = testing::compare_images(im.data(),"test/fixtures/expected-1.png");
     CHECK(0 == diff);
     if (diff > 0) {
-        mapnik::save_to_file(im,"test/fixtures/actual-1.png","png32");
+        mapnik::save_to_file(im.data(),"test/fixtures/actual-1.png","png32");
     }
 }
 
