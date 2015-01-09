@@ -34,6 +34,7 @@
 #include "agg_conv_clip_polyline.h"
 #include "agg_rendering_buffer.h"
 #include "agg_pixfmt_rgba.h"
+#include "agg_renderer_base.h"
 
 #include <boost/foreach.hpp>
 #include <boost/optional.hpp>
@@ -62,400 +63,423 @@ namespace mapnik { namespace vector_tile_impl {
   that would normally come from a style's symbolizers
 */
 
-    template <typename T>
-    class processor : private MAPNIK_NONCOPYABLE
+template <typename T>
+class processor : private MAPNIK_NONCOPYABLE
+{
+public:
+    typedef T backend_type;
+private:
+    backend_type & backend_;
+    mapnik::Map const& m_;
+    mapnik::request const& m_req_;
+    double scale_factor_;
+    MAPNIK_VIEW_TRANSFORM t_;
+    unsigned tolerance_;
+    std::string image_format_;
+    scaling_method_e scaling_method_;
+    bool painted_;
+public:
+    processor(T & backend,
+              mapnik::Map const& map,
+              mapnik::request const& m_req,
+              double scale_factor=1.0,
+              unsigned offset_x=0,
+              unsigned offset_y=0,
+              unsigned tolerance=1,
+              std::string const& image_format="jpeg",
+              scaling_method_e scaling_method=SCALING_NEAR
+        )
+        : backend_(backend),
+          m_(map),
+          m_req_(m_req),
+          scale_factor_(scale_factor),
+          t_(m_req.width(),m_req.height(),m_req.extent(),offset_x,offset_y),
+        tolerance_(tolerance),
+        image_format_(image_format),
+        scaling_method_(scaling_method),
+        painted_(false) {}
+
+    void apply(double scale_denom=0.0)
     {
-    public:
-        typedef T backend_type;
-    private:
-        backend_type & backend_;
-        mapnik::Map const& m_;
-        mapnik::request const& m_req_;
-        double scale_factor_;
-        MAPNIK_VIEW_TRANSFORM t_;
-        unsigned tolerance_;
-        std::string image_format_;
-        scaling_method_e scaling_method_;
-        bool painted_;
-    public:
-        processor(T & backend,
-                  mapnik::Map const& map,
-                  mapnik::request const& m_req,
-                  double scale_factor=1.0,
-                  unsigned offset_x=0,
-                  unsigned offset_y=0,
-                  unsigned tolerance=1,
-                  std::string const& image_format="jpeg",
-                  scaling_method_e scaling_method=SCALING_NEAR
-                  )
-            : backend_(backend),
-              m_(map),
-              m_req_(m_req),
-              scale_factor_(scale_factor),
-              t_(m_req.width(),m_req.height(),m_req.extent(),offset_x,offset_y),
-              tolerance_(tolerance),
-              image_format_(image_format),
-              scaling_method_(scaling_method),
-              painted_(false) {}
-
-        void apply(double scale_denom=0.0)
+        mapnik::projection proj(m_.srs(),true);
+        if (scale_denom <= 0.0)
         {
-            mapnik::projection proj(m_.srs(),true);
-            if (scale_denom <= 0.0)
+            scale_denom = mapnik::scale_denominator(m_req_.scale(),proj.is_geographic());
+        }
+        scale_denom *= scale_factor_;
+        BOOST_FOREACH ( mapnik::layer const& lay, m_.layers() )
+        {
+            if (lay.visible(scale_denom))
             {
-                scale_denom = mapnik::scale_denominator(m_req_.scale(),proj.is_geographic());
-            }
-            scale_denom *= scale_factor_;
-            BOOST_FOREACH ( mapnik::layer const& lay, m_.layers() )
-            {
-                if (lay.visible(scale_denom))
-                {
-                    apply_to_layer(lay,
-                                   proj,
-                                   m_req_.scale(),
-                                   scale_denom,
-                                   m_req_.width(),
-                                   m_req_.height(),
-                                   m_req_.extent(),
-                                   m_req_.buffer_size());
-                }
+                apply_to_layer(lay,
+                               proj,
+                               m_req_.scale(),
+                               scale_denom,
+                               m_req_.width(),
+                               m_req_.height(),
+                               m_req_.extent(),
+                               m_req_.buffer_size());
             }
         }
+    }
 
-        bool painted() const
+    bool painted() const
+    {
+        return painted_;
+    }
+
+    void apply_to_layer(mapnik::layer const& lay,
+                        mapnik::projection const& proj0,
+                        double scale,
+                        double scale_denom,
+                        unsigned width,
+                        unsigned height,
+                        box2d<double> const& extent,
+                        int buffer_size)
+    {
+        std::cerr << "query extent " << extent << std::endl;
+        mapnik::datasource_ptr ds = lay.datasource();
+        if (!ds) return;
+
+        mapnik::projection proj1(lay.srs(),true);
+        mapnik::proj_transform prj_trans(proj0,proj1);
+        box2d<double> query_ext = extent; // unbuffered
+        box2d<double> buffered_query_ext(query_ext);  // buffered
+        double buffer_padding = 2.0 * scale;
+        boost::optional<int> layer_buffer_size = lay.buffer_size();
+        if (layer_buffer_size) // if layer overrides buffer size, use this value to compute buffered extent
         {
-            return painted_;
+            buffer_padding *= *layer_buffer_size;
+        }
+        else
+        {
+            buffer_padding *= buffer_size;
+        }
+        buffered_query_ext.width(query_ext.width() + buffer_padding);
+        buffered_query_ext.height(query_ext.height() + buffer_padding);
+        // clip buffered extent by maximum extent, if supplied
+        boost::optional<box2d<double> > const& maximum_extent = m_.maximum_extent();
+        if (maximum_extent)
+        {
+            buffered_query_ext.clip(*maximum_extent);
+        }
+        mapnik::box2d<double> layer_ext = lay.envelope();
+        bool fw_success = false;
+        bool early_return = false;
+        // first, try intersection of map extent forward projected into layer srs
+        if (prj_trans.forward(buffered_query_ext, PROJ_ENVELOPE_POINTS) && buffered_query_ext.intersects(layer_ext))
+        {
+            fw_success = true;
+            layer_ext.clip(buffered_query_ext);
+        }
+        // if no intersection and projections are also equal, early return
+        else if (prj_trans.equal())
+        {
+            early_return = true;
+        }
+        // next try intersection of layer extent back projected into map srs
+        else if (prj_trans.backward(layer_ext, PROJ_ENVELOPE_POINTS) && buffered_query_ext.intersects(layer_ext))
+        {
+            layer_ext.clip(buffered_query_ext);
+            // forward project layer extent back into native projection
+            if (! prj_trans.forward(layer_ext, PROJ_ENVELOPE_POINTS))
+            {
+                std::cerr << "feature_style_processor: Layer=" << lay.name()
+                          << " extent=" << layer_ext << " in map projection "
+                          << " did not reproject properly back to layer projection";
+            }
+        }
+        else
+        {
+            // if no intersection then nothing to do for layer
+            early_return = true;
+        }
+        if (early_return)
+        {
+            return;
         }
 
-        void apply_to_layer(mapnik::layer const& lay,
-                            mapnik::projection const& proj0,
-                            double scale,
-                            double scale_denom,
-                            unsigned width,
-                            unsigned height,
-                            box2d<double> const& extent,
-                            int buffer_size)
+        // if we've got this far, now prepare the unbuffered extent
+        // which is used as a bbox for clipping geometries
+        if (maximum_extent)
         {
-            mapnik::datasource_ptr ds = lay.datasource();
-            if (!ds)
+            query_ext.clip(*maximum_extent);
+        }
+        mapnik::box2d<double> layer_ext2 = lay.envelope();
+        if (fw_success)
+        {
+            if (prj_trans.forward(query_ext, PROJ_ENVELOPE_POINTS))
             {
-                return;
+                layer_ext2.clip(query_ext);
             }
-            mapnik::projection proj1(lay.srs(),true);
-            mapnik::proj_transform prj_trans(proj0,proj1);
-            box2d<double> query_ext = extent; // unbuffered
-            box2d<double> buffered_query_ext(query_ext);  // buffered
-            double buffer_padding = 2.0 * scale;
-            boost::optional<int> layer_buffer_size = lay.buffer_size();
-            if (layer_buffer_size) // if layer overrides buffer size, use this value to compute buffered extent
+        }
+        else
+        {
+            if (prj_trans.backward(layer_ext2, PROJ_ENVELOPE_POINTS))
             {
-                buffer_padding *= *layer_buffer_size;
+                layer_ext2.clip(query_ext);
+                prj_trans.forward(layer_ext2, PROJ_ENVELOPE_POINTS);
             }
-            else
-            {
-                buffer_padding *= buffer_size;
-            }
-            buffered_query_ext.width(query_ext.width() + buffer_padding);
-            buffered_query_ext.height(query_ext.height() + buffer_padding);
-            // clip buffered extent by maximum extent, if supplied
-            boost::optional<box2d<double> > const& maximum_extent = m_.maximum_extent();
-            if (maximum_extent)
-            {
-                buffered_query_ext.clip(*maximum_extent);
-            }
-            mapnik::box2d<double> layer_ext = lay.envelope();
-            bool fw_success = false;
-            bool early_return = false;
-            // first, try intersection of map extent forward projected into layer srs
-            if (prj_trans.forward(buffered_query_ext, PROJ_ENVELOPE_POINTS) && buffered_query_ext.intersects(layer_ext))
-            {
-                fw_success = true;
-                layer_ext.clip(buffered_query_ext);
-            }
-            // if no intersection and projections are also equal, early return
-            else if (prj_trans.equal())
-            {
-                early_return = true;
-            }
-            // next try intersection of layer extent back projected into map srs
-            else if (prj_trans.backward(layer_ext, PROJ_ENVELOPE_POINTS) && buffered_query_ext.intersects(layer_ext))
-            {
-                layer_ext.clip(buffered_query_ext);
-                // forward project layer extent back into native projection
-                if (! prj_trans.forward(layer_ext, PROJ_ENVELOPE_POINTS))
-                {
-                    std::cerr << "feature_style_processor: Layer=" << lay.name()
-                              << " extent=" << layer_ext << " in map projection "
-                              << " did not reproject properly back to layer projection";
-                }
-            }
-            else
-            {
-                // if no intersection then nothing to do for layer
-                early_return = true;
-            }
-            if (early_return)
-            {
-                return;
-            }
+        }
+        double qw = query_ext.width()>0 ? query_ext.width() : 1;
+        double qh = query_ext.height()>0 ? query_ext.height() : 1;
+        mapnik::query::resolution_type res(width/qw,
+                                           height/qh);
+        mapnik::query q(layer_ext,res,scale_denom,extent);
+        mapnik::layer_descriptor lay_desc = ds->get_descriptor();
+        BOOST_FOREACH(mapnik::attribute_descriptor const& desc, lay_desc.get_descriptors())
+        {
+            q.add_property_name(desc.get_name());
+        }
+        mapnik::featureset_ptr features = ds->features(q);
 
-            // if we've got this far, now prepare the unbuffered extent
-            // which is used as a bbox for clipping geometries
-            if (maximum_extent)
+        if (!features) return;
+
+        mapnik::feature_ptr feature = features->next();
+        if (feature)
+        {
+            backend_.start_tile_layer(lay.name());
+            raster_ptr const& source = feature->get_raster();
+            if (source)
             {
-                query_ext.clip(*maximum_extent);
-            }
-            mapnik::box2d<double> layer_ext2 = lay.envelope();
-            if (fw_success)
-            {
-                if (prj_trans.forward(query_ext, PROJ_ENVELOPE_POINTS))
+                box2d<double> target_ext = box2d<double>(source->ext_);
+                prj_trans.backward(target_ext, PROJ_ENVELOPE_POINTS);
+                box2d<double> ext = t_.forward(target_ext);
+                int start_x = static_cast<int>(std::floor(ext.minx()+.5));
+                int start_y = static_cast<int>(std::floor(ext.miny()+.5));
+                int end_x = static_cast<int>(std::floor(ext.maxx()+.5));
+                int end_y = static_cast<int>(std::floor(ext.maxy()+.5));
+                int raster_width = end_x - start_x;
+                int raster_height = end_y - start_y;
+                //std::cerr << target_ext << std::endl;
+                std::cerr << source->ext_ << " -- " << ext << std::endl;
+                std::cerr << "target w/h " << raster_width << "," << raster_height << std::endl;
+                std::cerr << "w/h " << width << "," << height << std::endl;
+                if (raster_width > 0 && raster_height > 0)
                 {
-                    layer_ext2.clip(query_ext);
-                }
-            }
-            else
-            {
-                if (prj_trans.backward(layer_ext2, PROJ_ENVELOPE_POINTS))
-                {
-                    layer_ext2.clip(query_ext);
-                    prj_trans.forward(layer_ext2, PROJ_ENVELOPE_POINTS);
-                }
-            }
-            double qw = query_ext.width()>0 ? query_ext.width() : 1;
-            double qh = query_ext.height()>0 ? query_ext.height() : 1;
-            mapnik::query::resolution_type res(width/qw,
-                                               height/qh);
-            mapnik::query q(layer_ext,res,scale_denom,extent);
-            mapnik::layer_descriptor lay_desc = ds->get_descriptor();
-            BOOST_FOREACH(mapnik::attribute_descriptor const& desc, lay_desc.get_descriptors())
-            {
-                q.add_property_name(desc.get_name());
-            }
-            mapnik::featureset_ptr features = ds->features(q);
-            if (!features)
-            {
-                return;
-            }
-            mapnik::feature_ptr feature = features->next();
-            if (feature) {
-                backend_.start_tile_layer(lay.name());
-                raster_ptr const& source = feature->get_raster();
-                if (source)
-                {
-                    box2d<double> target_ext = box2d<double>(source->ext_);
-                    prj_trans.backward(target_ext, PROJ_ENVELOPE_POINTS);
-                    box2d<double> ext = t_.forward(target_ext);
-                    int start_x = static_cast<int>(std::floor(ext.minx()+.5));
-                    int start_y = static_cast<int>(std::floor(ext.miny()+.5));
-                    int end_x = static_cast<int>(std::floor(ext.maxx()+.5));
-                    int end_y = static_cast<int>(std::floor(ext.maxy()+.5));
-                    int raster_width = end_x - start_x;
-                    int raster_height = end_y - start_y;
-                    if (raster_width > 0 && raster_height > 0)
+#if MAPNIK_VERSION >= 300000
+                    mapnik::image_data_rgba8 data(raster_width, raster_height);
+                    raster target(target_ext, data, source->get_filter_factor());
+#else
+                    raster target(target_ext, raster_width, raster_height);
+#endif
+                    if (!source->premultiplied_alpha_)
                     {
-                        #if MAPNIK_VERSION >= 300000
-                        mapnik::image_data_rgba8 data(raster_width, raster_height);
-                        raster target(target_ext, data, source->get_filter_factor());
-                        #else
-                        raster target(target_ext, raster_width, raster_height);
-                        #endif
-                        if (!source->premultiplied_alpha_)
-                        {
-                            agg::rendering_buffer buffer(source->data_.getBytes(),
-                                                         source->data_.width(),
-                                                         source->data_.height(),
-                                                         source->data_.width() * 4);
-                            agg::pixfmt_rgba32 pixf(buffer);
-                            pixf.premultiply();
-                        }
-                        if (!prj_trans.equal())
-                        {
-                            double offset_x = ext.minx() - start_x;
-                            double offset_y = ext.miny() - start_y;
-                            #if MAPNIK_VERSION >= 300000
-                            reproject_and_scale_raster(target, *source, prj_trans,
-                                             offset_x, offset_y,
-                                             width,
-                                             scaling_method_);
-                            #else
-                            reproject_and_scale_raster(target, *source, prj_trans,
-                                             offset_x, offset_y,
-                                             width,
-                                             2.0,
-                                             scaling_method_);
-                            #endif
-                        }
-                        else
-                        {
-                            double image_ratio_x = ext.width() / source->data_.width();
-                            double image_ratio_y = ext.height() / source->data_.height();
-                            #if MAPNIK_VERSION >= 300000
-                            scale_image_agg(util::get<image_data_rgba8>(target.data_),
-                                                           util::get<image_data_rgba8>(source->data_),
-                                                           scaling_method_,
-                                                           image_ratio_x,
-                                                           image_ratio_y,
-                                                           0.0,
-                                                           0.0,
-                                                           source->get_filter_factor());
-                            #else
-                            scale_image_agg<image_data_32>(target.data_,
-                                                           source->data_,
-                                                           scaling_method_,
-                                                           image_ratio_x,
-                                                           image_ratio_y,
-                                                           0.0,
-                                                           0.0,
-                                                           2.0);
-                            #endif
-                        }
-                        #if MAPNIK_VERSION >= 300000
-                        mapnik::image_data_rgba8 im_tile(width,height);
-                        if (target.data_.is<image_data_rgba8>())
-                        {
-                            composite(im_tile, util::get<image_data_rgba8>(target.data_),
-                                      src_over, 1,
-                                      start_x, start_y, false);
-                            agg::rendering_buffer buffer(im_tile.getBytes(),
-                                                         im_tile.width(),
-                                                         im_tile.height(),
-                                                         im_tile.width() * 4);
-                            agg::pixfmt_rgba32 pixf(buffer);
-                            pixf.demultiply();
-                            backend_.start_tile_feature(*feature);
-                            backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
-                            painted_ = true;
-                        } else {
-                            std::clog << "TODO: support other pixel types\n";
-                        }
-                        #else
-                        mapnik::image_data_32 im_tile(width,height);
-                        composite(im_tile, target.data_,
-                                  src_over, 1,
-                                  start_x, start_y, false);
-                        agg::rendering_buffer buffer(im_tile.getBytes(),
-                                                     im_tile.width(),
-                                                     im_tile.height(),
-                                                     im_tile.width() * 4);
+                        agg::rendering_buffer buffer(source->data_.getBytes(),
+                                                     source->data_.width(),
+                                                     source->data_.height(),
+                                                     source->data_.width() * 4);
                         agg::pixfmt_rgba32 pixf(buffer);
-                        pixf.demultiply();
+                        pixf.premultiply();
+                    }
+                    if (!prj_trans.equal())
+                    {
+                        double offset_x = ext.minx() - start_x;
+                        double offset_y = ext.miny() - start_y;
+#if MAPNIK_VERSION >= 300000
+                        reproject_and_scale_raster(target, *source, prj_trans,
+                                                   offset_x, offset_y,
+                                                   width,
+                                                   scaling_method_);
+#else
+                        reproject_and_scale_raster(target, *source, prj_trans,
+                                                   offset_x, offset_y,
+                                                   width,
+                                                   2.0,
+                                                   scaling_method_);
+#endif
+                    }
+                    else
+                    {
+                        double image_ratio_x = ext.width() / source->data_.width();
+                        double image_ratio_y = ext.height() / source->data_.height();
+#if MAPNIK_VERSION >= 300000
+                        scale_image_agg(util::get<image_data_rgba8>(target.data_),
+                                        util::get<image_data_rgba8>(source->data_),
+                                        scaling_method_,
+                                        image_ratio_x,
+                                        image_ratio_y,
+                                        0.0,
+                                        0.0,
+                                        source->get_filter_factor());
+#else
+                        scale_image_agg<image_data_32>(target.data_,
+                                                       source->data_,
+                                                       scaling_method_,
+                                                       image_ratio_x,
+                                                       image_ratio_y,
+                                                       0.0,
+                                                       0.0,
+                                                       2.0);
+#endif
+                    }
+#if MAPNIK_VERSION >= 300000
+
+                    if (target.data_.is<image_data_rgba8>())
+                    {
+                        using pixfmt_type = agg::pixfmt_rgba32;
+                        using renderer_type = agg::renderer_base<pixfmt_type>;
+
+                        mapnik::image_data_rgba8 im_tile(width, height);
+                        auto & src = util::get<image_data_rgba8>(target.data_);
+                        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.width() * 4);
+                        agg::rendering_buffer src_buffer(src.getBytes(),src.width(), src.height(), src.width() * 4);
+                        pixfmt_type src_pixf(src_buffer);
+                        pixfmt_type dst_pixf(dst_buffer);
+                        renderer_type ren(dst_pixf);
+                        ren.blend_from(src_pixf,0,start_x, start_y, 255);
+                        //std::cerr << "start x/y " << start_x << "," << start_y << std::endl;
+                        //std::cerr << "width=" << width << " height=" << height << std::endl;
+
+                        //composite(im_tile, util::get<image_data_rgba8>(target.data_),
+                        //          src_over, 1,
+                        //          start_x, start_y, false);
+                        //auto & data = util::get<image_data_rgba8>(target.data_);
+                        //std::cerr << data.width() << "," << data.height() << std::endl;
+                        //image_view<image_data_rgba8> im_tile(std::abs(start_x), std::abs(start_y), width, height, data);
+                        //std::cerr << im_tile.width() << "," << im_tile.height() << std::endl;
+                        //agg::rendering_buffer buffer(const_cast<uint8_t*>(im_tile.data().getBytes()),
+                        //                            im_tile.width(),
+                        //                            im_tile.height(),
+                        //                             im_tile.width() * 4);
+                        //agg::pixfmt_rgba32 pixf(buffer);
+                        //pixf.premultiply();
                         backend_.start_tile_feature(*feature);
                         backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
                         painted_ = true;
-                        #endif
                     }
-                    backend_.stop_tile_layer();
-                    return;
-                }
-                // vector pathway
-                while (feature)
-                {
-                    boost::ptr_vector<mapnik::geometry_type> & paths = feature->paths();
-                    if (paths.empty()) {
-                        feature = features->next();
-                        continue;
-                    }
-                    backend_.start_tile_feature(*feature);
-                    BOOST_FOREACH( mapnik::geometry_type & geom, paths)
+                    else
                     {
-                        mapnik::box2d<double> geom_box = geom.envelope();
-                        if (!geom_box.intersects(buffered_query_ext))
-                        {
-                            continue;
-                        }
-                        if (handle_geometry(geom,
-                                            prj_trans,
-                                            buffered_query_ext) > 0)
-                        {
-                            painted_ = true;
-                        }
+                        std::clog << "TODO: support other pixel types\n";
                     }
-                    backend_.stop_tile_feature();
-                    feature = features->next();
+#else
+                    mapnik::image_data_32 im_tile(width,height);
+                    composite(im_tile, target.data_,
+                              src_over, 1,
+                              start_x, start_y, false);
+                    agg::rendering_buffer buffer(im_tile.getBytes(),
+                                                 im_tile.width(),
+                                                 im_tile.height(),
+                                                 im_tile.width() * 4);
+                    agg::pixfmt_rgba32 pixf(buffer);
+                    pixf.demultiply();
+                    backend_.start_tile_feature(*feature);
+                    backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
+                    painted_ = true;
+#endif
                 }
                 backend_.stop_tile_layer();
+                return;
             }
+            // vector pathway
+            while (feature)
+            {
+                boost::ptr_vector<mapnik::geometry_type> & paths = feature->paths();
+                if (paths.empty()) {
+                    feature = features->next();
+                    continue;
+                }
+                backend_.start_tile_feature(*feature);
+                BOOST_FOREACH( mapnik::geometry_type & geom, paths)
+                {
+                    mapnik::box2d<double> geom_box = geom.envelope();
+                    if (!geom_box.intersects(buffered_query_ext))
+                    {
+                        continue;
+                    }
+                    if (handle_geometry(geom,
+                                        prj_trans,
+                                        buffered_query_ext) > 0)
+                    {
+                        painted_ = true;
+                    }
+                }
+                backend_.stop_tile_feature();
+                feature = features->next();
+            }
+            backend_.stop_tile_layer();
         }
+    }
 
-        unsigned handle_geometry(mapnik::geometry_type & geom,
-                                 mapnik::proj_transform const& prj_trans,
-                                 mapnik::box2d<double> const& buffered_query_ext)
+    unsigned handle_geometry(mapnik::geometry_type & geom,
+                             mapnik::proj_transform const& prj_trans,
+                             mapnik::box2d<double> const& buffered_query_ext)
+    {
+        unsigned path_count = 0;
+        switch (geom.type())
         {
-            unsigned path_count = 0;
-            switch (geom.type())
+        case MAPNIK_POINT:
+        {
+            if (geom.size() > 0)
             {
-            case MAPNIK_POINT:
-            {
-                if (geom.size() > 0)
-                {
-                    typedef MAPNIK_TRANSFORM_PATH<MAPNIK_VIEW_TRANSFORM,
-                        mapnik::geometry_type> path_type;
-                    path_type path(t_, geom, prj_trans);
-                    path_count = backend_.add_path(path, tolerance_, geom.type());
-                }
-                break;
+                typedef MAPNIK_TRANSFORM_PATH<MAPNIK_VIEW_TRANSFORM,
+                                              mapnik::geometry_type> path_type;
+                path_type path(t_, geom, prj_trans);
+                path_count = backend_.add_path(path, tolerance_, geom.type());
             }
-            case MAPNIK_LINESTRING:
-            {
-                if (geom.size() > 1)
-                {
-                    typedef agg::conv_clip_polyline<mapnik::geometry_type> line_clipper;
-                    line_clipper clipped(geom);
-                    clipped.clip_box(
-                        buffered_query_ext.minx(),
-                        buffered_query_ext.miny(),
-                        buffered_query_ext.maxx(),
-                        buffered_query_ext.maxy());
-                    typedef MAPNIK_TRANSFORM_PATH<MAPNIK_VIEW_TRANSFORM, line_clipper> path_type;
-                    path_type path(t_, clipped, prj_trans);
-                    path_count = backend_.add_path(path, tolerance_, geom.type());
-                }
-                break;
-            }
-            case MAPNIK_POLYGON:
-            {
-                if (geom.size() > 2)
-                {
-#ifdef CONV_CLIPPER
-                    agg::path_storage ps;
-                    ps.move_to(buffered_query_ext.minx(), buffered_query_ext.miny());
-                    ps.line_to(buffered_query_ext.minx(), buffered_query_ext.maxy());
-                    ps.line_to(buffered_query_ext.maxx(), buffered_query_ext.maxy());
-                    ps.line_to(buffered_query_ext.maxx(), buffered_query_ext.miny());
-                    ps.close_polygon();
-                    typedef agg::conv_clipper<mapnik::geometry_type, agg::path_storage> poly_clipper;
-                    poly_clipper clipped(geom,ps,
-                                         agg::clipper_and,
-                                         agg::clipper_non_zero,
-                                         agg::clipper_non_zero,
-                                         1);
-                    //clipped.rewind(0);
-#else
-                    typedef agg::conv_clip_polygon<mapnik::geometry_type> poly_clipper;
-                    poly_clipper clipped(geom);
-                    clipped.clip_box(
-                        buffered_query_ext.minx(),
-                        buffered_query_ext.miny(),
-                        buffered_query_ext.maxx(),
-                        buffered_query_ext.maxy());
-#endif
-                    typedef MAPNIK_TRANSFORM_PATH<MAPNIK_VIEW_TRANSFORM, poly_clipper> path_type;
-                    path_type path(t_, clipped, prj_trans);
-                    path_count = backend_.add_path(path, tolerance_, geom.type());
-                }
-                break;
-            }
-            case MAPNIK_UNKNOWN:
-            default:
-            {
-                throw std::runtime_error("unhandled geometry type");
-                break;
-            }
-            }
-            return path_count;
+            break;
         }
-    };
+        case MAPNIK_LINESTRING:
+        {
+            if (geom.size() > 1)
+            {
+                typedef agg::conv_clip_polyline<mapnik::geometry_type> line_clipper;
+                line_clipper clipped(geom);
+                clipped.clip_box(
+                    buffered_query_ext.minx(),
+                    buffered_query_ext.miny(),
+                    buffered_query_ext.maxx(),
+                    buffered_query_ext.maxy());
+                typedef MAPNIK_TRANSFORM_PATH<MAPNIK_VIEW_TRANSFORM, line_clipper> path_type;
+                path_type path(t_, clipped, prj_trans);
+                path_count = backend_.add_path(path, tolerance_, geom.type());
+            }
+            break;
+        }
+        case MAPNIK_POLYGON:
+        {
+            if (geom.size() > 2)
+            {
+#ifdef CONV_CLIPPER
+                agg::path_storage ps;
+                ps.move_to(buffered_query_ext.minx(), buffered_query_ext.miny());
+                ps.line_to(buffered_query_ext.minx(), buffered_query_ext.maxy());
+                ps.line_to(buffered_query_ext.maxx(), buffered_query_ext.maxy());
+                ps.line_to(buffered_query_ext.maxx(), buffered_query_ext.miny());
+                ps.close_polygon();
+                typedef agg::conv_clipper<mapnik::geometry_type, agg::path_storage> poly_clipper;
+                poly_clipper clipped(geom,ps,
+                                     agg::clipper_and,
+                                     agg::clipper_non_zero,
+                                     agg::clipper_non_zero,
+                                     1);
+                //clipped.rewind(0);
+#else
+                typedef agg::conv_clip_polygon<mapnik::geometry_type> poly_clipper;
+                poly_clipper clipped(geom);
+                clipped.clip_box(
+                    buffered_query_ext.minx(),
+                    buffered_query_ext.miny(),
+                    buffered_query_ext.maxx(),
+                    buffered_query_ext.maxy());
+#endif
+                typedef MAPNIK_TRANSFORM_PATH<MAPNIK_VIEW_TRANSFORM, poly_clipper> path_type;
+                path_type path(t_, clipped, prj_trans);
+                path_count = backend_.add_path(path, tolerance_, geom.type());
+            }
+            break;
+        }
+        case MAPNIK_UNKNOWN:
+        default:
+        {
+            throw std::runtime_error("unhandled geometry type");
+            break;
+        }
+        }
+        return path_count;
+    }
+};
 
-    }} // end ns
+}} // end ns
 
 #endif // __MAPNIK_VECTOR_TILE_PROCESSOR_H__
