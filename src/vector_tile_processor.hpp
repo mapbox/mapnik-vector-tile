@@ -137,7 +137,6 @@ public:
                         box2d<double> const& extent,
                         int buffer_size)
     {
-        std::cerr << "query extent " << extent << std::endl;
         mapnik::datasource_ptr ds = lay.datasource();
         if (!ds) return;
 
@@ -251,10 +250,6 @@ public:
                 int end_y = static_cast<int>(std::floor(ext.maxy()+.5));
                 int raster_width = end_x - start_x;
                 int raster_height = end_y - start_y;
-                //std::cerr << target_ext << std::endl;
-                std::cerr << source->ext_ << " -- " << ext << std::endl;
-                std::cerr << "target w/h " << raster_width << "," << raster_height << std::endl;
-                std::cerr << "w/h " << width << "," << height << std::endl;
                 if (raster_width > 0 && raster_height > 0)
                 {
 #if MAPNIK_VERSION >= 300000
@@ -328,22 +323,6 @@ public:
                         pixfmt_type dst_pixf(dst_buffer);
                         renderer_type ren(dst_pixf);
                         ren.blend_from(src_pixf,0,start_x, start_y, 255);
-                        //std::cerr << "start x/y " << start_x << "," << start_y << std::endl;
-                        //std::cerr << "width=" << width << " height=" << height << std::endl;
-
-                        //composite(im_tile, util::get<image_data_rgba8>(target.data_),
-                        //          src_over, 1,
-                        //          start_x, start_y, false);
-                        //auto & data = util::get<image_data_rgba8>(target.data_);
-                        //std::cerr << data.width() << "," << data.height() << std::endl;
-                        //image_view<image_data_rgba8> im_tile(std::abs(start_x), std::abs(start_y), width, height, data);
-                        //std::cerr << im_tile.width() << "," << im_tile.height() << std::endl;
-                        //agg::rendering_buffer buffer(const_cast<uint8_t*>(im_tile.data().getBytes()),
-                        //                            im_tile.width(),
-                        //                            im_tile.height(),
-                        //                             im_tile.width() * 4);
-                        //agg::pixfmt_rgba32 pixf(buffer);
-                        //pixf.premultiply();
                         backend_.start_tile_feature(*feature);
                         backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
                         painted_ = true;
