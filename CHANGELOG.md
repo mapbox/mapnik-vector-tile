@@ -1,5 +1,9 @@
 # Changlog
 
+## 0.6.2
+
+ - Minor fixes to compile against lastest Mapnik 3.x
+
 ## 0.6.1
 
  - `tile_datasource` now has optional 6th arg to trigger exploding multipart geometries when decoding
