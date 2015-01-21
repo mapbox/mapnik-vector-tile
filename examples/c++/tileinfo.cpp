@@ -36,7 +36,7 @@ int main(int argc, char** argv)
     
     if (args.empty())
     {
-        std::clog << "please pass the path to an uncompressed or zlib-compressed protobuf tile\n";
+        std::clog << "please pass the path to an uncompressed, zlib-compressed, or gzip compressed protobuf tile\n";
         return -1;
     }
     
@@ -53,10 +53,20 @@ int main(int argc, char** argv)
         std::string message(std::istreambuf_iterator<char>(stream.rdbuf()),(std::istreambuf_iterator<char>()));
         stream.close();
 
-        // now attemp to open protobuf
+        // now attempt to open protobuf
         vector_tile::Tile tile;
-        if (mapnik::vector_tile_impl::is_zlib_compressed(message) || mapnik::vector_tile_impl::is_gzip_compressed(message))
+        bool is_zlib = mapnik::vector_tile_impl::is_zlib_compressed(message);
+        bool is_gzip = mapnik::vector_tile_impl::is_gzip_compressed(message);
+        if (is_zlib || is_gzip)
         {
+            if (is_zlib)
+            {
+                std::cout << "message: zlib compressed\n";
+            }
+            else if (is_gzip)
+            {
+                std::cout << "message: gzip compressed\n";
+            }
             std::string uncompressed;
             mapnik::vector_tile_impl::zlib_decompress(message,uncompressed);
             if (!tile.ParseFromString(uncompressed))
@@ -66,6 +76,7 @@ int main(int argc, char** argv)
         }
         else
         {
+            std::cout << "message: appears not to be compressed\n";
             if (!tile.ParseFromString(message))
             {
                 std::clog << "failed to parse protobuf\n";
