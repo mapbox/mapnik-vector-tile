@@ -182,13 +182,14 @@ namespace mapnik { namespace vector_tile_impl {
                                 intersect = t.backward(feature_raster_extent);
                                 #if MAPNIK_VERSION >= 300000
                                 double filter_factor = 1.0;
-                                mapnik::image_data_any data = reader->read(x_off, y_off, width, height);
+                                mapnik::image_any data = reader->read(x_off, y_off, width, height);
                                 mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(intersect,
                                                               data,
                                                               #if MAPNIK_VERSION >= 300000
-                                                              filter_factor,
-                                                              #endif
+                                                              filter_factor
+                                                              #else
                                                               reader->premultiplied_alpha()
+                                                              #endif
                                                               );
                                 #else
                                 bool premultiplied = false;

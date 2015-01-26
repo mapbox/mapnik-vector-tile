@@ -248,6 +248,19 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     mapnik::load_map(map2,"test/data/style.xml");
     //std::clog << mapnik::save_map_to_string(map2) << "\n";
     map2.zoom_to_box(bbox);
+    #if MAPNIK_VERSION >= 300000
+    MAPNIK_IMAGE_RGBA im(map2.width(),map2.height());
+    mapnik::agg_renderer<MAPNIK_IMAGE_RGBA> ren2(map2,im);
+    ren2.apply();
+    if (!mapnik::util::exists("test/fixtures/expected-1.png")) {
+        mapnik::save_to_file(im,"test/fixtures/expected-1.png","png32");
+    }
+    unsigned diff = testing::compare_images(im,"test/fixtures/expected-1.png");
+    CHECK(0 == diff);
+    if (diff > 0) {
+        mapnik::save_to_file(im,"test/fixtures/actual-1.png","png32");
+    }
+    #else
     mapnik::image_32 im(map2.width(),map2.height());
     mapnik::agg_renderer<mapnik::image_32> ren2(map2,im);
     ren2.apply();
@@ -259,6 +272,7 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     if (diff > 0) {
         mapnik::save_to_file(im.data(),"test/fixtures/actual-1.png","png32");
     }
+    #endif
 }
 
 TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {

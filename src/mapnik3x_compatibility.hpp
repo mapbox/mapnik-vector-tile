@@ -24,7 +24,7 @@
     #define MAPNIK_VARIANT_INCLUDE <mapnik/util/variant.hpp>
     #define MAPNIK_APPLY_VISITOR mapnik::util::apply_visitor
     #define MAPNIK_STATIC_VISITOR mapnik::util::static_visitor
-    #define MAPNIK_IMAGE_RGBA mapnik::image_data_rgba8
+    #define MAPNIK_IMAGE_RGBA mapnik::image_rgba8
     #define MAPNIK_NONCOPYABLE mapnik::util::noncopyable
     #define MAPNIK_NONCOPYABLE_INCLUDE <mapnik/util/noncopyable.hpp>
 #else
