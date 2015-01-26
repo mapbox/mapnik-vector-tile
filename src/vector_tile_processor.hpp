@@ -145,7 +145,7 @@ public:
         pixfmt_type src_pixf(src_buffer);
         pixfmt_type dst_pixf(dst_buffer);
         renderer_type ren(dst_pixf);
-        ren.blend_from(src_pixf,0,start_x_, start_y_, 255);
+        ren.copy_from(src_pixf,0,start_x_, start_y_);
         backend_.start_tile_feature(feature_);
         backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
         painted_ = true;
