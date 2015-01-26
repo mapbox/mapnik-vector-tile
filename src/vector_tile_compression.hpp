@@ -13,6 +13,8 @@ inline bool is_gzip_compressed(std::string const& data)
     return data.size() > 2 && (uint8_t)data[0] == 0x1F && (uint8_t)data[1] == 0x8B;
 }
 
+// decodes both zlib and gzip
+// http://stackoverflow.com/a/1838702/2333354
 inline void zlib_decompress(std::string const& input, std::string & output)
 {
     z_stream inflate_s;
@@ -40,7 +42,7 @@ inline void zlib_decompress(std::string const& input, std::string & output)
     output.resize(length);
 }
 
-inline void zlib_compress(std::string const& input, std::string & output)
+inline void zlib_compress(std::string const& input, std::string & output, bool gzip=true)
 {
     z_stream deflate_s;
     deflate_s.zalloc = Z_NULL;
@@ -48,7 +50,15 @@ inline void zlib_compress(std::string const& input, std::string & output)
     deflate_s.opaque = Z_NULL;
     deflate_s.avail_in = 0;
     deflate_s.next_in = Z_NULL;
-    deflateInit(&deflate_s, Z_DEFAULT_COMPRESSION);
+    int windowsBits = 15;
+    if (gzip)
+    {
+        windowsBits = windowsBits | 16;
+    }
+    if (deflateInit2(&deflate_s, Z_BEST_COMPRESSION, Z_DEFLATED, windowsBits, 8, Z_DEFAULT_STRATEGY) != Z_OK)
+    {
+        throw std::runtime_error("deflate failed");
+    }
     deflate_s.next_in = (Bytef *)input.data();
     deflate_s.avail_in = input.size();
     size_t length = 0;

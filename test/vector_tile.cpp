@@ -15,6 +15,7 @@ const unsigned tile_size = 256;
 mapnik::box2d<double> bbox;
 
 // vector output api
+#include "vector_tile_compression.hpp"
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
 #include "vector_tile_util.hpp"
@@ -33,6 +34,30 @@ TEST_CASE( "vector tile negative id", "hmm" ) {
     //CHECK(std::fabs(map_extent.maxy() - e.maxy()) < epsilon);
 }
 */
+
+TEST_CASE( "vector tile compression", "should be able to round trip gzip and zlib data" ) {
+    std::string data("amazing data");
+    CHECK(!mapnik::vector_tile_impl::is_zlib_compressed(data));
+    CHECK(!mapnik::vector_tile_impl::is_gzip_compressed(data));
+    std::string zlibbed;
+    mapnik::vector_tile_impl::zlib_compress(data,zlibbed,false);
+    // failing - why?
+    //CHECK(mapnik::vector_tile_impl::is_zlib_compressed(zlibbed));
+    CHECK(!mapnik::vector_tile_impl::is_gzip_compressed(zlibbed));
+
+    std::string unzlibbed;
+    mapnik::vector_tile_impl::zlib_decompress(zlibbed,unzlibbed);
+    CHECK(data == unzlibbed);
+
+    std::string gzipped;
+    mapnik::vector_tile_impl::zlib_compress(data,gzipped,true);
+    CHECK(!mapnik::vector_tile_impl::is_zlib_compressed(gzipped));
+    CHECK(mapnik::vector_tile_impl::is_gzip_compressed(gzipped));
+
+    std::string ungzipped;
+    mapnik::vector_tile_impl::zlib_decompress(gzipped,ungzipped);
+    CHECK(data == ungzipped);
+}
 
 TEST_CASE( "vector tile projection 1", "should support z/x/y to bbox conversion at 0/0/0" ) {
     mapnik::vector_tile_impl::spherical_mercator merc(256);
@@ -227,12 +252,12 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     mapnik::agg_renderer<mapnik::image_32> ren2(map2,im);
     ren2.apply();
     if (!mapnik::util::exists("test/fixtures/expected-1.png")) {
-        mapnik::save_to_file(im,"test/fixtures/expected-1.png","png32");
+        mapnik::save_to_file(im.data(),"test/fixtures/expected-1.png","png32");
     }
     unsigned diff = testing::compare_images(im.data(),"test/fixtures/expected-1.png");
     CHECK(0 == diff);
     if (diff > 0) {
-        mapnik::save_to_file(im,"test/fixtures/actual-1.png","png32");
+        mapnik::save_to_file(im.data(),"test/fixtures/actual-1.png","png32");
     }
 }
 

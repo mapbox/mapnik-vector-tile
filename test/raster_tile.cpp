@@ -132,7 +132,7 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one raster la
     mapnik::agg_renderer<mapnik::image_32> ren2(map2,im);
     ren2.apply();
     if (!mapnik::util::exists("test/fixtures/expected-2.png")) {
-        mapnik::save_to_file(im,"test/fixtures/expected-2.png","png32");
+        mapnik::save_to_file(im.data(),"test/fixtures/expected-2.png","png32");
     }
     diff = testing::compare_images(im.data(),"test/fixtures/expected-2.png");
     CHECK(0 == diff);
@@ -241,12 +241,12 @@ TEST_CASE( "vector tile output 2", "should be able to overzoom raster" ) {
     mapnik::agg_renderer<mapnik::image_32> ren2(map2,im);
     ren2.apply();
     if (!mapnik::util::exists("test/fixtures/expected-3.png")) {
-        mapnik::save_to_file(im,"test/fixtures/expected-3.png","png32");
+        mapnik::save_to_file(im.data(),"test/fixtures/expected-3.png","png32");
     }
     unsigned diff = testing::compare_images(im.data(),"test/fixtures/expected-3.png");
     CHECK(0 == diff);
     if (diff > 0) {
-        mapnik::save_to_file(im,"test/fixtures/actual-3.png","png32");
+        mapnik::save_to_file(im.data(),"test/fixtures/actual-3.png","png32");
     }
 }
 
