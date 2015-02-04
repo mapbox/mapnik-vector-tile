@@ -193,6 +193,48 @@ public:
         painted_ = true;
     }
 
+    void operator() (mapnik::image_gray8s & source_data)
+    {
+        mapnik::image_gray8s data(raster_width_, raster_height_);
+        mapnik::raster target(target_ext_, data, source_.get_filter_factor());
+        if (!prj_trans_.equal())
+        {
+            double offset_x = ext_.minx() - start_x_;
+            double offset_y = ext_.miny() - start_y_;
+            reproject_and_scale_raster(target, source_, prj_trans_,
+                                       offset_x, offset_y,
+                                       width_,
+                                       scaling_method_);
+        }
+        else
+        {
+            double image_ratio_x = ext_.width() / source_data.width();
+            double image_ratio_y = ext_.height() / source_data.height();
+            scale_image_agg(util::get<image_gray8s>(target.data_),
+                            source_data,
+                            scaling_method_,
+                            image_ratio_x,
+                            image_ratio_y,
+                            0.0,
+                            0.0,
+                            source_.get_filter_factor());
+        }
+
+        using pixfmt_type = agg::pixfmt_gray8;
+        using renderer_type = agg::renderer_base<pixfmt_type>;
+
+        mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray8s);
+        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
+        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        pixfmt_type src_pixf(src_buffer);
+        pixfmt_type dst_pixf(dst_buffer);
+        renderer_type ren(dst_pixf);
+        ren.copy_from(src_pixf,0,start_x_, start_y_);
+        backend_.start_tile_feature(feature_);
+        backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
+        painted_ = true;
+    }
+
     void operator() (mapnik::image_gray16 & source_data)
     {
         mapnik::image_gray16 data(raster_width_, raster_height_);
@@ -235,6 +277,132 @@ public:
         painted_ = true;
     }
 
+    void operator() (mapnik::image_gray16s & source_data)
+    {
+        mapnik::image_gray16s data(raster_width_, raster_height_);
+        mapnik::raster target(target_ext_, data, source_.get_filter_factor());
+        if (!prj_trans_.equal())
+        {
+            double offset_x = ext_.minx() - start_x_;
+            double offset_y = ext_.miny() - start_y_;
+            reproject_and_scale_raster(target, source_, prj_trans_,
+                                       offset_x, offset_y,
+                                       width_,
+                                       scaling_method_);
+        }
+        else
+        {
+            double image_ratio_x = ext_.width() / source_data.width();
+            double image_ratio_y = ext_.height() / source_data.height();
+            scale_image_agg(util::get<image_gray16s>(target.data_),
+                            source_data,
+                            scaling_method_,
+                            image_ratio_x,
+                            image_ratio_y,
+                            0.0,
+                            0.0,
+                            source_.get_filter_factor());
+        }
+
+        using pixfmt_type = agg::pixfmt_gray16;
+        using renderer_type = agg::renderer_base<pixfmt_type>;
+
+        mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray16s);
+        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
+        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        pixfmt_type src_pixf(src_buffer);
+        pixfmt_type dst_pixf(dst_buffer);
+        renderer_type ren(dst_pixf);
+        ren.copy_from(src_pixf,0,start_x_, start_y_);
+        backend_.start_tile_feature(feature_);
+        backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
+        painted_ = true;
+    }
+
+    void operator() (mapnik::image_gray32 & source_data)
+    {
+        mapnik::image_gray32 data(raster_width_, raster_height_);
+        mapnik::raster target(target_ext_, data, source_.get_filter_factor());
+        if (!prj_trans_.equal())
+        {
+            double offset_x = ext_.minx() - start_x_;
+            double offset_y = ext_.miny() - start_y_;
+            reproject_and_scale_raster(target, source_, prj_trans_,
+                                       offset_x, offset_y,
+                                       width_,
+                                       scaling_method_);
+        }
+        else
+        {
+            double image_ratio_x = ext_.width() / source_data.width();
+            double image_ratio_y = ext_.height() / source_data.height();
+            scale_image_agg(util::get<image_gray32>(target.data_),
+                            source_data,
+                            scaling_method_,
+                            image_ratio_x,
+                            image_ratio_y,
+                            0.0,
+                            0.0,
+                            source_.get_filter_factor());
+        }
+
+        using pixfmt_type = agg::pixfmt_gray32;
+        using renderer_type = agg::renderer_base<pixfmt_type>;
+
+        mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray32);
+        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
+        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        pixfmt_type src_pixf(src_buffer);
+        pixfmt_type dst_pixf(dst_buffer);
+        renderer_type ren(dst_pixf);
+        ren.copy_from(src_pixf,0,start_x_, start_y_);
+        backend_.start_tile_feature(feature_);
+        backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
+        painted_ = true;
+    }
+
+    void operator() (mapnik::image_gray32s & source_data)
+    {
+        mapnik::image_gray32s data(raster_width_, raster_height_);
+        mapnik::raster target(target_ext_, data, source_.get_filter_factor());
+        if (!prj_trans_.equal())
+        {
+            double offset_x = ext_.minx() - start_x_;
+            double offset_y = ext_.miny() - start_y_;
+            reproject_and_scale_raster(target, source_, prj_trans_,
+                                       offset_x, offset_y,
+                                       width_,
+                                       scaling_method_);
+        }
+        else
+        {
+            double image_ratio_x = ext_.width() / source_data.width();
+            double image_ratio_y = ext_.height() / source_data.height();
+            scale_image_agg(util::get<image_gray32s>(target.data_),
+                            source_data,
+                            scaling_method_,
+                            image_ratio_x,
+                            image_ratio_y,
+                            0.0,
+                            0.0,
+                            source_.get_filter_factor());
+        }
+
+        using pixfmt_type = agg::pixfmt_gray32;
+        using renderer_type = agg::renderer_base<pixfmt_type>;
+
+        mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray32s);
+        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
+        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        pixfmt_type src_pixf(src_buffer);
+        pixfmt_type dst_pixf(dst_buffer);
+        renderer_type ren(dst_pixf);
+        ren.copy_from(src_pixf,0,start_x_, start_y_);
+        backend_.start_tile_feature(feature_);
+        backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
+        painted_ = true;
+    }
+
     void operator() (mapnik::image_gray32f & source_data)
     {
         mapnik::image_gray32f data(raster_width_, raster_height_);
@@ -266,6 +434,132 @@ public:
         using renderer_type = agg::renderer_base<pixfmt_type>;
 
         mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray32f);
+        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
+        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        pixfmt_type src_pixf(src_buffer);
+        pixfmt_type dst_pixf(dst_buffer);
+        renderer_type ren(dst_pixf);
+        ren.copy_from(src_pixf,0,start_x_, start_y_);
+        backend_.start_tile_feature(feature_);
+        backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
+        painted_ = true;
+    }
+
+    void operator() (mapnik::image_gray64 & source_data)
+    {
+        mapnik::image_gray64 data(raster_width_, raster_height_);
+        mapnik::raster target(target_ext_, data, source_.get_filter_factor());
+        if (!prj_trans_.equal())
+        {
+            double offset_x = ext_.minx() - start_x_;
+            double offset_y = ext_.miny() - start_y_;
+            reproject_and_scale_raster(target, source_, prj_trans_,
+                                       offset_x, offset_y,
+                                       width_,
+                                       scaling_method_);
+        }
+        else
+        {
+            double image_ratio_x = ext_.width() / source_data.width();
+            double image_ratio_y = ext_.height() / source_data.height();
+            scale_image_agg(util::get<image_gray64>(target.data_),
+                            source_data,
+                            scaling_method_,
+                            image_ratio_x,
+                            image_ratio_y,
+                            0.0,
+                            0.0,
+                            source_.get_filter_factor());
+        }
+
+        using pixfmt_type = agg::pixfmt_gray32;
+        using renderer_type = agg::renderer_base<pixfmt_type>;
+
+        mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray64);
+        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
+        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        pixfmt_type src_pixf(src_buffer);
+        pixfmt_type dst_pixf(dst_buffer);
+        renderer_type ren(dst_pixf);
+        ren.copy_from(src_pixf,0,start_x_, start_y_);
+        backend_.start_tile_feature(feature_);
+        backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
+        painted_ = true;
+    }
+
+    void operator() (mapnik::image_gray64s & source_data)
+    {
+        mapnik::image_gray64s data(raster_width_, raster_height_);
+        mapnik::raster target(target_ext_, data, source_.get_filter_factor());
+        if (!prj_trans_.equal())
+        {
+            double offset_x = ext_.minx() - start_x_;
+            double offset_y = ext_.miny() - start_y_;
+            reproject_and_scale_raster(target, source_, prj_trans_,
+                                       offset_x, offset_y,
+                                       width_,
+                                       scaling_method_);
+        }
+        else
+        {
+            double image_ratio_x = ext_.width() / source_data.width();
+            double image_ratio_y = ext_.height() / source_data.height();
+            scale_image_agg(util::get<image_gray64s>(target.data_),
+                            source_data,
+                            scaling_method_,
+                            image_ratio_x,
+                            image_ratio_y,
+                            0.0,
+                            0.0,
+                            source_.get_filter_factor());
+        }
+
+        using pixfmt_type = agg::pixfmt_gray32;
+        using renderer_type = agg::renderer_base<pixfmt_type>;
+
+        mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray64s);
+        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
+        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        pixfmt_type src_pixf(src_buffer);
+        pixfmt_type dst_pixf(dst_buffer);
+        renderer_type ren(dst_pixf);
+        ren.copy_from(src_pixf,0,start_x_, start_y_);
+        backend_.start_tile_feature(feature_);
+        backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
+        painted_ = true;
+    }
+
+    void operator() (mapnik::image_gray64f & source_data)
+    {
+        mapnik::image_gray64f data(raster_width_, raster_height_);
+        mapnik::raster target(target_ext_, data, source_.get_filter_factor());
+        if (!prj_trans_.equal())
+        {
+            double offset_x = ext_.minx() - start_x_;
+            double offset_y = ext_.miny() - start_y_;
+            reproject_and_scale_raster(target, source_, prj_trans_,
+                                       offset_x, offset_y,
+                                       width_,
+                                       scaling_method_);
+        }
+        else
+        {
+            double image_ratio_x = ext_.width() / source_data.width();
+            double image_ratio_y = ext_.height() / source_data.height();
+            scale_image_agg(util::get<image_gray64f>(target.data_),
+                            source_data,
+                            scaling_method_,
+                            image_ratio_x,
+                            image_ratio_y,
+                            0.0,
+                            0.0,
+                            source_.get_filter_factor());
+        }
+
+        using pixfmt_type = agg::pixfmt_gray32;
+        using renderer_type = agg::renderer_base<pixfmt_type>;
+
+        mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray64f);
         agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
         agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
         pixfmt_type src_pixf(src_buffer);
