@@ -8,7 +8,7 @@ Provides C++ headers that support rendering geodata into vector tiles and render
 
 ## Depends
 
- - Mapnik > = v2.2.x: `libmapnik` and `mapnik-config`
+ - Mapnik v3.0.x or v2.3.x: `libmapnik` and `mapnik-config`
  - Protobuf: `libprotobuf` and `protoc`
 
 ## Implementation details
@@ -19,9 +19,10 @@ For more details see [vector-tile-spec](https://github.com/mapbox/vector-tile-sp
 
 ### Ubuntu Dependencies Installation
 
-    apt-get install libprotobuf7 libprotobuf-dev protobuf-compiler
-    apt-add-repository ppa:mapnik/v2.2.0
-    apt-get update && apt-get install libmapnik libmapnik-dev
+    sudo apt-get install -y libprotobuf7 libprotobuf-dev protobuf-compiler
+    sudo apt-add-repository --yes ppa:mapnik/nightly-2.3
+    sudo apt-get update -y
+    sudo apt-get -y install libmapnik=2.3.0* mapnik-utils=2.3.0* libmapnik-dev=2.3.0* mapnik-input-plugin*=2.3.0*
 
 ### OS X Dependencies Installation
 
