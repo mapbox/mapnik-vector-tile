@@ -21,6 +21,9 @@
 #include <boost/unordered_map.hpp>
 #include <boost/foreach.hpp>
 
+// std c++
+#include <iterator>
+
 #include MAPNIK_VARIANT_INCLUDE
 
 namespace mapnik { namespace vector_tile_impl {
@@ -104,8 +107,7 @@ namespace mapnik { namespace vector_tile_impl {
             }
         }
 
-        void start_tile_feature(mapnik::feature_impl const& feature)
-        {
+        void start_tile_feature(mapnik::feature_impl const& feature, std::vector<std::string> const& fields_to_exclude=std::vector<std::string>()) {
             current_feature_ = current_layer_->add_features();
             x_ = y_ = 0;
 
@@ -121,6 +123,11 @@ namespace mapnik { namespace vector_tile_impl {
                 mapnik::value const& val = MAPNIK_GET<1>(*itr);
                 if (!val.is_null())
                 {
+                    // Skip if name is in fields_to_exclude
+                    if (std::find(std::begin(fields_to_exclude), std::end(fields_to_exclude), name) != std::end(fields_to_exclude)) {
+                        continue;
+                    }
+
                     // Insert the key index
                     keys_container::const_iterator key_itr = keys_.find(name);
                     if (key_itr == keys_.end())

@@ -78,6 +78,7 @@ private:
     std::string image_format_;
     scaling_method_e scaling_method_;
     bool painted_;
+    std::vector<std::string> const& fields_to_exclude_;
 public:
     processor(T & backend,
               mapnik::Map const& map,
@@ -87,17 +88,19 @@ public:
               unsigned offset_y=0,
               unsigned tolerance=1,
               std::string const& image_format="jpeg",
-              scaling_method_e scaling_method=SCALING_NEAR
+              scaling_method_e scaling_method=SCALING_NEAR,
+              std::vector<std::string> const& fields_to_exclude=std::vector<std::string>()
         )
         : backend_(backend),
           m_(map),
           m_req_(m_req),
           scale_factor_(scale_factor),
           t_(m_req.width(),m_req.height(),m_req.extent(),offset_x,offset_y),
-        tolerance_(tolerance),
-        image_format_(image_format),
-        scaling_method_(scaling_method),
-        painted_(false) {}
+          tolerance_(tolerance),
+          image_format_(image_format),
+          scaling_method_(scaling_method),
+          painted_(false),
+          fields_to_exclude_(fields_to_exclude) {}
 
     void apply(double scale_denom=0.0)
     {
@@ -358,7 +361,7 @@ public:
                     feature = features->next();
                     continue;
                 }
-                backend_.start_tile_feature(*feature);
+                backend_.start_tile_feature(*feature, fields_to_exclude_);
                 BOOST_FOREACH( mapnik::geometry_type & geom, paths)
                 {
                     mapnik::box2d<double> geom_box = geom.envelope();
