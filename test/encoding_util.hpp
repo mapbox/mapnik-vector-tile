@@ -67,7 +67,7 @@ std::string show_path(T & path)
     return s.str();
 }
 
-std::string compare(mapnik::geometry_type const & g,
+std::string compare(mapnik::geometry_type const& g,
                     unsigned tolerance=0,
                     unsigned path_multiplier=1)
 {
@@ -76,11 +76,13 @@ std::string compare(mapnik::geometry_type const & g,
     vector_tile::Tile_Feature feature;
     int32_t x = 0;
     int32_t y = 0;
-    encode_geometry(g,(vector_tile::Tile_GeomType)g.type(),feature,x,y,tolerance,path_multiplier);
+    mapnik::vertex_adapter va(g);
+    encode_geometry(va,(vector_tile::Tile_GeomType)g.type(),feature,x,y,tolerance,path_multiplier);
     // decode
     mapnik::geometry_type g2(MAPNIK_POLYGON);
     double x0 = 0;
     double y0 = 0;
     decode_geometry(feature,g2,x0,y0,path_multiplier);
-    return show_path(g2);
+    mapnik::vertex_adapter va2(g2);
+    return show_path(va2);
 }
