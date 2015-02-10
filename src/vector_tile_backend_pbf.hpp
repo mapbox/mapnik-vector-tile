@@ -1,13 +1,11 @@
 #ifndef __MAPNIK_VECTOR_TILE_BACKEND_PBF_H__
 #define __MAPNIK_VECTOR_TILE_BACKEND_PBF_H__
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_VARIANT_INCLUDE
-
 // mapnik
 #include <mapnik/version.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/value_types.hpp>
+#include <mapnik/util/variant.hpp>
 
 // vector tile
 #pragma GCC diagnostic push
@@ -21,11 +19,9 @@
 #include <boost/unordered_map.hpp>
 #include <boost/foreach.hpp>
 
-#include MAPNIK_VARIANT_INCLUDE
-
 namespace mapnik { namespace vector_tile_impl {
 
-    struct to_tile_value: public MAPNIK_STATIC_VISITOR<>
+    struct to_tile_value: public mapnik::util::static_visitor<>
     {
     public:
         to_tile_value(vector_tile::Tile_Value * value):
@@ -117,8 +113,8 @@ namespace mapnik { namespace vector_tile_impl {
             feature_kv_iterator end = feature.end();
             for ( ;itr!=end; ++itr)
             {
-                std::string const& name = MAPNIK_GET<0>(*itr);
-                mapnik::value const& val = MAPNIK_GET<1>(*itr);
+                std::string const& name = std::get<0>(*itr);
+                mapnik::value const& val = std::get<1>(*itr);
                 if (!val.is_null())
                 {
                     // Insert the key index
@@ -142,11 +138,7 @@ namespace mapnik { namespace vector_tile_impl {
                     {
                         // The value doesn't exist yet in the dictionary.
                         to_tile_value visitor(current_layer_->add_values());
-#if MAPNIK_VERSION >= 300000
-                        MAPNIK_APPLY_VISITOR(visitor, val);
-#else
-                        MAPNIK_APPLY_VISITOR(visitor, val.base());
-#endif
+                        mapnik::util::apply_visitor(visitor, val);
                         size_t index = values_.size();
                         values_.insert(values_container::value_type(val, index));
                         current_feature_->add_tags(index);
@@ -183,7 +175,7 @@ namespace mapnik { namespace vector_tile_impl {
         }
 
         template <typename T>
-        inline unsigned add_path(T & path, unsigned tolerance, MAPNIK_GEOM_TYPE type)
+        inline unsigned add_path(T & path, unsigned tolerance, mapnik::geometry_type::types type)
         {
             if (current_feature_)
             {

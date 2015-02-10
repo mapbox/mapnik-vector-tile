@@ -7,8 +7,6 @@
 #include "compare_image.hpp"
 #include "vector_tile_projection.hpp"
 
-#include "mapnik3x_compatibility.hpp"
-
 // vector output api
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
@@ -44,10 +42,10 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one raster la
     // wget http://www.nacis.org/naturalearth/50m/raster/NE2_50m_SR_W.zip
     // gdalwarp -t_srs EPSG:3857 -ts 1048 1048 -r bilinear NE2_50M_SR_W.tif natural_earth.tif
     params["file"] = "test/data/natural_earth.tif";
-    MAPNIK_SHARED_PTR<mapnik::datasource> ds =
+    std::shared_ptr<mapnik::datasource> ds =
         mapnik::datasource_cache::instance().create(params);
     lyr.set_datasource(ds);
-    map.MAPNIK_ADD_LAYER(lyr);
+    map.add_layer(lyr);
     mapnik::request m_req(tile_size,tile_size,bbox);
     m_req.set_buffer_size(map.buffer_size());
     renderer_type ren(backend,map,m_req,1.0,0,0,1,"jpeg",mapnik::SCALING_BILINEAR);
@@ -76,11 +74,11 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one raster la
         file << ras_buffer;
         file.close();
     }
-    MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(ras_buffer.data(),ras_buffer.size()));
+    std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(ras_buffer.data(),ras_buffer.size()));
     if (!reader.get()) {
         throw std::runtime_error("could not open image bytes");
     }
-    MAPNIK_IMAGE_RGBA im_data(reader->width(),reader->height());
+    mapnik::image_data_rgba8 im_data(reader->width(),reader->height());
     reader->read(0,0,im_data);
     unsigned diff = testing::compare_images(im_data,"test/fixtures/expected-2.jpeg");
     CHECK(0 == diff);
@@ -120,12 +118,12 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one raster la
         CHECK(expected_image_size == f2.raster().size());
     }
     mapnik::layer lyr2("layer",map2.srs());
-    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds2 = MAPNIK_MAKE_SHARED<
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds2 = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource>(
                                         layer2,_x,_y,_z,map2.width());
     lyr2.set_datasource(ds2);
     lyr2.add_style("style");
-    map2.MAPNIK_ADD_LAYER(lyr2);
+    map2.add_layer(lyr2);
     mapnik::load_map(map2,"test/data/raster_style.xml");
     map2.zoom_to_box(bbox);
     mapnik::image_32 im(map2.width(),map2.height());
@@ -164,10 +162,10 @@ TEST_CASE( "vector tile output 2", "should be able to overzoom raster" ) {
           << bbox.maxx() << ',' << bbox.maxy();
         params["extent"] = s.str();
         params["file"] = "test/data/256x256.png";
-        MAPNIK_SHARED_PTR<mapnik::datasource> ds =
+        std::shared_ptr<mapnik::datasource> ds =
             mapnik::datasource_cache::instance().create(params);
         lyr.set_datasource(ds);
-        map.MAPNIK_ADD_LAYER(lyr);
+        map.add_layer(lyr);
         mapnik::request m_req(256,256,bbox);
         m_req.set_buffer_size(map.buffer_size());
         renderer_type ren(backend,map,m_req,1.0,0,0,1,"jpeg",mapnik::SCALING_BILINEAR);
@@ -229,12 +227,12 @@ TEST_CASE( "vector tile output 2", "should be able to overzoom raster" ) {
     mapnik::Map map2(256,256,"+init=epsg:3857");
     map2.set_buffer_size(1024);
     mapnik::layer lyr2("layer",map2.srs());
-    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds2 = MAPNIK_MAKE_SHARED<
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds2 = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource>(
                                         layer2,0,0,0,256);
     lyr2.set_datasource(ds2);
     lyr2.add_style("style");
-    map2.MAPNIK_ADD_LAYER(lyr2);
+    map2.add_layer(lyr2);
     mapnik::load_map(map2,"test/data/raster_style.xml");
     map2.zoom_to_box(bbox);
     mapnik::image_32 im(map2.width(),map2.height());

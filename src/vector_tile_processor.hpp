@@ -22,6 +22,9 @@
 #include <mapnik/version.hpp>
 #include <mapnik/image_scaling.hpp>
 #include <mapnik/image_compositing.hpp>
+#include <mapnik/view_transform.hpp>
+#include <mapnik/util/noncopyable.hpp>
+#include <mapnik/transform_path_adapter.hpp>
 
 // agg
 #ifdef CONV_CLIPPER
@@ -44,13 +47,6 @@
 #include <string>
 #include <stdexcept>
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_MAKE_SHARED_INCLUDE
-#include MAPNIK_SHARED_INCLUDE
-#include MAPNIK_VIEW_TRANSFORM_INCLUDE
-#include MAPNIK_TRANSFORM_PATH_INCLUDE
-#include MAPNIK_NONCOPYABLE_INCLUDE
-
 namespace mapnik { namespace vector_tile_impl {
 
 
@@ -64,7 +60,7 @@ namespace mapnik { namespace vector_tile_impl {
 */
 
 template <typename T>
-class processor : private MAPNIK_NONCOPYABLE
+class processor : private mapnik::util::noncopyable
 {
 public:
     typedef T backend_type;
@@ -73,7 +69,7 @@ private:
     mapnik::Map const& m_;
     mapnik::request const& m_req_;
     double scale_factor_;
-    MAPNIK_VIEW_TRANSFORM t_;
+    mapnik::view_transform t_;
     unsigned tolerance_;
     std::string image_format_;
     scaling_method_e scaling_method_;
@@ -252,12 +248,8 @@ public:
                 int raster_height = end_y - start_y;
                 if (raster_width > 0 && raster_height > 0)
                 {
-#if MAPNIK_VERSION >= 300000
                     mapnik::image_data_rgba8 data(raster_width, raster_height);
                     raster target(target_ext, data, source->get_filter_factor());
-#else
-                    raster target(target_ext, raster_width, raster_height);
-#endif
                     if (!source->premultiplied_alpha_)
                     {
                         agg::rendering_buffer buffer(source->data_.getBytes(),
@@ -271,24 +263,15 @@ public:
                     {
                         double offset_x = ext.minx() - start_x;
                         double offset_y = ext.miny() - start_y;
-#if MAPNIK_VERSION >= 300000
                         reproject_and_scale_raster(target, *source, prj_trans,
                                                    offset_x, offset_y,
                                                    width,
                                                    scaling_method_);
-#else
-                        reproject_and_scale_raster(target, *source, prj_trans,
-                                                   offset_x, offset_y,
-                                                   width,
-                                                   2.0,
-                                                   scaling_method_);
-#endif
                     }
                     else
                     {
                         double image_ratio_x = ext.width() / source->data_.width();
                         double image_ratio_y = ext.height() / source->data_.height();
-#if MAPNIK_VERSION >= 300000
                         scale_image_agg(util::get<image_data_rgba8>(target.data_),
                                         util::get<image_data_rgba8>(source->data_),
                                         scaling_method_,
@@ -297,19 +280,7 @@ public:
                                         0.0,
                                         0.0,
                                         source->get_filter_factor());
-#else
-                        scale_image_agg<image_data_32>(target.data_,
-                                                       source->data_,
-                                                       scaling_method_,
-                                                       image_ratio_x,
-                                                       image_ratio_y,
-                                                       0.0,
-                                                       0.0,
-                                                       2.0);
-#endif
                     }
-#if MAPNIK_VERSION >= 300000
-
                     if (target.data_.is<image_data_rgba8>())
                     {
                         using pixfmt_type = agg::pixfmt_rgba32;
@@ -331,21 +302,6 @@ public:
                     {
                         std::clog << "TODO: support other pixel types\n";
                     }
-#else
-                    mapnik::image_data_32 im_tile(width,height);
-                    composite(im_tile, target.data_,
-                              src_over, 1,
-                              start_x, start_y, false);
-                    agg::rendering_buffer buffer(im_tile.getBytes(),
-                                                 im_tile.width(),
-                                                 im_tile.height(),
-                                                 im_tile.width() * 4);
-                    agg::pixfmt_rgba32 pixf(buffer);
-                    pixf.demultiply();
-                    backend_.start_tile_feature(*feature);
-                    backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
-                    painted_ = true;
-#endif
                 }
                 backend_.stop_tile_layer();
                 return;
@@ -388,18 +344,18 @@ public:
         unsigned path_count = 0;
         switch (geom.type())
         {
-        case MAPNIK_POINT:
+        case mapnik::geometry_type::types::Point:
         {
             if (geom.size() > 0)
             {
-                typedef MAPNIK_TRANSFORM_PATH<MAPNIK_VIEW_TRANSFORM,
+                typedef mapnik::transform_path_adapter<mapnik::view_transform,
                                               mapnik::vertex_adapter> path_type;
                 path_type path(t_, geom, prj_trans);
                 path_count = backend_.add_path(path, tolerance_, geom.type());
             }
             break;
         }
-        case MAPNIK_LINESTRING:
+        case mapnik::geometry_type::types::LineString:
         {
             if (geom.size() > 1)
             {
@@ -410,13 +366,13 @@ public:
                     buffered_query_ext.miny(),
                     buffered_query_ext.maxx(),
                     buffered_query_ext.maxy());
-                typedef MAPNIK_TRANSFORM_PATH<MAPNIK_VIEW_TRANSFORM, line_clipper> path_type;
+                typedef mapnik::transform_path_adapter<mapnik::view_transform, line_clipper> path_type;
                 path_type path(t_, clipped, prj_trans);
                 path_count = backend_.add_path(path, tolerance_, geom.type());
             }
             break;
         }
-        case MAPNIK_POLYGON:
+        case mapnik::geometry_type::types::Polygon:
         {
             if (geom.size() > 2)
             {
@@ -443,13 +399,13 @@ public:
                     buffered_query_ext.maxx(),
                     buffered_query_ext.maxy());
 #endif
-                typedef MAPNIK_TRANSFORM_PATH<MAPNIK_VIEW_TRANSFORM, poly_clipper> path_type;
+                typedef mapnik::transform_path_adapter<mapnik::view_transform, poly_clipper> path_type;
                 path_type path(t_, clipped, prj_trans);
                 path_count = backend_.add_path(path, tolerance_, geom.type());
             }
             break;
         }
-        case MAPNIK_UNKNOWN:
+        case mapnik::geometry_type::types::Unknown:
         default:
         {
             throw std::runtime_error("unhandled geometry type");

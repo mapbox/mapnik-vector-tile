@@ -3,9 +3,6 @@
 #include "catch.hpp"
 
 // test utils
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_SHARED_INCLUDE
-#include MAPNIK_MAKE_SHARED_INCLUDE
 #include "test_utils.hpp"
 #include "compare_image.hpp"
 #include <mapnik/memory_datasource.hpp>
@@ -97,7 +94,7 @@ TEST_CASE( "vector tile output 1", "should create vector tile with two points" )
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(build_ds(0,0,true));
-    map.MAPNIK_ADD_LAYER(lyr);
+    map.add_layer(lyr);
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
@@ -127,7 +124,7 @@ TEST_CASE( "vector tile output 2", "adding empty layers should result in empty t
     tile_type tile;
     backend_type backend(tile,16);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
-    map.MAPNIK_ADD_LAYER(mapnik::layer("layer",map.srs()));
+    map.add_layer(mapnik::layer("layer",map.srs()));
     map.zoom_to_box(bbox);
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
@@ -146,22 +143,18 @@ TEST_CASE( "vector tile output 3", "adding layers with geometries outside render
     backend_type backend(tile,16);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
-    mapnik::context_ptr ctx = MAPNIK_MAKE_SHARED<mapnik::context_type>();
+    mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
-    MAPNIK_UNIQUE_PTR<mapnik::geometry_type> g(new mapnik::geometry_type(MAPNIK_LINESTRING));
+    std::unique_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::geometry_type::types::LineString));
     g->move_to(-10,-10);
     g->line_to(-11,-11);
     feature->add_geometry(g.release());
-#if MAPNIK_VERSION >= 300000
     mapnik::parameters params;
     params["type"] = "memory";
-    MAPNIK_SHARED_PTR<mapnik::memory_datasource> ds = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>(params);
-#else
-    MAPNIK_SHARED_PTR<mapnik::memory_datasource> ds = MAPNIK_MAKE_SHARED<mapnik::memory_datasource>();
-#endif
+    std::shared_ptr<mapnik::memory_datasource> ds = std::make_shared<mapnik::memory_datasource>(params);
     ds->push(feature);
     lyr.set_datasource(ds);
-    map.MAPNIK_ADD_LAYER(lyr);
+    map.add_layer(lyr);
     mapnik::box2d<double> custom_bbox(0,0,10,10);
     map.zoom_to_box(custom_bbox);
     mapnik::request m_req(tile_size,tile_size,custom_bbox);
@@ -182,12 +175,12 @@ TEST_CASE( "vector tile output 4", "adding layers with degenerate geometries sho
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     // create a datasource with a feature outside the map
-    MAPNIK_SHARED_PTR<mapnik::memory_datasource> ds = build_ds(bbox.minx()-1,bbox.miny()-1);
+    std::shared_ptr<mapnik::memory_datasource> ds = build_ds(bbox.minx()-1,bbox.miny()-1);
     // but fake the overall envelope to ensure the layer is still processed
     // and then removed given no intersecting features will be added
     ds->set_envelope(bbox);
     lyr.set_datasource(ds);
-    map.MAPNIK_ADD_LAYER(lyr);
+    map.add_layer(lyr);
     map.zoom_to_box(bbox);
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
@@ -207,7 +200,7 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(build_ds(0,0));
-    map.MAPNIK_ADD_LAYER(lyr);
+    map.add_layer(lyr);
     map.zoom_to_box(bbox);
     mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
     renderer_type ren(backend,map,m_req);
@@ -229,7 +222,7 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     CHECK(1 == layer2.features_size());
 
     mapnik::layer lyr2("layer",map.srs());
-    MAPNIK_SHARED_PTR<mapnik::vector_tile_impl::tile_datasource> ds = MAPNIK_MAKE_SHARED<
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource>(
                                         layer2,_x,_y,_z,map2.width());
     ds->set_envelope(bbox);
@@ -244,7 +237,7 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     CHECK(names == expected_names);
     lyr2.set_datasource(ds);
     lyr2.add_style("style");
-    map2.MAPNIK_ADD_LAYER(lyr2);
+    map2.add_layer(lyr2);
     mapnik::load_map(map2,"test/data/style.xml");
     //std::clog << mapnik::save_map_to_string(map2) << "\n";
     map2.zoom_to_box(bbox);
@@ -270,7 +263,7 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(build_ds(0,0));
-    map.MAPNIK_ADD_LAYER(lyr);
+    map.add_layer(lyr);
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
@@ -353,9 +346,9 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     vector_tile::Tile tile;
     mapnik::vector_tile_impl::backend_pbf backend(tile,path_multiplier);
     backend.start_tile_layer("layer");
-    mapnik::feature_ptr feature(mapnik::feature_factory::create(MAPNIK_MAKE_SHARED<mapnik::context_type>(),1));
+    mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
     backend.start_tile_feature(*feature);
-    MAPNIK_UNIQUE_PTR<mapnik::geometry_type> g(new mapnik::geometry_type(MAPNIK_LINESTRING));
+    std::unique_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::geometry_type::types::LineString));
     g->move_to(0,0);        // takes 3 geoms: command length,x,y
     g->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
     g->move_to(1,1);        // takes 3 geoms: command length,x,y
@@ -422,9 +415,9 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     vector_tile::Tile tile;
     mapnik::vector_tile_impl::backend_pbf backend(tile,path_multiplier);
     backend.start_tile_layer("layer");
-    mapnik::feature_ptr feature(mapnik::feature_factory::create(MAPNIK_MAKE_SHARED<mapnik::context_type>(),1));
+    mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
     backend.start_tile_feature(*feature);
-    MAPNIK_UNIQUE_PTR<mapnik::geometry_type> g(new mapnik::geometry_type(MAPNIK_LINESTRING));
+    std::unique_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::geometry_type::types::LineString));
     g->move_to(0,0);        // takes 3 geoms: command length,x,y
     g->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
     g->line_to(1000,1000);  // repeated line_to, so only takes 2 geoms: x,y | total 8
@@ -490,9 +483,9 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
     vector_tile::Tile tile;
     mapnik::vector_tile_impl::backend_pbf backend(tile,path_multiplier);
     backend.start_tile_layer("layer");
-    mapnik::feature_ptr feature(mapnik::feature_factory::create(MAPNIK_MAKE_SHARED<mapnik::context_type>(),1));
+    mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
     backend.start_tile_feature(*feature);
-    MAPNIK_UNIQUE_PTR<mapnik::geometry_type> g(new mapnik::geometry_type(MAPNIK_POLYGON));
+    std::unique_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::geometry_type::types::Polygon));
     g->move_to(168.267850,-24.576888);
     g->line_to(167.982618,-24.697145);
     g->line_to(168.114561,-24.783548);
