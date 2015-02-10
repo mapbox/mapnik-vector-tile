@@ -8,7 +8,9 @@ Provides C++ headers that support rendering geodata into vector tiles and render
 
 ## Depends
 
- - Mapnik v3.0.x or v2.3.x: `libmapnik` and `mapnik-config`
+ - mapnik-vector-tile 0.7.x depends on Mapnik v3.0.x (until 3.0.0 is released this means latest mapnik HEAD)
+ - mapnik-vector-tile 0.6.x and previous work with Mapnik v2.2.x or v2.3.x
+ - You will need `libmapnik` and `mapnik-config` available
  - Protobuf: `libprotobuf` and `protoc`
 
 ## Implementation details
