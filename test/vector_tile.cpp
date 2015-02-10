@@ -360,7 +360,8 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     g->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
     g->move_to(1,1);        // takes 3 geoms: command length,x,y
     g->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
-    backend.add_path(*g, tolerance, g->type());
+    mapnik::vertex_adapter va(*g);
+    backend.add_path(va, tolerance, g->type());
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     // done encoding single feature/geometry
@@ -429,7 +430,8 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     g->line_to(1000,1000);  // repeated line_to, so only takes 2 geoms: x,y | total 8
     g->line_to(1001,1001);  // should skip given tolerance of 2 | total 8
     g->line_to(1001,1001);  // should not skip given it is the endpoint, added 2 geoms | total 10
-    backend.add_path(*g, tolerance, g->type());
+    mapnik::vertex_adapter va(*g);
+    backend.add_path(va, tolerance, g->type());
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     // done encoding single feature/geometry
@@ -499,7 +501,8 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
     g->close_path();
     //g->push_vertex(256.000000,-0.00000, mapnik::SEG_CLOSE);
     // todo - why does shape_io result in on-zero close path x,y?
-    backend.add_path(*g, tolerance, g->type());
+    mapnik::vertex_adapter va(*g);
+    backend.add_path(va, tolerance, g->type());
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     std::string key("");

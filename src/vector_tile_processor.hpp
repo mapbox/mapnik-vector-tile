@@ -353,20 +353,21 @@ public:
             // vector pathway
             while (feature)
             {
-                boost::ptr_vector<mapnik::geometry_type> & paths = feature->paths();
+                mapnik::geometry_container const& paths = feature->paths();
                 if (paths.empty()) {
                     feature = features->next();
                     continue;
                 }
                 backend_.start_tile_feature(*feature);
-                BOOST_FOREACH( mapnik::geometry_type & geom, paths)
+                BOOST_FOREACH( mapnik::geometry_type const& geom, paths)
                 {
-                    mapnik::box2d<double> geom_box = geom.envelope();
+                    mapnik::vertex_adapter va(geom);
+                    mapnik::box2d<double> geom_box = va.envelope();
                     if (!geom_box.intersects(buffered_query_ext))
                     {
                         continue;
                     }
-                    if (handle_geometry(geom,
+                    if (handle_geometry(va,
                                         prj_trans,
                                         buffered_query_ext) > 0)
                     {
@@ -380,7 +381,7 @@ public:
         }
     }
 
-    unsigned handle_geometry(mapnik::geometry_type & geom,
+    unsigned handle_geometry(mapnik::vertex_adapter & geom,
                              mapnik::proj_transform const& prj_trans,
                              mapnik::box2d<double> const& buffered_query_ext)
     {
@@ -392,7 +393,7 @@ public:
             if (geom.size() > 0)
             {
                 typedef MAPNIK_TRANSFORM_PATH<MAPNIK_VIEW_TRANSFORM,
-                                              mapnik::geometry_type> path_type;
+                                              mapnik::vertex_adapter> path_type;
                 path_type path(t_, geom, prj_trans);
                 path_count = backend_.add_path(path, tolerance_, geom.type());
             }
@@ -402,7 +403,7 @@ public:
         {
             if (geom.size() > 1)
             {
-                typedef agg::conv_clip_polyline<mapnik::geometry_type> line_clipper;
+                typedef agg::conv_clip_polyline<mapnik::vertex_adapter> line_clipper;
                 line_clipper clipped(geom);
                 clipped.clip_box(
                     buffered_query_ext.minx(),
@@ -426,7 +427,7 @@ public:
                 ps.line_to(buffered_query_ext.maxx(), buffered_query_ext.maxy());
                 ps.line_to(buffered_query_ext.maxx(), buffered_query_ext.miny());
                 ps.close_polygon();
-                typedef agg::conv_clipper<mapnik::geometry_type, agg::path_storage> poly_clipper;
+                typedef agg::conv_clipper<mapnik::vertex_adapter, agg::path_storage> poly_clipper;
                 poly_clipper clipped(geom,ps,
                                      agg::clipper_and,
                                      agg::clipper_non_zero,
@@ -434,7 +435,7 @@ public:
                                      1);
                 //clipped.rewind(0);
 #else
-                typedef agg::conv_clip_polygon<mapnik::geometry_type> poly_clipper;
+                typedef agg::conv_clip_polygon<mapnik::vertex_adapter> poly_clipper;
                 poly_clipper clipped(geom);
                 clipped.clip_box(
                     buffered_query_ext.minx(),
