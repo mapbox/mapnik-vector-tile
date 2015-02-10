@@ -1,10 +1,11 @@
 ## mapnik-vector-tile
 
-[![Build Status](https://secure.travis-ci.org/mapbox/mapnik-vector-tile.png)](http://travis-ci.org/mapbox/mapnik-vector-tile)
-
 A Mapnik implemention of [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec).
 
 Provides C++ headers that support rendering geodata into vector tiles and rendering vector tiles into images.
+
+Master: [![Build Status](https://travis-ci.org/mapbox/mapnik-vector-tile.svg?branch=master)](https://travis-ci.org/mapbox/mapnik-vector-tile)
+0.6.x series: [![Build Status](https://secure.travis-ci.org/mapbox/mapnik-vector-tile.svg?branch=0.6.x)](http://travis-ci.org/mapbox/mapnik-vector-tile)
 
 ## Depends
 
