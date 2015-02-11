@@ -20,4 +20,5 @@ before_script:
 
 script:
  - cd examples/c++
- - make
+ # TODO - incorporate build into main makefile
+ #- make

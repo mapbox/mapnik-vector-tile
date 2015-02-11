@@ -41,6 +41,8 @@ function install_mason_deps() {
     install boost_libprogram_options 1.57.0
     install boost_libregex 1.57.0
     install boost_libpython 1.57.0
+    install pixman 0.32.6
+    install cairo 1.12.18
 }
 
 function setup_runtime_settings() {
