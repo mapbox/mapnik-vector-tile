@@ -1,21 +1,23 @@
 language: cpp
 
+sudo: false
+
+os:
+ - osx
+ - linux
+
 compiler:
- - clang
  - gcc
 
 before_install:
- - sudo apt-add-repository --yes ppa:mapnik/nightly-trunk
- - sudo apt-get update -y
+ - source ./bootstrap.sh
 
 install:
- - sudo apt-get -y install libprotobuf7 libprotobuf-dev protobuf-compiler libmapnik=3.0.0* mapnik-utils=3.0.0* libmapnik-dev=3.0.0* mapnik-input-plugin*=3.0.0* gcc-4.8 g++-4.8
+ - make test
 
 before_script:
- - if [ "${CXX}" = 'g++' ]; then export CXX="g++-4.8" && export CC="gcc-4.8"; fi;
+ - true
 
 script:
- - make clean
- - make test
  - cd examples/c++
  - make
