@@ -2,9 +2,6 @@
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
 #include <mapnik/image_util.hpp>
-#if MAPNIK_VERSION < 300000
-#include <mapnik/graphics.hpp>
-#endif
 #include <mapnik/agg_renderer.hpp>
 #include <mapnik/save_map.hpp>
 #include <mapnik/map.hpp>
