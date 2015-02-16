@@ -1,14 +1,17 @@
 ## mapnik-vector-tile
 
-[![Build Status](https://secure.travis-ci.org/mapbox/mapnik-vector-tile.png)](http://travis-ci.org/mapbox/mapnik-vector-tile)
-
 A Mapnik implemention of [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec).
 
 Provides C++ headers that support rendering geodata into vector tiles and rendering vector tiles into images.
 
+ - Master: [![Build Status](https://travis-ci.org/mapbox/mapnik-vector-tile.svg?branch=master)](https://travis-ci.org/mapbox/mapnik-vector-tile)
+ - 0.6.x series: [![Build Status](https://secure.travis-ci.org/mapbox/mapnik-vector-tile.svg?branch=0.6.x)](http://travis-ci.org/mapbox/mapnik-vector-tile)
+
 ## Depends
 
- - Mapnik > = v2.2.x: `libmapnik` and `mapnik-config`
+ - mapnik-vector-tile 0.7.x depends on Mapnik v3.0.x (until 3.0.0 is released this means latest mapnik HEAD)
+ - mapnik-vector-tile 0.6.x and previous work with Mapnik v2.2.x or v2.3.x
+ - You will need `libmapnik` and `mapnik-config` available
  - Protobuf: `libprotobuf` and `protoc`
 
 ## Implementation details
@@ -19,9 +22,10 @@ For more details see [vector-tile-spec](https://github.com/mapbox/vector-tile-sp
 
 ### Ubuntu Dependencies Installation
 
-    apt-get install libprotobuf7 libprotobuf-dev protobuf-compiler
-    apt-add-repository ppa:mapnik/v2.2.0
-    apt-get update && apt-get install libmapnik libmapnik-dev
+    sudo apt-get install -y libprotobuf7 libprotobuf-dev protobuf-compiler
+    sudo apt-add-repository --yes ppa:mapnik/nightly-2.3
+    sudo apt-get update -y
+    sudo apt-get -y install libmapnik=2.3.0* mapnik-utils=2.3.0* libmapnik-dev=2.3.0* mapnik-input-plugin*=2.3.0*
 
 ### OS X Dependencies Installation
 

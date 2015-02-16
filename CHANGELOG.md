@@ -1,8 +1,14 @@
-# Changlog
+# Changelog
+
+## 0.7.x
+
+ - First release series to exclusively focus on upcoming Mapnik 3.x release.
 
 ## 0.6.2
 
- - Minor fixes to compile against lastest Mapnik 3.x
+ - The 0.6.x series will no longer support Mapnik 3.x going forward and will
+   instead only maintain Mapnik 2.x support
+ - Minor fixes to compile against latest Mapnik 3.x (works with ec2d644f6b698f)
 
 ## 0.6.1
 

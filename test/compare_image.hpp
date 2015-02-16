@@ -1,15 +1,7 @@
 #ifndef __MAPNIK_VTILE_COMPARE_IMAGES_HPP__
 #define __MAPNIK_VTILE_COMPARE_IMAGES_HPP__ 
 
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_SHARED_INCLUDE
-#include MAPNIK_MAKE_SHARED_INCLUDE
-#if MAPNIK_VERSION < 300000
-#include <mapnik/graphics.hpp>
-#include <mapnik/image_data.hpp>
-#else
 #include <mapnik/image.hpp>
-#endif
 #include <mapnik/image_util.hpp>
 #include <mapnik/image_reader.hpp>
 
@@ -17,8 +9,8 @@ using namespace mapnik;
 
 namespace testing {
 
-    unsigned compare_images(MAPNIK_IMAGE_RGBA const& src1,
-                            MAPNIK_IMAGE_RGBA const& src2,
+    unsigned compare_images(mapnik::image_rgba8 const& src1,
+                            mapnik::image_rgba8 const& src2,
                             int threshold=16,
                             bool alpha=true)
     {
@@ -69,45 +61,30 @@ namespace testing {
         {
             throw mapnik::image_reader_exception("Failed to detect type of: " + dest_fn);
         }
-        MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader1(mapnik::get_image_reader(dest_fn,*type));
+        std::unique_ptr<mapnik::image_reader> reader1(mapnik::get_image_reader(dest_fn,*type));
         if (!reader1.get())
         {
             throw mapnik::image_reader_exception("Failed to load: " + dest_fn);
         }
-        #if MAPNIK_VERSION >= 300000
-        MAPNIK_SHARED_PTR<image_any> image_ptr1 = MAPNIK_MAKE_SHARED<image_any>(reader1->read(0,0,reader1->width(),reader1->height()));
-        #else
-        MAPNIK_SHARED_PTR<image_32> image_ptr1 = MAPNIK_MAKE_SHARED<image_32>(reader1->width(),reader1->height());
-        reader1->read(0,0,image_ptr1->data());
-        #endif
+        std::shared_ptr<image_any> image_ptr1 = std::make_shared<image_any>(reader1->read(0,0,reader1->width(),reader1->height()));
         boost::optional<std::string> type2 = mapnik::type_from_filename(src_fn);
         if (!type2)
         {
             throw mapnik::image_reader_exception("Failed to detect type of: " + src_fn);
         }
-        MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader2(mapnik::get_image_reader(src_fn,*type2));
+        std::unique_ptr<mapnik::image_reader> reader2(mapnik::get_image_reader(src_fn,*type2));
         if (!reader2.get())
         {
             throw mapnik::image_reader_exception("Failed to load: " + src_fn);
         }
-        #if MAPNIK_VERSION >= 300000
-        MAPNIK_SHARED_PTR<image_any> image_ptr2 = MAPNIK_MAKE_SHARED<image_any>(reader2->read(0,0,reader2->width(),reader2->height()));
-        #else
-        MAPNIK_SHARED_PTR<image_32> image_ptr2 = MAPNIK_MAKE_SHARED<image_32>(reader2->width(),reader2->height());
-        reader2->read(0,0,image_ptr2->data());
-        #endif
+        std::shared_ptr<image_any> image_ptr2 = std::make_shared<image_any>(reader2->read(0,0,reader2->width(),reader2->height()));
 
-        #if MAPNIK_VERSION >= 300000
-        MAPNIK_IMAGE_RGBA const& src1 = mapnik::util::get<image_rgba8>(*image_ptr1);
-        MAPNIK_IMAGE_RGBA const& src2 = mapnik::util::get<image_rgba8>(*image_ptr2);
-        #else
-        MAPNIK_IMAGE_RGBA const& src1 = image_ptr1->data();
-        MAPNIK_IMAGE_RGBA const& src2 = image_ptr2->data();
-        #endif
+        mapnik::image_rgba8 const& src1 = mapnik::util::get<image_rgba8>(*image_ptr1);
+        mapnik::image_rgba8 const& src2 = mapnik::util::get<image_rgba8>(*image_ptr2);
         return compare_images(src1,src2,threshold,alpha);
     }
 
-    unsigned compare_images(MAPNIK_IMAGE_RGBA const& src1,
+    unsigned compare_images(mapnik::image_rgba8 const& src1,
                             std::string const& filepath,
                             int threshold=16,
                             bool alpha=true)
@@ -117,23 +94,13 @@ namespace testing {
         {
             throw mapnik::image_reader_exception("Failed to detect type of: " + filepath);
         }
-        MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader2(mapnik::get_image_reader(filepath,*type));
+        std::unique_ptr<mapnik::image_reader> reader2(mapnik::get_image_reader(filepath,*type));
         if (!reader2.get())
         {
             throw mapnik::image_reader_exception("Failed to load: " + filepath);
         }
-        #if MAPNIK_VERSION >= 300000
-        MAPNIK_SHARED_PTR<image_any> image_ptr2 = MAPNIK_MAKE_SHARED<image_any>(reader2->read(0,0,reader2->width(),reader2->height()));
-        #else
-        MAPNIK_SHARED_PTR<image_32> image_ptr2 = MAPNIK_MAKE_SHARED<image_32>(reader2->width(),reader2->height());
-        reader2->read(0,0,image_ptr2->data());
-        #endif
-
-        #if MAPNIK_VERSION >= 300000
-        MAPNIK_IMAGE_RGBA const& src2 = mapnik::util::get<image_rgba8>(*image_ptr2);
-        #else
-        MAPNIK_IMAGE_RGBA const& src2 = image_ptr2->data();
-        #endif
+        std::shared_ptr<image_any> image_ptr2 = std::make_shared<image_any>(reader2->read(0,0,reader2->width(),reader2->height()));
+        mapnik::image_rgba8 const& src2 = mapnik::util::get<image_rgba8>(*image_ptr2);
         return compare_images(src1,src2,threshold,alpha);
     }
 

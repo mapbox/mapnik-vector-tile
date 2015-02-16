@@ -22,6 +22,7 @@
 #include <mapnik/geom_util.hpp>
 #include <mapnik/image_reader.hpp>
 #include <mapnik/raster.hpp>
+#include <mapnik/view_transform.hpp>
 
 #include <memory>
 #include <stdexcept>
@@ -30,11 +31,6 @@
 #include <boost/optional.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
 #include <unicode/unistr.h>
-
-#include "mapnik3x_compatibility.hpp"
-#include MAPNIK_MAKE_SHARED_INCLUDE
-#include MAPNIK_SHARED_INCLUDE
-#include MAPNIK_VIEW_TRANSFORM_INCLUDE
 
 namespace mapnik { namespace vector_tile_impl {
 
@@ -114,7 +110,7 @@ namespace mapnik { namespace vector_tile_impl {
               end_(layer_.features_size()),
               tr_("utf-8"),
               multi_geom_(multi_geom),
-              ctx_(MAPNIK_MAKE_SHARED<mapnik::context_type>())
+              ctx_(std::make_shared<mapnik::context_type>())
         {
             std::set<std::string>::const_iterator pos = attribute_names.begin();
             std::set<std::string>::const_iterator end = attribute_names.end();
@@ -146,14 +142,14 @@ namespace mapnik { namespace vector_tile_impl {
                 if (f.has_raster())
                 {
                     std::string const& image_buffer = f.raster();
-                    MAPNIK_UNIQUE_PTR<mapnik::image_reader> reader(mapnik::get_image_reader(image_buffer.data(),image_buffer.size()));
+                    std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(image_buffer.data(),image_buffer.size()));
                     if (reader.get())
                     {
                         int image_width = reader->width();
                         int image_height = reader->height();
                         if (image_width > 0 && image_height > 0)
                         {
-                            MAPNIK_VIEW_TRANSFORM t(image_width, image_height, tile_extent_, 0, 0);
+                            mapnik::view_transform t(image_width, image_height, tile_extent_, 0, 0);
                             box2d<double> intersect = tile_extent_.intersect(unbuffered_query_);
                             box2d<double> ext = t.forward(intersect);
                             if (ext.width() > 0.5 && ext.height() > 0.5 )
@@ -180,26 +176,12 @@ namespace mapnik { namespace vector_tile_impl {
                                                                     x_off + width,
                                                                     y_off + height);
                                 intersect = t.backward(feature_raster_extent);
-                                #if MAPNIK_VERSION >= 300000
                                 double filter_factor = 1.0;
                                 mapnik::image_any data = reader->read(x_off, y_off, width, height);
-                                mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(intersect,
+                                mapnik::raster_ptr raster = std::make_shared<mapnik::raster>(intersect,
                                                               data,
-                                                              #if MAPNIK_VERSION >= 300000
                                                               filter_factor
-                                                              #else
-                                                              reader->premultiplied_alpha()
-                                                              #endif
                                                               );
-                                #else
-                                bool premultiplied = false;
-                                mapnik::raster_ptr raster = MAPNIK_MAKE_SHARED<mapnik::raster>(intersect,
-                                                               width,
-                                                               height,
-                                                               premultiplied
-                                                               );
-                                reader->read(x_off, y_off, raster->data_);
-                                #endif
                                 mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
                                 feature->set_raster(raster);
                                 add_attributes(feature,f,layer_,tr_);
@@ -221,7 +203,7 @@ namespace mapnik { namespace vector_tile_impl {
                 double first_x=0;
                 double first_y=0;
                 mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
-                feature->paths().push_back(new mapnik::geometry_type(MAPNIK_GEOM_TYPE(f.type())));
+                feature->paths().push_back(new mapnik::geometry_type(mapnik::geometry_type::types(f.type())));
                 mapnik::geometry_type * geom = &feature->paths().front();
                 for (int k = 0; k < f.geometry_size();)
                 {
@@ -243,7 +225,7 @@ namespace mapnik { namespace vector_tile_impl {
                             if (cmd == mapnik::SEG_MOVETO)
                             {
                                 if (multi_geom_ && !first) {
-                                    feature->paths().push_back(new mapnik::geometry_type(MAPNIK_GEOM_TYPE(f.type())));
+                                    feature->paths().push_back(new mapnik::geometry_type(mapnik::geometry_type::types(f.type())));
                                     geom = &feature->paths().back();
                                 }
                                 first_x = x;
@@ -366,7 +348,7 @@ namespace mapnik { namespace vector_tile_impl {
     inline featureset_ptr tile_datasource::features(query const& q) const
     {
         mapnik::filter_in_box filter(q.get_bbox());
-        return MAPNIK_MAKE_SHARED<tile_featureset<mapnik::filter_in_box> >
+        return std::make_shared<tile_featureset<mapnik::filter_in_box> >
             (filter, get_tile_extent(), q.get_unbuffered_bbox(), q.property_names(), layer_, tile_x_, tile_y_, scale_, multi_geom_);
     }
 
@@ -378,7 +360,7 @@ namespace mapnik { namespace vector_tile_impl {
         {
             names.insert(layer_.keys(i));
         }
-        return MAPNIK_MAKE_SHARED<tile_featureset<filter_at_point> >
+        return std::make_shared<tile_featureset<filter_at_point> >
             (filter, get_tile_extent(), get_tile_extent(), names, layer_, tile_x_, tile_y_, scale_, multi_geom_);
     }
 
