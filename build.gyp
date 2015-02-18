@@ -138,7 +138,8 @@
         "./src"
       ],
       'libraries':[
-        '<!@(mapnik-config --ldflags)'
+        '<!@(mapnik-config --ldflags)',
+        '-lz'
       ],
       'cflags_cc' : [
           '-D_THREAD_SAFE',
