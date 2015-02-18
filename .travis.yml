@@ -13,7 +13,7 @@ before_install:
  - source ./bootstrap.sh
 
 install:
- - make test -j10
+ - make test
 
 before_script:
  - true
