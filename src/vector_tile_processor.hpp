@@ -27,12 +27,13 @@
 #include <mapnik/transform_path_adapter.hpp>
 
 // agg
-#ifdef CONV_CLIPPER
 #include "agg_path_storage.h"
+
+// agg core clipper: http://www.angusj.com/delphi/clipper.php
 #include "agg_conv_clipper.h"
-#else
+
+// angus clipper
 #include "agg_conv_clip_polygon.h"
-#endif
 
 #include "agg_conv_clip_polyline.h"
 #include "agg_rendering_buffer.h"
@@ -64,6 +65,10 @@ class processor : private mapnik::util::noncopyable
 {
 public:
     typedef T backend_type;
+    enum poly_clipper_type : std::uint8_t {
+        ANGUS_CLIPPER,
+        AGG_CLIPPER
+    };
 private:
     backend_type & backend_;
     mapnik::Map const& m_;
@@ -74,6 +79,7 @@ private:
     std::string image_format_;
     scaling_method_e scaling_method_;
     bool painted_;
+    poly_clipper_type poly_clipper_type_;
 public:
     processor(T & backend,
               mapnik::Map const& map,
@@ -93,7 +99,18 @@ public:
         tolerance_(tolerance),
         image_format_(image_format),
         scaling_method_(scaling_method),
-        painted_(false) {}
+        painted_(false),
+        poly_clipper_type_(AGG_CLIPPER) {}
+
+    void set_poly_clipper(poly_clipper_type clipper) const
+    {
+        poly_clipper_type_ = clipper;
+    }
+
+    inline poly_clipper_type get_poly_clipper() const
+    {
+        return poly_clipper_type_;
+    }
 
     void apply(double scale_denom=0.0)
     {
@@ -376,32 +393,38 @@ public:
         {
             if (geom.size() > 2)
             {
-#ifdef CONV_CLIPPER
-                agg::path_storage ps;
-                ps.move_to(buffered_query_ext.minx(), buffered_query_ext.miny());
-                ps.line_to(buffered_query_ext.minx(), buffered_query_ext.maxy());
-                ps.line_to(buffered_query_ext.maxx(), buffered_query_ext.maxy());
-                ps.line_to(buffered_query_ext.maxx(), buffered_query_ext.miny());
-                ps.close_polygon();
-                typedef agg::conv_clipper<mapnik::vertex_adapter, agg::path_storage> poly_clipper;
-                poly_clipper clipped(geom,ps,
-                                     agg::clipper_and,
-                                     agg::clipper_non_zero,
-                                     agg::clipper_non_zero,
-                                     1);
-                //clipped.rewind(0);
-#else
-                typedef agg::conv_clip_polygon<mapnik::vertex_adapter> poly_clipper;
-                poly_clipper clipped(geom);
-                clipped.clip_box(
-                    buffered_query_ext.minx(),
-                    buffered_query_ext.miny(),
-                    buffered_query_ext.maxx(),
-                    buffered_query_ext.maxy());
-#endif
-                typedef mapnik::transform_path_adapter<mapnik::view_transform, poly_clipper> path_type;
-                path_type path(t_, clipped, prj_trans);
-                path_count = backend_.add_path(path, tolerance_, geom.type());
+                if (get_poly_clipper() == ANGUS_CLIPPER)
+                {
+                    agg::path_storage ps;
+                    ps.move_to(buffered_query_ext.minx(), buffered_query_ext.miny());
+                    ps.line_to(buffered_query_ext.minx(), buffered_query_ext.maxy());
+                    ps.line_to(buffered_query_ext.maxx(), buffered_query_ext.maxy());
+                    ps.line_to(buffered_query_ext.maxx(), buffered_query_ext.miny());
+                    ps.close_polygon();
+                    typedef agg::conv_clipper<mapnik::vertex_adapter, agg::path_storage> poly_clipper;
+                    poly_clipper clipped(geom,ps,
+                                         agg::clipper_and,
+                                         agg::clipper_non_zero,
+                                         agg::clipper_non_zero,
+                                         1);
+                    typedef mapnik::transform_path_adapter<mapnik::view_transform, poly_clipper> path_type;
+                    path_type path(t_, clipped, prj_trans);
+                    path_count = backend_.add_path(path, tolerance_, geom.type());
+                }
+                else
+                {
+                    typedef agg::conv_clip_polygon<mapnik::vertex_adapter> poly_clipper;
+                    poly_clipper clipped(geom);
+                    clipped.clip_box(
+                        buffered_query_ext.minx(),
+                        buffered_query_ext.miny(),
+                        buffered_query_ext.maxx(),
+                        buffered_query_ext.maxy());
+
+                    typedef mapnik::transform_path_adapter<mapnik::view_transform, poly_clipper> path_type;
+                    path_type path(t_, clipped, prj_trans);
+                    path_count = backend_.add_path(path, tolerance_, geom.type());
+                }
             }
             break;
         }
