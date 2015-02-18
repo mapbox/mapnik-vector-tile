@@ -8,10 +8,6 @@
 #include <stdexcept>
 #include <string>
 
-#ifdef CONV_CLIPPER
-#include "clipper.hpp"
-#endif
-
 namespace mapnik { namespace vector_tile_impl {
 
     // ported from http://stackoverflow.com/a/1968345/2333354
