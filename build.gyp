@@ -42,15 +42,14 @@
         'MAPNIK_VECTOR_TILE_LIBRARY=1'
       ],
       'libraries':[
-          '<!@(pkg-config protobuf --libs-only-L)',
           '-lprotobuf-lite',
       ],
       'cflags_cc' : [
-          '<!@(pkg-config protobuf --cflags)'
+          '-D_THREAD_SAFE'
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS':[
-           '<!@(pkg-config protobuf --cflags)',
+           '-D_THREAD_SAFE',
         ],
       },
       'cflags_cc' : [
