@@ -7,7 +7,7 @@
   },
   "targets": [
     {
-      'target_name': 'action_before_build',
+      'target_name': 'make_vector_tile',
       'type': 'none',
       'hard_dependency': 1,
       'actions': [
@@ -24,12 +24,49 @@
         }
       ]
     },
+
     {
       "target_name": "vector_tile",
-      'dependencies': [ 'action_before_build' ],
+      'dependencies': [ 'make_vector_tile' ],
       "type": "static_library",
       "sources": [
-        "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc",
+        "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc"
+      ],
+      'include_dirs': [
+        '<(SHARED_INTERMEDIATE_DIR)/'
+      ],
+      'cflags_cc' : [
+          '-D_THREAD_SAFE',
+          '<!@(mapnik-config --dep-includes)' # assume protobuf headers are here
+      ],
+      'xcode_settings': {
+        'OTHER_CPLUSPLUSFLAGS':[
+           '-D_THREAD_SAFE',
+           '<!@(mapnik-config --dep-includes)' # assume protobuf headers are here
+        ],
+      },
+      'direct_dependent_settings': {
+        'include_dirs': [
+          '<(SHARED_INTERMEDIATE_DIR)/'
+        ],
+        'libraries':[
+          '-lprotobuf-lite'
+        ],
+        'cflags_cc' : [
+            '-D_THREAD_SAFE'
+        ],
+        'xcode_settings': {
+          'OTHER_CPLUSPLUSFLAGS':[
+             '-D_THREAD_SAFE',
+          ],
+        },
+      }
+    },
+    {
+      "target_name": "mapnik_vector_tile_impl",
+      'dependencies': [ 'vector_tile' ],
+      "type": "static_library",
+      "sources": [
         "src/vector_tile_util.cpp",
         "src/vector_tile_projection.cpp",
         "src/vector_tile_geometry_encoder.cpp",
@@ -41,17 +78,6 @@
       'defines' : [
         'MAPNIK_VECTOR_TILE_LIBRARY=1'
       ],
-      'libraries':[
-          '-lprotobuf-lite',
-      ],
-      'cflags_cc' : [
-          '-D_THREAD_SAFE'
-      ],
-      'xcode_settings': {
-        'OTHER_CPLUSPLUSFLAGS':[
-           '-D_THREAD_SAFE',
-        ],
-      },
       'cflags_cc' : [
           '<!@(mapnik-config --cflags)'
       ],
@@ -60,10 +86,6 @@
            '<!@(mapnik-config --cflags)'
         ],
       },
-      'include_dirs': [
-        '<(SHARED_INTERMEDIATE_DIR)/'
-      ],
-
       'direct_dependent_settings': {
         'include_dirs': [
           '<(SHARED_INTERMEDIATE_DIR)/'
@@ -74,22 +96,22 @@
         'cflags_cc' : [
             '<!@(mapnik-config --cflags)'
         ],
+        'xcode_settings': {
+          'OTHER_CPLUSPLUSFLAGS':[
+             '<!@(mapnik-config --cflags)'
+          ],
+        },
         'libraries':[
           '<!@(mapnik-config --libs)',
           '<!@(mapnik-config --ldflags)',
           '-lprotobuf-lite',
           '-lz'
         ],
-        'xcode_settings': {
-          'OTHER_CPLUSPLUSFLAGS':[
-             '<!@(mapnik-config --cflags)'
-          ],
-        },
       }
     },
     {
       "target_name": "tests",
-      'dependencies': [ 'vector_tile' ],
+      'dependencies': [ 'mapnik_vector_tile_impl' ],
       "type": "executable",
       "defines": [
         "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
