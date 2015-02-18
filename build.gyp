@@ -126,6 +126,28 @@
       "include_dirs": [
         "./src"
       ]
+    },
+    {
+      "target_name": "tileinfo",
+      'dependencies': [ 'vector_tile' ],
+      "type": "executable",
+      "sources": [
+        "./examples/c++/tileinfo.cpp"
+      ],
+      "include_dirs": [
+        "./src"
+      ],
+      'cflags_cc' : [
+          '-D_THREAD_SAFE',
+          '<!@(mapnik-config --dep-includes)' # assume protobuf headers are here
+      ],
+      'xcode_settings': {
+        'OTHER_CPLUSPLUSFLAGS':[
+           '-D_THREAD_SAFE',
+           '<!@(mapnik-config --dep-includes)' # assume protobuf headers are here
+        ],
+      }
     }    
+
   ]
 }
