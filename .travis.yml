@@ -13,12 +13,11 @@ before_install:
  - source ./bootstrap.sh
 
 install:
- - make test
+ - make -j10
 
 before_script:
- - true
+ - make test
 
 script:
- - cd examples/c++
- # TODO - incorporate build into main makefile
- #- make
+ # make sure tileinfo command works
+ - ./build/Release/tileinfo examples/data/14_2620_6331.vector.pbf.z
