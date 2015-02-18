@@ -5,7 +5,7 @@ namespace mapnik { namespace vector_tile_impl {
 
 // decodes both zlib and gzip
 // http://stackoverflow.com/a/1838702/2333354
-inline void zlib_decompress(std::string const& input, std::string & output)
+void zlib_decompress(std::string const& input, std::string & output)
 {
     z_stream inflate_s;
     inflate_s.zalloc = Z_NULL;
@@ -32,7 +32,7 @@ inline void zlib_decompress(std::string const& input, std::string & output)
     output.resize(length);
 }
 
-inline void zlib_compress(std::string const& input, std::string & output, bool gzip)
+void zlib_compress(std::string const& input, std::string & output, bool gzip)
 {
     z_stream deflate_s;
     deflate_s.zalloc = Z_NULL;

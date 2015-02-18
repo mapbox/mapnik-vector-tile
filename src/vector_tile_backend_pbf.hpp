@@ -7,6 +7,7 @@
 #include "vector_tile.pb.h"
 #pragma GCC diagnostic pop
 
+#include "vector_tile_config.hpp"
 #include "vector_tile_geometry_encoder.hpp"
 #include <mapnik/value.hpp>
 #include <mapnik/geometry.hpp>
@@ -33,13 +34,13 @@ namespace mapnik { namespace vector_tile_impl {
         values_container values_;
         int32_t x_, y_;
     public:
-        explicit backend_pbf(vector_tile::Tile & _tile,
+        MAPNIK_VECTOR_INLINE explicit backend_pbf(vector_tile::Tile & _tile,
                              unsigned path_multiplier);
 
-        void add_tile_feature_raster(std::string const& image_buffer);
-        void stop_tile_feature();
-        void start_tile_feature(mapnik::feature_impl const& feature);
-        void start_tile_layer(std::string const& name);
+        MAPNIK_VECTOR_INLINE void add_tile_feature_raster(std::string const& image_buffer);
+        MAPNIK_VECTOR_INLINE void stop_tile_feature();
+        MAPNIK_VECTOR_INLINE void start_tile_feature(mapnik::feature_impl const& feature);
+        MAPNIK_VECTOR_INLINE void start_tile_layer(std::string const& name);
         inline void stop_tile_layer() {}
 
         template <typename T>

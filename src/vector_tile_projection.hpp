@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+#include "vector_tile_config.hpp"
 
 namespace mapnik { namespace vector_tile_impl {
 
@@ -11,11 +12,11 @@ namespace mapnik { namespace vector_tile_impl {
     private:
         double tile_size_;
     public:
-        spherical_mercator(unsigned tile_size);
+        MAPNIK_VECTOR_INLINE spherical_mercator(unsigned tile_size);
 
-        void from_pixels(double shift, double & x, double & y);
+        MAPNIK_VECTOR_INLINE void from_pixels(double shift, double & x, double & y);
 
-        void xyz(int x,
+        MAPNIK_VECTOR_INLINE void xyz(int x,
                  int y,
                  int z,
                  double & minx,

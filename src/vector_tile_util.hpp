@@ -3,13 +3,15 @@
 
 #include <string>
 
+#include "vector_tile_config.hpp"
+
 namespace vector_tile {
     class Tile;
 }
 
 namespace mapnik { namespace vector_tile_impl {
 
-    bool is_solid_extent(vector_tile::Tile const& tile, std::string & key);
+    MAPNIK_VECTOR_INLINE bool is_solid_extent(vector_tile::Tile const& tile, std::string & key);
 
 }}
 

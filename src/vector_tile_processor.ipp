@@ -37,7 +37,6 @@
 #include "agg_pixfmt_rgba.h"
 #include "agg_renderer_base.h"
 
-#include <boost/foreach.hpp>
 #include <boost/optional.hpp>
 #include <boost/ptr_container/ptr_vector.hpp>
 
@@ -79,7 +78,7 @@ processor<T>::processor(T & backend,
       poly_clipper_type_(AGG_CLIPPER) {}
 
 template <typename T>
-void processor<T>::set_poly_clipper(poly_clipper_type clipper) const
+void processor<T>::set_poly_clipper(poly_clipper_type clipper)
 {
     poly_clipper_type_ = clipper;
 }
@@ -93,7 +92,7 @@ void processor<T>::apply(double scale_denom)
         scale_denom = mapnik::scale_denominator(m_req_.scale(),proj.is_geographic());
     }
     scale_denom *= scale_factor_;
-    BOOST_FOREACH ( mapnik::layer const& lay, m_.layers() )
+    for (mapnik::layer const& lay : m_.layers())
     {
         if (lay.visible(scale_denom))
         {
@@ -214,7 +213,7 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
                                        height/qh);
     mapnik::query q(layer_ext,res,scale_denom,extent);
     mapnik::layer_descriptor lay_desc = ds->get_descriptor();
-    BOOST_FOREACH(mapnik::attribute_descriptor const& desc, lay_desc.get_descriptors())
+    for (mapnik::attribute_descriptor const& desc : lay_desc.get_descriptors())
     {
         q.add_property_name(desc.get_name());
     }
@@ -307,7 +306,7 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
                 continue;
             }
             backend_.start_tile_feature(*feature);
-            BOOST_FOREACH( mapnik::geometry_type const& geom, paths)
+            for (mapnik::geometry_type const& geom : paths)
             {
                 mapnik::vertex_adapter va(geom);
                 mapnik::box2d<double> geom_box = va.envelope();

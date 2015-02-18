@@ -3,6 +3,7 @@
 
 #include <mapnik/datasource.hpp>
 #include <mapnik/box2d.hpp>
+#include "vector_tile_config.hpp"
 
 namespace vector_tile {
     class Tile_Layer;

@@ -2,51 +2,15 @@
 #define __MAPNIK_VECTOR_PROCESSOR_H__
 
 #include <mapnik/map.hpp>
-#include <mapnik/request.hpp>
 #include <mapnik/layer.hpp>
-#include <mapnik/query.hpp>
-#include <mapnik/geometry.hpp>
-#include <mapnik/feature.hpp>
-#include <mapnik/datasource.hpp>
-#include <mapnik/projection.hpp>
-#include <mapnik/proj_transform.hpp>
-#include <mapnik/scale_denominator.hpp>
-#include <mapnik/attribute_descriptor.hpp>
-#include <mapnik/feature_layer_desc.hpp>
-#include <mapnik/config.hpp>
-#include <mapnik/box2d.hpp>
-#include <mapnik/version.hpp>
-#include <mapnik/image_util.hpp>
-#include <mapnik/raster.hpp>
-#include <mapnik/warp.hpp>
-#include <mapnik/version.hpp>
+#include <mapnik/util/noncopyable.hpp>
+#include <mapnik/request.hpp>
+#include <mapnik/view_transform.hpp>
 #include <mapnik/image_scaling.hpp>
 #include <mapnik/image_compositing.hpp>
-#include <mapnik/view_transform.hpp>
-#include <mapnik/util/noncopyable.hpp>
-#include <mapnik/transform_path_adapter.hpp>
+#include <mapnik/geometry.hpp>
 
-// agg
-#include "agg_path_storage.h"
-
-// agg core clipper: http://www.angusj.com/delphi/clipper.php
-#include "agg_conv_clipper.h"
-
-// angus clipper
-#include "agg_conv_clip_polygon.h"
-
-#include "agg_conv_clip_polyline.h"
-#include "agg_rendering_buffer.h"
-#include "agg_pixfmt_rgba.h"
-#include "agg_renderer_base.h"
-
-#include <boost/foreach.hpp>
-#include <boost/optional.hpp>
-#include <boost/ptr_container/ptr_vector.hpp>
-
-#include <iostream>
-#include <string>
-#include <stdexcept>
+#include "vector_tile_config.hpp"
 
 namespace mapnik { namespace vector_tile_impl {
 
@@ -81,7 +45,7 @@ private:
     bool painted_;
     poly_clipper_type poly_clipper_type_;
 public:
-    processor(T & backend,
+    MAPNIK_VECTOR_INLINE processor(T & backend,
               mapnik::Map const& map,
               mapnik::request const& m_req,
               double scale_factor=1.0,
@@ -92,18 +56,18 @@ public:
               scaling_method_e scaling_method=SCALING_NEAR
         );
 
-    void set_poly_clipper(poly_clipper_type clipper) const;
+    MAPNIK_VECTOR_INLINE void set_poly_clipper(poly_clipper_type clipper);
 
     inline poly_clipper_type get_poly_clipper() const
     {
         return poly_clipper_type_;
     }
 
-    void apply(double scale_denom=0.0);
+    MAPNIK_VECTOR_INLINE void apply(double scale_denom=0.0);
 
-    bool painted() const;
+    MAPNIK_VECTOR_INLINE bool painted() const;
 
-    void apply_to_layer(mapnik::layer const& lay,
+    MAPNIK_VECTOR_INLINE void apply_to_layer(mapnik::layer const& lay,
                         mapnik::projection const& proj0,
                         double scale,
                         double scale_denom,
@@ -112,7 +76,7 @@ public:
                         box2d<double> const& extent,
                         int buffer_size);
 
-    unsigned handle_geometry(mapnik::vertex_adapter & geom,
+    MAPNIK_VECTOR_INLINE unsigned handle_geometry(mapnik::vertex_adapter & geom,
                              mapnik::proj_transform const& prj_trans,
                              mapnik::box2d<double> const& buffered_query_ext);
 };

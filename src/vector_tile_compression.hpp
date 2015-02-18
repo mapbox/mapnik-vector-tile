@@ -2,6 +2,7 @@
 #define __MAPNIK_VECTOR_TILE_COMPRESSION_H__
 
 #include <string>
+#include "vector_tile_config.hpp"
 
 namespace mapnik { namespace vector_tile_impl {
 
@@ -17,8 +18,8 @@ inline bool is_gzip_compressed(std::string const& data)
 
 // decodes both zlib and gzip
 // http://stackoverflow.com/a/1838702/2333354
-void zlib_decompress(std::string const& input, std::string & output);
-void zlib_compress(std::string const& input, std::string & output, bool gzip=true);
+MAPNIK_VECTOR_INLINE void zlib_decompress(std::string const& input, std::string & output);
+MAPNIK_VECTOR_INLINE void zlib_compress(std::string const& input, std::string & output, bool gzip=true);
 
 }} // end ns
 

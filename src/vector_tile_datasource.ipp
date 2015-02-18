@@ -280,7 +280,7 @@ namespace mapnik { namespace vector_tile_impl {
     };
 
     // tile_datasource impl
-    inline tile_datasource::tile_datasource(vector_tile::Tile_Layer const& layer,
+    tile_datasource::tile_datasource(vector_tile::Tile_Layer const& layer,
                                      unsigned x,
                                      unsigned y,
                                      unsigned z,
@@ -302,21 +302,21 @@ namespace mapnik { namespace vector_tile_impl {
         scale_ = (static_cast<double>(layer_.extent()) / tile_size_) * tile_size_/resolution;
     }
 
-    inline tile_datasource::~tile_datasource() {}
+    tile_datasource::~tile_datasource() {}
 
-    inline datasource::datasource_t tile_datasource::type() const
+    datasource::datasource_t tile_datasource::type() const
     {
         return datasource::Vector;
     }
 
-    inline featureset_ptr tile_datasource::features(query const& q) const
+    featureset_ptr tile_datasource::features(query const& q) const
     {
         mapnik::filter_in_box filter(q.get_bbox());
         return std::make_shared<tile_featureset<mapnik::filter_in_box> >
             (filter, get_tile_extent(), q.get_unbuffered_bbox(), q.property_names(), layer_, tile_x_, tile_y_, scale_, multi_geom_);
     }
 
-    inline featureset_ptr tile_datasource::features_at_point(coord2d const& pt, double tol) const
+    featureset_ptr tile_datasource::features_at_point(coord2d const& pt, double tol) const
     {
         mapnik::filter_at_point filter(pt,tol);
         std::set<std::string> names;
@@ -328,13 +328,13 @@ namespace mapnik { namespace vector_tile_impl {
             (filter, get_tile_extent(), get_tile_extent(), names, layer_, tile_x_, tile_y_, scale_, multi_geom_);
     }
 
-    inline void tile_datasource::set_envelope(box2d<double> const& bbox)
+    void tile_datasource::set_envelope(box2d<double> const& bbox)
     {
         extent_initialized_ = true;
         extent_ = bbox;
     }
 
-    inline box2d<double> tile_datasource::get_tile_extent() const
+    box2d<double> tile_datasource::get_tile_extent() const
     {
         spherical_mercator merc(tile_size_);
         double minx,miny,maxx,maxy;
@@ -342,7 +342,7 @@ namespace mapnik { namespace vector_tile_impl {
         return box2d<double>(minx,miny,maxx,maxy);
     }
 
-    inline box2d<double> tile_datasource::envelope() const
+    box2d<double> tile_datasource::envelope() const
     {
         if (!extent_initialized_)
         {
@@ -352,12 +352,12 @@ namespace mapnik { namespace vector_tile_impl {
         return extent_;
     }
 
-    inline boost::optional<datasource::geometry_t> tile_datasource::get_geometry_type() const
+    boost::optional<datasource::geometry_t> tile_datasource::get_geometry_type() const
     {
         return datasource::Collection;
     }
 
-    inline layer_descriptor tile_datasource::get_descriptor() const
+    layer_descriptor tile_datasource::get_descriptor() const
     {
         if (!attributes_added_)
         {

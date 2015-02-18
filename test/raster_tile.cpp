@@ -1,10 +1,7 @@
-// https://github.com/philsquared/Catch/wiki/Supplying-your-own-main()
-#define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
 
 // test utils
 #include "test_utils.hpp"
-#include "compare_image.hpp"
 #include "vector_tile_projection.hpp"
 
 // vector output api
@@ -18,6 +15,8 @@
 #include <mapnik/datasource_cache.hpp>
 #include <mapnik/agg_renderer.hpp>
 #include <mapnik/load_map.hpp>
+#include <mapnik/image_reader.hpp>
+#include <mapnik/image_util.hpp>
 
 #include <sstream>
 #include <fstream>
@@ -249,13 +248,4 @@ TEST_CASE( "raster tile output 2", "should be able to overzoom raster" ) {
     if (diff > 0) {
         mapnik::save_to_file(im.data(),"test/fixtures/actual-3.png","png32");
     }
-}
-
-int main (int argc, char* const argv[])
-{
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
-    int result = Catch::Session().run( argc, argv );
-    if (!result) printf("\x1b[1;32m ✓ \x1b[0m\n");
-    google::protobuf::ShutdownProtobufLibrary();
-    return result;
 }

@@ -1,14 +1,14 @@
-// https://github.com/philsquared/Catch/wiki/Supplying-your-own-main()
-#define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
 
 // test utils
 #include "test_utils.hpp"
-#include "compare_image.hpp"
 #include <mapnik/memory_datasource.hpp>
 #include <mapnik/util/fs.hpp>
 #include <mapnik/agg_renderer.hpp>
+#include <mapnik/feature_factory.hpp>
 #include <mapnik/load_map.hpp>
+#include <mapnik/graphics.hpp>
+#include <mapnik/image_util.hpp>
 
 // vector output api
 #include "vector_tile_compression.hpp"
@@ -94,7 +94,7 @@ TEST_CASE( "vector tile output 1", "should create vector tile with two points" )
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
-    lyr.set_datasource(build_ds(0,0,true));
+    lyr.set_datasource(testing::build_ds(0,0,true));
     map.add_layer(lyr);
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
@@ -182,7 +182,7 @@ TEST_CASE( "vector tile output 4", "adding layers with degenerate geometries sho
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     // create a datasource with a feature outside the map
-    std::shared_ptr<mapnik::memory_datasource> ds = build_ds(bbox.minx()-1,bbox.miny()-1);
+    std::shared_ptr<mapnik::memory_datasource> ds = testing::build_ds(bbox.minx()-1,bbox.miny()-1);
     // but fake the overall envelope to ensure the layer is still processed
     // and then removed given no intersecting features will be added
     ds->set_envelope(bbox);
@@ -208,7 +208,7 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
-    lyr.set_datasource(build_ds(0,0));
+    lyr.set_datasource(testing::build_ds(0,0));
     map.add_layer(lyr);
     map.zoom_to_box(bbox);
     mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
@@ -239,7 +239,7 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     std::vector<std::string> expected_names;
     expected_names.push_back("name");
     std::vector<std::string> names;
-    BOOST_FOREACH(mapnik::attribute_descriptor const& desc, lay_desc.get_descriptors())
+    for (auto const& desc : lay_desc.get_descriptors())
     {
         names.push_back(desc.get_name());
     }
@@ -273,7 +273,7 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
-    lyr.set_datasource(build_ds(0,0));
+    lyr.set_datasource(testing::build_ds(0,0));
     map.add_layer(lyr);
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
@@ -519,13 +519,4 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
     CHECK(1 == layer.features_size());
     vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(7 == f.geometry_size());
-}
-
-int main (int argc, char* const argv[])
-{
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
-    int result = Catch::Session().run( argc, argv );
-    if (!result) printf("\x1b[1;32m ✓ \x1b[0m\n");
-    google::protobuf::ShutdownProtobufLibrary();
-    return result;
 }
