@@ -28,6 +28,7 @@
     {
       "target_name": "vector_tile",
       'dependencies': [ 'make_vector_tile' ],
+      'hard_dependency': 1,
       "type": "static_library",
       "sources": [
         "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc"
@@ -65,6 +66,7 @@
     {
       "target_name": "mapnik_vector_tile_impl",
       'dependencies': [ 'vector_tile' ],
+      'hard_dependency': 1,
       "type": "static_library",
       "sources": [
         "src/vector_tile_util.cpp",
