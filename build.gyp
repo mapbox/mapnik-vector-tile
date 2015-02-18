@@ -137,6 +137,9 @@
       "include_dirs": [
         "./src"
       ],
+      'libraries':[
+        '<!@(mapnik-config --ldflags)'
+      ],
       'cflags_cc' : [
           '-D_THREAD_SAFE',
           '<!@(mapnik-config --cflags)' # assume protobuf headers are here
