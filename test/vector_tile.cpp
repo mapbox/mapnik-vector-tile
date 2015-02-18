@@ -7,9 +7,8 @@
 #include "compare_image.hpp"
 #include <mapnik/memory_datasource.hpp>
 #include <mapnik/util/fs.hpp>
-const unsigned _x=0,_y=0,_z=0;
-const unsigned tile_size = 256;
-mapnik::box2d<double> bbox;
+#include <mapnik/agg_renderer.hpp>
+#include <mapnik/load_map.hpp>
 
 // vector output api
 #include "vector_tile_compression.hpp"
@@ -59,7 +58,7 @@ TEST_CASE( "vector tile compression", "should be able to round trip gzip and zli
 TEST_CASE( "vector tile projection 1", "should support z/x/y to bbox conversion at 0/0/0" ) {
     mapnik::vector_tile_impl::spherical_mercator merc(256);
     double minx,miny,maxx,maxy;
-    merc.xyz(_x,_y,_z,minx,miny,maxx,maxy);
+    merc.xyz(0,0,0,minx,miny,maxx,maxy);
     mapnik::box2d<double> map_extent(minx,miny,maxx,maxy);
     mapnik::box2d<double> e(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     double epsilon = 0.000001;
@@ -91,6 +90,8 @@ TEST_CASE( "vector tile output 1", "should create vector tile with two points" )
     typedef vector_tile::Tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
+    unsigned tile_size = 256;
+    mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(build_ds(0,0,true));
@@ -123,6 +124,8 @@ TEST_CASE( "vector tile output 2", "adding empty layers should result in empty t
     typedef vector_tile::Tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
+    unsigned tile_size = 256;
+    mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     map.add_layer(mapnik::layer("layer",map.srs()));
     map.zoom_to_box(bbox);
@@ -141,6 +144,8 @@ TEST_CASE( "vector tile output 3", "adding layers with geometries outside render
     typedef vector_tile::Tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
+    unsigned tile_size = 256;
+    mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
@@ -172,6 +177,8 @@ TEST_CASE( "vector tile output 4", "adding layers with degenerate geometries sho
     typedef vector_tile::Tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
+    unsigned tile_size = 256;
+    mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     // create a datasource with a feature outside the map
@@ -197,6 +204,8 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     typedef vector_tile::Tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
+    unsigned tile_size = 256;
+    mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(build_ds(0,0));
@@ -224,7 +233,7 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     mapnik::layer lyr2("layer",map.srs());
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource>(
-                                        layer2,_x,_y,_z,map2.width());
+                                        layer2,0,0,0,map2.width());
     ds->set_envelope(bbox);
     mapnik::layer_descriptor lay_desc = ds->get_descriptor();
     std::vector<std::string> expected_names;
@@ -260,6 +269,8 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     typedef vector_tile::Tile tile_type;
     tile_type tile;
     backend_type backend(tile,16);
+    unsigned tile_size = 256;
+    mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(build_ds(0,0));
@@ -281,7 +292,7 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     CHECK(4096 == f.geometry(1));
     CHECK(4096 == f.geometry(2));
     // now actually start the meat of the test
-    mapnik::vector_tile_impl::tile_datasource ds(layer,_x,_y,_z,tile_size);
+    mapnik::vector_tile_impl::tile_datasource ds(layer,0,0,0,tile_size);
     mapnik::featureset_ptr fs;
 
     // ensure we can query single feature
@@ -344,6 +355,8 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     unsigned tolerance = 2000000;
     // now create the testing data
     vector_tile::Tile tile;
+    unsigned tile_size = 256;
+    mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     mapnik::vector_tile_impl::backend_pbf backend(tile,path_multiplier);
     backend.start_tile_layer("layer");
     mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
@@ -382,7 +395,7 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     mapnik::featureset_ptr fs;
     mapnik::feature_ptr f_ptr;
 
-    mapnik::vector_tile_impl::tile_datasource ds(layer,_x,_y,_z,tile_size);
+    mapnik::vector_tile_impl::tile_datasource ds(layer,0,0,0,tile_size);
     fs = ds.features(mapnik::query(bbox));
     f_ptr = fs->next();
     CHECK(f_ptr != mapnik::feature_ptr());
@@ -394,7 +407,7 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
 
     // but we can pass multi_geom=true to request true multipart features which may
     // be needed for labeling or correctly representing geom as GeoJSON
-    mapnik::vector_tile_impl::tile_datasource ds2(layer,_x,_y,_z,tile_size,true);
+    mapnik::vector_tile_impl::tile_datasource ds2(layer,0,0,0,tile_size,true);
     fs = ds2.features(mapnik::query(bbox));
     f_ptr = fs->next();
     CHECK(f_ptr != mapnik::feature_ptr());
@@ -511,11 +524,6 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
 int main (int argc, char* const argv[])
 {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
-    // set up bbox
-    double minx,miny,maxx,maxy;
-    mapnik::vector_tile_impl::spherical_mercator merc(256);
-    merc.xyz(_x,_y,_z,minx,miny,maxx,maxy);
-    bbox.init(minx,miny,maxx,maxy);
     int result = Catch::Session().run( argc, argv );
     if (!result) printf("\x1b[1;32m ✓ \x1b[0m\n");
     google::protobuf::ShutdownProtobufLibrary();

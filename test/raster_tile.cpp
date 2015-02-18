@@ -16,10 +16,13 @@
 #include <mapnik/graphics.hpp>
 #include <mapnik/util/fs.hpp>
 #include <mapnik/datasource_cache.hpp>
+#include <mapnik/agg_renderer.hpp>
+#include <mapnik/load_map.hpp>
 
 #include <sstream>
+#include <fstream>
 
-TEST_CASE( "vector tile output 1", "should create vector tile with one raster layer" ) {
+TEST_CASE( "raster tile output 1", "should create raster tile with one raster layer" ) {
     mapnik::datasource_cache::instance().register_datasources(MAPNIK_PLUGINDIR);
     typedef mapnik::vector_tile_impl::backend_pbf backend_type;
     typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
@@ -139,7 +142,7 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one raster la
     }
 }
 
-TEST_CASE( "vector tile output 2", "should be able to overzoom raster" ) {
+TEST_CASE( "raster tile output 2", "should be able to overzoom raster" ) {
     mapnik::datasource_cache::instance().register_datasources(MAPNIK_PLUGINDIR);
     typedef vector_tile::Tile tile_type;
     tile_type tile;
