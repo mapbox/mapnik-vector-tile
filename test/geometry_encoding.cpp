@@ -1,6 +1,3 @@
-// https://github.com/philsquared/Catch/wiki/Supplying-your-own-main()
-// http://www.levelofindirection.com/journal/2013/6/28/catch-10.html
-#define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
 
 #include "encoding_util.hpp"
@@ -330,13 +327,4 @@ TEST_CASE( "test 12", "should correctly encode multiple paths" ) {
         "close_path(0,0)\n"
         );
     CHECK(actual == expected);
-}
-
-int main (int argc, char* const argv[])
-{
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
-    int result = Catch::Session().run( argc, argv );
-    if (!result) printf("\x1b[1;32m ✓ \x1b[0m\n");
-    google::protobuf::ShutdownProtobufLibrary();
-    return result;
 }

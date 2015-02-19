@@ -1,10 +1,7 @@
-// https://github.com/philsquared/Catch/wiki/Supplying-your-own-main()
-#define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
 
 // test utils
 #include "test_utils.hpp"
-#include "compare_image.hpp"
 #include "vector_tile_projection.hpp"
 
 // vector output api
@@ -15,10 +12,15 @@
 
 #include <mapnik/util/fs.hpp>
 #include <mapnik/datasource_cache.hpp>
+#include <mapnik/agg_renderer.hpp>
+#include <mapnik/load_map.hpp>
+#include <mapnik/image_reader.hpp>
+#include <mapnik/image_util.hpp>
 
 #include <sstream>
+#include <fstream>
 
-TEST_CASE( "vector tile output 1", "should create vector tile with one raster layer" ) {
+TEST_CASE( "raster tile output 1", "should create raster tile with one raster layer" ) {
     mapnik::datasource_cache::instance().register_datasources(MAPNIK_PLUGINDIR);
     typedef mapnik::vector_tile_impl::backend_pbf backend_type;
     typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
@@ -138,7 +140,7 @@ TEST_CASE( "vector tile output 1", "should create vector tile with one raster la
     }
 }
 
-TEST_CASE( "vector tile output 2", "should be able to overzoom raster" ) {
+TEST_CASE( "raster tile output 2", "should be able to overzoom raster" ) {
     mapnik::datasource_cache::instance().register_datasources(MAPNIK_PLUGINDIR);
     typedef vector_tile::Tile tile_type;
     tile_type tile;
@@ -245,13 +247,4 @@ TEST_CASE( "vector tile output 2", "should be able to overzoom raster" ) {
     if (diff > 0) {
         mapnik::save_to_file(im,"test/fixtures/actual-3.png","png32");
     }
-}
-
-int main (int argc, char* const argv[])
-{
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
-    int result = Catch::Session().run( argc, argv );
-    if (!result) printf("\x1b[1;32m ✓ \x1b[0m\n");
-    google::protobuf::ShutdownProtobufLibrary();
-    return result;
 }
