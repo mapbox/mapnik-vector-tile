@@ -17,6 +17,7 @@
 #include <mapnik/feature.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/geom_util.hpp>
+#include <mapnik/image.hpp>
 #include <mapnik/image_reader.hpp>
 #include <mapnik/raster.hpp>
 #include <mapnik/view_transform.hpp>
@@ -174,11 +175,10 @@ namespace mapnik { namespace vector_tile_impl {
                                                                     y_off + height);
                                 intersect = t.backward(feature_raster_extent);
                                 double filter_factor = 1.0;
-                                mapnik::image_data_any data = reader->read(x_off, y_off, width, height);
+                                mapnik::image_any data = reader->read(x_off, y_off, width, height);
                                 mapnik::raster_ptr raster = std::make_shared<mapnik::raster>(intersect,
                                                               data,
-                                                              filter_factor,
-                                                              reader->premultiplied_alpha()
+                                                              filter_factor
                                                               );
                                 mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
                                 feature->set_raster(raster);

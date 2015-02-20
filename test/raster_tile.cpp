@@ -10,7 +10,6 @@
 #include "vector_tile_util.hpp"
 #include "vector_tile_datasource.hpp"
 
-#include <mapnik/graphics.hpp>
 #include <mapnik/util/fs.hpp>
 #include <mapnik/datasource_cache.hpp>
 #include <mapnik/agg_renderer.hpp>
@@ -80,7 +79,7 @@ TEST_CASE( "raster tile output 1", "should create raster tile with one raster la
     if (!reader.get()) {
         throw std::runtime_error("could not open image bytes");
     }
-    mapnik::image_data_rgba8 im_data(reader->width(),reader->height());
+    mapnik::image_rgba8 im_data(reader->width(),reader->height());
     reader->read(0,0,im_data);
     unsigned diff = testing::compare_images(im_data,"test/fixtures/expected-2.jpeg");
     CHECK(0 == diff);
@@ -128,13 +127,13 @@ TEST_CASE( "raster tile output 1", "should create raster tile with one raster la
     map2.add_layer(lyr2);
     mapnik::load_map(map2,"test/data/raster_style.xml");
     map2.zoom_to_box(bbox);
-    mapnik::image_32 im(map2.width(),map2.height());
-    mapnik::agg_renderer<mapnik::image_32> ren2(map2,im);
+    mapnik::image_rgba8 im(map2.width(),map2.height());
+    mapnik::agg_renderer<mapnik::image_rgba8> ren2(map2,im);
     ren2.apply();
     if (!mapnik::util::exists("test/fixtures/expected-2.png")) {
-        mapnik::save_to_file(im.data(),"test/fixtures/expected-2.png","png32");
+        mapnik::save_to_file(im,"test/fixtures/expected-2.png","png32");
     }
-    diff = testing::compare_images(im.data(),"test/fixtures/expected-2.png");
+    diff = testing::compare_images(im,"test/fixtures/expected-2.png");
     CHECK(0 == diff);
     if (diff > 0) {
         mapnik::save_to_file(im_data,"test/fixtures/actual-2.png","png32");
@@ -237,15 +236,15 @@ TEST_CASE( "raster tile output 2", "should be able to overzoom raster" ) {
     map2.add_layer(lyr2);
     mapnik::load_map(map2,"test/data/raster_style.xml");
     map2.zoom_to_box(bbox);
-    mapnik::image_32 im(map2.width(),map2.height());
-    mapnik::agg_renderer<mapnik::image_32> ren2(map2,im);
+    mapnik::image_rgba8 im(map2.width(),map2.height());
+    mapnik::agg_renderer<mapnik::image_rgba8> ren2(map2,im);
     ren2.apply();
     if (!mapnik::util::exists("test/fixtures/expected-3.png")) {
-        mapnik::save_to_file(im.data(),"test/fixtures/expected-3.png","png32");
+        mapnik::save_to_file(im,"test/fixtures/expected-3.png","png32");
     }
-    unsigned diff = testing::compare_images(im.data(),"test/fixtures/expected-3.png");
+    unsigned diff = testing::compare_images(im,"test/fixtures/expected-3.png");
     CHECK(0 == diff);
     if (diff > 0) {
-        mapnik::save_to_file(im.data(),"test/fixtures/actual-3.png","png32");
+        mapnik::save_to_file(im,"test/fixtures/actual-3.png","png32");
     }
 }
