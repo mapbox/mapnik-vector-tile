@@ -14,13 +14,13 @@
         {
           'action_name': 'run_protoc',
           'inputs': [
-            './proto/vector_tile.proto'
+            '../proto/vector_tile.proto'
           ],
           'outputs': [
             "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc",
             "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.h"
           ],
-          'action': ['protoc','-Iproto/','--cpp_out=<(SHARED_INTERMEDIATE_DIR)/','./proto/vector_tile.proto']
+          'action': ['protoc','-I../proto/','--cpp_out=<(SHARED_INTERMEDIATE_DIR)/','../proto/vector_tile.proto']
         }
       ]
     },
@@ -69,13 +69,13 @@
       'hard_dependency': 1,
       "type": "static_library",
       "sources": [
-        "src/vector_tile_util.cpp",
-        "src/vector_tile_projection.cpp",
-        "src/vector_tile_geometry_encoder.cpp",
-        "src/vector_tile_datasource.cpp",
-        "src/vector_tile_compression.cpp",
-        "src/vector_tile_backend_pbf.cpp",
-        "src/vector_tile_processor.cpp",
+        "../src/vector_tile_util.cpp",
+        "../src/vector_tile_projection.cpp",
+        "../src/vector_tile_geometry_encoder.cpp",
+        "../src/vector_tile_datasource.cpp",
+        "../src/vector_tile_compression.cpp",
+        "../src/vector_tile_backend_pbf.cpp",
+        "../src/vector_tile_processor.cpp",
       ],
       'defines' : [
         'MAPNIK_VECTOR_TILE_LIBRARY=1'
@@ -119,14 +119,14 @@
         "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
       ], 
       "sources": [
-        "./test/test_main.cpp",
-        "./test/test_utils.cpp",
-        "./test/geometry_encoding.cpp",
-        "./test/vector_tile.cpp",
-        "./test/raster_tile.cpp",
+        "../test/test_main.cpp",
+        "../test/test_utils.cpp",
+        "../test/geometry_encoding.cpp",
+        "../test/vector_tile.cpp",
+        "../test/raster_tile.cpp",
       ],
       "include_dirs": [
-        "./src"
+        "../src"
       ]
     },
     {
@@ -134,10 +134,10 @@
       'dependencies': [ 'vector_tile' ],
       "type": "executable",
       "sources": [
-        "./examples/c++/tileinfo.cpp"
+        "../examples/c++/tileinfo.cpp"
       ],
       "include_dirs": [
-        "./src"
+        "../src"
       ],
       'libraries':[
         '-L<!@(mapnik-config --prefix)/lib',
