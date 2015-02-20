@@ -146,12 +146,12 @@
       ],
       'cflags_cc' : [
           '-D_THREAD_SAFE',
-          '-I<!@(mapnik-config --cflags)' # assume protobuf headers are here
+          '<!@(mapnik-config --cflags)' # assume protobuf headers are here
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS':[
            '-D_THREAD_SAFE',
-           '-I<!@(mapnik-config --cflags)' # assume protobuf headers are here
+           '<!@(mapnik-config --cflags)' # assume protobuf headers are here
         ],
       }
     }    
