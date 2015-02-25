@@ -53,13 +53,13 @@ struct visitor_raster_processor
 public:
     typedef T backend_type;
 private:
-    mapnik::raster & source_;
-    mapnik::feature_impl & feature_;
-    box2d<double> & target_ext_;
-    box2d<double> & ext_;
+    mapnik::raster const& source_;
+    mapnik::feature_impl const& feature_;
+    box2d<double> const& target_ext_;
+    box2d<double> const& ext_;
     backend_type & backend_;
     bool & painted_;
-    mapnik::proj_transform & prj_trans_;
+    mapnik::proj_transform const& prj_trans_;
     std::string const& image_format_;
     scaling_method_e scaling_method_;
     unsigned width_;
@@ -69,13 +69,13 @@ private:
     int start_x_;
     int start_y_;
 public:
-    visitor_raster_processor(mapnik::raster & source,
-                             mapnik::feature_impl & feature,
-                             box2d<double> & target_ext,
-                             box2d<double> & ext,
+    visitor_raster_processor(mapnik::raster const& source,
+                             mapnik::feature_impl const& feature,
+                             box2d<double> const& target_ext,
+                             box2d<double> const& ext,
                              backend_type & backend,
                              bool & painted,
-                             mapnik::proj_transform & prj_trans,
+                             mapnik::proj_transform const& prj_trans,
                              std::string const& image_format,
                              scaling_method_e scaling_method,
                              unsigned width,
