@@ -4,7 +4,7 @@ BUILDTYPE ?= Release
 all: libvtile
 
 ./deps/gyp:
-	git clone --depth 1 https://chromium.googlesource.com/external/gyp.git ./deps/gyp
+	git clone https://chromium.googlesource.com/external/gyp.git ./deps/gyp && cd ./deps/gyp && git checkout 3464008
 
 build/Makefile: ./deps/gyp gyp/build.gyp
 	deps/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(MAPNIK_PLUGINDIR)\" -Goutput_dir=. --generator-output=./build -f make
