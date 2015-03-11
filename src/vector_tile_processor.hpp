@@ -24,15 +24,16 @@ namespace mapnik { namespace vector_tile_impl {
   that would normally come from a style's symbolizers
 */
 
+enum poly_clipper_type : std::uint8_t {
+    ANGUS_CLIPPER,
+    AGG_CLIPPER
+};
+
 template <typename T>
 class processor : private mapnik::util::noncopyable
 {
 public:
     typedef T backend_type;
-    enum poly_clipper_type : std::uint8_t {
-        ANGUS_CLIPPER,
-        AGG_CLIPPER
-    };
 private:
     backend_type & backend_;
     mapnik::Map const& m_;
