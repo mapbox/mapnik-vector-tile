@@ -103,7 +103,9 @@ inline unsigned encode_geometry(T & path,
                     cur_y = static_cast<int32_t>(std::floor((vtx.y * path_multiplier) + 0.5));
                     int32_t dx = cur_x - x_;
                     int32_t dy = cur_y - y_;
-                    bool sharp_turn_ahead = false;
+                    // we try hard not to collapse corners that
+                    // may have resulted from clipping
+                    bool next_segment_axis_aligned = false;
                     if (output.size() > 1)
                     {
                         vertex2d const& next_vtx = output[1];
@@ -113,7 +115,7 @@ inline unsigned encode_geometry(T & path,
                             uint32_t next_dy = std::abs(cur_y - static_cast<int32_t>(std::floor((next_vtx.y * path_multiplier) + 0.5)));
                             if ((next_dx == 0 && next_dy >= tolerance) || (next_dy == 0 && next_dx >= tolerance))
                             {
-                                sharp_turn_ahead = true;
+                                next_segment_axis_aligned = true;
                             }
                         }
                     }
@@ -121,7 +123,7 @@ inline unsigned encode_geometry(T & path,
                     // not >= the tolerance threshold and should be considered no-ops.
                     // NOTE: length == 0 indicates the command has changed and will
                     // preserve any non duplicate move_to or line_to
-                    if ( length == 0 || sharp_turn_ahead ||
+                    if ( length == 0 || next_segment_axis_aligned ||
                          (static_cast<unsigned>(std::abs(dx)) >= tolerance) ||
                          (static_cast<unsigned>(std::abs(dy)) >= tolerance)
                         )
