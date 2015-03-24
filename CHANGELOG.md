@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.7.x
+## 0.7.1
+
+ - Minor build fixes
+
+## 0.7.0
 
  - First release series to exclusively focus on upcoming Mapnik 3.x release.
 
