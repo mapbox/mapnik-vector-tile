@@ -8,6 +8,7 @@
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/load_map.hpp>
 #include <mapnik/image_util.hpp>
+#include <mapnik/vertex_adapters.hpp>
 
 // vector output api
 #include "vector_tile_compression.hpp"
@@ -367,13 +368,13 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
         mapnik::geometry::linear_ring ring;
         ring.add_coord(0,0);
         ring.add_coord(2,2);
-        geom.emplace_back(std::move(ring));        
+        geom.emplace_back(std::move(ring));
     }
     {
         mapnik::geometry::linear_ring ring;
         ring.add_coord(1,1);
         ring.add_coord(2,2);
-        geom.emplace_back(std::move(ring));        
+        geom.emplace_back(std::move(ring));
     }
     /*
     g->move_to(0,0);        // takes 3 geoms: command length,x,y
@@ -538,7 +539,7 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
         ring.add_coord(168.114561,-24.783548);
         ring.add_coord(168.267850,-24.576888);
         ring.add_coord(168.267850,-24.576888);
-        geom.set_exterior_ring(std::move(ring));        
+        geom.set_exterior_ring(std::move(ring));
     }
     backend.current_feature_->set_type(vector_tile::Tile_GeomType_POLYGON);
     mapnik::geometry::polygon_vertex_adapter va(geom);

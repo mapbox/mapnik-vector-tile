@@ -3,6 +3,7 @@
 #include <mapnik/layer.hpp>
 #include <mapnik/query.hpp>
 #include <mapnik/geometry.hpp>
+#include <mapnik/vertex_adapters.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/datasource.hpp>
 #include <mapnik/projection.hpp>
@@ -55,7 +56,7 @@
 namespace mapnik { namespace vector_tile_impl {
 
 template <typename T>
-struct visitor_raster_processor 
+struct visitor_raster_processor
 {
 public:
     typedef T backend_type;
@@ -106,7 +107,7 @@ public:
           raster_height_(raster_height),
           start_x_(start_x),
           start_y_(start_y) {}
-    
+
     void operator() (mapnik::image_rgba8 & source_data)
     {
         mapnik::image_rgba8 data(raster_width_, raster_height_);
@@ -851,13 +852,13 @@ unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
             using path_type = mapnik::transform_path_adapter<mapnik::view_transform,va_type>;
             va_type va(pt);
             path_type path(t_, va, prj_trans);
-            path_count = backend_.add_path(path, tolerance_);            
+            path_count = backend_.add_path(path, tolerance_);
             backend_.stop_tile_feature();
         }
     }
     else if (geom.is<mapnik::geometry::multi_point>())
     {
-        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);        
+        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);
         if (buffered_query_ext.intersects(bbox))
         {
             backend_.start_tile_feature(feature);
@@ -879,7 +880,7 @@ unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
     }
     else if (geom.is<mapnik::geometry::line_string>())
     {
-        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);        
+        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);
         if (buffered_query_ext.intersects(bbox))
         {
             auto const& line = mapnik::util::get<mapnik::geometry::line_string>(geom);
@@ -899,13 +900,13 @@ unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
                     buffered_query_ext.maxy());
                 path_type path(t_, clipped, prj_trans);
                 path_count = backend_.add_path(path, tolerance_);
-                backend_.stop_tile_feature();                
+                backend_.stop_tile_feature();
             }
         }
     }
     else if (geom.is<mapnik::geometry::multi_line_string>())
     {
-        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);        
+        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);
         if (buffered_query_ext.intersects(bbox))
         {
             backend_.start_tile_feature(feature);
@@ -936,7 +937,7 @@ unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
 
     else if (geom.is<mapnik::geometry::polygon>())
     {
-        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);        
+        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);
         if (buffered_query_ext.intersects(bbox))
         {
             auto const& poly = mapnik::util::get<mapnik::geometry::polygon>(geom);
@@ -956,13 +957,13 @@ unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
                     buffered_query_ext.maxy());
                 path_type path(t_, clipped, prj_trans);
                 path_count = backend_.add_path(path, tolerance_);
-                backend_.stop_tile_feature();                
+                backend_.stop_tile_feature();
             }
         }
     }
     else if (geom.is<mapnik::geometry::multi_polygon>())
     {
-        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);        
+        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);
         if (buffered_query_ext.intersects(bbox))
         {
             backend_.start_tile_feature(feature);
@@ -992,7 +993,7 @@ unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
     }
     else
     {
-        throw std::runtime_error("unhandled geometry type");        
+        throw std::runtime_error("unhandled geometry type");
     }
 
     /*
