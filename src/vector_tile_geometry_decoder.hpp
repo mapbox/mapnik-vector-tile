@@ -65,7 +65,7 @@ mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature const& f,
             while ((cmd = geoms.next(x1, y1)) != Geometry::end) {
                 if (cmd == Geometry::move_to) {
                     mp.emplace_back(std::move(line));
-                    line = mapnik::geometry::line_string();
+                    line.clear();
                 }
                 line.add_coord(x1,y1);
             }
