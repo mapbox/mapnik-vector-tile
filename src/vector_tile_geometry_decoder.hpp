@@ -18,7 +18,7 @@ public:
         close = 7
     };
 
-    inline command next(int32_t &rx, int32_t &ry);
+    inline command next(double &rx, double &ry);
 
 private:
     vector_tile::Tile_Feature const& f_;
@@ -27,8 +27,8 @@ private:
     uint32_t geoms_;
     uint8_t cmd;
     uint32_t length;
-    int32_t x, y;
-    int32_t ox, oy;
+    double x, y;
+    double ox, oy;
 };
 
 
@@ -38,7 +38,7 @@ mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature const& f,
 
     Geometry::command cmd;
     Geometry geoms(f,tile_x,tile_y,scale);
-    int32_t x1, y1;
+    double x1, y1;
     switch (f.type())
     {
         case vector_tile::Tile_GeomType_POINT:
@@ -107,7 +107,7 @@ Geometry::Geometry(vector_tile::Tile_Feature const& f,
       x(tile_x), y(tile_y),
       ox(0), oy(0) {}
 
-Geometry::command Geometry::next(int32_t &rx, int32_t &ry) {
+Geometry::command Geometry::next(double &rx, double &ry) {
     if (k < geoms_) {
         if (length == 0) {
             uint32_t cmd_length = static_cast<uint32_t>(f_.geometry(k++));
