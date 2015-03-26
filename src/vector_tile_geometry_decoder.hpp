@@ -88,7 +88,7 @@ mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature const& f,
         case vector_tile::Tile_GeomType_UNKNOWN:
         default:
         {
-            throw std::runtime_error("unhandled geometry type");
+            throw std::runtime_error("unhandled geometry type during decoding");
             break;
         }
     }

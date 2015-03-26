@@ -1,16 +1,23 @@
 #include "catch.hpp"
 
-/*
 #include "encoding_util.hpp"
 
 // https://github.com/mapbox/mapnik-vector-tile/issues/36
 
+TEST_CASE( "test 1a", "should round trip without changes" ) {
+    mapnik::geometry::point g(0,0);
+    std::string expected(
+    "move_to(0,0)\n"
+    );
+    CHECK(compare(g) == expected);
+}
+
+/*
 TEST_CASE( "test 1", "should round trip without changes" ) {
-    mapnik::geometry_type g(mapnik::geometry_type::types::Polygon);
-    g.move_to(0,0);
-    g.line_to(1,1);
-    g.line_to(100,100);
-    g.close_path();
+    mapnik::geometry::polygon g;
+    g.exterior_ring.add_coord(0,0);
+    g.exterior_ring.add_coord(1,1);
+    g.exterior_ring.add_coord(100,100);
     std::string expected(
     "move_to(0,0)\n"
     "line_to(1,1)\n"
@@ -19,8 +26,11 @@ TEST_CASE( "test 1", "should round trip without changes" ) {
     );
     CHECK(compare(g) == expected);
 }
+*/
+
 
 TEST_CASE( "test 2", "should drop coincident line_to moves" ) {
+    /*
     mapnik::geometry_type g(mapnik::geometry_type::types::LineString);
     g.move_to(0,0);
     g.line_to(3,3);
@@ -28,6 +38,14 @@ TEST_CASE( "test 2", "should drop coincident line_to moves" ) {
     g.line_to(3,3);
     g.line_to(3,3);
     g.line_to(4,4);
+    */
+    mapnik::geometry::line_string g;
+    g.add_coord(0,0);
+    g.add_coord(3,3);
+    g.add_coord(3,3);
+    g.add_coord(3,3);
+    g.add_coord(3,3);
+    g.add_coord(4,4);
     std::string expected(
     "move_to(0,0)\n"
     "line_to(3,3)\n"
@@ -35,6 +53,8 @@ TEST_CASE( "test 2", "should drop coincident line_to moves" ) {
     );
     CHECK(compare(g,1) == expected);
 }
+
+/*
 
 TEST_CASE( "test 2b", "should drop vertices" ) {
     mapnik::geometry_type g(mapnik::geometry_type::types::LineString);
