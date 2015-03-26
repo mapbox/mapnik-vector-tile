@@ -1,7 +1,8 @@
 #include "catch.hpp"
 
 #include "encoding_util.hpp"
-
+#include <mapnik/geometry_correct.hpp>
+#include <mapnik/geometry_unique.hpp>
 // https://github.com/mapbox/mapnik-vector-tile/issues/36
 
 TEST_CASE( "test 1a", "should round trip without changes" ) {
@@ -29,7 +30,7 @@ TEST_CASE( "test 1", "should round trip without changes" ) {
 */
 
 
-TEST_CASE( "test 2", "should drop coincident line_to moves" ) {
+TEST_CASE( "test 2", "should drop coincident line_to commands" ) {
     /*
     mapnik::geometry_type g(mapnik::geometry_type::types::LineString);
     g.move_to(0,0);
@@ -46,6 +47,8 @@ TEST_CASE( "test 2", "should drop coincident line_to moves" ) {
     g.add_coord(3,3);
     g.add_coord(3,3);
     g.add_coord(4,4);
+    mapnik::geometry::unique(g);
+    //std::cout << boost::geometry::dsv(g) << std::endl;
     std::string expected(
     "move_to(0,0)\n"
     "line_to(3,3)\n"
