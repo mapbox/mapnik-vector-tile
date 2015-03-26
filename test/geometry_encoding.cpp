@@ -1,5 +1,6 @@
 #include "catch.hpp"
 
+/*
 #include "encoding_util.hpp"
 
 // https://github.com/mapbox/mapnik-vector-tile/issues/36
@@ -328,3 +329,4 @@ TEST_CASE( "test 12", "should correctly encode multiple paths" ) {
         );
     CHECK(actual == expected);
 }
+*/

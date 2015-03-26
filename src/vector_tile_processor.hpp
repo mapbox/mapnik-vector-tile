@@ -3,6 +3,7 @@
 
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
+#include <mapnik/feature.hpp>
 #include <mapnik/util/noncopyable.hpp>
 #include <mapnik/request.hpp>
 #include <mapnik/view_transform.hpp>
@@ -77,9 +78,10 @@ public:
                         box2d<double> const& extent,
                         int buffer_size);
 
-    MAPNIK_VECTOR_INLINE unsigned handle_geometry(mapnik::vertex_adapter & geom,
-                             mapnik::proj_transform const& prj_trans,
-                             mapnik::box2d<double> const& buffered_query_ext);
+    MAPNIK_VECTOR_INLINE unsigned handle_geometry(mapnik::feature_impl const& feature,
+                                                  mapnik::geometry::geometry const& geom,
+                                                  mapnik::proj_transform const& prj_trans,
+                                                  mapnik::box2d<double> const& buffered_query_ext);
 };
 
 }} // end ns

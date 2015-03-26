@@ -149,10 +149,10 @@ TEST_CASE( "vector tile output 3", "adding layers with geometries outside render
     mapnik::layer lyr("layer",map.srs());
     mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
-    std::unique_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::geometry_type::types::LineString));
-    g->move_to(-10,-10);
-    g->line_to(-11,-11);
-    feature->add_geometry(g.release());
+    mapnik::geometry::line_string g;
+    g.add_coord(-10,-10);
+    g.add_coord(-11,-11);
+    feature->set_geometry(std::move(g));
     mapnik::parameters params;
     params["type"] = "memory";
     std::shared_ptr<mapnik::memory_datasource> ds = std::make_shared<mapnik::memory_datasource>(params);
@@ -262,6 +262,7 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     }
 }
 
+
 TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     typedef mapnik::vector_tile_impl::backend_pbf backend_type;
     typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
@@ -339,6 +340,7 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     CHECK(f_ptr->context()->size() == 1);
 }
 
+
 // NOTE: encoding multiple lines as one path is technically incorrect
 // because in Mapnik the protocol is to split geometry parts into separate paths.
 // However this case should still be supported because keeping a single flat array is an
@@ -349,7 +351,7 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     // here we use a multiplier of 1 to avoid rounding numbers
     // and stay in integer space for simplity
     unsigned path_multiplier = 1;
-    // here we use an extreme tolerance to prove tht all vertices are maintained no matter
+    // here we use an extreme tolerance to prove that all vertices are maintained no matter
     // the tolerance because we never want to drop a move_to or the first line_to
     unsigned tolerance = 2000000;
     // now create the testing data
@@ -360,13 +362,31 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     backend.start_tile_layer("layer");
     mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
     backend.start_tile_feature(*feature);
-    std::unique_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::geometry_type::types::LineString));
+    mapnik::geometry::multi_line_string geom;
+    {
+        mapnik::geometry::linear_ring ring;
+        ring.add_coord(0,0);
+        ring.add_coord(2,2);
+        geom.emplace_back(std::move(ring));        
+    }
+    {
+        mapnik::geometry::linear_ring ring;
+        ring.add_coord(1,1);
+        ring.add_coord(2,2);
+        geom.emplace_back(std::move(ring));        
+    }
+    /*
     g->move_to(0,0);        // takes 3 geoms: command length,x,y
     g->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
     g->move_to(1,1);        // takes 3 geoms: command length,x,y
     g->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
-    mapnik::vertex_adapter va(*g);
-    backend.add_path(va, tolerance, g->type());
+    */
+    backend.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
+    for (auto const& line : geom)
+    {
+        mapnik::geometry::line_string_vertex_adapter va(line);
+        backend.add_path(va, tolerance);
+    }
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     // done encoding single feature/geometry
@@ -401,18 +421,9 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     // no attributes
     CHECK(f_ptr->context()->size() == 0);
 
-    // by default the single geometry array should decode into a single mapnik path
-    CHECK(f_ptr->paths().size() == 1);
-
-    // but we can pass multi_geom=true to request true multipart features which may
-    // be needed for labeling or correctly representing geom as GeoJSON
-    mapnik::vector_tile_impl::tile_datasource ds2(layer,0,0,0,tile_size,true);
-    fs = ds2.features(mapnik::query(bbox));
-    f_ptr = fs->next();
-    CHECK(f_ptr != mapnik::feature_ptr());
-    CHECK(f_ptr->paths().size() == 2);
-
+    CHECK(f_ptr->get_geometry().is<mapnik::geometry::multi_line_string>());
 }
+
 
 TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     // Options
@@ -429,14 +440,23 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     backend.start_tile_layer("layer");
     mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
     backend.start_tile_feature(*feature);
+    /*
     std::unique_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::geometry_type::types::LineString));
     g->move_to(0,0);        // takes 3 geoms: command length,x,y
     g->line_to(2,2);        // new command, so again takes 3 geoms: command length,x,y | total 6
     g->line_to(1000,1000);  // repeated line_to, so only takes 2 geoms: x,y | total 8
     g->line_to(1001,1001);  // should skip given tolerance of 2 | total 8
     g->line_to(1001,1001);  // should not skip given it is the endpoint, added 2 geoms | total 10
-    mapnik::vertex_adapter va(*g);
-    backend.add_path(va, tolerance, g->type());
+    */
+    mapnik::geometry::line_string geom;
+    geom.add_coord(0,0);
+    geom.add_coord(2,2);
+    geom.add_coord(1000,1000);
+    geom.add_coord(1001,1001);
+    geom.add_coord(1001,1001);
+    backend.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
+    mapnik::geometry::line_string_vertex_adapter va(geom);
+    backend.add_path(va, tolerance);
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     // done encoding single feature/geometry
@@ -497,6 +517,7 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
     backend.start_tile_layer("layer");
     mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
     backend.start_tile_feature(*feature);
+    /*
     std::unique_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::geometry_type::types::Polygon));
     g->move_to(168.267850,-24.576888);
     g->line_to(167.982618,-24.697145);
@@ -508,6 +529,20 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
     // todo - why does shape_io result in on-zero close path x,y?
     mapnik::vertex_adapter va(*g);
     backend.add_path(va, tolerance, g->type());
+    */
+    mapnik::geometry::polygon geom;
+    {
+        mapnik::geometry::linear_ring ring;
+        ring.add_coord(168.267850,-24.576888);
+        ring.add_coord(167.982618,-24.697145);
+        ring.add_coord(168.114561,-24.783548);
+        ring.add_coord(168.267850,-24.576888);
+        ring.add_coord(168.267850,-24.576888);
+        geom.set_exterior_ring(std::move(ring));        
+    }
+    backend.current_feature_->set_type(vector_tile::Tile_GeomType_POLYGON);
+    mapnik::geometry::polygon_vertex_adapter va(geom);
+    backend.add_path(va, tolerance);
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     std::string key("");

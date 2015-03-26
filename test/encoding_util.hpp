@@ -1,9 +1,9 @@
 #include <mapnik/vertex.hpp>
 #include <mapnik/geometry.hpp>
-#include "vector_tile_geometry_encoder.hpp"
+#include "vector_tile_geometry_decoder.hpp"
 
 void decode_geometry(vector_tile::Tile_Feature const& f,
-                     mapnik::geometry_type & geom,
+                     mapnik::geometry::geometry & geom,
                      double & x,
                      double & y,
                      double scale)

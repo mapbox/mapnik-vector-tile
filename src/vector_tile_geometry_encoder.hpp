@@ -21,7 +21,6 @@ MAPNIK_VECTOR_INLINE void handle_skipped_last(vector_tile::Tile_Feature & curren
 
 template <typename T>
 inline unsigned encode_geometry(T & path,
-                         vector_tile::Tile_GeomType type,
                          vector_tile::Tile_Feature & current_feature,
                          int32_t & x_,
                          int32_t & y_,
@@ -30,7 +29,6 @@ inline unsigned encode_geometry(T & path,
 {
     unsigned count = 0;
     path.rewind(0);
-    current_feature.set_type(type);
 
     vertex2d vtx(vertex2d::no_init);
     int cmd = -1;

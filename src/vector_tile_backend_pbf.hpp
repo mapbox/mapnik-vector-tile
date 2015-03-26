@@ -29,11 +29,11 @@ namespace mapnik { namespace vector_tile_impl {
         vector_tile::Tile & tile_;
         unsigned path_multiplier_;
         mutable vector_tile::Tile_Layer * current_layer_;
-        mutable vector_tile::Tile_Feature * current_feature_;
         keys_container keys_;
         values_container values_;
         int32_t x_, y_;
     public:
+        mutable vector_tile::Tile_Feature * current_feature_;
         MAPNIK_VECTOR_INLINE explicit backend_pbf(vector_tile::Tile & _tile,
                              unsigned path_multiplier);
 
@@ -44,12 +44,11 @@ namespace mapnik { namespace vector_tile_impl {
         inline void stop_tile_layer() {}
 
         template <typename T>
-        inline unsigned add_path(T & path, unsigned tolerance, mapnik::geometry_type::types type)
+        inline unsigned add_path(T & path, unsigned tolerance)
         {
             if (current_feature_)
             {
                 return encode_geometry(path,
-                                       static_cast<vector_tile::Tile_GeomType>(type),
                                        *current_feature_,
                                        x_,
                                        y_,

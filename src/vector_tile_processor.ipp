@@ -22,6 +22,8 @@
 #include <mapnik/view_transform.hpp>
 #include <mapnik/util/noncopyable.hpp>
 #include <mapnik/transform_path_adapter.hpp>
+#include <mapnik/geometry_is_empty.hpp>
+#include <mapnik/geometry_envelope.hpp>
 
 // agg
 #include "agg_path_storage.h"
@@ -44,6 +46,11 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#include "vector_tile.pb.h"
+#pragma GCC diagnostic pop
 
 namespace mapnik { namespace vector_tile_impl {
 
@@ -785,28 +792,36 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
         // vector pathway
         while (feature)
         {
-            mapnik::geometry_container const& paths = feature->paths();
-            if (paths.empty()) {
+            mapnik::geometry::geometry const& geom = feature->get_geometry();
+            if (mapnik::geometry::is_empty(geom))
+            {
                 feature = features->next();
                 continue;
             }
-            backend_.start_tile_feature(*feature);
-            for (mapnik::geometry_type const& geom : paths)
+            if (geom.is<mapnik::geometry::geometry_collection>())
             {
-                mapnik::vertex_adapter va(geom);
-                mapnik::box2d<double> geom_box = va.envelope();
-                if (!geom_box.intersects(buffered_query_ext))
+                auto const& collection = mapnik::util::get<mapnik::geometry::geometry_collection>(geom);
+                for (auto const& part : collection)
                 {
-                    continue;
+                    if (handle_geometry(*feature,
+                                        part,
+                                        prj_trans,
+                                        buffered_query_ext) > 0)
+                    {
+                        painted_ = true;
+                    }
                 }
-                if (handle_geometry(va,
+            }
+            else
+            {
+                if (handle_geometry(*feature,
+                                    geom,
                                     prj_trans,
                                     buffered_query_ext) > 0)
                 {
                     painted_ = true;
                 }
             }
-            backend_.stop_tile_feature();
             feature = features->next();
         }
         backend_.stop_tile_layer();
@@ -814,41 +829,173 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
 }
 
 template <typename T>
-unsigned processor<T>::handle_geometry(mapnik::vertex_adapter & geom,
-                         mapnik::proj_transform const& prj_trans,
-                         mapnik::box2d<double> const& buffered_query_ext)
+unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
+                                       mapnik::geometry::geometry const& geom,
+                                       mapnik::proj_transform const& prj_trans,
+                                       mapnik::box2d<double> const& buffered_query_ext)
 {
+    if (mapnik::geometry::is_empty(geom))
+    {
+        return 0;
+    }
+
     unsigned path_count = 0;
-    switch (geom.type())
+    if (geom.is<mapnik::geometry::point>())
     {
-    case mapnik::geometry_type::types::Point:
-    {
-        if (geom.size() > 0)
+        auto const& pt = mapnik::util::get<mapnik::geometry::point>(geom);
+        if (buffered_query_ext.intersects(pt.x,pt.y))
         {
-            typedef mapnik::transform_path_adapter<mapnik::view_transform,
-                                          mapnik::vertex_adapter> path_type;
-            path_type path(t_, geom, prj_trans);
-            path_count = backend_.add_path(path, tolerance_, geom.type());
+            backend_.start_tile_feature(feature);
+            backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
+            using va_type = mapnik::geometry::point_vertex_adapter;
+            using path_type = mapnik::transform_path_adapter<mapnik::view_transform,va_type>;
+            va_type va(pt);
+            path_type path(t_, va, prj_trans);
+            path_count = backend_.add_path(path, tolerance_);            
+            backend_.stop_tile_feature();
         }
-        break;
     }
-    case mapnik::geometry_type::types::LineString:
+    else if (geom.is<mapnik::geometry::multi_point>())
     {
-        if (geom.size() > 1)
+        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);        
+        if (buffered_query_ext.intersects(bbox))
         {
-            typedef agg::conv_clip_polyline<mapnik::vertex_adapter> line_clipper;
-            line_clipper clipped(geom);
-            clipped.clip_box(
-                buffered_query_ext.minx(),
-                buffered_query_ext.miny(),
-                buffered_query_ext.maxx(),
-                buffered_query_ext.maxy());
-            typedef mapnik::transform_path_adapter<mapnik::view_transform, line_clipper> path_type;
-            path_type path(t_, clipped, prj_trans);
-            path_count = backend_.add_path(path, tolerance_, geom.type());
+            backend_.start_tile_feature(feature);
+            backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
+            using va_type = mapnik::geometry::point_vertex_adapter;
+            using path_type = mapnik::transform_path_adapter<mapnik::view_transform,va_type>;
+            auto const& points = mapnik::util::get<mapnik::geometry::multi_point>(geom);
+            for (auto const& pt : points)
+            {
+                if (buffered_query_ext.intersects(pt.x,pt.y))
+                {
+                    va_type va(pt);
+                    path_type path(t_, va, prj_trans);
+                    path_count += backend_.add_path(path, tolerance_);
+                }
+            }
+            backend_.stop_tile_feature();
         }
-        break;
     }
+    else if (geom.is<mapnik::geometry::line_string>())
+    {
+        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);        
+        if (buffered_query_ext.intersects(bbox))
+        {
+            auto const& line = mapnik::util::get<mapnik::geometry::line_string>(geom);
+            if (line.size() > 1)
+            {
+                backend_.start_tile_feature(feature);
+                backend_.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
+                using va_type = mapnik::geometry::line_string_vertex_adapter;
+                using clip_type = agg::conv_clip_polyline<va_type>;
+                using path_type = mapnik::transform_path_adapter<mapnik::view_transform,clip_type>;
+                va_type va(line);
+                clip_type clipped(va);
+                clipped.clip_box(
+                    buffered_query_ext.minx(),
+                    buffered_query_ext.miny(),
+                    buffered_query_ext.maxx(),
+                    buffered_query_ext.maxy());
+                path_type path(t_, clipped, prj_trans);
+                path_count = backend_.add_path(path, tolerance_);
+                backend_.stop_tile_feature();                
+            }
+        }
+    }
+    else if (geom.is<mapnik::geometry::multi_line_string>())
+    {
+        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);        
+        if (buffered_query_ext.intersects(bbox))
+        {
+            backend_.start_tile_feature(feature);
+            backend_.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
+            using va_type = mapnik::geometry::line_string_vertex_adapter;
+            using clip_type = agg::conv_clip_polyline<va_type>;
+            using path_type = mapnik::transform_path_adapter<mapnik::view_transform,clip_type>;
+            auto const& lines = mapnik::util::get<mapnik::geometry::multi_line_string>(geom);
+            for (auto const& line : lines)
+            {
+                mapnik::box2d<double> bbox = mapnik::geometry::envelope(line);
+                if (line.size() > 1 && buffered_query_ext.intersects(bbox))
+                {
+                    va_type va(line);
+                    clip_type clipped(va);
+                    clipped.clip_box(
+                        buffered_query_ext.minx(),
+                        buffered_query_ext.miny(),
+                        buffered_query_ext.maxx(),
+                        buffered_query_ext.maxy());
+                    path_type path(t_, clipped, prj_trans);
+                    path_count += backend_.add_path(path, tolerance_);
+                }
+            }
+            backend_.stop_tile_feature();
+        }
+    }
+
+    else if (geom.is<mapnik::geometry::polygon>())
+    {
+        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);        
+        if (buffered_query_ext.intersects(bbox))
+        {
+            auto const& poly = mapnik::util::get<mapnik::geometry::polygon>(geom);
+            if (poly.exterior_ring.size() > 3)
+            {
+                backend_.start_tile_feature(feature);
+                backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POLYGON);
+                using va_type = mapnik::geometry::polygon_vertex_adapter;
+                using clip_type = agg::conv_clip_polygon<va_type>;
+                using path_type = mapnik::transform_path_adapter<mapnik::view_transform,clip_type>;
+                va_type va(poly);
+                clip_type clipped(va);
+                clipped.clip_box(
+                    buffered_query_ext.minx(),
+                    buffered_query_ext.miny(),
+                    buffered_query_ext.maxx(),
+                    buffered_query_ext.maxy());
+                path_type path(t_, clipped, prj_trans);
+                path_count = backend_.add_path(path, tolerance_);
+                backend_.stop_tile_feature();                
+            }
+        }
+    }
+    else if (geom.is<mapnik::geometry::multi_polygon>())
+    {
+        mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);        
+        if (buffered_query_ext.intersects(bbox))
+        {
+            backend_.start_tile_feature(feature);
+            backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POLYGON);
+            using va_type = mapnik::geometry::polygon_vertex_adapter;
+            using clip_type = agg::conv_clip_polygon<va_type>;
+            using path_type = mapnik::transform_path_adapter<mapnik::view_transform,clip_type>;
+            auto const& polys = mapnik::util::get<mapnik::geometry::multi_polygon>(geom);
+            for (auto const& poly : polys)
+            {
+                mapnik::box2d<double> bbox = mapnik::geometry::envelope(poly);
+                if (poly.exterior_ring.size() > 3 && buffered_query_ext.intersects(bbox))
+                {
+                    va_type va(poly);
+                    clip_type clipped(va);
+                    clipped.clip_box(
+                        buffered_query_ext.minx(),
+                        buffered_query_ext.miny(),
+                        buffered_query_ext.maxx(),
+                        buffered_query_ext.maxy());
+                    path_type path(t_, clipped, prj_trans);
+                    path_count += backend_.add_path(path, tolerance_);
+                }
+            }
+            backend_.stop_tile_feature();
+        }
+    }
+    else
+    {
+        throw std::runtime_error("unhandled geometry type");        
+    }
+
+    /*
     case mapnik::geometry_type::types::Polygon:
     {
         if (geom.size() > 2)
@@ -895,6 +1042,7 @@ unsigned processor<T>::handle_geometry(mapnik::vertex_adapter & geom,
         break;
     }
     }
+    */
     return path_count;
 }
 

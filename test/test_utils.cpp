@@ -29,9 +29,7 @@ std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool seco
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
     mapnik::transcoder tr("utf-8");
     feature->put("name",tr.transcode("null island"));
-    mapnik::geometry_type * pt = new mapnik::geometry_type(mapnik::geometry_type::types::Point);
-    pt->move_to(x,y);
-    feature->add_geometry(pt);
+    feature->set_geometry(mapnik::geometry::point(x,y));
     ds->push(feature);
     if (second) {
         ctx->push("name2");
@@ -39,9 +37,7 @@ std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool seco
         mapnik::transcoder tr("utf-8");
         feature->put("name",tr.transcode("null island"));
         feature->put("name2",tr.transcode("null island 2"));
-        mapnik::geometry_type * pt = new mapnik::geometry_type(mapnik::geometry_type::types::Point);
-        pt->move_to(x+1,y+1);
-        feature->add_geometry(pt);
+        feature->set_geometry(mapnik::geometry::point(x+1,y+1));
         ds->push(feature);
     }
     return ds;

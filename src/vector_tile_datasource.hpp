@@ -18,8 +18,7 @@ namespace mapnik { namespace vector_tile_impl {
                         unsigned x,
                         unsigned y,
                         unsigned z,
-                        unsigned tile_size,
-                        bool multi_geom=false);
+                        unsigned tile_size);
         virtual ~tile_datasource();
         datasource::datasource_t type() const;
         featureset_ptr features(query const& q) const;
@@ -27,7 +26,7 @@ namespace mapnik { namespace vector_tile_impl {
         void set_envelope(box2d<double> const& bbox);
         box2d<double> get_tile_extent() const;
         box2d<double> envelope() const;
-        boost::optional<geometry_t> get_geometry_type() const;
+        boost::optional<datasource_geometry_t> get_geometry_type() const;
         layer_descriptor get_descriptor() const;
     private:
         mutable mapnik::layer_descriptor desc_;
@@ -38,7 +37,6 @@ namespace mapnik { namespace vector_tile_impl {
         unsigned z_;
         unsigned tile_size_;
         mutable bool extent_initialized_;
-        bool multi_geom_;
         mutable mapnik::box2d<double> extent_;
         double tile_x_;
         double tile_y_;
