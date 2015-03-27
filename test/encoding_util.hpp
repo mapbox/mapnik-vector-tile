@@ -4,6 +4,7 @@
 #include "vector_tile_geometry_decoder.hpp"
 #include "vector_tile_geometry_encoder.hpp"
 #include <mapnik/geometry_empty.hpp>
+//#include <mapnik/util/geometry_to_geojson.hpp> // to_geojson
 
 void decode_geometry(vector_tile::Tile_Feature const& f,
                      mapnik::geometry::geometry & geom,
@@ -11,7 +12,7 @@ void decode_geometry(vector_tile::Tile_Feature const& f,
                      double y,
                      double scale)
 {
-    geom = mapnik::vector_tile_impl::decode_geometry(f,x,y,scale);
+    geom = mapnik::vector_tile_impl::decode_geometry(f,x,y,scale,scale);
 }
 
 struct add_path
@@ -70,10 +71,11 @@ std::string compare(mapnik::geometry::geometry const& g,
                     unsigned tolerance=0,
                     unsigned path_multiplier=1)
 {
-    using namespace mapnik::vector_tile_impl;
+    //std::string json1;
+    //mapnik::util::to_geojson(json1, g);
+    //std::clog << "json: " << json1 << "\n";
 
     // encode
-    using add_path_type = mapnik::geometry::vertex_processor<add_path>;
     vector_tile::Tile_Feature feature;
     add_path ap(feature,tolerance,path_multiplier);
     if (g.is<mapnik::geometry::point>() || g.is<mapnik::geometry::multi_point>())
@@ -88,11 +90,14 @@ std::string compare(mapnik::geometry::geometry const& g,
     {
         feature.set_type(vector_tile::Tile_GeomType_POLYGON);
     }
-    mapnik::util::apply_visitor(add_path_type(ap),g);
+    mapnik::util::apply_visitor(mapnik::geometry::vertex_processor<add_path>(ap),g);
 
     // decode
     mapnik::geometry::geometry g2;
-    decode_geometry(feature,g2,0,0,1);
+    decode_geometry(feature,g2,0.0,0.0,1.0);
+    //std::string json;
+    //mapnik::util::to_geojson(json, g2);
+    //std::clog << "json: " << json << "\n";
     using decode_path_type = mapnik::geometry::vertex_processor<show_path>;
     std::string out;
     show_path sp(out);

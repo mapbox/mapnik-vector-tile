@@ -106,6 +106,7 @@
         'libraries':[
           '<!@(mapnik-config --libs)',
           '<!@(mapnik-config --ldflags)',
+          '-lmapnik-json',
           '<!@(mapnik-config --dep-libs)',
           '-lprotobuf-lite',
           '-lz'

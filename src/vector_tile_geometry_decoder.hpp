@@ -9,7 +9,8 @@ class Geometry {
 
 public:
     inline explicit Geometry(vector_tile::Tile_Feature const& f,
-                             double tile_x, double tile_y, double scale);
+                             double tile_x, double tile_y,
+                             double scale_x, double scale_y);
 
     enum command : uint8_t {
         end = 0,
@@ -18,11 +19,12 @@ public:
         close = 7
     };
 
-    inline command next(double &rx, double &ry);
+    inline command next(double& rx, double& ry);
 
 private:
     vector_tile::Tile_Feature const& f_;
-    double scale_;
+    double scale_x_;
+    double scale_y_;
     uint32_t k;
     uint32_t geoms_;
     uint8_t cmd;
@@ -33,11 +35,12 @@ private:
 
 
 mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature const& f,
-                                           double tile_x, double tile_y, double scale)
+                                           double tile_x, double tile_y,
+                                           double scale_x, double scale_y)
 {
 
     Geometry::command cmd;
-    Geometry geoms(f,tile_x,tile_y,scale);
+    Geometry geoms(f,tile_x,tile_y,scale_x,scale_y);
     double x1, y1;
     switch (f.type())
     {
@@ -101,9 +104,11 @@ mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature const& f,
 
 
 Geometry::Geometry(vector_tile::Tile_Feature const& f,
-                   double tile_x, double tile_y, double scale)
+                   double tile_x, double tile_y,
+                   double scale_x, double scale_y)
     : f_(f),
-      scale_(scale),
+      scale_x_(scale_x),
+      scale_y_(scale_y),
       k(0),
       geoms_(f_.geometry_size()),
       cmd(1),
@@ -111,7 +116,7 @@ Geometry::Geometry(vector_tile::Tile_Feature const& f,
       x(tile_x), y(tile_y),
       ox(0), oy(0) {}
 
-Geometry::command Geometry::next(double &rx, double &ry) {
+Geometry::command Geometry::next(double& rx, double& ry) {
     if (k < geoms_) {
         if (length == 0) {
             uint32_t cmd_length = static_cast<uint32_t>(f_.geometry(k++));
@@ -126,8 +131,8 @@ Geometry::command Geometry::next(double &rx, double &ry) {
             int32_t dy = f_.geometry(k++);
             dx = ((dx >> 1) ^ (-(dx & 1)));
             dy = ((dy >> 1) ^ (-(dy & 1)));
-            x += (static_cast<double>(dx) / scale_);
-            y -= (static_cast<double>(dy) / scale_);
+            x += (static_cast<double>(dx) / scale_x_);
+            y += (static_cast<double>(dy) / scale_y_);
             rx = x;
             ry = y;
             if (cmd == move_to) {
