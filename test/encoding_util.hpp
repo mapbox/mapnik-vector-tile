@@ -3,6 +3,7 @@
 #include <mapnik/vertex_processor.hpp>
 #include "vector_tile_geometry_decoder.hpp"
 #include "vector_tile_geometry_encoder.hpp"
+#include <mapnik/geometry_empty.hpp>
 
 void decode_geometry(vector_tile::Tile_Feature const& f,
                      mapnik::geometry::geometry & geom,
@@ -15,13 +16,15 @@ void decode_geometry(vector_tile::Tile_Feature const& f,
 
 struct add_path
 {
-    vector_tile::Tile_Feature feature_;
+    vector_tile::Tile_Feature & feature_;
     unsigned tolerance_;
     unsigned path_multiplier_;
     int32_t x_;
     int32_t y_;
-    add_path(unsigned tolerance,
+    add_path(vector_tile::Tile_Feature & feature,
+             unsigned tolerance,
              unsigned path_multiplier) :
+      feature_(feature),
       tolerance_(tolerance),
       path_multiplier_(path_multiplier),
       x_(0),
@@ -36,8 +39,9 @@ struct add_path
 
 struct show_path
 {
-    std::string str_;
-    show_path() {}
+    std::string & str_;
+    show_path(std::string & out) :
+      str_(out) {}
 
     template <typename T>
     void operator()(T & path)
@@ -67,30 +71,32 @@ std::string compare(mapnik::geometry::geometry const& g,
                     unsigned path_multiplier=1)
 {
     using namespace mapnik::vector_tile_impl;
+
     // encode
     using add_path_type = mapnik::geometry::vertex_processor<add_path>;
-    add_path ap(tolerance,path_multiplier);
+    vector_tile::Tile_Feature feature;
+    add_path ap(feature,tolerance,path_multiplier);
     if (g.is<mapnik::geometry::point>() || g.is<mapnik::geometry::multi_point>())
     {
-        ap.feature_.set_type(vector_tile::Tile_GeomType_POINT);
+        feature.set_type(vector_tile::Tile_GeomType_POINT);
     }
     else if (g.is<mapnik::geometry::line_string>() || g.is<mapnik::geometry::multi_line_string>())
     {
-        ap.feature_.set_type(vector_tile::Tile_GeomType_LINESTRING);
+        feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
     }
     else if (g.is<mapnik::geometry::polygon>() || g.is<mapnik::geometry::multi_polygon>())
     {
-        ap.feature_.set_type(vector_tile::Tile_GeomType_POLYGON);
+        feature.set_type(vector_tile::Tile_GeomType_POLYGON);
     }
     mapnik::util::apply_visitor(add_path_type(ap),g);
+
     // decode
     mapnik::geometry::geometry g2;
-    double x0 = 0;
-    double y0 = 0;
-    decode_geometry(ap.feature_,g2,x0,y0,path_multiplier);
+    decode_geometry(feature,g2,0,0,1);
     using decode_path_type = mapnik::geometry::vertex_processor<show_path>;
-    show_path sp;
+    std::string out;
+    show_path sp(out);
     mapnik::util::apply_visitor(decode_path_type(sp),g2);
-    return sp.str_;
+    return out;
 
 }
