@@ -29,7 +29,6 @@ TEST_CASE( "test 1", "should round trip without changes" ) {
 }
 */
 
-
 TEST_CASE( "test 2", "should drop coincident line_to commands" ) {
     /*
     mapnik::geometry_type g(mapnik::geometry_type::types::LineString);
@@ -47,14 +46,12 @@ TEST_CASE( "test 2", "should drop coincident line_to commands" ) {
     g.add_coord(3,3);
     g.add_coord(3,3);
     g.add_coord(4,4);
-    mapnik::geometry::unique(g);
-    //std::cout << boost::geometry::dsv(g) << std::endl;
     std::string expected(
     "move_to(0,0)\n"
     "line_to(3,3)\n"
     "line_to(4,4)\n"
     );
-    CHECK(compare(g,1) == expected);
+    CHECK( compare(g,1) == expected);
 }
 
 /*

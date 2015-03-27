@@ -50,11 +50,13 @@ mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature const& f,
             std::size_t num_points = mp.size();
             if (num_points == 1)
             {
-                return mp[0];
+                // return the single point
+                return mapnik::geometry::geometry(std::move(mp[0]));;
             }
             else if (num_points > 1)
             {
-                return mp;
+                // return multipoint
+                return mapnik::geometry::geometry(std::move(mp));;
             }
             break;
         }
@@ -67,16 +69,18 @@ mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature const& f,
                     mp.emplace_back(std::move(line));
                     line.clear();
                 }
-                line.add_coord(x1,y1);
+                mp.back().add_coord(x1,y1);
             }
-            std::size_t num_points = mp.size();
-            if (num_points == 1)
+            std::size_t num_lines = mp.size();
+            if (num_lines == 1)
             {
-                return mp[0];
+                // return the single line
+                return mapnik::geometry::geometry(std::move(mp[0]));;
             }
-            else if (num_points > 1)
+            else if (num_lines > 1)
             {
-                return mp;
+                // return multiline
+                return mapnik::geometry::geometry(std::move(mp));;
             }
             break;
         }
