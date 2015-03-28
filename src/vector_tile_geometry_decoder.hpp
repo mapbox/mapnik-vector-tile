@@ -66,11 +66,18 @@ mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature const& f,
         case vector_tile::Tile_GeomType_LINESTRING:
         {
             mapnik::geometry::multi_line_string mp;
-            mapnik::geometry::line_string line;
+            mp.emplace_back();
+            bool first = true;
             while ((cmd = geoms.next(x1, y1)) != Geometry::end) {
                 if (cmd == Geometry::move_to) {
-                    mp.emplace_back(std::move(line));
-                    line.clear();
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        mp.emplace_back();
+                    }
                 }
                 mp.back().add_coord(x1,y1);
             }
@@ -89,7 +96,56 @@ mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature const& f,
         }
         case vector_tile::Tile_GeomType_POLYGON:
         {
-            // TODO
+            // TODO - support for multipolygons
+            //mapnik::geometry::multi_polygon;
+            mapnik::geometry::polygon poly;
+            std::vector<mapnik::geometry::linear_ring> rings;
+            rings.emplace_back();
+            double x2,y2;
+            bool first = true;
+            while ((cmd = geoms.next(x1, y1)) != Geometry::end) {
+                if (cmd == Geometry::move_to)
+                {
+                    x2 = x1;
+                    y2 = y1;
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        rings.emplace_back();
+                    }
+                }
+                else if (cmd == Geometry::close)
+                {
+                    rings.back().add_coord(x2,y2);
+                    continue;
+                }
+                rings.back().add_coord(x1,y1);
+            }
+            std::size_t num_rings = rings.size();
+            if (num_rings == 1)
+            {
+                // return the single polygon
+                mapnik::geometry::polygon poly;
+                poly.set_exterior_ring(std::move(rings[0]));
+                return mapnik::geometry::geometry(std::move(poly));
+            }
+            for (unsigned i = 0; i < num_rings;++i)
+            {
+                mapnik::geometry::polygon poly;
+                if (i == 0)
+                {
+                    poly.set_exterior_ring(std::move(rings[i]));
+                }
+                else
+                {
+                    poly.add_hole(std::move(rings[i]));
+                }
+                return mapnik::geometry::geometry(std::move(poly));
+            }
+            return poly;
             break;
         }
         case vector_tile::Tile_GeomType_UNKNOWN:
