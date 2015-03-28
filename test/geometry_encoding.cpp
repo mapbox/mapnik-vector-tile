@@ -1,9 +1,16 @@
 #include "catch.hpp"
 
 #include "encoding_util.hpp"
-#include <mapnik/geometry_correct.hpp>
-#include <mapnik/geometry_unique.hpp>
+//#include <mapnik/geometry_correct.hpp>
+//#include <mapnik/geometry_unique.hpp>
 // https://github.com/mapbox/mapnik-vector-tile/issues/36
+
+/*
+
+low level encoding and decoding that skips clipping
+
+*/
+
 
 TEST_CASE( "test 1a", "should round trip without changes" ) {
     mapnik::geometry::point g(0,0);
@@ -13,12 +20,12 @@ TEST_CASE( "test 1a", "should round trip without changes" ) {
     CHECK(compare(g) == expected);
 }
 
-/*
 TEST_CASE( "test 1", "should round trip without changes" ) {
     mapnik::geometry::polygon g;
     g.exterior_ring.add_coord(0,0);
     g.exterior_ring.add_coord(1,1);
     g.exterior_ring.add_coord(100,100);
+    g.exterior_ring.add_coord(0,0);
     std::string expected(
     "move_to(0,0)\n"
     "line_to(1,1)\n"
@@ -27,7 +34,6 @@ TEST_CASE( "test 1", "should round trip without changes" ) {
     );
     CHECK(compare(g) == expected);
 }
-*/
 
 TEST_CASE( "test 2", "should drop coincident line_to commands" ) {
     /*

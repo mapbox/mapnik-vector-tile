@@ -15,14 +15,14 @@ void decode_geometry(vector_tile::Tile_Feature const& f,
     geom = mapnik::vector_tile_impl::decode_geometry(f,x,y,scale,scale);
 }
 
-struct add_path
+struct encode_geometry
 {
     vector_tile::Tile_Feature & feature_;
     unsigned tolerance_;
     unsigned path_multiplier_;
     int32_t x_;
     int32_t y_;
-    add_path(vector_tile::Tile_Feature & feature,
+    encode_geometry(vector_tile::Tile_Feature & feature,
              unsigned tolerance,
              unsigned path_multiplier) :
       feature_(feature),
@@ -77,7 +77,7 @@ std::string compare(mapnik::geometry::geometry const& g,
 
     // encode
     vector_tile::Tile_Feature feature;
-    add_path ap(feature,tolerance,path_multiplier);
+    encode_geometry ap(feature,tolerance,path_multiplier);
     if (g.is<mapnik::geometry::point>() || g.is<mapnik::geometry::multi_point>())
     {
         feature.set_type(vector_tile::Tile_GeomType_POINT);
@@ -90,7 +90,7 @@ std::string compare(mapnik::geometry::geometry const& g,
     {
         feature.set_type(vector_tile::Tile_GeomType_POLYGON);
     }
-    mapnik::util::apply_visitor(mapnik::geometry::vertex_processor<add_path>(ap),g);
+    mapnik::util::apply_visitor(mapnik::geometry::vertex_processor<encode_geometry>(ap),g);
 
     // decode
     mapnik::geometry::geometry g2;
