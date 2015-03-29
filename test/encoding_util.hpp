@@ -1,10 +1,32 @@
 #include <mapnik/vertex.hpp>
 #include <mapnik/geometry.hpp>
+#include <mapnik/geometry_adapters.hpp>
 #include <mapnik/vertex_processor.hpp>
 #include "vector_tile_geometry_decoder.hpp"
 #include "vector_tile_geometry_encoder.hpp"
 #include <mapnik/geometry_empty.hpp>
-//#include <mapnik/util/geometry_to_geojson.hpp> // to_geojson
+
+namespace {
+
+using namespace mapnik::geometry;
+
+struct print
+{
+    void operator() (geometry_empty const&) const
+    {
+        std::cerr << "EMPTY" << std::endl;
+    }
+    void operator() (geometry_collection const& collection) const
+    {
+    }
+    template <typename T>
+    void operator() (T const& geom) const
+    {
+        std::cerr << boost::geometry::wkt(geom) << std::endl;
+    }
+};
+
+}
 
 void decode_geometry(vector_tile::Tile_Feature const& f,
                      mapnik::geometry::geometry & geom,
@@ -63,7 +85,7 @@ struct show_path
             }
             s << x << "," << y << ")\n";
         }
-        str_ = s.str();
+        str_ += s.str();
     }
 };
 
@@ -71,10 +93,6 @@ std::string compare(mapnik::geometry::geometry const& g,
                     unsigned tolerance=0,
                     unsigned path_multiplier=1)
 {
-    //std::string json1;
-    //mapnik::util::to_geojson(json1, g);
-    //std::clog << "json: " << json1 << "\n";
-
     // encode
     vector_tile::Tile_Feature feature;
     encode_geometry ap(feature,tolerance,path_multiplier);
@@ -95,13 +113,11 @@ std::string compare(mapnik::geometry::geometry const& g,
     // decode
     mapnik::geometry::geometry g2;
     decode_geometry(feature,g2,0.0,0.0,1.0);
-    //std::string json;
-    //mapnik::util::to_geojson(json, g2);
-    //std::clog << "json: " << json << "\n";
+    mapnik::util::apply_visitor(print(), g2);
     using decode_path_type = mapnik::geometry::vertex_processor<show_path>;
     std::string out;
     show_path sp(out);
-    mapnik::util::apply_visitor(decode_path_type(sp),g2);
+    mapnik::util::apply_visitor(decode_path_type(sp), g2);
     return out;
 
 }
