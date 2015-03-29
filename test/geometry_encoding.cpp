@@ -36,15 +36,6 @@ TEST_CASE( "test 1", "should round trip without changes" ) {
 }
 
 TEST_CASE( "test 2", "should drop coincident line_to commands" ) {
-    /*
-    mapnik::geometry_type g(mapnik::geometry_type::types::LineString);
-    g.move_to(0,0);
-    g.line_to(3,3);
-    g.line_to(3,3);
-    g.line_to(3,3);
-    g.line_to(3,3);
-    g.line_to(4,4);
-    */
     mapnik::geometry::line_string g;
     g.add_coord(0,0);
     g.add_coord(3,3);
@@ -60,13 +51,11 @@ TEST_CASE( "test 2", "should drop coincident line_to commands" ) {
     CHECK( compare(g,1) == expected);
 }
 
-/*
-
 TEST_CASE( "test 2b", "should drop vertices" ) {
-    mapnik::geometry_type g(mapnik::geometry_type::types::LineString);
-    g.move_to(0,0);
-    g.line_to(0,0);
-    g.line_to(1,1);
+    mapnik::geometry::line_string g;
+    g.add_coord(0,0);
+    g.add_coord(0,0);
+    g.add_coord(1,1);
     std::string expected(
     "move_to(0,0)\n"
     "line_to(0,0)\n" // TODO - should we try to drop this?
@@ -76,19 +65,25 @@ TEST_CASE( "test 2b", "should drop vertices" ) {
 }
 
 TEST_CASE( "test 3", "should not drop first move_to or last vertex in line" ) {
-    mapnik::geometry_type g(mapnik::geometry_type::types::LineString);
-    g.move_to(0,0);
-    g.line_to(1,1);
-    g.move_to(0,0);
-    g.line_to(1,1);
+    mapnik::geometry::multi_line_string g;
+    mapnik::geometry::linear_ring r1;
+    r1.add_coord(0,0);
+    r1.add_coord(1,1);
+    g.push_back(std::move(r1));
+    mapnik::geometry::linear_ring r2;
+    r2.add_coord(2,2);
+    r2.add_coord(3,3);
+    g.push_back(std::move(r2));
     std::string expected(
     "move_to(0,0)\n"
     "line_to(1,1)\n"
-    "move_to(0,0)\n"
-    "line_to(1,1)\n"
+    "move_to(2,2)\n"
+    "line_to(3,3)\n"
     );
     CHECK(compare(g,1000) == expected);
 }
+
+/*
 
 TEST_CASE( "test 4", "should not drop first move_to or last vertex in polygon" ) {
     mapnik::geometry_type g(mapnik::geometry_type::types::Polygon);
@@ -108,7 +103,7 @@ TEST_CASE( "test 4", "should not drop first move_to or last vertex in polygon" )
 }
 
 TEST_CASE( "test 5", "can drop duplicate move_to" ) {
-    mapnik::geometry_type g(mapnik::geometry_type::types::LineString);
+    mapnik::geometry::line_string g;
     g.move_to(0,0);
     g.move_to(1,1); // skipped
     g.line_to(4,4); // skipped
@@ -121,7 +116,7 @@ TEST_CASE( "test 5", "can drop duplicate move_to" ) {
 }
 
 TEST_CASE( "test 5b", "can drop duplicate move_to" ) {
-    mapnik::geometry_type g(mapnik::geometry_type::types::LineString);
+    mapnik::geometry::line_string g;
     g.move_to(0,0);
     g.move_to(1,1);
     g.line_to(2,2);
@@ -133,7 +128,7 @@ TEST_CASE( "test 5b", "can drop duplicate move_to" ) {
 }
 
 TEST_CASE( "test 5c", "can drop duplicate move_to but not second" ) {
-    mapnik::geometry_type g(mapnik::geometry_type::types::LineString);
+    mapnik::geometry::line_string g;
     g.move_to(0,0);
     g.move_to(1,1);
     g.line_to(2,2);
@@ -149,7 +144,7 @@ TEST_CASE( "test 5c", "can drop duplicate move_to but not second" ) {
 }
 
 TEST_CASE( "test 6", "should not drop last line_to if repeated" ) {
-    mapnik::geometry_type g(mapnik::geometry_type::types::LineString);
+    mapnik::geometry::line_string g;
     g.move_to(0,0);
     g.line_to(2,2);
     g.line_to(1000,1000); // skipped
@@ -199,7 +194,7 @@ TEST_CASE( "test 8", "should drop repeated close commands" ) {
 }
 
 TEST_CASE( "test 9a", "should not drop last vertex" ) {
-    mapnik::geometry_type g(mapnik::geometry_type::types::LineString);
+    mapnik::geometry::line_string g;
     g.move_to(0,0);
     g.line_to(9,0); // skipped
     g.line_to(0,10);
