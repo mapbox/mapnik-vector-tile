@@ -1,6 +1,7 @@
 #include "catch.hpp"
 
 #include "encoding_util.hpp"
+#include <mapnik/path.hpp>
 //#include <mapnik/geometry_correct.hpp>
 //#include <mapnik/geometry_unique.hpp>
 // https://github.com/mapbox/mapnik-vector-tile/issues/36
@@ -10,7 +11,6 @@
 low level encoding and decoding that skips clipping
 
 */
-
 
 TEST_CASE( "test 1a", "should round trip without changes" ) {
     mapnik::geometry::point g(0,0);
@@ -66,14 +66,15 @@ TEST_CASE( "test 2b", "should drop vertices" ) {
 
 TEST_CASE( "test 3", "should not drop first move_to or last vertex in line" ) {
     mapnik::geometry::multi_line_string g;
-    mapnik::geometry::linear_ring r1;
-    r1.add_coord(0,0);
-    r1.add_coord(1,1);
-    g.push_back(std::move(r1));
-    mapnik::geometry::linear_ring r2;
-    r2.add_coord(2,2);
-    r2.add_coord(3,3);
-    g.push_back(std::move(r2));
+    mapnik::geometry::line_string l1;
+    l1.add_coord(0,0);
+    l1.add_coord(1,1);
+    g.push_back(std::move(l1));
+    mapnik::geometry::line_string l2;
+    l2.add_coord(2,2);
+    l2.add_coord(3,3);
+    g.push_back(std::move(l2));
+
     std::string expected(
     "move_to(0,0)\n"
     "line_to(1,1)\n"
@@ -83,15 +84,20 @@ TEST_CASE( "test 3", "should not drop first move_to or last vertex in line" ) {
     CHECK(compare(g,1000) == expected);
 }
 
-/*
 
 TEST_CASE( "test 4", "should not drop first move_to or last vertex in polygon" ) {
-    mapnik::geometry_type g(mapnik::geometry_type::types::Polygon);
-    g.move_to(0,0);
-    g.line_to(1,1);
-    g.move_to(0,0);
-    g.line_to(1,1);
-    g.close_path();
+    mapnik::geometry::multi_polygon g;
+    mapnik::geometry::polygon p0;
+    p0.exterior_ring.add_coord(0,0);
+    p0.exterior_ring.add_coord(1,0);
+    g.push_back(std::move(p0));
+
+    mapnik::geometry::polygon p1;
+    p1.exterior_ring.add_coord(1,1);
+    p1.exterior_ring.add_coord(0,1);
+    p1.exterior_ring.add_coord(1,1);
+    g.push_back(std::move(p1));
+
     std::string expected(
     "move_to(0,0)\n"
     "line_to(1,1)\n"
@@ -102,18 +108,23 @@ TEST_CASE( "test 4", "should not drop first move_to or last vertex in polygon" )
     CHECK(compare(g,1000) == expected);
 }
 
+/*
+
 TEST_CASE( "test 5", "can drop duplicate move_to" ) {
-    mapnik::geometry::line_string g;
+
+    mapnik::geometry::path p(mapnik::path::LineString);
     g.move_to(0,0);
     g.move_to(1,1); // skipped
     g.line_to(4,4); // skipped
     g.line_to(5,5);
+
     std::string expected(
     "move_to(0,0)\n" // TODO - should we keep move_to(1,1) instead?
     "line_to(5,5)\n"
     );
     CHECK(compare(g,2) == expected);
 }
+
 
 TEST_CASE( "test 5b", "can drop duplicate move_to" ) {
     mapnik::geometry::line_string g;
