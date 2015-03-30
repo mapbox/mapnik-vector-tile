@@ -28,7 +28,7 @@ struct print
 
 }
 
-void decode_geometry(vector_tile::Tile_Feature const& f,
+void decode_geometry2(vector_tile::Tile_Feature const& f,
                      mapnik::geometry::geometry & geom,
                      double x,
                      double y,
@@ -112,7 +112,7 @@ std::string compare(mapnik::geometry::geometry const& g,
 
     // decode
     mapnik::geometry::geometry g2;
-    decode_geometry(feature,g2,0.0,0.0,1.0);
+    decode_geometry2(feature,g2,0.0,0.0,1.0);
     mapnik::util::apply_visitor(print(), g2);
     using decode_path_type = mapnik::geometry::vertex_processor<show_path>;
     std::string out;
