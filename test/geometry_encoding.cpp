@@ -84,6 +84,7 @@ TEST_CASE( "test 3", "should not drop first move_to or last vertex in line" ) {
     CHECK(compare(g,1000) == expected);
 }
 
+/*
 
 TEST_CASE( "test 4", "should not drop first move_to or last vertex in polygon" ) {
     mapnik::geometry::multi_polygon g;
@@ -108,7 +109,7 @@ TEST_CASE( "test 4", "should not drop first move_to or last vertex in polygon" )
     CHECK(compare(g,1000) == expected);
 }
 
-/*
+
 
 TEST_CASE( "test 5", "can drop duplicate move_to" ) {
 
