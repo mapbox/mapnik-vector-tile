@@ -85,7 +85,7 @@ Geometry::command Geometry::next(double& rx, double& ry) {
     }
 }
 
-mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature const& f,
+inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature const& f,
                                            double tile_x, double tile_y,
                                            double scale_x, double scale_y)
 {
