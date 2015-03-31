@@ -4,7 +4,7 @@
 #include <mapnik/geometry_is_valid.hpp>
 #include <mapnik/geometry_is_simple.hpp>
 #include <mapnik/geometry_correct.hpp>
-#include <boost/geometry/algorithms/reverse.hpp>
+
 //#include <mapnik/geometry_unique.hpp>
 
 /*
@@ -115,8 +115,8 @@ TEST_CASE( "polygon with hole", "should round trip without changes" ) {
     p1.exterior_ring.add_coord(-4,4);
     p1.exterior_ring.add_coord(-6,4);
     multi_poly.push_back(std::move(p1));
-//mapnik::geometry::correct(multi_poly); // ensure correct winding order (CCW - exterior, CW - interior)
-    CHECK(!mapnik::geometry::is_valid(multi_poly));
+    mapnik::geometry::correct(multi_poly); // ensure correct winding order (CCW - exterior, CW - interior)
+    CHECK(mapnik::geometry::is_valid(multi_poly));
     CHECK(mapnik::geometry::is_simple(multi_poly));
 
     std::string expected(
@@ -131,9 +131,9 @@ TEST_CASE( "polygon with hole", "should round trip without changes" ) {
     "line_to(-7,3)\n"
     "close_path(0,0)\n"
     "move_to(-6,4)\n"
-    "line_to(-6,6)\n"
-    "line_to(-4,6)\n"
     "line_to(-4,4)\n"
+    "line_to(-4,6)\n"
+    "line_to(-6,6)\n"
     "close_path(0,0)\n"
     );
     CHECK(compare(multi_poly) == expected);
