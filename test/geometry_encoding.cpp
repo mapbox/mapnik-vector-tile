@@ -89,7 +89,7 @@ TEST_CASE( "polygon", "should round trip without changes" ) {
     CHECK(compare(g) == expected);
 }
 
-TEST_CASE( "polygon with hole", "should round trip without changes" ) {
+TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     // NOTE: this polygon should have correct winding order:
     // CCW for exterior, CW for interior
     // TODO: confirm with boost::geometry::correct
@@ -107,19 +107,8 @@ TEST_CASE( "polygon with hole", "should round trip without changes" ) {
     hole.add_coord(-7,3);
     hole.add_coord(-7,7);
     p0.add_hole(std::move(hole));
-    multi_poly.push_back(std::move(p0));
-    mapnik::geometry::polygon p1;
-    p1.exterior_ring.add_coord(-6,4);
-    p1.exterior_ring.add_coord(-6,6);
-    p1.exterior_ring.add_coord(-4,6);
-    p1.exterior_ring.add_coord(-4,4);
-    p1.exterior_ring.add_coord(-6,4);
-    multi_poly.push_back(std::move(p1));
-    mapnik::geometry::correct(multi_poly); // ensure correct winding order (CCW - exterior, CW - interior)
-    CHECK(mapnik::geometry::is_valid(multi_poly));
-    CHECK(mapnik::geometry::is_simple(multi_poly));
 
-    std::string expected(
+    std::string expected_p0(
     "move_to(0,0)\n"
     "line_to(0,10)\n"
     "line_to(-10,10)\n"
@@ -130,13 +119,31 @@ TEST_CASE( "polygon with hole", "should round trip without changes" ) {
     "line_to(-3,3)\n"
     "line_to(-7,3)\n"
     "close_path(0,0)\n"
+    );
+//    mapnik::geometry::correct(p0); // ensure correct winding order (CCW - exterior, CW - interior)
+    CHECK(compare(p0) == expected_p0);
+
+    multi_poly.push_back(std::move(p0));
+    mapnik::geometry::polygon p1;
+    p1.exterior_ring.add_coord(-6,4);
+    p1.exterior_ring.add_coord(-6,6);
+    p1.exterior_ring.add_coord(-4,6);
+    p1.exterior_ring.add_coord(-4,4);
+    p1.exterior_ring.add_coord(-6,4);
+
+    std::string expected_multi = expected_p0 += std::string(
     "move_to(-6,4)\n"
     "line_to(-4,4)\n"
     "line_to(-4,6)\n"
     "line_to(-6,6)\n"
     "close_path(0,0)\n"
     );
-    CHECK(compare(multi_poly) == expected);
+
+    multi_poly.push_back(std::move(p1));
+    mapnik::geometry::correct(multi_poly); // ensure correct winding order (CCW - exterior, CW - interior)
+    CHECK(mapnik::geometry::is_valid(multi_poly));
+    CHECK(mapnik::geometry::is_simple(multi_poly));
+    CHECK(compare(multi_poly) == expected_multi);
 }
 
 TEST_CASE( "test 2", "should drop coincident line_to commands" ) {
