@@ -1,10 +1,8 @@
 #include "catch.hpp"
 
 #include "encoding_util.hpp"
-#include <mapnik/path.hpp>
 //#include <mapnik/geometry_correct.hpp>
 //#include <mapnik/geometry_unique.hpp>
-// https://github.com/mapbox/mapnik-vector-tile/issues/36
 
 /*
 
@@ -12,7 +10,7 @@ low level encoding and decoding that skips clipping
 
 */
 
-TEST_CASE( "test 1a", "should round trip without changes" ) {
+TEST_CASE( "point", "should round trip without changes" ) {
     mapnik::geometry::point g(0,0);
     std::string expected(
     "move_to(0,0)\n"
@@ -20,7 +18,60 @@ TEST_CASE( "test 1a", "should round trip without changes" ) {
     CHECK(compare(g) == expected);
 }
 
-TEST_CASE( "test 1", "should round trip without changes" ) {
+TEST_CASE( "multi_point", "should round trip without changes" ) {
+    mapnik::geometry::multi_point g;
+    g.add_coord(0,0);
+    g.add_coord(1,1);
+    g.add_coord(2,2);
+    std::string expected(
+    "move_to(0,0)\n"
+    "move_to(1,1)\n"
+    "move_to(2,2)\n"
+    );
+    CHECK(compare(g) == expected);
+}
+
+TEST_CASE( "line_string", "should round trip without changes" ) {
+    mapnik::geometry::line_string g;
+    g.add_coord(0,0);
+    g.add_coord(1,1);
+    g.add_coord(100,100);
+    std::string expected(
+    "move_to(0,0)\n"
+    "line_to(1,1)\n"
+    "line_to(100,100)\n"
+    );
+    CHECK(compare(g) == expected);
+}
+
+TEST_CASE( "multi_line_string", "should round trip without changes" ) {
+    mapnik::geometry::multi_line_string g;
+    {
+        mapnik::geometry::line_string line;
+        line.add_coord(0,0);
+        line.add_coord(1,1);
+        line.add_coord(100,100);
+        g.emplace_back(std::move(line));
+    }
+    {
+        mapnik::geometry::line_string line;
+        line.add_coord(-10,-10);
+        line.add_coord(-20,-20);
+        line.add_coord(-100,-100);
+        g.emplace_back(std::move(line));
+    }
+    std::string expected(
+    "move_to(0,0)\n"
+    "line_to(1,1)\n"
+    "line_to(100,100)\n"
+    "move_to(-10,-10)\n"
+    "line_to(-20,-20)\n"
+    "line_to(-100,-100)\n"
+    );
+    CHECK(compare(g) == expected);
+}
+
+TEST_CASE( "polygon", "should round trip without changes" ) {
     mapnik::geometry::polygon g;
     g.exterior_ring.add_coord(0,0);
     g.exterior_ring.add_coord(1,1);
@@ -30,6 +81,40 @@ TEST_CASE( "test 1", "should round trip without changes" ) {
     "move_to(0,0)\n"
     "line_to(1,1)\n"
     "line_to(100,100)\n"
+    "close_path(0,0)\n"
+    );
+    CHECK(compare(g) == expected);
+}
+
+TEST_CASE( "polygon with hole", "should round trip without changes" ) {
+    // NOTE: this polygon should have correct winding order:
+    // CCW for exterior, CW for interior
+    // TODO: confirm with boost::geometry::correct
+    mapnik::geometry::polygon g;
+    g.exterior_ring.add_coord(0,0);
+    g.exterior_ring.add_coord(0,10);
+    g.exterior_ring.add_coord(-10,10);
+    g.exterior_ring.add_coord(-10,0);
+    g.exterior_ring.add_coord(0,0);
+    mapnik::geometry::linear_ring hole;
+    hole.add_coord(-7,7);
+    hole.add_coord(-3,7);
+    hole.add_coord(-3,3);
+    hole.add_coord(-7,3);
+    hole.add_coord(-7,7);
+    g.add_hole(std::move(hole));
+    mapnik::geometry::linear_ring hole_in_hole;
+    hole_in_hole.add_coord(-6,4);
+    hole_in_hole.add_coord(-6,6);
+    hole_in_hole.add_coord(-4,6);
+    hole_in_hole.add_coord(-4,4);
+    hole_in_hole.add_coord(-6,4);
+    g.add_hole(std::move(hole_in_hole));
+    std::string expected(
+    "move_to(0,0)\n"
+    "line_to(0,10)\n"
+    "line_to(-10,10)\n"
+    "line_to(-10,0)\n"
     "close_path(0,0)\n"
     );
     CHECK(compare(g) == expected);
