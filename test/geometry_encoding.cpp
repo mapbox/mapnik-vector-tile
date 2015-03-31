@@ -1,7 +1,10 @@
 #include "catch.hpp"
 
 #include "encoding_util.hpp"
-//#include <mapnik/geometry_correct.hpp>
+#include <mapnik/geometry_is_valid.hpp>
+#include <mapnik/geometry_is_simple.hpp>
+#include <mapnik/geometry_correct.hpp>
+#include <boost/geometry/algorithms/reverse.hpp>
 //#include <mapnik/geometry_unique.hpp>
 
 /*
@@ -90,34 +93,50 @@ TEST_CASE( "polygon with hole", "should round trip without changes" ) {
     // NOTE: this polygon should have correct winding order:
     // CCW for exterior, CW for interior
     // TODO: confirm with boost::geometry::correct
-    mapnik::geometry::polygon g;
-    g.exterior_ring.add_coord(0,0);
-    g.exterior_ring.add_coord(0,10);
-    g.exterior_ring.add_coord(-10,10);
-    g.exterior_ring.add_coord(-10,0);
-    g.exterior_ring.add_coord(0,0);
+    mapnik::geometry::multi_polygon multi_poly;
+    mapnik::geometry::polygon p0;
+    p0.exterior_ring.add_coord(0,0);
+    p0.exterior_ring.add_coord(0,10);
+    p0.exterior_ring.add_coord(-10,10);
+    p0.exterior_ring.add_coord(-10,0);
+    p0.exterior_ring.add_coord(0,0);
     mapnik::geometry::linear_ring hole;
     hole.add_coord(-7,7);
     hole.add_coord(-3,7);
     hole.add_coord(-3,3);
     hole.add_coord(-7,3);
     hole.add_coord(-7,7);
-    g.add_hole(std::move(hole));
-    mapnik::geometry::linear_ring hole_in_hole;
-    hole_in_hole.add_coord(-6,4);
-    hole_in_hole.add_coord(-6,6);
-    hole_in_hole.add_coord(-4,6);
-    hole_in_hole.add_coord(-4,4);
-    hole_in_hole.add_coord(-6,4);
-    g.add_hole(std::move(hole_in_hole));
+    p0.add_hole(std::move(hole));
+    multi_poly.push_back(std::move(p0));
+    mapnik::geometry::polygon p1;
+    p1.exterior_ring.add_coord(-6,4);
+    p1.exterior_ring.add_coord(-6,6);
+    p1.exterior_ring.add_coord(-4,6);
+    p1.exterior_ring.add_coord(-4,4);
+    p1.exterior_ring.add_coord(-6,4);
+    multi_poly.push_back(std::move(p1));
+//mapnik::geometry::correct(multi_poly); // ensure correct winding order (CCW - exterior, CW - interior)
+    CHECK(!mapnik::geometry::is_valid(multi_poly));
+    CHECK(mapnik::geometry::is_simple(multi_poly));
+
     std::string expected(
     "move_to(0,0)\n"
     "line_to(0,10)\n"
     "line_to(-10,10)\n"
     "line_to(-10,0)\n"
     "close_path(0,0)\n"
+    "move_to(-7,7)\n"
+    "line_to(-3,7)\n"
+    "line_to(-3,3)\n"
+    "line_to(-7,3)\n"
+    "close_path(0,0)\n"
+    "move_to(-6,4)\n"
+    "line_to(-6,6)\n"
+    "line_to(-4,6)\n"
+    "line_to(-4,4)\n"
+    "close_path(0,0)\n"
     );
-    CHECK(compare(g) == expected);
+    CHECK(compare(multi_poly) == expected);
 }
 
 TEST_CASE( "test 2", "should drop coincident line_to commands" ) {
