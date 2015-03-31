@@ -3,6 +3,8 @@
 
 #include "vector_tile.pb.h"
 
+#include <mapnik/util/is_clockwise.hpp>
+
 namespace mapnik { namespace vector_tile_impl {
 
 class Geometry {
@@ -154,7 +156,8 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
             rings.emplace_back();
             double x2,y2;
             bool first = true;
-            while ((cmd = geoms.next(x1, y1)) != Geometry::end) {
+            while ((cmd = geoms.next(x1, y1)) != Geometry::end)
+            {
                 if (cmd == Geometry::move_to)
                 {
                     x2 = x1;
@@ -175,28 +178,48 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
                 }
                 rings.back().add_coord(x1,y1);
             }
+
+            auto rings_itr = std::make_move_iterator(rings.begin());
+            auto rings_end = std::make_move_iterator(rings.end());
             std::size_t num_rings = rings.size();
             if (num_rings == 1)
             {
-                // return the single polygon
+                // return the single polygon without interior rings
                 mapnik::geometry::polygon poly;
-                poly.set_exterior_ring(std::move(rings[0]));
+                poly.set_exterior_ring(std::move(*rings_itr));
                 return mapnik::geometry::geometry(std::move(poly));
             }
-            for (unsigned i = 0; i < num_rings;++i)
+
+            mapnik::geometry::multi_polygon multi_poly;
+            multi_poly.emplace_back();
+            first = true;
+            for (; rings_itr != rings_end; ++rings_itr)
             {
-                mapnik::geometry::polygon poly;
-                if (i == 0)
+                if (first)
                 {
-                    poly.set_exterior_ring(std::move(rings[i]));
+                    // first ring always exterior
+                    multi_poly.back().set_exterior_ring(std::move(*rings_itr));
+                    first = false;
+                }
+                else if (!mapnik::util::is_clockwise(*rings_itr)) // no-move --> const&
+                {
+                    multi_poly.emplace_back(); // start new polygon
+                    multi_poly.back().set_exterior_ring(std::move(*rings_itr));
                 }
                 else
                 {
-                    poly.add_hole(std::move(rings[i]));
+                    multi_poly.back().add_hole(std::move(*rings_itr));
                 }
-                return mapnik::geometry::geometry(std::move(poly));
             }
-            return poly;
+            if (multi_poly.size() == 1)
+            {
+                auto itr = std::make_move_iterator(multi_poly.begin());
+                return mapnik::geometry::geometry(std::move(*itr));
+            }
+            else
+            {
+                return mapnik::geometry::geometry(std::move(multi_poly));
+            }
             break;
         }
         case vector_tile::Tile_GeomType_UNKNOWN:
