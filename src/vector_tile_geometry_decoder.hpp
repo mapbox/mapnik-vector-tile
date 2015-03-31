@@ -138,12 +138,13 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
             if (num_lines == 1)
             {
                 // return the single line
-                return mapnik::geometry::geometry(std::move(mp[0]));;
+                auto itr = std::make_move_iterator(mp.begin());
+                return mapnik::geometry::geometry(std::move(*itr));
             }
             else if (num_lines > 1)
             {
                 // return multiline
-                return mapnik::geometry::geometry(std::move(mp));;
+                return mapnik::geometry::geometry(std::move(mp));
             }
             break;
         }
