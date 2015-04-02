@@ -561,7 +561,7 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
     CHECK(7 == f.geometry_size());
 }
 
-mapnik::geometry::geometry round_trip(mapnik::geometry::geometry const& geom)
+mapnik::geometry::geometry round_trip(mapnik::geometry::geometry const& geom, double simplify_distance=0.0)
 {
     typedef mapnik::vector_tile_impl::backend_pbf backend_type;
     typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
@@ -580,6 +580,7 @@ mapnik::geometry::geometry round_trip(mapnik::geometry::geometry const& geom)
     mapnik::projection wgs84("+init=epsg:4326",true);
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform prj_trans(wgs84,merc);
+    ren.set_simplify_distance(simplify_distance);
     ren.handle_geometry(*feature,geom,prj_trans,bbox);
     backend.stop_tile_layer();
     if (tile.layers_size() != 1)
@@ -729,3 +730,21 @@ TEST_CASE( "vector tile multi_polygon encoding of actual multi_polygon", "should
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::multi_polygon>() );
 }
+
+// simplification
+
+TEST_CASE( "vector tile line_string is simplified", "should create vector tile with data" ) {
+    mapnik::geometry::multi_line_string geom;
+    mapnik::geometry::line_string line;
+    line.add_coord(0,0);
+    line.add_coord(1,1);
+    line.add_coord(2,2);
+    line.add_coord(100,100);
+    geom.emplace_back(std::move(line));
+    mapnik::geometry::geometry new_geom = round_trip(geom,10);
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    CHECK( new_geom.is<mapnik::geometry::line_string>() );
+    auto const& line2 = mapnik::util::get<mapnik::geometry::line_string>(new_geom);
+    CHECK( line2.size() == 2 );
+}
+

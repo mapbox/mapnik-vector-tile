@@ -46,6 +46,7 @@ private:
     scaling_method_e scaling_method_;
     bool painted_;
     poly_clipper_type poly_clipper_type_;
+    double simplify_distance_;
 public:
     MAPNIK_VECTOR_INLINE processor(T & backend,
               mapnik::Map const& map,
@@ -57,6 +58,16 @@ public:
               std::string const& image_format="jpeg",
               scaling_method_e scaling_method=SCALING_NEAR
         );
+
+    inline void set_simplify_distance(double dist)
+    {
+        simplify_distance_ = dist;
+    }
+
+    inline double get_simplify_distance(double dist) const
+    {
+        return simplify_distance_;
+    }
 
     MAPNIK_VECTOR_INLINE void set_poly_clipper(poly_clipper_type clipper);
 

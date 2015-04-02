@@ -25,6 +25,7 @@
 #include <mapnik/transform_path_adapter.hpp>
 #include <mapnik/geometry_is_empty.hpp>
 #include <mapnik/geometry_envelope.hpp>
+#include <mapnik/geometry_adapters.hpp>
 
 // agg
 #include "agg_path_storage.h"
@@ -42,7 +43,7 @@
 #include "agg_renderer_base.h"
 
 #include <boost/optional.hpp>
-#include <boost/ptr_container/ptr_vector.hpp>
+#include <boost/geometry/algorithms/simplify.hpp>
 
 #include <iostream>
 #include <string>
@@ -606,7 +607,8 @@ processor<T>::processor(T & backend,
       image_format_(image_format),
       scaling_method_(scaling_method),
       painted_(false),
-      poly_clipper_type_(AGG_CLIPPER) {}
+      poly_clipper_type_(AGG_CLIPPER),
+      simplify_distance_(0.0) {}
 
 template <typename T>
 void processor<T>::set_poly_clipper(poly_clipper_type clipper)
@@ -1020,13 +1022,77 @@ struct encoder_visitor {
 };
 
 template <typename T>
+struct simplify_visitor {
+    typedef T backend_type;
+    simplify_visitor(double simplify_distance,
+                     encoder_visitor<backend_type> & encoder) :
+      encoder_(encoder),
+      simplify_distance_(simplify_distance) {}
+
+    unsigned operator() (mapnik::geometry::point const& geom)
+    {
+        return encoder_(geom);
+    }
+
+    unsigned operator() (mapnik::geometry::multi_point const& geom)
+    {
+        return encoder_(geom);
+    }
+
+    unsigned operator() (mapnik::geometry::line_string const& geom)
+    {
+        mapnik::geometry::line_string simplified;
+        boost::geometry::simplify(geom,simplified,simplify_distance_);
+        return encoder_(simplified);
+    }
+
+    unsigned operator() (mapnik::geometry::multi_line_string const& geom)
+    {
+        mapnik::geometry::multi_line_string simplified;
+        boost::geometry::simplify(geom,simplified,simplify_distance_);
+        return encoder_(simplified);
+    }
+
+    unsigned operator() (mapnik::geometry::polygon const& geom)
+    {
+        mapnik::geometry::polygon simplified;
+        boost::geometry::simplify(geom,simplified,simplify_distance_);
+        return encoder_(simplified);
+    }
+
+    unsigned operator() (mapnik::geometry::multi_polygon const& geom)
+    {
+        mapnik::geometry::multi_polygon simplified;
+        boost::geometry::simplify(geom,simplified,simplify_distance_);
+        return encoder_(simplified);
+    }
+
+    template <typename Geom>
+    unsigned operator() (Geom const& geom) {
+        return encoder_(geom);
+    }
+
+    encoder_visitor<backend_type> & encoder_;
+    unsigned simplify_distance_;
+};
+
+
+template <typename T>
 unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
                                        mapnik::geometry::geometry const& geom,
                                        mapnik::proj_transform const& prj_trans,
                                        mapnik::box2d<double> const& buffered_query_ext)
 {
     encoder_visitor<T> encoder(backend_,feature,prj_trans,buffered_query_ext,t_,tolerance_);
-    return mapnik::util::apply_visitor(encoder,geom);
+    if (simplify_distance_ > 0)
+    {
+        simplify_visitor<T> simplifier(simplify_distance_,encoder);
+        return mapnik::util::apply_visitor(simplifier,geom);
+    }
+    else
+    {
+        return mapnik::util::apply_visitor(encoder,geom);
+    }
 }
 
 }} // end ns
