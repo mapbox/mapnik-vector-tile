@@ -64,7 +64,7 @@ public:
         simplify_distance_ = dist;
     }
 
-    inline double get_simplify_distance(double dist) const
+    inline double get_simplify_distance() const
     {
         return simplify_distance_;
     }
