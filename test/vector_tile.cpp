@@ -582,7 +582,15 @@ mapnik::geometry::geometry round_trip(mapnik::geometry::geometry const& geom)
     mapnik::proj_transform prj_trans(wgs84,merc);
     ren.handle_geometry(*feature,geom,prj_trans,bbox);
     backend.stop_tile_layer();
+    if (tile.layers_size() != 1)
+    {
+        throw std::runtime_error("expected 1 layer in `round_trip`");
+    }
     vector_tile::Tile_Layer const& layer = tile.layers(0);
+    if (layer.features_size() != 1)
+    {
+        throw std::runtime_error("expected 1 feature in `round_trip`");
+    }
     vector_tile::Tile_Feature const& f = layer.features(0);
     unsigned z = 0;
     unsigned x = 0;
