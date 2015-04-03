@@ -158,7 +158,6 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
     }
     case vector_tile::Tile_GeomType_POLYGON:
     {
-        mapnik::geometry::polygon poly;
         std::vector<mapnik::geometry::linear_ring> rings;
         rings.emplace_back();
         double x2,y2;
@@ -191,6 +190,10 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
         std::size_t num_rings = rings.size();
         if (num_rings == 1)
         {
+            if (rings_itr->size() < 4)
+            {
+                return geom;
+            }
             // return the single polygon without interior rings
             mapnik::geometry::polygon poly;
             poly.set_exterior_ring(std::move(*rings_itr));
@@ -203,6 +206,10 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
         first = true;
         for (; rings_itr != rings_end; ++rings_itr)
         {
+            if (rings_itr->size() < 4)
+            {
+                continue;
+            }
             if (first)
             {
                 // first ring always exterior
@@ -219,10 +226,14 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
                 multi_poly.back().add_hole(std::move(*rings_itr));
             }
         }
-        if (multi_poly.size() == 1)
+        if (multi_poly.size() == 0)
+        {
+            return geom;
+        }
+        else if (multi_poly.size() == 1)
         {
             auto itr = std::make_move_iterator(multi_poly.begin());
-            geom = std::move(*itr);
+            geom = std::move(mapnik::geometry::polygon(std::move(*itr)));
             return geom;
         }
         else
