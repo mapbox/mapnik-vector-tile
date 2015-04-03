@@ -192,6 +192,10 @@ namespace mapnik { namespace vector_tile_impl {
                     continue;
                 }
                 mapnik::geometry::geometry geom = decode_geometry(f,tile_x_,tile_y_,scale_,-1*scale_);
+                if (geom.is<mapnik::geometry::geometry_empty>())
+                {
+                    continue;
+                }
                 mapnik::box2d<double> envelope = mapnik::geometry::envelope(geom);
                 if (!filter_.pass(envelope))
                 {

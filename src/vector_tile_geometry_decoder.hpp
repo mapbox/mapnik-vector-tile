@@ -5,6 +5,9 @@
 
 #include <mapnik/util/is_clockwise.hpp>
 
+//std
+#include <algorithm>
+
 namespace mapnik { namespace vector_tile_impl {
 
 class Geometry {
@@ -194,6 +197,11 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
             {
                 return geom;
             }
+            if (mapnik::util::is_clockwise(*rings_itr))
+            {
+                // Its clockwise, so lets reverse it.
+                std::reverse(rings_itr->begin(), rings_itr->end());
+            }
             // return the single polygon without interior rings
             mapnik::geometry::polygon poly;
             poly.set_exterior_ring(std::move(*rings_itr));
@@ -202,7 +210,6 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
         }
 
         mapnik::geometry::multi_polygon multi_poly;
-        multi_poly.emplace_back();
         first = true;
         for (; rings_itr != rings_end; ++rings_itr)
         {
@@ -213,6 +220,12 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
             if (first)
             {
                 // first ring always exterior
+                multi_poly.emplace_back();
+                if (mapnik::util::is_clockwise(*rings_itr))
+                {
+                    // Its clockwise, so lets reverse it.
+                    std::reverse(rings_itr->begin(), rings_itr->end());
+                }
                 multi_poly.back().set_exterior_ring(std::move(*rings_itr));
                 first = false;
             }
