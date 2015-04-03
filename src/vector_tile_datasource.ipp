@@ -199,6 +199,46 @@ namespace mapnik { namespace vector_tile_impl {
                 mapnik::box2d<double> envelope = mapnik::geometry::envelope(geom);
                 if (!filter_.pass(envelope))
                 {
+                    /*
+                    std::cout << envelope.to_string() << std::endl;
+                    if (geom.is<mapnik::geometry::multi_polygon>())
+                    {
+                        mapnik::geometry::multi_polygon mp = mapnik::util::get<mapnik::geometry::multi_polygon>(geom);
+                        double max_x = -1e10;
+                        double max_y = -1e10;
+                        double min_x = 1e10;
+                        double min_y = 1e10;
+                        double max_x_i = -1e10;
+                        double max_y_i = -1e10;
+                        double min_x_i = 1e10;
+                        double min_y_i = 1e10;
+                        int i = 0;
+                        for (auto const & pol : mp)
+                        {
+                            i++;
+                            for (auto const & p : pol.exterior_ring)
+                            {
+                                if (max_x < p.x) max_x = p.x;
+                                if (max_y < p.y) max_y = p.y;
+                                if (min_x > p.x) min_x = p.x;
+                                if (min_y > p.y) min_y = p.y;
+                            }
+                            for (auto const & ip : pol.interior_rings)
+                            {
+                                for (auto const & p : ip)
+                                {
+                                    if (max_x_i < p.x) max_x_i = p.x;
+                                    if (max_y_i < p.y) max_y_i = p.y;
+                                    if (min_x_i > p.x) min_x_i = p.x;
+                                    if (min_y_i > p.y) min_y_i = p.y;
+                                }
+                            }
+                        }
+                        std::cout << "Polygon count: " << i << std::endl;
+                        std::cout << "Exterior: " << min_x << " , " << min_y << " , " << max_x << " , " << max_y << std::endl;
+                        std::cout << "Interior: " << min_x_i << " , " << min_y_i << " , " << max_x_i << " , " << max_y_i << std::endl;
+                    */
+                    }
                     continue;
                 }
                 mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);

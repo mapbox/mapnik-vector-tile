@@ -236,7 +236,10 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
             }
             else
             {
-                multi_poly.back().add_hole(std::move(*rings_itr));
+                multi_poly.emplace_back(); // start new polygon
+                std::reverse(rings_itr->begin(), rings_itr->end());
+                multi_poly.back().set_exterior_ring(std::move(*rings_itr));
+               // multi_poly.back().add_hole(std::move(*rings_itr));
             }
         }
         if (multi_poly.size() == 0)
