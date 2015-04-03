@@ -237,8 +237,8 @@ namespace mapnik { namespace vector_tile_impl {
                         std::cout << "Polygon count: " << i << std::endl;
                         std::cout << "Exterior: " << min_x << " , " << min_y << " , " << max_x << " , " << max_y << std::endl;
                         std::cout << "Interior: " << min_x_i << " , " << min_y_i << " , " << max_x_i << " , " << max_y_i << std::endl;
-                    */
                     }
+                    */
                     continue;
                 }
                 mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
