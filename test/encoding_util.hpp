@@ -103,7 +103,7 @@ std::string compare(mapnik::geometry::geometry const& g,
 
     // decode
     auto g2 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
-    mapnik::util::apply_visitor(print(), g2);
+    //mapnik::util::apply_visitor(print(), g2);
     using decode_path_type = mapnik::geometry::vertex_processor<show_path>;
     std::string out;
     show_path sp(out);
