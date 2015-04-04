@@ -80,11 +80,10 @@ struct show_path
     }
 };
 
-std::string compare(mapnik::geometry::geometry const& g,
-                    unsigned tolerance=0,
-                    unsigned path_multiplier=1)
+vector_tile::Tile_Feature geometry_to_feature(mapnik::geometry::geometry const& g,
+                                              unsigned tolerance=0,
+                                              unsigned path_multiplier=1)
 {
-    // encode
     vector_tile::Tile_Feature feature;
     encode_geometry ap(feature,tolerance,path_multiplier);
     if (g.is<mapnik::geometry::point>() || g.is<mapnik::geometry::multi_point>())
@@ -99,15 +98,29 @@ std::string compare(mapnik::geometry::geometry const& g,
     {
         feature.set_type(vector_tile::Tile_GeomType_POLYGON);
     }
+    else
+    {
+        throw std::runtime_error("could not detect valid geometry type");
+    }
     mapnik::util::apply_visitor(mapnik::geometry::vertex_processor<encode_geometry>(ap),g);
+    return feature;
+}
 
-    // decode
-    auto g2 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+std::string decode_to_path_string(mapnik::geometry::geometry const& g)
+{
     //mapnik::util::apply_visitor(print(), g2);
     using decode_path_type = mapnik::geometry::vertex_processor<show_path>;
     std::string out;
     show_path sp(out);
-    mapnik::util::apply_visitor(decode_path_type(sp), g2);
+    mapnik::util::apply_visitor(decode_path_type(sp), g);
     return out;
+}
 
+std::string compare(mapnik::geometry::geometry const& g,
+                    unsigned tolerance=0,
+                    unsigned path_multiplier=1)
+{
+    vector_tile::Tile_Feature feature = geometry_to_feature(g,tolerance,path_multiplier);
+    auto g2 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    return decode_to_path_string(g2);
 }
