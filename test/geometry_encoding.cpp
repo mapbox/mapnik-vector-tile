@@ -90,6 +90,79 @@ TEST_CASE( "polygon", "should round trip without changes" ) {
     CHECK(compare(g) == expected);
 }
 
+TEST_CASE( "polygon with degenerate exterior ring ", "should be culled" ) {
+    mapnik::geometry::polygon p0;
+    // invalid exterior ring
+    p0.exterior_ring.add_coord(0,0);
+    p0.exterior_ring.add_coord(0,10);
+
+    std::string wkt0;
+    CHECK( mapnik::util::to_wkt(wkt0,p0) );
+    // wkt writer copes with busted polygon
+    std::string expected_wkt0("POLYGON((0 0,0 10))");
+    CHECK( wkt0 == expected_wkt0);
+
+    vector_tile::Tile_Feature feature = geometry_to_feature(p0);
+    // since first ring is degenerate the whole polygon should be culled
+    auto p1 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    CHECK( p1.is<mapnik::geometry::geometry_empty>() );
+}
+
+TEST_CASE( "polygon with degenerate exterior ring will drop vald interior ring", "should be culled" ) {
+    mapnik::geometry::polygon p0;
+    // invalid exterior ring
+    p0.exterior_ring.add_coord(0,0);
+    p0.exterior_ring.add_coord(0,10);
+    // valid interior ring
+    mapnik::geometry::linear_ring hole;
+    hole.add_coord(-7,7);
+    hole.add_coord(-3,7);
+    hole.add_coord(-3,3);
+    hole.add_coord(-7,3);
+    hole.add_coord(-7,7);
+    p0.add_hole(std::move(hole));
+
+    std::string wkt0;
+    CHECK( mapnik::util::to_wkt(wkt0,p0) );
+    // wkt writer copes with busted polygon
+    std::string expected_wkt0("POLYGON((0 0,0 10),(-7 7,-3 7,-3 3,-7 3,-7 7))");
+    CHECK( wkt0 == expected_wkt0);
+
+    vector_tile::Tile_Feature feature = geometry_to_feature(p0);
+    // since first ring is degenerate the whole polygon should be culled
+    auto p1 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    CHECK( p1.is<mapnik::geometry::geometry_empty>() );
+}
+
+TEST_CASE( "polygon with valid exterior ring but degenerate interior ring", "should be culled" ) {
+    mapnik::geometry::polygon p0;
+    p0.exterior_ring.add_coord(0,0);
+    p0.exterior_ring.add_coord(0,10);
+    p0.exterior_ring.add_coord(-10,10);
+    p0.exterior_ring.add_coord(-10,0);
+    p0.exterior_ring.add_coord(0,0);
+    // invalid interior ring
+    mapnik::geometry::linear_ring hole;
+    hole.add_coord(-7,7);
+    hole.add_coord(-3,7);
+    p0.add_hole(std::move(hole));
+
+    std::string wkt0;
+    CHECK( mapnik::util::to_wkt(wkt0,p0) );
+    // wkt writer copes with busted polygon
+    std::string expected_wkt0("POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7))");
+    CHECK( wkt0 == expected_wkt0);
+
+    vector_tile::Tile_Feature feature = geometry_to_feature(p0);
+    auto p1 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    CHECK( p1.is<mapnik::geometry::polygon>() );
+    auto const& poly = mapnik::util::get<mapnik::geometry::polygon>(p1);
+    // since interior ring is degenerate it should have been culled when decoded
+    auto const& holes = poly.interior_rings;
+    CHECK( holes.empty() == true );
+}
+
+
 TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     // NOTE: this polygon should have correct winding order:
     // CCW for exterior, CW for interior

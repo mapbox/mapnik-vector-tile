@@ -27,6 +27,9 @@ inline unsigned encode_geometry(T & path,
                          unsigned tolerance,
                          unsigned path_multiplier)
 {
+    bool is_polygon = (current_feature.type() == vector_tile::Tile_GeomType_POLYGON);
+    bool working_on_exterior_ring = is_polygon;
+    unsigned verts = 0;
     unsigned count = 0;
     path.rewind(0);
 
@@ -78,6 +81,14 @@ inline unsigned encode_geometry(T & path,
                     {
                         // Encode the previous length/command value.
                         current_feature.set_geometry(cmd_idx, (length << cmd_bits) | (cmd & ((1 << cmd_bits) - 1)));
+                        // abort on degenerate exterior ring of polygon
+                        if (working_on_exterior_ring && cmd == SEG_CLOSE && verts < 4)
+                        {
+                            working_on_exterior_ring = false;
+                            verts = 0;
+                            current_feature.clear_geometry();
+                            return 0;
+                        }
                     }
                     cmd = static_cast<int>(vtx.cmd);
                     length = 0;
@@ -104,7 +115,8 @@ inline unsigned encode_geometry(T & path,
                     // we try hard not to collapse corners that
                     // may have resulted from clipping
                     bool next_segment_axis_aligned = false;
-                    if (output.size() > 1)
+                    auto output_size = output.size();
+                    if (output_size > 1)
                     {
                         vertex2d const& next_vtx = output[1];
                         if (next_vtx.cmd == SEG_LINETO)
@@ -156,6 +168,7 @@ inline unsigned encode_geometry(T & path,
                 }
             }
             ++count;
+            ++verts;
             prev_cmd = cmd;
             output.erase(output.begin());
             if (output.size() < 2) cache = true;
@@ -170,6 +183,14 @@ inline unsigned encode_geometry(T & path,
     if (cmd_idx >= 0)
     {
         current_feature.set_geometry(cmd_idx, (length << cmd_bits) | (cmd & ((1 << cmd_bits) - 1)));
+        // abort on degenerate exterior ring of polygon
+        if (working_on_exterior_ring && cmd == SEG_CLOSE && verts < 4)
+        {
+            working_on_exterior_ring = false;
+            verts = 0;
+            current_feature.clear_geometry();
+            return 0;
+        }
     }
     return count;
 }

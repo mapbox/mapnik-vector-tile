@@ -100,6 +100,7 @@
         'libraries':[
           '<!@(mapnik-config --libs)',
           '<!@(mapnik-config --ldflags)',
+          '-lmapnik-wkt',
           '-lmapnik-json',
           '<!@(mapnik-config --dep-libs)',
           '-lprotobuf-lite',
