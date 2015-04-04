@@ -4,6 +4,7 @@
 #include <mapnik/geometry_is_valid.hpp>
 #include <mapnik/geometry_is_simple.hpp>
 #include <mapnik/geometry_correct.hpp>
+#include <mapnik/util/geometry_to_wkt.hpp>
 
 //#include <mapnik/geometry_unique.hpp>
 
@@ -92,8 +93,6 @@ TEST_CASE( "polygon", "should round trip without changes" ) {
 TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     // NOTE: this polygon should have correct winding order:
     // CCW for exterior, CW for interior
-    // TODO: confirm with boost::geometry::correct
-    mapnik::geometry::multi_polygon multi_poly;
     mapnik::geometry::polygon p0;
     p0.exterior_ring.add_coord(0,0);
     p0.exterior_ring.add_coord(0,10);
@@ -108,6 +107,25 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     hole.add_coord(-7,7);
     p0.add_hole(std::move(hole));
 
+    std::string wkt0;
+    CHECK( mapnik::util::to_wkt(wkt0,p0) );
+    std::string expected_wkt0("POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
+    CHECK( wkt0 == expected_wkt0);
+    // ensure correcting geometry has no effect
+    // as a way of confirming the original was correct
+    mapnik::geometry::correct(p0);
+    wkt0.clear();
+    CHECK( mapnik::util::to_wkt(wkt0,p0) );
+    CHECK( wkt0 == expected_wkt0);
+
+    vector_tile::Tile_Feature feature = geometry_to_feature(p0);
+    auto p1 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    CHECK( p1.is<mapnik::geometry::polygon>() );
+
+    wkt0.clear();
+    CHECK( mapnik::util::to_wkt(wkt0,p1) );
+    CHECK( wkt0 == expected_wkt0);
+
     std::string expected_p0(
     "move_to(0,0)\n"
     "line_to(0,10)\n"
@@ -120,16 +138,34 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     "line_to(-7,3)\n"
     "close_path(0,0)\n"
     );
-//    mapnik::geometry::correct(p0); // ensure correct winding order (CCW - exterior, CW - interior)
-    CHECK(compare(p0) == expected_p0);
 
+    CHECK(decode_to_path_string(p1) == expected_p0);
+
+    // make into multi_polygon
+    mapnik::geometry::multi_polygon multi_poly;
     multi_poly.push_back(std::move(p0));
-    mapnik::geometry::polygon p1;
-    p1.exterior_ring.add_coord(-6,4);
-    p1.exterior_ring.add_coord(-6,6);
-    p1.exterior_ring.add_coord(-4,6);
-    p1.exterior_ring.add_coord(-4,4);
-    p1.exterior_ring.add_coord(-6,4);
+    mapnik::geometry::polygon p2;
+    p2.exterior_ring.add_coord(-6,4);
+    p2.exterior_ring.add_coord(-4,4);
+    p2.exterior_ring.add_coord(-4,6);
+    p2.exterior_ring.add_coord(-6,6);
+    p2.exterior_ring.add_coord(-6,4);
+    multi_poly.push_back(std::move(p2));
+
+    vector_tile::Tile_Feature feature1 = geometry_to_feature(multi_poly);
+    auto mp = mapnik::vector_tile_impl::decode_geometry(feature1,0.0,0.0,1.0,1.0);
+    CHECK( mp.is<mapnik::geometry::multi_polygon>() );
+
+    wkt0.clear();
+    CHECK( mapnik::util::to_wkt(wkt0,mp) );
+    std::string expected_wkt3("MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)),((-6 4,-4 4,-4 6,-6 6,-6 4)))");
+    CHECK( wkt0 == expected_wkt3);
+    // ensure correcting geometry has no effect
+    // as a way of confirming the original was correct
+    mapnik::geometry::correct(mp);
+    wkt0.clear();
+    CHECK( mapnik::util::to_wkt(wkt0,mp) );
+    CHECK( wkt0 == expected_wkt3);
 
     std::string expected_multi = expected_p0 += std::string(
     "move_to(-6,4)\n"
@@ -139,11 +175,10 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     "close_path(0,0)\n"
     );
 
-    multi_poly.push_back(std::move(p1));
-    mapnik::geometry::correct(multi_poly); // ensure correct winding order (CCW - exterior, CW - interior)
-    CHECK(mapnik::geometry::is_valid(multi_poly));
-    CHECK(mapnik::geometry::is_simple(multi_poly));
-    CHECK(compare(multi_poly) == expected_multi);
+    CHECK(decode_to_path_string(mp) == expected_multi);
+    CHECK(mapnik::geometry::is_valid(mp));
+    CHECK(mapnik::geometry::is_simple(mp));
+
 }
 
 TEST_CASE( "test 2", "should drop coincident line_to commands" ) {

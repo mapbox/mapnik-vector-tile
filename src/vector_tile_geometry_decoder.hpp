@@ -92,7 +92,8 @@ Geometry::command Geometry::next(double& rx, double& ry) {
 
 inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature const& f,
                                                   double tile_x, double tile_y,
-                                                  double scale_x, double scale_y)
+                                                  double scale_x, double scale_y,
+                                                  bool treat_all_rings_as_exterior=false)
 {
     Geometry::command cmd;
     Geometry geoms(f,tile_x,tile_y,scale_x,scale_y);
@@ -209,44 +210,68 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
             return geom;
         }
 
+        // Multiple rings represent either:
+        //  1) a polygon with interior ring(s)
+        //  2) a multipolygon with polygons with no interior ring(s)
+        //  3) a multipolygon with polygons with interior ring(s)
         mapnik::geometry::multi_polygon multi_poly;
         first = true;
-        for (; rings_itr != rings_end; ++rings_itr)
+        // back compatibility mode to previous Mapnik (pre new geometry)
+        // which pushed all rings into single path
+        if (treat_all_rings_as_exterior)
         {
-            bool degenerate_ring = (rings_itr->size() < 4);
-            if (first)
+            for (; rings_itr != rings_end; ++rings_itr)
             {
-                if (degenerate_ring) return geom;
-                // first ring always exterior
+                bool degenerate_ring = (rings_itr->size() < 4);
+                if (degenerate_ring) continue;
                 multi_poly.emplace_back();
-                if (mapnik::util::is_clockwise(*rings_itr))
+                if (first && mapnik::util::is_clockwise(*rings_itr))
                 {
                     // Its clockwise, so lets reverse it.
                     std::reverse(rings_itr->begin(), rings_itr->end());
                 }
                 multi_poly.back().set_exterior_ring(std::move(*rings_itr));
-                first = false;
-            }
-            else if (!mapnik::util::is_clockwise(*rings_itr)) // no-move --> const&
-            {
-                if (degenerate_ring) continue;
-                multi_poly.emplace_back(); // start new polygon
-                multi_poly.back().set_exterior_ring(std::move(*rings_itr));
-            }
-            else
-            {
-                if (degenerate_ring) continue;
-                multi_poly.emplace_back(); // start new polygon
-                std::reverse(rings_itr->begin(), rings_itr->end());
-                multi_poly.back().set_exterior_ring(std::move(*rings_itr));
-                // multi_poly.back().add_hole(std::move(*rings_itr));
             }
         }
-        if (multi_poly.size() == 0)
+        else
+        {
+            multi_poly.emplace_back();
+            bool exterior_was_degenerate = false;
+            for (; rings_itr != rings_end; ++rings_itr)
+            {
+                bool degenerate_ring = (rings_itr->size() < 4);
+                if (first)
+                {
+                    if (degenerate_ring)
+                    {
+                        exterior_was_degenerate = true;
+                        continue;
+                    }
+                    // first ring always exterior
+                    multi_poly.back().set_exterior_ring(std::move(*rings_itr));
+                    first = false;
+                }
+                else if (!mapnik::util::is_clockwise(*rings_itr))
+                {
+                    if (degenerate_ring) continue;
+                    // hit a new exterior ring, so start a new polygon
+                    multi_poly.emplace_back(); // start new polygon
+                    multi_poly.back().set_exterior_ring(std::move(*rings_itr));
+                    exterior_was_degenerate = false;
+                }
+                else
+                {
+                    if (exterior_was_degenerate || degenerate_ring) continue;
+                    multi_poly.back().add_hole(std::move(*rings_itr));
+                }
+            }
+        }
+        auto num_poly = multi_poly.size();
+        if (num_poly == 0)
         {
             return geom;
         }
-        else if (multi_poly.size() == 1)
+        else if (num_poly == 1)
         {
             auto itr = std::make_move_iterator(multi_poly.begin());
             geom = std::move(mapnik::geometry::polygon(std::move(*itr)));
