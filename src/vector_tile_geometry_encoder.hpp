@@ -82,12 +82,14 @@ inline unsigned encode_geometry(T & path,
                         // Encode the previous length/command value.
                         current_feature.set_geometry(cmd_idx, (length << cmd_bits) | (cmd & ((1 << cmd_bits) - 1)));
                         // abort on degenerate exterior ring of polygon
-                        if (working_on_exterior_ring && cmd == SEG_CLOSE && verts < 4)
+                        if (working_on_exterior_ring && cmd == SEG_CLOSE)
                         {
                             working_on_exterior_ring = false;
-                            verts = 0;
-                            current_feature.clear_geometry();
-                            return 0;
+                            if (verts < 4)
+                            {
+                                current_feature.clear_geometry();
+                                return 0;
+                            }
                         }
                     }
                     cmd = static_cast<int>(vtx.cmd);
@@ -184,12 +186,14 @@ inline unsigned encode_geometry(T & path,
     {
         current_feature.set_geometry(cmd_idx, (length << cmd_bits) | (cmd & ((1 << cmd_bits) - 1)));
         // abort on degenerate exterior ring of polygon
-        if (working_on_exterior_ring && cmd == SEG_CLOSE && verts < 4)
+        if (working_on_exterior_ring && cmd == SEG_CLOSE)
         {
             working_on_exterior_ring = false;
-            verts = 0;
-            current_feature.clear_geometry();
-            return 0;
+            if (verts < 4)
+            {
+                current_feature.clear_geometry();
+                return 0;
+            }
         }
     }
     return count;
