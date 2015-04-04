@@ -213,12 +213,10 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
         first = true;
         for (; rings_itr != rings_end; ++rings_itr)
         {
-            if (rings_itr->size() < 4)
-            {
-                continue;
-            }
+            bool degenerate_ring = (rings_itr->size() < 4);
             if (first)
             {
+                if (degenerate_ring) return geom;
                 // first ring always exterior
                 multi_poly.emplace_back();
                 if (mapnik::util::is_clockwise(*rings_itr))
@@ -231,15 +229,17 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
             }
             else if (!mapnik::util::is_clockwise(*rings_itr)) // no-move --> const&
             {
+                if (degenerate_ring) continue;
                 multi_poly.emplace_back(); // start new polygon
                 multi_poly.back().set_exterior_ring(std::move(*rings_itr));
             }
             else
             {
+                if (degenerate_ring) continue;
                 multi_poly.emplace_back(); // start new polygon
                 std::reverse(rings_itr->begin(), rings_itr->end());
                 multi_poly.back().set_exterior_ring(std::move(*rings_itr));
-               // multi_poly.back().add_hole(std::move(*rings_itr));
+                // multi_poly.back().add_hole(std::move(*rings_itr));
             }
         }
         if (multi_poly.size() == 0)
