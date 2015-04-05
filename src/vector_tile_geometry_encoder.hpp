@@ -19,6 +19,15 @@ MAPNIK_VECTOR_INLINE void handle_skipped_last(vector_tile::Tile_Feature & curren
                                 int32_t & x_,
                                 int32_t & y_);
 
+void rollback_geom(vector_tile::Tile_Feature & current_feature, unsigned idx)
+{
+   auto geom = current_feature.mutable_geometry();
+   while (idx < current_feature.geometry_size())
+   {
+        geom->RemoveLast();
+   }
+}
+
 template <typename T>
 inline unsigned encode_geometry(T & path,
                          vector_tile::Tile_Feature & current_feature,
@@ -28,10 +37,12 @@ inline unsigned encode_geometry(T & path,
                          unsigned path_multiplier)
 {
     bool is_polygon = (current_feature.type() == vector_tile::Tile_GeomType_POLYGON);
+    bool is_line_string = (current_feature.type() == vector_tile::Tile_GeomType_LINESTRING);
     bool working_on_exterior_ring = is_polygon;
     unsigned verts = 0;
     unsigned count = 0;
     path.rewind(0);
+    unsigned first_geom_idx = current_feature.geometry_size();
 
     vertex2d vtx(vertex2d::no_init);
     int cmd = -1;
@@ -87,7 +98,7 @@ inline unsigned encode_geometry(T & path,
                             working_on_exterior_ring = false;
                             if (verts < 4)
                             {
-                                current_feature.clear_geometry();
+                                rollback_geom(current_feature,first_geom_idx);
                                 return 0;
                             }
                         }
@@ -191,9 +202,15 @@ inline unsigned encode_geometry(T & path,
             working_on_exterior_ring = false;
             if (verts < 4)
             {
-                current_feature.clear_geometry();
+                rollback_geom(current_feature,first_geom_idx);
                 return 0;
             }
+        }
+        // abort on degenerate line
+        else if (is_line_string && verts < 2)
+        {
+            rollback_geom(current_feature,first_geom_idx);
+            return 0;
         }
     }
     return count;
