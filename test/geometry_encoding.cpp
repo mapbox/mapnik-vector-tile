@@ -75,6 +75,21 @@ TEST_CASE( "multi_line_string", "should round trip without changes" ) {
     CHECK(compare(g) == expected);
 }
 
+TEST_CASE( "degenerate line_string", "should be culled" ) {
+    mapnik::geometry::line_string line;
+    line.add_coord(10,10);
+
+    std::string wkt0;
+    CHECK( mapnik::util::to_wkt(wkt0,line) );
+    // wkt writer copes with busted polygon
+    std::string expected_wkt0("LINESTRING(10 10)");
+    CHECK( wkt0 == expected_wkt0);
+
+    vector_tile::Tile_Feature feature = geometry_to_feature(line);
+    auto geom = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    CHECK( geom.is<mapnik::geometry::geometry_empty>() );
+}
+
 TEST_CASE( "polygon", "should round trip without changes" ) {
     mapnik::geometry::polygon g;
     g.exterior_ring.add_coord(0,0);

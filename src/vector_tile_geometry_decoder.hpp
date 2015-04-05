@@ -126,8 +126,8 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
     }
     case vector_tile::Tile_GeomType_LINESTRING:
     {
-        mapnik::geometry::multi_line_string mp;
-        mp.emplace_back();
+        mapnik::geometry::multi_line_string multi_line;
+        multi_line.emplace_back();
         bool first = true;
         while ((cmd = geoms.next(x1, y1)) != Geometry::end)
         {
@@ -139,23 +139,30 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
                 }
                 else
                 {
-                    mp.emplace_back();
+                    multi_line.emplace_back();
                 }
             }
-            mp.back().add_coord(x1,y1);
+            multi_line.back().add_coord(x1,y1);
         }
-        std::size_t num_lines = mp.size();
+        if (multi_line.empty())
+        {
+            return geom;
+        }
+        std::size_t num_lines = multi_line.size();
         if (num_lines == 1)
         {
             // return the single line
-            auto itr = std::make_move_iterator(mp.begin());
-            geom = std::move(*itr);
+            auto itr = std::make_move_iterator(multi_line.begin());
+            if (itr->size() > 1)
+            {
+                geom = std::move(*itr);
+            }
             return geom;
         }
         else if (num_lines > 1)
         {
             // return multiline
-            geom = std::move(mp);
+            geom = std::move(multi_line);
             return geom;
         }
         break;
