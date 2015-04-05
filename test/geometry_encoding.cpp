@@ -4,6 +4,7 @@
 #include <mapnik/geometry_is_valid.hpp>
 #include <mapnik/geometry_is_simple.hpp>
 #include <mapnik/geometry_correct.hpp>
+#include <mapnik/geometry_envelope.hpp>
 #include <mapnik/util/geometry_to_wkt.hpp>
 
 //#include <mapnik/geometry_unique.hpp>
@@ -182,7 +183,7 @@ TEST_CASE( "polygon with degenerate exterior ring ", "should be culled" ) {
     CHECK( p1.is<mapnik::geometry::geometry_empty>() );
 }
 
-TEST_CASE( "polygon with degenerate exterior ring will drop vald interior ring", "should be culled" ) {
+TEST_CASE( "polygon with degenerate exterior ring will drop valid interior ring", "should be culled" ) {
     mapnik::geometry::polygon p0;
     // invalid exterior ring
     p0.exterior_ring.add_coord(0,0);
@@ -295,6 +296,8 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     hole.add_coord(-7,7);
     p0.add_hole(std::move(hole));
 
+    mapnik::box2d<double> extent = mapnik::geometry::envelope(p0);
+
     std::string wkt0;
     CHECK( mapnik::util::to_wkt(wkt0,p0) );
     std::string expected_wkt0("POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
@@ -309,6 +312,8 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     vector_tile::Tile_Feature feature = geometry_to_feature(p0);
     auto p1 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
     CHECK( p1.is<mapnik::geometry::polygon>() );
+
+    CHECK( extent == mapnik::geometry::envelope(p1) );
 
     wkt0.clear();
     CHECK( mapnik::util::to_wkt(wkt0,p1) );
@@ -340,9 +345,13 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     p2.exterior_ring.add_coord(-6,4);
     multi_poly.push_back(std::move(p2));
 
+    mapnik::box2d<double> multi_extent = mapnik::geometry::envelope(multi_poly);
+
     vector_tile::Tile_Feature feature1 = geometry_to_feature(multi_poly);
     auto mp = mapnik::vector_tile_impl::decode_geometry(feature1,0.0,0.0,1.0,1.0);
     CHECK( mp.is<mapnik::geometry::multi_polygon>() );
+
+    CHECK( multi_extent == mapnik::geometry::envelope(mp) );
 
     wkt0.clear();
     CHECK( mapnik::util::to_wkt(wkt0,mp) );
