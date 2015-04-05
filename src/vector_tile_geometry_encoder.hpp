@@ -19,7 +19,7 @@ MAPNIK_VECTOR_INLINE void handle_skipped_last(vector_tile::Tile_Feature & curren
                                 int32_t & x_,
                                 int32_t & y_);
 
-void rollback_geom(vector_tile::Tile_Feature & current_feature, unsigned idx)
+inline void rollback_geom(vector_tile::Tile_Feature & current_feature, unsigned idx)
 {
    auto num_geometries = current_feature.geometry_size();
    if (num_geometries > 0)
