@@ -47,6 +47,7 @@ private:
     bool painted_;
     poly_clipper_type poly_clipper_type_;
     double simplify_distance_;
+    unsigned simplify_tolerance_;
 public:
     MAPNIK_VECTOR_INLINE processor(T & backend,
               mapnik::Map const& map,
@@ -67,6 +68,16 @@ public:
     inline double get_simplify_distance() const
     {
         return simplify_distance_;
+    }
+
+    inline void set_simplify_tolerance(double tolerance)
+    {
+        simplify_tolerance_ = tolerance;
+    }
+
+    inline double get_simplify_tolerance() const
+    {
+        return simplify_tolerance_;
     }
 
     MAPNIK_VECTOR_INLINE void set_poly_clipper(poly_clipper_type clipper);

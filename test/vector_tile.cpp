@@ -13,6 +13,8 @@
 #include <mapnik/proj_transform.hpp>
 #include <mapnik/geometry_reprojection.hpp>
 #include <mapnik/geometry_is_empty.hpp>
+#include <mapnik/util/geometry_to_geojson.hpp>
+#include <mapnik/geometry_reprojection.hpp>
 
 // vector output api
 #include "vector_tile_compression.hpp"
@@ -561,7 +563,9 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
     CHECK(7 == f.geometry_size());
 }
 
-mapnik::geometry::geometry round_trip(mapnik::geometry::geometry const& geom, double simplify_distance=0.0)
+mapnik::geometry::geometry round_trip(mapnik::geometry::geometry const& geom,
+                                      double simplify_distance=0.0,
+                                      unsigned simplify_tolerance=0)
 {
     typedef mapnik::vector_tile_impl::backend_pbf backend_type;
     typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
@@ -581,6 +585,7 @@ mapnik::geometry::geometry round_trip(mapnik::geometry::geometry const& geom, do
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform prj_trans(wgs84,merc);
     ren.set_simplify_distance(simplify_distance);
+    ren.set_simplify_tolerance(simplify_tolerance);
     ren.handle_geometry(*feature,geom,prj_trans,bbox);
     backend.stop_tile_layer();
     if (tile.layers_size() != 1)
@@ -747,4 +752,68 @@ TEST_CASE( "vector tile line_string is simplified", "should create vector tile w
     auto const& line2 = mapnik::util::get<mapnik::geometry::line_string>(new_geom);
     CHECK( line2.size() == 2 );
 }
+
+TEST_CASE( "vector tile line_string is simplified 2", "should create vector tile with data" ) {
+    mapnik::geometry::multi_line_string geom;
+    mapnik::geometry::line_string line;
+    line.add_coord(0,0);
+    line.add_coord(1,1);
+    line.add_coord(2,2);
+    line.add_coord(100,100);
+    geom.emplace_back(std::move(line));
+    mapnik::geometry::geometry new_geom = round_trip(geom,0,1);
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    CHECK( new_geom.is<mapnik::geometry::line_string>() );
+    auto const& line2 = mapnik::util::get<mapnik::geometry::line_string>(new_geom);
+    CHECK( line2.size() == 2 );
+}
+
+/*
+TEST_CASE( "vector tile from simplified geojson", "should create vector tile with data" ) {
+    typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+    typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+    typedef vector_tile::Tile tile_type;
+    tile_type tile;
+    backend_type backend(tile,1000);
+    unsigned tile_size = 256;
+    mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
+    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::layer lyr("layer","+init=epsg:4326");
+    // create a datasource with a feature outside the map
+    std::shared_ptr<mapnik::memory_datasource> ds = testing::build_geojson_ds("./test/data/poly.geojson");
+    // but fake the overall envelope to ensure the layer is still processed
+    // and then removed given no intersecting features will be added
+    ds->set_envelope(mapnik::box2d<double>(160.147311,11.047284,160.662858,11.423830));
+    lyr.set_datasource(ds);
+    map.add_layer(lyr);
+    map.zoom_to_box(bbox);
+    mapnik::request m_req(tile_size,tile_size,bbox);
+    renderer_type ren(backend,map,m_req);
+    ren.apply();
+    CHECK(1 == tile.layers_size());
+    vector_tile::Tile_Layer const& layer = tile.layers(0);
+    CHECK(std::string("layer") == layer.name());
+    CHECK(1 == layer.features_size());
+    vector_tile::Tile_Feature const& f = layer.features(0);
+    unsigned z = 0;
+    unsigned x = 0;
+    unsigned y = 0;
+    double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z);
+    double tile_x = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x * resolution;
+    double tile_y =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
+    double scale = (static_cast<double>(layer.extent()) / tile_size) * tile_size/resolution;
+    auto geom = mapnik::vector_tile_impl::decode_geometry(f,tile_x,tile_y,scale,-1*scale);
+
+    unsigned int n_err = 0;
+    mapnik::projection wgs84("+init=epsg:4326",true);
+    mapnik::projection merc("+init=epsg:3857",true);
+    mapnik::proj_transform prj_trans(merc,wgs84);
+    mapnik::geometry::geometry projected_geom = mapnik::reproject(geom,prj_trans,n_err);
+    //if (n_err > 0) return false;
+    std::string geojson_string;
+    CHECK( mapnik::util::to_geojson(geojson_string,projected_geom) );
+    //std::clog << geojson_string << "\n";
+}
+*/
+
 
