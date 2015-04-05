@@ -21,10 +21,19 @@ MAPNIK_VECTOR_INLINE void handle_skipped_last(vector_tile::Tile_Feature & curren
 
 void rollback_geom(vector_tile::Tile_Feature & current_feature, unsigned idx)
 {
-   auto geom = current_feature.mutable_geometry();
-   while (idx < current_feature.geometry_size())
+   auto num_geometries = current_feature.geometry_size();
+   if (num_geometries > 0)
    {
-        geom->RemoveLast();
+        unsigned num_geometries2 = static_cast<unsigned>(num_geometries);
+        if (num_geometries2 > idx)
+        {
+            auto geom = current_feature.mutable_geometry();
+            while (idx < static_cast<unsigned>(num_geometries2))
+            {
+                geom->RemoveLast();
+                --num_geometries2;
+            }
+        }
    }
 }
 
