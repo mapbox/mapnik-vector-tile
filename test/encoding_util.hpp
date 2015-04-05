@@ -4,7 +4,6 @@
 #include <mapnik/vertex_processor.hpp>
 #include "vector_tile_geometry_decoder.hpp"
 #include "vector_tile_geometry_encoder.hpp"
-#include <mapnik/geometry_empty.hpp>
 
 namespace {
 
