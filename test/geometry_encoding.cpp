@@ -312,12 +312,26 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     vector_tile::Tile_Feature feature = geometry_to_feature(p0);
     auto p1 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
     CHECK( p1.is<mapnik::geometry::polygon>() );
-
     CHECK( extent == mapnik::geometry::envelope(p1) );
 
     wkt0.clear();
     CHECK( mapnik::util::to_wkt(wkt0,p1) );
     CHECK( wkt0 == expected_wkt0);
+
+    // now test back compatibility mode where we decode all rings into exterior rings
+    // for polygons rings that were encoded correctly in vtiles (CCW exterior, CW interior)
+    // then this should be unneeded, but for rings with incorrect order then this style of
+    // decoding should allow them still to be queried correctly using the current mapnik hit_test algos
+    auto _p1 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0,true);
+    wkt0.clear();
+    CHECK( mapnik::util::to_wkt(wkt0,_p1) );
+    CHECK( _p1.is<mapnik::geometry::multi_polygon>() );
+    std::string expected_wkt2("MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
+    CHECK( wkt0 ==  expected_wkt2 );
+    mapnik::geometry::correct(_p1);
+    wkt0.clear();
+    CHECK( mapnik::util::to_wkt(wkt0,_p1) );
+    CHECK( wkt0 ==  expected_wkt2 );
 
     std::string expected_p0(
     "move_to(0,0)\n"
@@ -333,6 +347,21 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     );
 
     CHECK(decode_to_path_string(p1) == expected_p0);
+
+    std::string expected_p1(
+    "move_to(0,0)\n"
+    "line_to(0,10)\n"
+    "line_to(-10,10)\n"
+    "line_to(-10,0)\n"
+    "close_path(0,0)\n"
+    "move_to(-7,7)\n"
+    "line_to(-7,3)\n"
+    "line_to(-3,3)\n"
+    "line_to(-3,7)\n"
+    "close_path(0,0)\n"
+    );
+
+    CHECK(decode_to_path_string(_p1) == expected_p1);
 
     // make into multi_polygon
     mapnik::geometry::multi_polygon multi_poly;
