@@ -610,8 +610,7 @@ processor<T>::processor(T & backend,
       scaling_method_(scaling_method),
       painted_(false),
       poly_clipper_type_(AGG_CLIPPER),
-      simplify_distance_(0.0),
-      simplify_tolerance_(0) {}
+      simplify_distance_(0.0) {}
 
 template <typename T>
 void processor<T>::set_poly_clipper(poly_clipper_type clipper)
@@ -842,15 +841,13 @@ struct encoder_visitor {
                     mapnik::proj_transform const& prj_trans,
                     mapnik::box2d<double> const& buffered_query_ext,
                     mapnik::view_transform const& t,
-                    unsigned tolerance,
-                    unsigned simplify_tolerance) :
+                    unsigned tolerance) :
       backend_(backend),
       feature_(feature),
       prj_trans_(prj_trans),
       buffered_query_ext_(buffered_query_ext),
       t_(t),
-      tolerance_(tolerance),
-      simplify_tolerance_(simplify_tolerance) {}
+      tolerance_(tolerance) {}
 
     unsigned operator() (mapnik::geometry::point const& geom)
     {
@@ -913,22 +910,9 @@ struct encoder_visitor {
                     buffered_query_ext_.miny(),
                     buffered_query_ext_.maxx(),
                     buffered_query_ext_.maxy());
-                if (simplify_tolerance_ > 0)
-                {
-                    using simplify_type = simplify_converter<clip_type>;
-                    using path_type = mapnik::transform_path_adapter<mapnik::view_transform,simplify_type>;
-                    simplify_type simplified(clipped);
-                    simplified.set_simplify_algorithm(mapnik::douglas_peucker);
-                    simplified.set_simplify_tolerance(simplify_tolerance_);
-                    path_type path(t_, simplified, prj_trans_);
-                    path_count = backend_.add_path(path, tolerance_);
-                }
-                else
-                {
-                    using path_type = mapnik::transform_path_adapter<mapnik::view_transform,clip_type>;
-                    path_type path(t_, clipped, prj_trans_);
-                    path_count = backend_.add_path(path, tolerance_);
-                }
+                using path_type = mapnik::transform_path_adapter<mapnik::view_transform,clip_type>;
+                path_type path(t_, clipped, prj_trans_);
+                path_count = backend_.add_path(path, tolerance_);
                 backend_.stop_tile_feature();
             }
         }
@@ -957,22 +941,9 @@ struct encoder_visitor {
                         buffered_query_ext_.miny(),
                         buffered_query_ext_.maxx(),
                         buffered_query_ext_.maxy());
-                    if (simplify_tolerance_ > 0)
-                    {
-                        using simplify_type = simplify_converter<clip_type>;
-                        using path_type = mapnik::transform_path_adapter<mapnik::view_transform,simplify_type>;
-                        simplify_type simplified(clipped);
-                        simplified.set_simplify_algorithm(mapnik::douglas_peucker);
-                        simplified.set_simplify_tolerance(simplify_tolerance_);
-                        path_type path(t_, simplified, prj_trans_);
-                        path_count = backend_.add_path(path, tolerance_);
-                    }
-                    else
-                    {
-                        using path_type = mapnik::transform_path_adapter<mapnik::view_transform,clip_type>;
-                        path_type path(t_, clipped, prj_trans_);
-                        path_count = backend_.add_path(path, tolerance_);
-                    }
+                    using path_type = mapnik::transform_path_adapter<mapnik::view_transform,clip_type>;
+                    path_type path(t_, clipped, prj_trans_);
+                    path_count = backend_.add_path(path, tolerance_);
                 }
             }
             backend_.stop_tile_feature();
@@ -999,22 +970,9 @@ struct encoder_visitor {
                     buffered_query_ext_.miny(),
                     buffered_query_ext_.maxx(),
                     buffered_query_ext_.maxy());
-                if (simplify_tolerance_ > 0)
-                {
-                    using simplify_type = simplify_converter<clip_type>;
-                    using path_type = mapnik::transform_path_adapter<mapnik::view_transform,simplify_type>;
-                    simplify_type simplified(clipped);
-                    simplified.set_simplify_algorithm(mapnik::douglas_peucker);
-                    simplified.set_simplify_tolerance(simplify_tolerance_);
-                    path_type path(t_, simplified, prj_trans_);
-                    path_count = backend_.add_path(path, tolerance_);
-                }
-                else
-                {
-                    using path_type = mapnik::transform_path_adapter<mapnik::view_transform,clip_type>;
-                    path_type path(t_, clipped, prj_trans_);
-                    path_count = backend_.add_path(path, tolerance_);
-                }
+                using path_type = mapnik::transform_path_adapter<mapnik::view_transform,clip_type>;
+                path_type path(t_, clipped, prj_trans_);
+                path_count = backend_.add_path(path, tolerance_);
                 backend_.stop_tile_feature();
             }
         }
@@ -1044,22 +1002,9 @@ struct encoder_visitor {
                         buffered_query_ext_.miny(),
                         buffered_query_ext_.maxx(),
                         buffered_query_ext_.maxy());
-                    if (simplify_tolerance_ > 0)
-                    {
-                        using simplify_type = simplify_converter<clip_type>;
-                        using path_type = mapnik::transform_path_adapter<mapnik::view_transform,simplify_type>;
-                        simplify_type simplified(clipped);
-                        simplified.set_simplify_algorithm(mapnik::douglas_peucker);
-                        simplified.set_simplify_tolerance(simplify_tolerance_);
-                        path_type path(t_, simplified, prj_trans_);
-                        path_count = backend_.add_path(path, tolerance_);
-                    }
-                    else
-                    {
-                        using path_type = mapnik::transform_path_adapter<mapnik::view_transform,clip_type>;
-                        path_type path(t_, clipped, prj_trans_);
-                        path_count = backend_.add_path(path, tolerance_);
-                    }
+                    using path_type = mapnik::transform_path_adapter<mapnik::view_transform,clip_type>;
+                    path_type path(t_, clipped, prj_trans_);
+                    path_count = backend_.add_path(path, tolerance_);
                 }
             }
             backend_.stop_tile_feature();
@@ -1078,7 +1023,6 @@ struct encoder_visitor {
     mapnik::box2d<double> const& buffered_query_ext_;
     mapnik::view_transform const& t_;
     unsigned tolerance_;
-    unsigned simplify_tolerance_;
 };
 
 template <typename T>
@@ -1143,7 +1087,7 @@ unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
                                        mapnik::proj_transform const& prj_trans,
                                        mapnik::box2d<double> const& buffered_query_ext)
 {
-    encoder_visitor<T> encoder(backend_,feature,prj_trans,buffered_query_ext,t_,tolerance_,simplify_tolerance_);
+    encoder_visitor<T> encoder(backend_,feature,prj_trans,buffered_query_ext,t_,tolerance_);
     if (simplify_distance_ > 0)
     {
         simplify_visitor<T> simplifier(simplify_distance_,encoder);
