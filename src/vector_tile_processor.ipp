@@ -982,7 +982,7 @@ struct encoder_visitor {
                     using path_type = mapnik::transform_path_adapter<mapnik::view_transform,clip_type>;
                     path_type path(t_, clipped, prj_trans_);
                     path_count = backend_.add_path(path, tolerance_);
-                    backend_.stop_tile_feature();                    
+                    backend_.stop_tile_feature();
                 }
                 else
                 {
@@ -1169,31 +1169,32 @@ struct encoder_visitor {
                 mapnik::geometry::multi_polygon mp;
                 mp.emplace_back();
                 bool first = true;
+
                 while (polynode)
                 {
-                    //do stuff with polynode here
                     if (!polynode->IsHole())
                     {
                         if (first) first = false;
-                        else mp.emplace_back();
+                        else mp.emplace_back(); // start new polygon
                         for (auto const& pt : polynode->Contour)
                         {
-                            mp.back().exterior_ring.add_coord(pt.X/mult, pt.Y/mult);
+                            mp.back().exterior_ring.add_coord(pt.X, pt.Y);
                         }
-                    }
-                    else
-                    {
-                        mapnik::geometry::linear_ring hole;
-                        for (auto const& pt : polynode->Contour)
+                        // children of exterior ring are always interior rings
+                        for (auto const* ring : polynode->Childs)
                         {
-                            hole.add_coord(pt.X/mult, pt.Y/mult);
+                            mapnik::geometry::linear_ring hole;
+                            for (auto const& pt : ring->Contour)
+                            {
+                                hole.add_coord(pt.X, pt.Y);
+                            }
+                            mp.back().add_hole(std::move(hole));
                         }
-                        mp.back().add_hole(std::move(hole));
                     }
-                    //std::cerr << "Is hole? " << polynode->IsHole() << std::endl;
                     polynode = polynode->GetNext();
                 }
                 mapnik::geometry::correct(mp);
+
                 for (auto const& poly : mp)
                 {
                     //mapnik::box2d<double> bbox = mapnik::geometry::envelope(poly);
