@@ -1178,7 +1178,7 @@ struct encoder_visitor {
                         else mp.emplace_back(); // start new polygon
                         for (auto const& pt : polynode->Contour)
                         {
-                            mp.back().exterior_ring.add_coord(pt.X, pt.Y);
+                            mp.back().exterior_ring.add_coord(pt.X/mult, pt.Y/mult);
                         }
                         // children of exterior ring are always interior rings
                         for (auto const* ring : polynode->Childs)
@@ -1186,7 +1186,7 @@ struct encoder_visitor {
                             mapnik::geometry::linear_ring hole;
                             for (auto const& pt : ring->Contour)
                             {
-                                hole.add_coord(pt.X, pt.Y);
+                                hole.add_coord(pt.X/mult, pt.Y/mult);
                             }
                             mp.back().add_hole(std::move(hole));
                         }
