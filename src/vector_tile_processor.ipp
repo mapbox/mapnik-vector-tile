@@ -1115,8 +1115,8 @@ struct encoder_visitor {
                 ClipperLib::Clipper clipper;
                 for (auto const& poly : geom)
                 {
-                    //mapnik::box2d<double> bbox = mapnik::geometry::envelope(poly);
-                    if (poly.exterior_ring.size() > 3 /*&& buffered_query_ext_.intersects(bbox)*/)
+                    mapnik::box2d<double> bbox = mapnik::geometry::envelope(poly);
+                    if (poly.exterior_ring.size() > 3 && buffered_query_ext_.intersects(bbox))
                     {
                         std::vector<ClipperLib::IntPoint> path;
                         //path.reserve(poly.exterior_ring.size());
@@ -1197,14 +1197,14 @@ struct encoder_visitor {
 
                 for (auto const& poly : mp)
                 {
-                    //mapnik::box2d<double> bbox = mapnik::geometry::envelope(poly);
-                    //if (poly.exterior_ring.size() > 3 && buffered_query_ext_.intersects(bbox))
-                    //{
+                    mapnik::box2d<double> bbox = mapnik::geometry::envelope(poly);
+                    if (poly.exterior_ring.size() > 3 && buffered_query_ext_.intersects(bbox))
+                    {
                         va_type va(poly);
                         using path_type = mapnik::transform_path_adapter<mapnik::view_transform,va_type>;
                         path_type path(t_, va, prj_trans_);
                         path_count += backend_.add_path(path, tolerance_);
-                    //}
+                    }
                 }
             }
             backend_.stop_tile_feature();
