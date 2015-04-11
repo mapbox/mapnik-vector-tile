@@ -965,13 +965,17 @@ struct encoder_visitor {
                 using va_type = mapnik::geometry::polygon_vertex_adapter;
                 double mult = 1000000.0;
                 ClipperLib::Clipper clipper;
-                std::vector<ClipperLib::IntPoint> path;
+                ClipperLib::Path path;
                 //path.reserve(geom.exterior_ring.size());
                 for (auto const& pt : geom.exterior_ring)
                 {
-                    double x = static_cast<ClipperLib::cInt>(pt.x*mult);
-                    double y = static_cast<ClipperLib::cInt>(pt.y*mult);
+                    ClipperLib::cInt x = static_cast<ClipperLib::cInt>(pt.x*mult);
+                    ClipperLib::cInt y = static_cast<ClipperLib::cInt>(pt.y*mult);
                     path.emplace_back(x,y);
+                }
+                if (path.back() != path.front())
+                {
+                    path.emplace_back(path.front().X, path.front().Y);
                 }
                 if (!clipper.AddPath(path, ClipperLib::ptSubject, true))
                 {
@@ -984,9 +988,13 @@ struct encoder_visitor {
                     path.clear();
                     for (auto const& pt : ring)
                     {
-                        double x = static_cast<ClipperLib::cInt>(pt.x*mult);
-                        double y = static_cast<ClipperLib::cInt>(pt.y*mult);
+                        ClipperLib::cInt x = static_cast<ClipperLib::cInt>(pt.x*mult);
+                        ClipperLib::cInt y = static_cast<ClipperLib::cInt>(pt.y*mult);
                         path.emplace_back(x,y);
+                    }
+                    if (path.back() != path.front())
+                    {
+                        path.emplace_back(path.front().X, path.front().Y);
                     }
                     if (!clipper.AddPath(path, ClipperLib::ptSubject, true))
                     {
@@ -1078,13 +1086,17 @@ struct encoder_visitor {
                 mapnik::box2d<double> bbox = mapnik::geometry::envelope(poly);
                 if (poly.exterior_ring.size() > 3 && buffered_query_ext_.intersects(bbox))
                 {
-                    std::vector<ClipperLib::IntPoint> path;
+                    ClipperLib::Path path;
                     //path.reserve(poly.exterior_ring.size());
                     for (auto const& pt : poly.exterior_ring)
                     {
-                        double x = static_cast<ClipperLib::cInt>(pt.x*mult);
-                        double y = static_cast<ClipperLib::cInt>(pt.y*mult);
+                        ClipperLib::cInt x = static_cast<ClipperLib::cInt>(pt.x*mult);
+                        ClipperLib::cInt y = static_cast<ClipperLib::cInt>(pt.y*mult);
                         path.emplace_back(x,y);
+                    }
+                    if (path.back() != path.front())
+                    {
+                        path.emplace_back(path.front().X, path.front().Y);
                     }
                     if (!clipper.AddPath(path, ClipperLib::ptSubject, true))
                     {
@@ -1097,9 +1109,13 @@ struct encoder_visitor {
                         path.clear();
                         for (auto const& pt : ring)
                         {
-                            double x = static_cast<ClipperLib::cInt>(pt.x*mult);
-                            double y = static_cast<ClipperLib::cInt>(pt.y*mult);
+                            ClipperLib::cInt x = static_cast<ClipperLib::cInt>(pt.x*mult);
+                            ClipperLib::cInt y = static_cast<ClipperLib::cInt>(pt.y*mult);
                             path.emplace_back(x,y);
+                        }
+                        if (path.back() != path.front())
+                        {
+                            path.emplace_back(path.front().X, path.front().Y);
                         }
                         if (!clipper.AddPath(path, ClipperLib::ptSubject, true))
                         {

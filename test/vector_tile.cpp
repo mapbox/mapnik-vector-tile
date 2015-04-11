@@ -723,11 +723,11 @@ TEST_CASE( "vector tile multi_polygon encoding of actual multi_polygon", "should
     poly.exterior_ring.add_coord(0,0);
     geom.emplace_back(std::move(poly));
     mapnik::geometry::polygon poly2;
-    poly2.exterior_ring.add_coord(0,0);
-    poly2.exterior_ring.add_coord(0,10);
-    poly2.exterior_ring.add_coord(-10,10);
-    poly2.exterior_ring.add_coord(-10,0);
-    poly2.exterior_ring.add_coord(0,0);
+    poly2.exterior_ring.add_coord(11,11);
+    poly2.exterior_ring.add_coord(11,21);
+    poly2.exterior_ring.add_coord(1,21);
+    poly2.exterior_ring.add_coord(1,11);
+    poly2.exterior_ring.add_coord(11,11);
     geom.emplace_back(std::move(poly2));
     mapnik::geometry::geometry new_geom = round_trip(geom);
     CHECK( !mapnik::geometry::is_empty(new_geom) );
