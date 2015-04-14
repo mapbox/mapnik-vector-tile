@@ -855,56 +855,53 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
                              mapnik::geometry::multi_polygon & mp,
                              double mult)
 {
-    if (!polynode->IsHole())
+    mapnik::geometry::polygon polygon;
+
+    for (auto const& pt : polynode->Contour)
     {
-        mapnik::geometry::polygon polygon;
-        for (auto const& pt : polynode->Contour)
+        polygon.exterior_ring.add_coord(pt.X/mult, pt.Y/mult);
+    }
+    if (polynode->Contour.front() != polynode->Contour.back())
+    {
+        auto const& pt = polynode->Contour.front();
+        polygon.exterior_ring.add_coord(pt.X/mult, pt.Y/mult);
+    }
+    if (polygon.exterior_ring.size() > 4) // Throw out invalid polygons
+    {
+        /*if (mapnik::util::is_clockwise(polygon.exterior_ring))
         {
-            polygon.exterior_ring.add_coord(pt.X/mult, pt.Y/mult);
-        }
-        if (polynode->Contour.front() != polynode->Contour.back())
-        {
-            auto const& pt = polynode->Contour.front();
-            polygon.exterior_ring.add_coord(pt.X/mult, pt.Y/mult);
-        }
-        if (polygon.exterior_ring.size() > 4) // Throw out invalid polygons
-        {
-            /*if (mapnik::util::is_clockwise(polygon.exterior_ring))
-            {
-                std::clog << "Exterior ring is in reverse" << std::endl;
-                std::reverse(polygon.exterior_ring.begin(), polygon.exterior_ring.end());
-            }*/
-            
-            // children of exterior ring are always interior rings
-            for (auto const* ring : polynode->Childs)
-            {
-                mapnik::geometry::linear_ring hole;
-                for (auto const& pt : ring->Contour)
-                {
-                    hole.add_coord(pt.X/mult, pt.Y/mult);
-                }
-                if (ring->Contour.front() != ring->Contour.back())
-                {
-                    auto const& pt = ring->Contour.front();
-                    hole.add_coord(pt.X/mult, pt.Y/mult);
-                }
-                if (hole.size() < 4) continue; // Throw out invalid holes
-                /*if (!mapnik::util::is_clockwise(hole))
-                {
-                    std::clog << "Interior ring is in reverse" << std::endl;
-                    std::reverse(hole.begin(), hole.end());
-                }*/
-                polygon.add_hole(std::move(hole));
-            }
-            mp.emplace_back(std::move(polygon));
-        }
-        /*for (auto * ring : polynode->Childs)
-        {
-            for (auto * sub_ring : ring->Childs)
-            {
-                process_polynode_branch(sub_ring, mp, mult);
-            }
+            std::clog << "Exterior ring is in reverse" << std::endl;
+            std::reverse(polygon.exterior_ring.begin(), polygon.exterior_ring.end());
         }*/
+        // children of exterior ring are always interior rings
+        for (auto const* ring : polynode->Childs)
+        {
+            mapnik::geometry::linear_ring hole;
+            for (auto const& pt : ring->Contour)
+            {
+                hole.add_coord(pt.X/mult, pt.Y/mult);
+            }
+            if (ring->Contour.front() != ring->Contour.back())
+            {
+                auto const& pt = ring->Contour.front();
+                hole.add_coord(pt.X/mult, pt.Y/mult);
+            }
+            if (hole.size() < 4) continue; // Throw out invalid holes
+            /*if (!mapnik::util::is_clockwise(hole))
+            {
+                std::clog << "Interior ring is in reverse" << std::endl;
+                std::reverse(hole.begin(), hole.end());
+            }*/
+            polygon.add_hole(std::move(hole));
+        }
+        mp.emplace_back(std::move(polygon));
+    }
+    for (auto * ring : polynode->Childs)
+    {
+        for (auto * sub_ring : ring->Childs)
+        {
+            process_polynode_branch(sub_ring, mp, mult);
+        }
     }
 }
 
@@ -1101,18 +1098,16 @@ struct encoder_visitor {
             }
             
             ClipperLib::PolyTree polygons;
-            clipper.StrictlySimple(true);
+            //clipper.StrictlySimple(true);
             // If we are using pftNonZero then our input polygon must follow winding order.
             clipper.Execute(ClipperLib::ctIntersection, polygons, ClipperLib::pftNonZero);
             clipper.Clear();
 
-            ClipperLib::PolyNode* polynode = polygons.GetFirst();
             mapnik::geometry::multi_polygon mp;
 
-            while (polynode)
+            for (auto * polynode : polygons.Childs)
             {
                 process_polynode_branch(polynode, mp, mult); 
-                polynode = polynode->GetNext();
             }
             //mapnik::geometry::correct(mp);
             
@@ -1147,7 +1142,8 @@ struct encoder_visitor {
         if (buffered_query_ext_.intersects(bbox) || geom.empty())
         {
             using va_type = mapnik::geometry::polygon_vertex_adapter;
-            double mult = 1000000.0;
+            //double mult = 1000000.0;
+            double mult = 0.0005;
             ClipperLib::Path clip_box;
             clip_box.emplace_back(static_cast<ClipperLib::cInt>(buffered_query_ext_.minx()*mult),
                                   static_cast<ClipperLib::cInt>(buffered_query_ext_.miny()*mult));
@@ -1184,7 +1180,8 @@ struct encoder_visitor {
                     outer_path.emplace_back(outer_path.front().X, outer_path.front().Y);
                 }
                 if (is_clockwise(outer_path))
-                {
+                {   
+                    std::clog << "Winding order is wrong on input outer ring" << std::endl;
                     std::reverse(outer_path.begin(), outer_path.end());
                 }
                 paths.emplace_back(std::move(outer_path));
@@ -1205,12 +1202,13 @@ struct encoder_visitor {
                     }
                     if (!is_clockwise(path))
                     {
+                        std::clog << "Winding order is wrong on input inner ring" << std::endl;
                         std::reverse(path.begin(), path.end());
                     }
                     paths.emplace_back(std::move(path));
                 }
                 ClipperLib::Clipper poly_clipper;
-                poly_clipper.StrictlySimple(true);
+                //poly_clipper.StrictlySimple(true);
                 ClipperLib::CleanPolygons(paths); // We could add tolerance here?
                 ClipperLib::Paths output_paths;
                 if (!poly_clipper.AddPaths(paths, ClipperLib::ptSubject, true))
@@ -1223,23 +1221,22 @@ struct encoder_visitor {
                 }
                 poly_clipper.Execute(ClipperLib::ctIntersection, output_paths, ClipperLib::pftNonZero);
                 poly_clipper.Clear();
+                ClipperLib::CleanPolygons(output_paths);
                 if (!clipper.AddPaths(output_paths, ClipperLib::ptSubject, true))
                 {
                     std::clog << "ptSubject failed2! " << output_paths.size() << std::endl;
                 }
             }
             ClipperLib::PolyTree polygons;
-            clipper.StrictlySimple(true);
-            clipper.Execute(ClipperLib::ctUnion, polygons, ClipperLib::pftPositive);
+            //clipper.StrictlySimple(true);
+            clipper.Execute(ClipperLib::ctUnion, polygons);
             clipper.Clear();
             
-            ClipperLib::PolyNode* polynode = polygons.GetFirst();
             mapnik::geometry::multi_polygon mp;
             
-            while (polynode)
+            for (auto * polynode : polygons.Childs)
             {
                 process_polynode_branch(polynode, mp, mult); 
-                polynode = polynode->GetNext();
             }
             //mapnik::geometry::correct(mp);
             if (mp.empty())
