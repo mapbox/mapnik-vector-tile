@@ -721,6 +721,22 @@ TEST_CASE( "vector tile multi_polygon encoding of actual multi_polygon", "should
     poly.exterior_ring.add_coord(-10,10);
     poly.exterior_ring.add_coord(-10,0);
     poly.exterior_ring.add_coord(0,0);
+    /*
+    // This is an interior ring that touches nothing.
+    poly.interior_rings.emplace_back();
+    poly.interior_rings.back().add_coord(-1,1);
+    poly.interior_rings.back().add_coord(-1,2);
+    poly.interior_rings.back().add_coord(-2,2);
+    poly.interior_rings.back().add_coord(-2,1);
+    poly.interior_rings.back().add_coord(-1,1);
+    // This is an interior ring that touches exterior edge.
+    poly.interior_rings.emplace_back();
+    poly.interior_rings.back().add_coord(-10,7);
+    poly.interior_rings.back().add_coord(-10,5);
+    poly.interior_rings.back().add_coord(-8,5);
+    poly.interior_rings.back().add_coord(-8,7);
+    poly.interior_rings.back().add_coord(-10,7);
+    */
     geom.emplace_back(std::move(poly));
     mapnik::geometry::polygon poly2;
     poly2.exterior_ring.add_coord(11,11);
