@@ -84,8 +84,10 @@ struct coord_transformer
         calc_type z = 0.0;
         if (!prj_trans_.backward(x, y, z)) return false;
         tr_.forward(&x,&y);
-        boost::geometry::set<0>(p2, boost::numeric_cast<coordinate_type>(x));
-        boost::geometry::set<1>(p2, boost::numeric_cast<coordinate_type>(y));
+        int x_ = static_cast<int>(x);
+        int y_ = static_cast<int>(y);
+        boost::geometry::set<0>(p2, boost::numeric_cast<coordinate_type>(x_));
+        boost::geometry::set<1>(p2, boost::numeric_cast<coordinate_type>(y_));
         return true;
     }
 
@@ -705,12 +707,18 @@ inline bool check_polygon(mapnik::geometry::polygon const& poly)
 inline void correct_winding_order(mapnik::geometry::polygon & poly)
 {
     bool is_clockwise = mapnik::util::is_clockwise(poly.exterior_ring);
-
+    
+    if (!is_clockwise)
+    {
+        std::cerr << "correcting exterior ring: " << poly.exterior_ring.size() << std::endl;
+        boost::geometry::reverse(poly.exterior_ring);
+    }
+    
     for (auto & ring : poly.interior_rings)
     {
-        if ( is_clockwise == mapnik::util::is_clockwise(ring))
+        if (mapnik::util::is_clockwise(ring))
         {
-            std::cerr << "correcting interior ring" << std::endl;
+            std::cerr << "correcting interior ring" << ring.size() << std::endl;
             boost::geometry::reverse(ring);
         }
     }
@@ -920,57 +928,38 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
                              double mult,
                              bool recursive = false)
 {
-    ClipperLib::IntPoint p;
-    bool found_o = false;
+    //ClipperLib::IntPoint p;
+    //bool found_o = false;
     // Gives big island
     //p.X = static_cast<ClipperLib::cInt>(-5865777.550604425*mult); 
     //p.Y = static_cast<ClipperLib::cInt>(6026295.310003296*mult);
     // Gives entire ocean
     //p.X = static_cast<ClipperLib::cInt>(-6133479.132916184*mult); 
     //p.Y = static_cast<ClipperLib::cInt>(5965031.031832729*mult);
-    p.X = static_cast<ClipperLib::cInt>(-6134014.19211418*mult); 
-    p.Y = static_cast<ClipperLib::cInt>(5967457.90748078*mult);
+    //p.X = static_cast<ClipperLib::cInt>(-5346617.254491508*mult); 
+    //p.Y = static_cast<ClipperLib::cInt>(8588464.498122405*mult);
     
-    if (polynode->Contour.size() < 9999999999)
+    /*if (ClipperLib::PointInPolygon(p, polynode->Contour))
     {
-        if (ClipperLib::PointInPolygon(p, polynode->Contour))
-        {
-            found_o = true;
-            std::clog << "OMG I FOUND THE POLYGON OF DEATH" << std::endl;
-        }
-        //return;
-        /*for (auto const & pt2 : mp.back().exterior_ring)
-        {
-            for (auto const& pt1 : polynode->Contour)
-            {
-                if (pt2.x == (pt1.X/mult) && pt2.y == (pt1.Y/mult))
-                {
-                    std::clog << "DING DING DING" << std::endl;
-                    return;
-                }
-            }
-        }*/
-        //polynode->Contour.clear();
-    }
+        found_o = true;
+        std::clog << "Found a target polygon" << std::endl;
+    }*/
     mapnik::geometry::polygon polygon;
     for (auto const& pt : polynode->Contour)
     {
         polygon.exterior_ring.add_coord(pt.X/mult, pt.Y/mult);
-        if (found_o)
-        {
-            //std::clog << pt.X << " , " << pt.Y << " - " << pt.Y/mult << " , " << pt.Y/mult << std::endl;
-        }
     }
     if (polynode->Contour.front() != polynode->Contour.back())
     {
         auto const& pt = polynode->Contour.front();
         polygon.exterior_ring.add_coord(pt.X/mult, pt.Y/mult);
-        if (found_o)
-        {
+        //if (found_o)
+        //{
             //std::clog << "Wasn't closed" << std::endl;
-        }
+        //}
     }
-    if (found_o || recursive)
+    /*
+    if (found_o)
     {
         mapnik::projection source("+init=epsg:3857");
         mapnik::projection dest("+init=epsg:4326");
@@ -987,39 +976,30 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
         std::clog << polynode->ChildCount() << " outer kids" << std::endl;
     }
     bool found = false;
-    if (polygon.exterior_ring.size() > 4) // Throw out invalid polygons
+    */
+    if (polygon.exterior_ring.size() > 3) // Throw out invalid polygons
     {
-        /*if (mapnik::util::is_clockwise(polygon.exterior_ring))
-        {
-            std::clog << "Exterior ring is in reverse" << std::endl;
-            std::reverse(polygon.exterior_ring.begin(), polygon.exterior_ring.end());
-        }*/
         // children of exterior ring are always interior rings
-        for (auto * ring : polynode->Childs)
+        for (auto const* ring : polynode->Childs)
         {
+            /*
             if (ClipperLib::PointInPolygon(p, ring->Contour))
             {
                 found = true;
-                std::clog << "OMG I FOUND THE POLYGON OF DEATH - perhaps?" << std::endl;
+                std::clog << "Found a target inner polygon" << std::endl;
             }
+            */
             mapnik::geometry::linear_ring hole;
             for (auto const& pt : ring->Contour)
             {
                 hole.add_coord(pt.X/mult, pt.Y/mult);
-                if (found)
-                {
-                    //std::clog << pt.X << " , " << pt.Y << " - " << pt.Y/mult << " , " << pt.Y/mult << std::endl;
-                }
             }
             if (ring->Contour.front() != ring->Contour.back())
             {
                 auto const& pt = ring->Contour.front();
                 hole.add_coord(pt.X/mult, pt.Y/mult);
-                if (found)
-                {
-                    //std::clog << "Wasn't closed" << std::endl;
-                }
             }
+            /*
             if (found)
             {
                 mapnik::projection source("+init=epsg:3857");
@@ -1032,20 +1012,10 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
                         n_err);
                 std::string foo;
                 mapnik::util::to_geojson(foo, geom);
-                //std::clog << foo << std::endl;
-                std::clog << ring->ChildCount() << " kids" << std::endl;
-                for (auto * sub_ring : ring->Childs)
-                {
-                    process_polynode_branch(sub_ring, mp, mult, true);
-                }
+                std::clog << foo << std::endl;
             }
-                
+            */  
             if (hole.size() < 4) continue; // Throw out invalid holes
-            if (!mapnik::util::is_clockwise(hole))
-            {
-                std::clog << "Interior ring is in reverse" << std::endl;
-                std::reverse(hole.begin(), hole.end());
-            }
             polygon.add_hole(std::move(hole));
         }
         mp.emplace_back(std::move(polygon));
