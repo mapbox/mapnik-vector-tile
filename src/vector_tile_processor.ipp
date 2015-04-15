@@ -26,6 +26,7 @@
 #include <mapnik/geometry_is_empty.hpp>
 #include <mapnik/geometry_envelope.hpp>
 #include <mapnik/geometry_adapters.hpp>
+#include <mapnik/util/is_clockwise.hpp>
 //#include <mapnik/simplify.hpp>
 //#include <mapnik/simplify_converter.hpp>
 #include <mapnik/geometry_correct.hpp>
@@ -59,6 +60,33 @@
 #pragma GCC diagnostic pop
 
 namespace mapnik { namespace vector_tile_impl {
+
+template <typename CalculationType>
+struct coord_transformer
+{
+    using calc_type = CalculationType;
+
+    coord_transformer(view_transform const& tr, proj_transform const& prj_trans)
+        : tr_(tr), prj_trans_(prj_trans) {}
+
+
+    template <typename P1, typename P2>
+    inline bool apply(P1 const& p1, P2 & p2) const
+    {
+        using coordinate_type = typename boost::geometry::coordinate_type<P2>::type;
+        calc_type x = boost::geometry::get<0>(p1);
+        calc_type y = boost::geometry::get<1>(p1);
+        calc_type z = 0.0;
+        if (!prj_trans_.backward(x, y, z)) return false;
+        tr_.forward(&x,&y);
+        boost::geometry::set<0>(p2, boost::numeric_cast<coordinate_type>(x));
+        boost::geometry::set<1>(p2, boost::numeric_cast<coordinate_type>(y));
+        return true;
+    }
+
+    view_transform const& tr_;
+    proj_transform const& prj_trans_;
+};
 
 template <typename T>
 struct visitor_raster_processor
@@ -651,6 +679,38 @@ bool processor<T>::painted() const
     return painted_;
 }
 
+inline bool check_polygon(mapnik::geometry::polygon const& poly)
+{
+    if (mapnik::util::is_clockwise(poly.exterior_ring))
+    {
+        std::cerr << "exterior ring winding order is wrong" << std::endl;
+        return false;
+    }
+    for (auto const& ring : poly.interior_rings)
+    {
+        if (!mapnik::util::is_clockwise(ring))
+        {
+            std::cerr << "interior ring winding order is wrong" << std::endl;
+            return false;
+        }
+    }
+    return true;
+}
+
+inline void correct_winding_order(mapnik::geometry::polygon & poly)
+{
+    bool is_clockwise = mapnik::util::is_clockwise(poly.exterior_ring);
+
+    for (auto & ring : poly.interior_rings)
+    {
+        if ( is_clockwise == mapnik::util::is_clockwise(ring))
+        {
+            std::cerr << "correcting interior ring" << std::endl;
+            boost::geometry::reverse(ring);
+        }
+    }
+}
+
 template <typename T>
 void processor<T>::apply_to_layer(mapnik::layer const& lay,
                     mapnik::projection const& proj0,
@@ -1160,10 +1220,15 @@ struct encoder_visitor {
                 mapnik::box2d<double> bbox = mapnik::geometry::envelope(poly);
                 if (poly.exterior_ring.size() > 3 && buffered_query_ext_.intersects(bbox))
                 {
-                    va_type va(poly);
-                    using path_type = mapnik::transform_path_adapter<mapnik::view_transform,va_type>;
-                    path_type path(t_, va, prj_trans_);
-                    path_count += backend_.add_path(path, tolerance_);
+                    coord_transformer<double> transformer(t_, prj_trans_);
+                    mapnik::geometry::polygon transformed_poly;
+                    //std::cerr << "input poly check=" << check_polygon(poly) << std::endl;
+                    boost::geometry::transform(poly, transformed_poly, transformer);
+                    correct_winding_order(transformed_poly);
+                    //boost::geometry::correct(transformed_poly); // ensure winding orders of rings are correct after reprojecting
+                    //std::cerr << "transformed poly check=" << check_polygon(transformed_poly) << std::endl;
+                    va_type va(transformed_poly);
+                    path_count += backend_.add_path(va, tolerance_);
                 }
             }
         }
