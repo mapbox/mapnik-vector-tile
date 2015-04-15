@@ -54,6 +54,11 @@
 #include <string>
 #include <stdexcept>
 
+//tmp
+#include <mapnik/util/geometry_to_geojson.hpp>
+#include <mapnik/geometry_reprojection.hpp>
+
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #include "vector_tile.pb.h"
@@ -815,7 +820,7 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
                     if (handle_geometry(*feature,
                                         part,
                                         prj_trans,
-                                        buffered_query_ext) > 0)
+                                        buffered_query_ext, scale_denom) > 0)
                     {
                         painted_ = true;
                     }
@@ -826,7 +831,7 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
                 if (handle_geometry(*feature,
                                     geom,
                                     prj_trans,
-                                    buffered_query_ext) > 0)
+                                    buffered_query_ext, scale_denom) > 0)
                 {
                     painted_ = true;
                 }
@@ -853,19 +858,76 @@ bool is_clockwise(T const& ring)
 
 inline void process_polynode_branch(ClipperLib::PolyNode* polynode, 
                              mapnik::geometry::multi_polygon & mp,
-                             double mult)
+                             double mult,
+                             bool recursive = false)
 {
+    ClipperLib::IntPoint p;
+    bool found_o = false;
+    // Gives big island
+    //p.X = static_cast<ClipperLib::cInt>(-5865777.550604425*mult); 
+    //p.Y = static_cast<ClipperLib::cInt>(6026295.310003296*mult);
+    // Gives entire ocean
+    //p.X = static_cast<ClipperLib::cInt>(-6133479.132916184*mult); 
+    //p.Y = static_cast<ClipperLib::cInt>(5965031.031832729*mult);
+    p.X = static_cast<ClipperLib::cInt>(-6134014.19211418*mult); 
+    p.Y = static_cast<ClipperLib::cInt>(5967457.90748078*mult);
+    
+    if (polynode->Contour.size() < 9999999999)
+    {
+        if (ClipperLib::PointInPolygon(p, polynode->Contour))
+        {
+            found_o = true;
+            std::clog << "OMG I FOUND THE POLYGON OF DEATH" << std::endl;
+        }
+        //return;
+        /*for (auto const & pt2 : mp.back().exterior_ring)
+        {
+            for (auto const& pt1 : polynode->Contour)
+            {
+                if (pt2.x == (pt1.X/mult) && pt2.y == (pt1.Y/mult))
+                {
+                    std::clog << "DING DING DING" << std::endl;
+                    return;
+                }
+            }
+        }*/
+        //polynode->Contour.clear();
+    }
     mapnik::geometry::polygon polygon;
-
     for (auto const& pt : polynode->Contour)
     {
         polygon.exterior_ring.add_coord(pt.X/mult, pt.Y/mult);
+        if (found_o)
+        {
+            //std::clog << pt.X << " , " << pt.Y << " - " << pt.Y/mult << " , " << pt.Y/mult << std::endl;
+        }
     }
     if (polynode->Contour.front() != polynode->Contour.back())
     {
         auto const& pt = polynode->Contour.front();
         polygon.exterior_ring.add_coord(pt.X/mult, pt.Y/mult);
+        if (found_o)
+        {
+            //std::clog << "Wasn't closed" << std::endl;
+        }
     }
+    if (found_o || recursive)
+    {
+        mapnik::projection source("+init=epsg:3857");
+        mapnik::projection dest("+init=epsg:4326");
+        mapnik::proj_transform proj_trans(source, dest);
+        unsigned int n_err = 0;
+        mapnik::geometry::geometry geom = mapnik::geometry::reproject_copy(
+                static_cast<mapnik::geometry::line_string>(polygon.exterior_ring),
+                proj_trans,
+                n_err);
+        std::string foo;
+        mapnik::util::to_geojson(foo, geom);
+        if (recursive) std::clog << "A kid" << std::endl;
+        if (recursive) std::clog << foo << std::endl;
+        std::clog << polynode->ChildCount() << " outer kids" << std::endl;
+    }
+    bool found = false;
     if (polygon.exterior_ring.size() > 4) // Throw out invalid polygons
     {
         /*if (mapnik::util::is_clockwise(polygon.exterior_ring))
@@ -874,24 +936,57 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
             std::reverse(polygon.exterior_ring.begin(), polygon.exterior_ring.end());
         }*/
         // children of exterior ring are always interior rings
-        for (auto const* ring : polynode->Childs)
+        for (auto * ring : polynode->Childs)
         {
+            if (ClipperLib::PointInPolygon(p, ring->Contour))
+            {
+                found = true;
+                std::clog << "OMG I FOUND THE POLYGON OF DEATH - perhaps?" << std::endl;
+            }
             mapnik::geometry::linear_ring hole;
             for (auto const& pt : ring->Contour)
             {
                 hole.add_coord(pt.X/mult, pt.Y/mult);
+                if (found)
+                {
+                    //std::clog << pt.X << " , " << pt.Y << " - " << pt.Y/mult << " , " << pt.Y/mult << std::endl;
+                }
             }
             if (ring->Contour.front() != ring->Contour.back())
             {
                 auto const& pt = ring->Contour.front();
                 hole.add_coord(pt.X/mult, pt.Y/mult);
+                if (found)
+                {
+                    //std::clog << "Wasn't closed" << std::endl;
+                }
             }
+            if (found)
+            {
+                mapnik::projection source("+init=epsg:3857");
+                mapnik::projection dest("+init=epsg:4326");
+                mapnik::proj_transform proj_trans(source, dest);
+                unsigned int n_err = 0;
+                mapnik::geometry::geometry geom = mapnik::geometry::reproject_copy(
+                        static_cast<mapnik::geometry::line_string>(hole),
+                        proj_trans,
+                        n_err);
+                std::string foo;
+                mapnik::util::to_geojson(foo, geom);
+                //std::clog << foo << std::endl;
+                std::clog << ring->ChildCount() << " kids" << std::endl;
+                for (auto * sub_ring : ring->Childs)
+                {
+                    process_polynode_branch(sub_ring, mp, mult, true);
+                }
+            }
+                
             if (hole.size() < 4) continue; // Throw out invalid holes
-            /*if (!mapnik::util::is_clockwise(hole))
+            if (!mapnik::util::is_clockwise(hole))
             {
                 std::clog << "Interior ring is in reverse" << std::endl;
                 std::reverse(hole.begin(), hole.end());
-            }*/
+            }
             polygon.add_hole(std::move(hole));
         }
         mp.emplace_back(std::move(polygon));
@@ -900,7 +995,7 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
     {
         for (auto * sub_ring : ring->Childs)
         {
-            process_polynode_branch(sub_ring, mp, mult);
+            process_polynode_branch(sub_ring, mp, mult, false);
         }
     }
 }
@@ -913,13 +1008,15 @@ struct encoder_visitor {
                     mapnik::proj_transform const& prj_trans,
                     mapnik::box2d<double> const& buffered_query_ext,
                     mapnik::view_transform const& t,
-                    unsigned tolerance) :
+                    unsigned tolerance,
+                    double scale_denom) :
       backend_(backend),
       feature_(feature),
       prj_trans_(prj_trans),
       buffered_query_ext_(buffered_query_ext),
       t_(t),
-      tolerance_(tolerance) {}
+      tolerance_(tolerance),
+      scale_denom_(scale_denom) {}
 
     unsigned operator() (mapnik::geometry::point const& geom)
     {
@@ -1098,7 +1195,7 @@ struct encoder_visitor {
             }
             
             ClipperLib::PolyTree polygons;
-            //clipper.StrictlySimple(true);
+            clipper.StrictlySimple(true);
             // If we are using pftNonZero then our input polygon must follow winding order.
             clipper.Execute(ClipperLib::ctIntersection, polygons, ClipperLib::pftNonZero);
             clipper.Clear();
@@ -1142,8 +1239,11 @@ struct encoder_visitor {
         if (buffered_query_ext_.intersects(bbox) || geom.empty())
         {
             using va_type = mapnik::geometry::polygon_vertex_adapter;
-            //double mult = 1000000.0;
-            double mult = 0.0005;
+            double mult = 2.024e4 / scale_denom_;
+            double clean_distance = 1.415;
+            double area_threshold = 200;
+            //std::clog << "scale_denom: " << scale_denom_ << " mult: " << mult << std::endl;
+            //double mult = 100000;
             ClipperLib::Path clip_box;
             clip_box.emplace_back(static_cast<ClipperLib::cInt>(buffered_query_ext_.minx()*mult),
                                   static_cast<ClipperLib::cInt>(buffered_query_ext_.miny()*mult));
@@ -1157,7 +1257,12 @@ struct encoder_visitor {
                                   static_cast<ClipperLib::cInt>(buffered_query_ext_.miny()*mult));
             /*if (is_clockwise(clip_box)) std::clog << "clipbox cw" << std::endl;
             else std::clog << "clipbox ccw" << std::endl;
+            ClipperLib::cInt diff_y = std::abs(static_cast<ClipperLib::cInt>(buffered_query_ext_.maxy()*mult) -
+                                  static_cast<ClipperLib::cInt>(buffered_query_ext_.miny()*mult));
+            ClipperLib::cInt diff_x = std::abs(static_cast<ClipperLib::cInt>(buffered_query_ext_.maxx()*mult) -
+                                  static_cast<ClipperLib::cInt>(buffered_query_ext_.minx()*mult));
             */
+            //std::clog << "diff y: " << diff_y << " x: " << diff_x << std::endl;
             ClipperLib::Clipper clipper;
             for (auto const& poly : geom)
             {
@@ -1179,9 +1284,10 @@ struct encoder_visitor {
                 {
                     outer_path.emplace_back(outer_path.front().X, outer_path.front().Y);
                 }
-                if (is_clockwise(outer_path))
+                double outer_area = ClipperLib::Area(outer_path);
+                if (std::abs(outer_area) < area_threshold) continue;
+                if (outer_area < 0)
                 {   
-                    std::clog << "Winding order is wrong on input outer ring" << std::endl;
                     std::reverse(outer_path.begin(), outer_path.end());
                 }
                 paths.emplace_back(std::move(outer_path));
@@ -1200,35 +1306,38 @@ struct encoder_visitor {
                     {
                         path.emplace_back(path.front().X, path.front().Y);
                     }
-                    if (!is_clockwise(path))
+                    double inner_area = ClipperLib::Area(path);
+                    if (std::abs(inner_area) < area_threshold) continue;
+                    if (inner_area > 0)
                     {
-                        std::clog << "Winding order is wrong on input inner ring" << std::endl;
                         std::reverse(path.begin(), path.end());
                     }
                     paths.emplace_back(std::move(path));
                 }
                 ClipperLib::Clipper poly_clipper;
-                //poly_clipper.StrictlySimple(true);
-                ClipperLib::CleanPolygons(paths); // We could add tolerance here?
+                ClipperLib::CleanPolygons(paths, clean_distance); // We could add tolerance here?
+                //ClipperLib::SimplifyPolygons(paths); //, ClipperLib::pftNonZero); // This does a union internally, it is SLOW.
+                poly_clipper.StrictlySimple(true);
                 ClipperLib::Paths output_paths;
                 if (!poly_clipper.AddPaths(paths, ClipperLib::ptSubject, true))
                 {
-                    std::clog << "ptSubject failed! " << paths.size() << std::endl;
+                    //std::clog << "ptSubject failed! " << paths.size() << std::endl;
+                    continue;
                 }
                 if (!poly_clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
                 {
-                    std::clog << "ptClip failed!\n";
+                    //std::clog << "ptClip failed!\n";
                 }
-                poly_clipper.Execute(ClipperLib::ctIntersection, output_paths, ClipperLib::pftNonZero);
+                poly_clipper.Execute(ClipperLib::ctIntersection, output_paths); //, ClipperLib::pftNonZero);
                 poly_clipper.Clear();
-                ClipperLib::CleanPolygons(output_paths);
+                //ClipperLib::CleanPolygons(output_paths, clean_distance);
                 if (!clipper.AddPaths(output_paths, ClipperLib::ptSubject, true))
                 {
-                    std::clog << "ptSubject failed2! " << output_paths.size() << std::endl;
+                    //std::clog << "ptSubject failed2! " << output_paths.size() << std::endl;
                 }
             }
             ClipperLib::PolyTree polygons;
-            //clipper.StrictlySimple(true);
+            clipper.StrictlySimple(true);
             clipper.Execute(ClipperLib::ctUnion, polygons);
             clipper.Clear();
             
@@ -1273,6 +1382,7 @@ struct encoder_visitor {
     mapnik::box2d<double> const& buffered_query_ext_;
     mapnik::view_transform const& t_;
     unsigned tolerance_;
+    double scale_denom_;
 };
 
 template <typename T>
@@ -1343,9 +1453,10 @@ template <typename T>
 unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
                                        mapnik::geometry::geometry const& geom,
                                        mapnik::proj_transform const& prj_trans,
-                                       mapnik::box2d<double> const& buffered_query_ext)
+                                       mapnik::box2d<double> const& buffered_query_ext,
+                                       double scale_denom)
 {
-    encoder_visitor<T> encoder(backend_,feature,prj_trans,buffered_query_ext,t_,tolerance_);
+    encoder_visitor<T> encoder(backend_,feature,prj_trans,buffered_query_ext,t_,tolerance_, scale_denom);
     if (simplify_distance_ > 0)
     {
         simplify_visitor<T> simplifier(simplify_distance_,encoder);

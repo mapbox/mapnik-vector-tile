@@ -92,7 +92,8 @@ public:
     MAPNIK_VECTOR_INLINE unsigned handle_geometry(mapnik::feature_impl const& feature,
                                                   mapnik::geometry::geometry const& geom,
                                                   mapnik::proj_transform const& prj_trans,
-                                                  mapnik::box2d<double> const& buffered_query_ext);
+                                                  mapnik::box2d<double> const& buffered_query_ext,
+                                                  double scale_denom);
 };
 
 }} // end ns
