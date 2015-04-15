@@ -30,7 +30,7 @@ std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool seco
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
     mapnik::transcoder tr("utf-8");
     feature->put("name",tr.transcode("null island"));
-    feature->set_geometry(mapnik::geometry::point(x,y));
+    feature->set_geometry(mapnik::geometry::point<double>(x,y));
     ds->push(feature);
     if (second) {
         ctx->push("name2");
@@ -38,7 +38,7 @@ std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool seco
         mapnik::transcoder tr("utf-8");
         feature->put("name",tr.transcode("null island"));
         feature->put("name2",tr.transcode("null island 2"));
-        feature->set_geometry(mapnik::geometry::point(x+1,y+1));
+        feature->set_geometry(mapnik::geometry::point<double>(x+1,y+1));
         ds->push(feature);
     }
     return ds;
@@ -47,7 +47,7 @@ std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool seco
 std::shared_ptr<mapnik::memory_datasource> build_geojson_ds(std::string const& geojson_file) {
     mapnik::util::file input(geojson_file);
     auto json = input.data();
-    mapnik::geometry::geometry geom;
+    mapnik::geometry::geometry<double> geom;
     std::string json_string(json.get());
     if (!mapnik::json::from_geojson(json_string, geom))
     {

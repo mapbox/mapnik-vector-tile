@@ -90,7 +90,7 @@ Geometry::command Geometry::next(double& rx, double& ry) {
     }
 }
 
-inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature const& f,
+inline mapnik::geometry::geometry<double> decode_geometry(vector_tile::Tile_Feature const& f,
                                                   double tile_x, double tile_y,
                                                   double scale_x, double scale_y,
                                                   bool treat_all_rings_as_exterior=false)
@@ -98,16 +98,16 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
     Geometry::command cmd;
     Geometry geoms(f,tile_x,tile_y,scale_x,scale_y);
     double x1, y1;
-    mapnik::geometry::geometry geom = mapnik::geometry::geometry_empty(); // output geometry
+    mapnik::geometry::geometry<double> geom; // output geometry
 
     switch (f.type())
     {
     case vector_tile::Tile_GeomType_POINT:
     {
-        mapnik::geometry::multi_point mp;
+        mapnik::geometry::multi_point<double> mp;
         while ((cmd = geoms.next(x1, y1)) != Geometry::end)
         {
-            mp.emplace_back(mapnik::geometry::point(x1,y1));
+            mp.emplace_back(mapnik::geometry::point<double>(x1,y1));
         }
         std::size_t num_points = mp.size();
         if (num_points == 1)
@@ -126,7 +126,7 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
     }
     case vector_tile::Tile_GeomType_LINESTRING:
     {
-        mapnik::geometry::multi_line_string multi_line;
+        mapnik::geometry::multi_line_string<double> multi_line;
         multi_line.emplace_back();
         bool first = true;
         while ((cmd = geoms.next(x1, y1)) != Geometry::end)
@@ -169,7 +169,7 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
     }
     case vector_tile::Tile_GeomType_POLYGON:
     {
-        std::vector<mapnik::geometry::linear_ring> rings;
+        std::vector<mapnik::geometry::linear_ring<double>> rings;
         rings.emplace_back();
         double x2,y2;
         bool first = true;
@@ -211,7 +211,7 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
                 std::reverse(rings_itr->begin(), rings_itr->end());
             }
             // return the single polygon without interior rings
-            mapnik::geometry::polygon poly;
+            mapnik::geometry::polygon<double> poly;
             poly.set_exterior_ring(std::move(*rings_itr));
             geom = std::move(poly);
             return geom;
@@ -221,7 +221,7 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
         //  1) a polygon with interior ring(s)
         //  2) a multipolygon with polygons with no interior ring(s)
         //  3) a multipolygon with polygons with interior ring(s)
-        mapnik::geometry::multi_polygon multi_poly;
+        mapnik::geometry::multi_polygon<double> multi_poly;
         first = true;
         // back compatibility mode to previous Mapnik (pre new geometry)
         // which pushed all rings into single path
@@ -281,7 +281,7 @@ inline mapnik::geometry::geometry decode_geometry(vector_tile::Tile_Feature cons
         else if (num_poly == 1)
         {
             auto itr = std::make_move_iterator(multi_poly.begin());
-            geom = std::move(mapnik::geometry::polygon(std::move(*itr)));
+            geom = std::move(mapnik::geometry::polygon<double>(std::move(*itr)));
             return geom;
         }
         else

@@ -686,7 +686,7 @@ bool processor<T>::painted() const
     return painted_;
 }
 
-inline bool check_polygon(mapnik::geometry::polygon const& poly)
+inline bool check_polygon(mapnik::geometry::polygon<double> const& poly)
 {
     if (mapnik::util::is_clockwise(poly.exterior_ring))
     {
@@ -704,7 +704,7 @@ inline bool check_polygon(mapnik::geometry::polygon const& poly)
     return true;
 }
 
-inline void correct_winding_order(mapnik::geometry::polygon & poly)
+inline void correct_winding_order(mapnik::geometry::polygon<double> & poly)
 {
     bool is_clockwise = mapnik::util::is_clockwise(poly.exterior_ring);
     
@@ -872,16 +872,16 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
         // vector pathway
         while (feature)
         {
-            mapnik::geometry::geometry const& geom = feature->get_geometry();
+            mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
             if (mapnik::geometry::is_empty(geom))
             {
                 feature = features->next();
                 continue;
             }
-            if (geom.is<mapnik::geometry::geometry_collection>())
+            if (geom.is<mapnik::geometry::geometry_collection<double> >())
             {
                 std::clog << "collection\n";
-                auto const& collection = mapnik::util::get<mapnik::geometry::geometry_collection>(geom);
+                auto const& collection = mapnik::util::get<mapnik::geometry::geometry_collection<double> >(geom);
                 for (auto const& part : collection)
                 {
                     if (handle_geometry(*feature,
@@ -924,7 +924,7 @@ bool is_clockwise(T const& ring)
 }
 
 inline void process_polynode_branch(ClipperLib::PolyNode* polynode, 
-                             mapnik::geometry::multi_polygon & mp,
+                             mapnik::geometry::multi_polygon<double> & mp,
                              double mult,
                              bool recursive = false)
 {
@@ -944,7 +944,7 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
         found_o = true;
         std::clog << "Found a target polygon" << std::endl;
     }*/
-    mapnik::geometry::polygon polygon;
+    mapnik::geometry::polygon<double> polygon;
     for (auto const& pt : polynode->Contour)
     {
         polygon.exterior_ring.add_coord(pt.X/mult, pt.Y/mult);
@@ -989,7 +989,7 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
                 std::clog << "Found a target inner polygon" << std::endl;
             }
             */
-            mapnik::geometry::linear_ring hole;
+            mapnik::geometry::linear_ring<double> hole;
             for (auto const& pt : ring->Contour)
             {
                 hole.add_coord(pt.X/mult, pt.Y/mult);
@@ -1047,14 +1047,14 @@ struct encoder_visitor {
       tolerance_(tolerance),
       scale_denom_(scale_denom) {}
 
-    unsigned operator() (mapnik::geometry::point const& geom)
+    unsigned operator() (mapnik::geometry::point<double> const& geom)
     {
         unsigned path_count = 0;
         if (buffered_query_ext_.intersects(geom.x,geom.y))
         {
             backend_.start_tile_feature(feature_);
             backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
-            using va_type = mapnik::geometry::point_vertex_adapter;
+            using va_type = mapnik::geometry::point_vertex_adapter<double>;
             using path_type = mapnik::transform_path_adapter<mapnik::view_transform,va_type>;
             va_type va(geom);
             path_type path(t_, va, prj_trans_);
@@ -1064,7 +1064,7 @@ struct encoder_visitor {
         return path_count;
     }
 
-    unsigned operator() (mapnik::geometry::multi_point const& geom)
+    unsigned operator() (mapnik::geometry::multi_point<double> const& geom)
     {
         unsigned path_count = 0;
         mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);
@@ -1072,7 +1072,7 @@ struct encoder_visitor {
         {
             backend_.start_tile_feature(feature_);
             backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
-            using va_type = mapnik::geometry::point_vertex_adapter;
+            using va_type = mapnik::geometry::point_vertex_adapter<double>;
             using path_type = mapnik::transform_path_adapter<mapnik::view_transform,va_type>;
             for (auto const& pt : geom)
             {
@@ -1088,7 +1088,7 @@ struct encoder_visitor {
         return path_count;
     }
 
-    unsigned operator() (mapnik::geometry::line_string const& geom)
+    unsigned operator() (mapnik::geometry::line_string<double> const& geom)
     {
         unsigned path_count = 0;
         mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);
@@ -1098,7 +1098,7 @@ struct encoder_visitor {
             {
                 backend_.start_tile_feature(feature_);
                 backend_.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
-                using va_type = mapnik::geometry::line_string_vertex_adapter;
+                using va_type = mapnik::geometry::line_string_vertex_adapter<double>;
                 using clip_type = agg::conv_clip_polyline<va_type>;
 
                 va_type va(geom);
@@ -1117,7 +1117,7 @@ struct encoder_visitor {
         return path_count;
     }
 
-    unsigned operator() (mapnik::geometry::multi_line_string const& geom)
+    unsigned operator() (mapnik::geometry::multi_line_string<double> const& geom)
     {
         unsigned path_count = 0;
         mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);
@@ -1125,7 +1125,7 @@ struct encoder_visitor {
         {
             backend_.start_tile_feature(feature_);
             backend_.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
-            using va_type = mapnik::geometry::line_string_vertex_adapter;
+            using va_type = mapnik::geometry::line_string_vertex_adapter<double>;
             using clip_type = agg::conv_clip_polyline<va_type>;
             for (auto const& line : geom)
             {
@@ -1149,13 +1149,13 @@ struct encoder_visitor {
         return path_count;
     }
 
-    unsigned operator() (mapnik::geometry::polygon const& geom)
+    unsigned operator() (mapnik::geometry::polygon<double> const& geom)
     {
         unsigned path_count = 0;
         mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);
         if (buffered_query_ext_.intersects(bbox) && geom.exterior_ring.size() > 3)
         {
-            using va_type = mapnik::geometry::polygon_vertex_adapter;
+            using va_type = mapnik::geometry::polygon_vertex_adapter<double>;
             double mult = 1000000.0;
             ClipperLib::Clipper clipper;
             ClipperLib::Paths paths;
@@ -1229,7 +1229,7 @@ struct encoder_visitor {
             clipper.Execute(ClipperLib::ctIntersection, polygons, ClipperLib::pftNonZero);
             clipper.Clear();
 
-            mapnik::geometry::multi_polygon mp;
+            mapnik::geometry::multi_polygon<double> mp;
 
             for (auto * polynode : polygons.Childs)
             {
@@ -1261,13 +1261,13 @@ struct encoder_visitor {
         return path_count;
     }
 
-    unsigned operator() (mapnik::geometry::multi_polygon const& geom)
+    unsigned operator() (mapnik::geometry::multi_polygon<double> const& geom)
     {
         unsigned path_count = 0;
         mapnik::box2d<double> bbox = mapnik::geometry::envelope(geom);
         if (buffered_query_ext_.intersects(bbox) || geom.empty())
         {
-            using va_type = mapnik::geometry::polygon_vertex_adapter;
+            using va_type = mapnik::geometry::polygon_vertex_adapter<double>;
             double mult = 2.024e4 / scale_denom_;
             double clean_distance = 1.415;
             double area_threshold = 200;
@@ -1370,7 +1370,7 @@ struct encoder_visitor {
             clipper.Execute(ClipperLib::ctUnion, polygons);
             clipper.Clear();
             
-            mapnik::geometry::multi_polygon mp;
+            mapnik::geometry::multi_polygon<double> mp;
             
             for (auto * polynode : polygons.Childs)
             {
@@ -1390,7 +1390,7 @@ struct encoder_visitor {
                 if (poly.exterior_ring.size() > 3 && buffered_query_ext_.intersects(bbox))
                 {
                     coord_transformer<double> transformer(t_, prj_trans_);
-                    mapnik::geometry::polygon transformed_poly;
+                    mapnik::geometry::polygon<double> transformed_poly;
                     //std::cerr << "input poly check=" << check_polygon(poly) << std::endl;
                     boost::geometry::transform(poly, transformed_poly, transformer);
                     correct_winding_order(transformed_poly);
@@ -1427,46 +1427,46 @@ struct simplify_visitor {
       encoder_(encoder),
       simplify_distance_(simplify_distance) {}
 
-    unsigned operator() (mapnik::geometry::point const& geom)
+    unsigned operator() (mapnik::geometry::point<double> const& geom)
     {
         return encoder_(geom);
     }
 
-    unsigned operator() (mapnik::geometry::multi_point const& geom)
+    unsigned operator() (mapnik::geometry::multi_point<double> const& geom)
     {
         return encoder_(geom);
     }
 
-    unsigned operator() (mapnik::geometry::line_string const& geom)
+    unsigned operator() (mapnik::geometry::line_string<double> const& geom)
     {
-        mapnik::geometry::line_string simplified;
+        mapnik::geometry::line_string<double> simplified;
         boost::geometry::simplify(geom,simplified,simplify_distance_);
         mapnik::geometry::correct(simplified);
         boost::geometry::unique(simplified);
         return encoder_(simplified);
     }
 
-    unsigned operator() (mapnik::geometry::multi_line_string const& geom)
+    unsigned operator() (mapnik::geometry::multi_line_string<double> const& geom)
     {
-        mapnik::geometry::multi_line_string simplified;
+        mapnik::geometry::multi_line_string<double> simplified;
         boost::geometry::simplify(geom,simplified,simplify_distance_);
         mapnik::geometry::correct(simplified);
         boost::geometry::unique(simplified);
         return encoder_(simplified);
     }
 
-    unsigned operator() (mapnik::geometry::polygon const& geom)
+    unsigned operator() (mapnik::geometry::polygon<double> const& geom)
     {
-        mapnik::geometry::polygon simplified;
+        mapnik::geometry::polygon<double> simplified;
         boost::geometry::simplify(geom,simplified,simplify_distance_);
         mapnik::geometry::correct(simplified);
         boost::geometry::unique(simplified);
         return encoder_(simplified);
     }
 
-    unsigned operator() (mapnik::geometry::multi_polygon const& geom)
+    unsigned operator() (mapnik::geometry::multi_polygon<double> const& geom)
     {
-        mapnik::geometry::multi_polygon simplified;
+        mapnik::geometry::multi_polygon<double> simplified;
         boost::geometry::simplify(geom,simplified,simplify_distance_);
         mapnik::geometry::correct(simplified);
         boost::geometry::unique(simplified);
@@ -1485,7 +1485,7 @@ struct simplify_visitor {
 
 template <typename T>
 unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
-                                       mapnik::geometry::geometry const& geom,
+                                       mapnik::geometry::geometry<double> const& geom,
                                        mapnik::proj_transform const& prj_trans,
                                        mapnik::box2d<double> const& buffered_query_ext,
                                        double scale_denom)

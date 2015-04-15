@@ -15,7 +15,8 @@ struct print
     {
         std::cerr << "EMPTY" << std::endl;
     }
-    void operator() (geometry_collection const& collection) const
+    template <typename T>
+    void operator() (geometry_collection<T> const& collection) const
     {
     }
     template <typename T>
@@ -79,21 +80,22 @@ struct show_path
     }
 };
 
-vector_tile::Tile_Feature geometry_to_feature(mapnik::geometry::geometry const& g,
+template <typename T>
+vector_tile::Tile_Feature geometry_to_feature(mapnik::geometry::geometry<T> const& g,
                                               unsigned tolerance=0,
                                               unsigned path_multiplier=1)
 {
     vector_tile::Tile_Feature feature;
     encode_geometry ap(feature,tolerance,path_multiplier);
-    if (g.is<mapnik::geometry::point>() || g.is<mapnik::geometry::multi_point>())
+    if (g.template is<mapnik::geometry::point<T> >() || g.template is<mapnik::geometry::multi_point<T> >())
     {
         feature.set_type(vector_tile::Tile_GeomType_POINT);
     }
-    else if (g.is<mapnik::geometry::line_string>() || g.is<mapnik::geometry::multi_line_string>())
+    else if (g.template is<mapnik::geometry::line_string<T> >() || g.template is<mapnik::geometry::multi_line_string<T> >())
     {
         feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
     }
-    else if (g.is<mapnik::geometry::polygon>() || g.is<mapnik::geometry::multi_polygon>())
+    else if (g.template is<mapnik::geometry::polygon<T> >() || g.template is<mapnik::geometry::multi_polygon<T> >())
     {
         feature.set_type(vector_tile::Tile_GeomType_POLYGON);
     }
@@ -105,7 +107,8 @@ vector_tile::Tile_Feature geometry_to_feature(mapnik::geometry::geometry const& 
     return feature;
 }
 
-std::string decode_to_path_string(mapnik::geometry::geometry const& g)
+template <typename T>
+std::string decode_to_path_string(mapnik::geometry::geometry<T> const& g)
 {
     //mapnik::util::apply_visitor(print(), g2);
     using decode_path_type = mapnik::geometry::vertex_processor<show_path>;
@@ -115,7 +118,8 @@ std::string decode_to_path_string(mapnik::geometry::geometry const& g)
     return out;
 }
 
-std::string compare(mapnik::geometry::geometry const& g,
+template <typename T>
+std::string compare(mapnik::geometry::geometry<T> const& g,
                     unsigned tolerance=0,
                     unsigned path_multiplier=1)
 {
