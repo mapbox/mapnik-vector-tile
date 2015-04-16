@@ -584,7 +584,8 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform prj_trans(wgs84,merc);
     ren.set_simplify_distance(simplify_distance);
-    double scale_denom = 5.59082e+8;
+    //double scale_denom = 5.59082e+8;
+    double scale_denom = 1;
     ren.handle_geometry(*feature,geom,prj_trans,bbox, scale_denom);
     backend.stop_tile_layer();
     if (tile.layers_size() != 1)

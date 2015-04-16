@@ -84,10 +84,8 @@ struct coord_transformer
         calc_type z = 0.0;
         if (!prj_trans_.backward(x, y, z)) return false;
         tr_.forward(&x,&y);
-        int x_ = static_cast<int>(x);
-        int y_ = static_cast<int>(y);
-        boost::geometry::set<0>(p2, boost::numeric_cast<coordinate_type>(x_));
-        boost::geometry::set<1>(p2, boost::numeric_cast<coordinate_type>(y_));
+        boost::geometry::set<0>(p2, boost::numeric_cast<coordinate_type>(x));
+        boost::geometry::set<1>(p2, boost::numeric_cast<coordinate_type>(y));
         return true;
     }
 
@@ -708,15 +706,9 @@ inline void correct_winding_order(mapnik::geometry::polygon<double> & poly)
 {
     bool is_clockwise = mapnik::util::is_clockwise(poly.exterior_ring);
     
-    if (!is_clockwise)
-    {
-        std::cerr << "correcting exterior ring: " << poly.exterior_ring.size() << std::endl;
-        boost::geometry::reverse(poly.exterior_ring);
-    }
-    
     for (auto & ring : poly.interior_rings)
     {
-        if (mapnik::util::is_clockwise(ring))
+        if (is_clockwise == mapnik::util::is_clockwise(ring))
         {
             std::cerr << "correcting interior ring" << ring.size() << std::endl;
             boost::geometry::reverse(ring);
@@ -925,25 +917,8 @@ bool is_clockwise(T const& ring)
 
 inline void process_polynode_branch(ClipperLib::PolyNode* polynode, 
                              mapnik::geometry::multi_polygon<double> & mp,
-                             double mult,
-                             bool recursive = false)
+                             double mult)
 {
-    //ClipperLib::IntPoint p;
-    //bool found_o = false;
-    // Gives big island
-    //p.X = static_cast<ClipperLib::cInt>(-5865777.550604425*mult); 
-    //p.Y = static_cast<ClipperLib::cInt>(6026295.310003296*mult);
-    // Gives entire ocean
-    //p.X = static_cast<ClipperLib::cInt>(-6133479.132916184*mult); 
-    //p.Y = static_cast<ClipperLib::cInt>(5965031.031832729*mult);
-    //p.X = static_cast<ClipperLib::cInt>(-5346617.254491508*mult); 
-    //p.Y = static_cast<ClipperLib::cInt>(8588464.498122405*mult);
-    
-    /*if (ClipperLib::PointInPolygon(p, polynode->Contour))
-    {
-        found_o = true;
-        std::clog << "Found a target polygon" << std::endl;
-    }*/
     mapnik::geometry::polygon<double> polygon;
     for (auto const& pt : polynode->Contour)
     {
@@ -953,42 +928,12 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
     {
         auto const& pt = polynode->Contour.front();
         polygon.exterior_ring.add_coord(pt.X/mult, pt.Y/mult);
-        //if (found_o)
-        //{
-            //std::clog << "Wasn't closed" << std::endl;
-        //}
     }
-    /*
-    if (found_o)
-    {
-        mapnik::projection source("+init=epsg:3857");
-        mapnik::projection dest("+init=epsg:4326");
-        mapnik::proj_transform proj_trans(source, dest);
-        unsigned int n_err = 0;
-        mapnik::geometry::geometry geom = mapnik::geometry::reproject_copy(
-                static_cast<mapnik::geometry::line_string>(polygon.exterior_ring),
-                proj_trans,
-                n_err);
-        std::string foo;
-        mapnik::util::to_geojson(foo, geom);
-        if (recursive) std::clog << "A kid" << std::endl;
-        if (recursive) std::clog << foo << std::endl;
-        std::clog << polynode->ChildCount() << " outer kids" << std::endl;
-    }
-    bool found = false;
-    */
     if (polygon.exterior_ring.size() > 3) // Throw out invalid polygons
     {
         // children of exterior ring are always interior rings
         for (auto const* ring : polynode->Childs)
         {
-            /*
-            if (ClipperLib::PointInPolygon(p, ring->Contour))
-            {
-                found = true;
-                std::clog << "Found a target inner polygon" << std::endl;
-            }
-            */
             mapnik::geometry::linear_ring<double> hole;
             for (auto const& pt : ring->Contour)
             {
@@ -999,22 +944,6 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
                 auto const& pt = ring->Contour.front();
                 hole.add_coord(pt.X/mult, pt.Y/mult);
             }
-            /*
-            if (found)
-            {
-                mapnik::projection source("+init=epsg:3857");
-                mapnik::projection dest("+init=epsg:4326");
-                mapnik::proj_transform proj_trans(source, dest);
-                unsigned int n_err = 0;
-                mapnik::geometry::geometry geom = mapnik::geometry::reproject_copy(
-                        static_cast<mapnik::geometry::line_string>(hole),
-                        proj_trans,
-                        n_err);
-                std::string foo;
-                mapnik::util::to_geojson(foo, geom);
-                std::clog << foo << std::endl;
-            }
-            */  
             if (hole.size() < 4) continue; // Throw out invalid holes
             polygon.add_hole(std::move(hole));
         }
@@ -1024,7 +953,7 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
     {
         for (auto * sub_ring : ring->Childs)
         {
-            process_polynode_branch(sub_ring, mp, mult, false);
+            process_polynode_branch(sub_ring, mp, mult);
         }
     }
 }
@@ -1156,7 +1085,9 @@ struct encoder_visitor {
         if (buffered_query_ext_.intersects(bbox) && geom.exterior_ring.size() > 3)
         {
             using va_type = mapnik::geometry::polygon_vertex_adapter<double>;
-            double mult = 1000000.0;
+            double mult = 2.024e4 / scale_denom_;
+            double clean_distance = 1.415;
+            double area_threshold = 20;
             ClipperLib::Clipper clipper;
             ClipperLib::Paths paths;
             ClipperLib::Path outer_path;
@@ -1171,8 +1102,10 @@ struct encoder_visitor {
             {
                 outer_path.emplace_back(outer_path.front().X, outer_path.front().Y);
             }
-            if (is_clockwise(outer_path))
-            {
+            double outer_area = ClipperLib::Area(outer_path);
+            if (std::abs(outer_area) < area_threshold) return 0;
+            if (outer_area < 0)
+            {   
                 std::reverse(outer_path.begin(), outer_path.end());
             }
             paths.emplace_back(std::move(outer_path));
@@ -1191,20 +1124,20 @@ struct encoder_visitor {
                 {
                     path.emplace_back(path.front().X, path.front().Y);
                 }
-                if (!is_clockwise(path))
+                double inner_area = ClipperLib::Area(path);
+                if (std::abs(inner_area) < area_threshold) continue;
+                if (inner_area > 0)
                 {
                     std::reverse(path.begin(), path.end());
                 }
                 paths.emplace_back(std::move(path));
             }
-            ClipperLib::CleanPolygons(paths); // We could add tolerance here?
+            ClipperLib::CleanPolygons(paths, clean_distance); // We could add tolerance here?
             if (!clipper.AddPaths(paths, ClipperLib::ptSubject, true))
             {
                 std::clog << "ptSubject ext failed " << paths.size() << std::endl;
                 return 0;
             }
-            //clipper.Execute(ClipperLib::ctUnion, polygons, ClipperLib::pftNonZero);
-            //std::cerr << "path size=" << path.size() << std::endl;
             ClipperLib::Path clip_box;
             clip_box.emplace_back(static_cast<ClipperLib::cInt>(buffered_query_ext_.minx()*mult),
                                   static_cast<ClipperLib::cInt>(buffered_query_ext_.miny()*mult));
@@ -1235,7 +1168,6 @@ struct encoder_visitor {
             {
                 process_polynode_branch(polynode, mp, mult); 
             }
-            //mapnik::geometry::correct(mp);
             
             if (mp.empty())
             {
@@ -1270,9 +1202,7 @@ struct encoder_visitor {
             using va_type = mapnik::geometry::polygon_vertex_adapter<double>;
             double mult = 2.024e4 / scale_denom_;
             double clean_distance = 1.415;
-            double area_threshold = 200;
-            //std::clog << "scale_denom: " << scale_denom_ << " mult: " << mult << std::endl;
-            //double mult = 100000;
+            double area_threshold = 100;
             ClipperLib::Path clip_box;
             clip_box.emplace_back(static_cast<ClipperLib::cInt>(buffered_query_ext_.minx()*mult),
                                   static_cast<ClipperLib::cInt>(buffered_query_ext_.miny()*mult));
@@ -1284,14 +1214,6 @@ struct encoder_visitor {
                                   static_cast<ClipperLib::cInt>(buffered_query_ext_.miny()*mult));
             clip_box.emplace_back(static_cast<ClipperLib::cInt>(buffered_query_ext_.minx()*mult),
                                   static_cast<ClipperLib::cInt>(buffered_query_ext_.miny()*mult));
-            /*if (is_clockwise(clip_box)) std::clog << "clipbox cw" << std::endl;
-            else std::clog << "clipbox ccw" << std::endl;
-            ClipperLib::cInt diff_y = std::abs(static_cast<ClipperLib::cInt>(buffered_query_ext_.maxy()*mult) -
-                                  static_cast<ClipperLib::cInt>(buffered_query_ext_.miny()*mult));
-            ClipperLib::cInt diff_x = std::abs(static_cast<ClipperLib::cInt>(buffered_query_ext_.maxx()*mult) -
-                                  static_cast<ClipperLib::cInt>(buffered_query_ext_.minx()*mult));
-            */
-            //std::clog << "diff y: " << diff_y << " x: " << diff_x << std::endl;
             ClipperLib::Clipper clipper;
             for (auto const& poly : geom)
             {
@@ -1344,7 +1266,7 @@ struct encoder_visitor {
                     paths.emplace_back(std::move(path));
                 }
                 ClipperLib::Clipper poly_clipper;
-                ClipperLib::CleanPolygons(paths, clean_distance); // We could add tolerance here?
+                ClipperLib::CleanPolygons(paths, clean_distance);
                 //ClipperLib::SimplifyPolygons(paths); //, ClipperLib::pftNonZero); // This does a union internally, it is SLOW.
                 poly_clipper.StrictlySimple(true);
                 ClipperLib::Paths output_paths;
@@ -1376,11 +1298,12 @@ struct encoder_visitor {
             {
                 process_polynode_branch(polynode, mp, mult); 
             }
-            //mapnik::geometry::correct(mp);
+
             if (mp.empty())
             {
                 return 0;
             }
+
             backend_.start_tile_feature(feature_);
             backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POLYGON);
             
