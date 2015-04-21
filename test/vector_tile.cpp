@@ -113,13 +113,13 @@ TEST_CASE( "vector tile output 1", "should create vector tile with two points" )
     std::string key("");
     CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
-    CHECK(1 == tile.layers_size());
+    REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
-    CHECK(2 == layer.features_size());
+    REQUIRE(2 == layer.features_size());
     vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
-    CHECK(3 == f.geometry_size());
+    REQUIRE(3 == f.geometry_size());
     CHECK(9 == f.geometry(0));
     CHECK(4096 == f.geometry(1));
     CHECK(4096 == f.geometry(2));
@@ -722,7 +722,7 @@ TEST_CASE( "vector tile multi_polygon encoding of single polygon", "should creat
     CHECK( new_geom.is<mapnik::geometry::polygon<double> >() );
 }
 
-TEST_CASE( "vector tile multi_polygon encoding of actual multi_polygon", "should create vector tile with data" ) {
+TEST_CASE( "vector tile multi_polygon encoding of actual multi_polygon", "should create vector tile with data a single polygon" ) {
     mapnik::geometry::multi_polygon<double> geom;
     mapnik::geometry::polygon<double> poly;
     poly.exterior_ring.add_coord(0,0);
@@ -756,7 +756,7 @@ TEST_CASE( "vector tile multi_polygon encoding of actual multi_polygon", "should
     geom.emplace_back(std::move(poly2));
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
     CHECK( !mapnik::geometry::is_empty(new_geom) );
-    CHECK( new_geom.is<mapnik::geometry::multi_polygon<double> >() );
+    CHECK( new_geom.is<mapnik::geometry::polygon<double> >() );
 }
 
 // simplification
@@ -769,7 +769,7 @@ TEST_CASE( "vector tile line_string is simplified", "should create vector tile w
     line.add_coord(2,2);
     line.add_coord(100,100);
     geom.emplace_back(std::move(line));
-    mapnik::geometry::geometry<double> new_geom = round_trip(geom,10);
+    mapnik::geometry::geometry<double> new_geom = round_trip(geom,500);
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::line_string<double> >() );
     auto const& line2 = mapnik::util::get<mapnik::geometry::line_string<double> >(new_geom);
