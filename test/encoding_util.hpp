@@ -31,23 +31,53 @@ struct print
 struct encode_geometry
 {
     vector_tile::Tile_Feature & feature_;
-    unsigned tolerance_;
-    unsigned path_multiplier_;
     int32_t x_;
     int32_t y_;
-    encode_geometry(vector_tile::Tile_Feature & feature,
-             unsigned tolerance,
-             unsigned path_multiplier) :
+    encode_geometry(vector_tile::Tile_Feature & feature) :
       feature_(feature),
-      tolerance_(tolerance),
-      path_multiplier_(path_multiplier),
       x_(0),
       y_(0) { }
 
-    template <typename T>
-    void operator()(T & path)
+    void operator() (geometry_empty const&)
     {
-        mapnik::vector_tile_impl::encode_geometry(path,feature_,x_,y_,tolerance_,path_multiplier_);
+    }
+    
+    template <typename T>
+    void operator()(T const& path)
+    {
+        mapnik::vector_tile_impl::encode_geometry(path,feature_,x_,y_);
+    }
+    
+    void operator()(mapnik::geometry::multi_point<std::int64_t> const & path)
+    {
+        for (auto const& pt : path)
+        {
+            mapnik::vector_tile_impl::encode_geometry(pt,feature_,x_,y_);
+        }
+    }
+
+    void operator()(mapnik::geometry::multi_line_string<std::int64_t> const & path)
+    {
+        for (auto const& ls : path)
+        {
+            mapnik::vector_tile_impl::encode_geometry(ls,feature_,x_,y_);
+        }
+    }
+    
+    void operator()(mapnik::geometry::multi_polygon<std::int64_t> const& path)
+    {
+        for (auto const& p : path)
+        {
+            mapnik::vector_tile_impl::encode_geometry(p,feature_,x_,y_);
+        }
+    }
+    
+    void operator()(mapnik::geometry::geometry_collection<std::int64_t> const& path)
+    {
+        for (auto const& p : path)
+        {
+            mapnik::util::apply_visitor((*this), p);
+        }
     }
 };
 
@@ -81,12 +111,10 @@ struct show_path
 };
 
 template <typename T>
-vector_tile::Tile_Feature geometry_to_feature(mapnik::geometry::geometry<T> const& g,
-                                              unsigned tolerance=0,
-                                              unsigned path_multiplier=1)
+vector_tile::Tile_Feature geometry_to_feature(mapnik::geometry::geometry<T> const& g)
 {
     vector_tile::Tile_Feature feature;
-    encode_geometry ap(feature,tolerance,path_multiplier);
+    encode_geometry ap(feature);
     if (g.template is<mapnik::geometry::point<T> >() || g.template is<mapnik::geometry::multi_point<T> >())
     {
         feature.set_type(vector_tile::Tile_GeomType_POINT);
@@ -103,7 +131,7 @@ vector_tile::Tile_Feature geometry_to_feature(mapnik::geometry::geometry<T> cons
     {
         throw std::runtime_error("could not detect valid geometry type");
     }
-    mapnik::util::apply_visitor(mapnik::geometry::vertex_processor<encode_geometry>(ap),g);
+    mapnik::util::apply_visitor(ap,g);
     return feature;
 }
 
@@ -119,11 +147,9 @@ std::string decode_to_path_string(mapnik::geometry::geometry<T> const& g)
 }
 
 template <typename T>
-std::string compare(mapnik::geometry::geometry<T> const& g,
-                    unsigned tolerance=0,
-                    unsigned path_multiplier=1)
+std::string compare(mapnik::geometry::geometry<T> const& g)
 {
-    vector_tile::Tile_Feature feature = geometry_to_feature(g,tolerance,path_multiplier);
+    vector_tile::Tile_Feature feature = geometry_to_feature(g);
     auto g2 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
     return decode_to_path_string(g2);
 }

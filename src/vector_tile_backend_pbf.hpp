@@ -41,19 +41,21 @@ namespace mapnik { namespace vector_tile_impl {
         MAPNIK_VECTOR_INLINE void stop_tile_feature();
         MAPNIK_VECTOR_INLINE void start_tile_feature(mapnik::feature_impl const& feature);
         MAPNIK_VECTOR_INLINE void start_tile_layer(std::string const& name);
+        MAPNIK_VECTOR_INLINE unsigned get_path_multiplier()
+        {
+            return path_multiplier_;
+        }
         inline void stop_tile_layer() {}
 
         template <typename T>
-        inline unsigned add_path(T & path, unsigned tolerance)
+        inline unsigned add_path(T const& path)
         {
             if (current_feature_)
             {
                 return encode_geometry(path,
                                        *current_feature_,
                                        x_,
-                                       y_,
-                                       tolerance,
-                                       path_multiplier_);
+                                       y_);
             }
             return 0;
         }
