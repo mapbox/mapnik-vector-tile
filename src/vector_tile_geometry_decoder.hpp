@@ -232,7 +232,7 @@ inline mapnik::geometry::geometry<double> decode_geometry(vector_tile::Tile_Feat
                 bool degenerate_ring = (rings_itr->size() < 4);
                 if (degenerate_ring) continue;
                 multi_poly.emplace_back();
-                if (first && mapnik::util::is_clockwise(*rings_itr))
+                if (mapnik::util::is_clockwise(*rings_itr))
                 {
                     // Its clockwise, so lets reverse it.
                     std::reverse(rings_itr->begin(), rings_itr->end());
@@ -242,19 +242,24 @@ inline mapnik::geometry::geometry<double> decode_geometry(vector_tile::Tile_Feat
         }
         else
         {
-            multi_poly.emplace_back();
             bool exterior_was_degenerate = false;
             for (; rings_itr != rings_end; ++rings_itr)
             {
                 bool degenerate_ring = (rings_itr->size() < 4);
                 if (first)
                 {
+                    if (mapnik::util::is_clockwise(*rings_itr))
+                    {
+                        // If first ring is clockwise lets throw it out till we find a non clockwise one.
+                        continue;
+                    }
                     if (degenerate_ring)
                     {
                         exterior_was_degenerate = true;
                         continue;
                     }
                     // first ring always exterior
+                    multi_poly.emplace_back();
                     multi_poly.back().set_exterior_ring(std::move(*rings_itr));
                     first = false;
                 }

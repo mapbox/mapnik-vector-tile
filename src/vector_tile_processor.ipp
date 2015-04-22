@@ -813,7 +813,6 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
             }
             if (geom.is<mapnik::geometry::geometry_collection<double> >())
             {
-                std::clog << "collection\n";
                 auto const& collection = mapnik::util::get<mapnik::geometry::geometry_collection<double> >(geom);
                 for (auto const& part : collection)
                 {
@@ -845,7 +844,7 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
 inline void process_polynode_branch(ClipperLib::PolyNode* polynode, 
                              mapnik::geometry::multi_polygon<std::int64_t> & mp)
 {
-    double area_threshold = 1;
+    double area_threshold = 0.1;
     mapnik::geometry::polygon<std::int64_t> polygon;
     polygon.set_exterior_ring(std::move(polynode->Contour));
     if (polygon.exterior_ring.size() > 2) // Throw out invalid polygons
@@ -855,9 +854,8 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
         {
             // The view transform inverts the y axis so this should be positive still despite now
             // being clockwise for the exterior ring. If it is not lets invert it.
-            if (outer_area < 0)
+            if (outer_area > 0)
             {   
-                std::clog << "Had to reverse an exterior" << std::endl;
                 std::reverse(polygon.exterior_ring.begin(), polygon.exterior_ring.end());
             }
             
@@ -867,9 +865,8 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
                 if (ring->Contour.size() < 3) continue; // Throw out invalid holes
                 double inner_area = ClipperLib::Area(ring->Contour);
                 if (std::abs(inner_area) < area_threshold) continue;
-                if (inner_area > 0)
+                if (inner_area < 0)
                 {
-                    std::clog << "Had to reverse an interior" << std::endl;
                     std::reverse(ring->Contour.begin(), ring->Contour.end());
                 }
                 polygon.add_hole(std::move(ring->Contour));
@@ -955,7 +952,7 @@ struct encoder_visitor {
         }
         ClipperLib::PolyTree polylines;
         mapnik::geometry::multi_line_string<std::int64_t> output_mls;
-        clipper.Execute(ClipperLib::ctIntersection, polylines, ClipperLib::pftNonZero);
+        clipper.Execute(ClipperLib::ctIntersection, polylines); //, ClipperLib::pftNonZero);
         ClipperLib::OpenPathsFromPolyTree(polylines, output_mls);
         if (output_mls.empty())
         {
@@ -997,7 +994,7 @@ struct encoder_visitor {
         }
         ClipperLib::PolyTree polylines;
         mapnik::geometry::multi_line_string<std::int64_t> output_mls;
-        clipper.Execute(ClipperLib::ctIntersection, polylines, ClipperLib::pftNonZero);
+        clipper.Execute(ClipperLib::ctIntersection, polylines); //, ClipperLib::pftNonZero);
         ClipperLib::OpenPathsFromPolyTree(polylines, output_mls);
         clipper.Clear();
         if (output_mls.empty())
@@ -1019,7 +1016,7 @@ struct encoder_visitor {
         unsigned path_count = 0;
         if (geom.exterior_ring.size() < 3) return 0;
         double clean_distance = 1.415;
-        double area_threshold = 1;
+        double area_threshold = 0.1;
         mapnik::geometry::line_string<std::int64_t> clip_box;
         clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
         clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.miny());
@@ -1035,12 +1032,12 @@ struct encoder_visitor {
         }
         // The view transform inverts the y axis so this should be positive still despite now
         // being clockwise for the exterior ring. If it is not lets invert it.
-        if (outer_area < 0)
+        if (outer_area > 0)
         {   
             std::reverse(geom.exterior_ring.begin(), geom.exterior_ring.end());
         }
         ClipperLib::Clipper poly_clipper;
-        //poly_clipper.StrictlySimple(true);
+        poly_clipper.StrictlySimple(true);
         if (!poly_clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true))
         {
             return 0;
@@ -1053,7 +1050,7 @@ struct encoder_visitor {
             if (std::abs(inner_area) < area_threshold) continue;
             // This should be a negative area, the y axis is down, so the ring will be "CCW" rather
             // then "CW" after the view transform, but if it is not lets reverse it
-            if (inner_area > 0)
+            if (inner_area < 0)
             {
                 std::reverse(ring.begin(), ring.end());
             }
@@ -1069,15 +1066,15 @@ struct encoder_visitor {
         mapnik::geometry::multi_line_string<std::int64_t> output_paths;
         poly_clipper.Execute(ClipperLib::ctIntersection, output_paths, ClipperLib::pftNonZero);
         poly_clipper.Clear();
-        //ClipperLib::CleanPolygons(output_paths, clean_distance);
+        ClipperLib::CleanPolygons(output_paths, clean_distance);
         if (!clipper.AddPaths(output_paths, ClipperLib::ptSubject, true))
         {
-            //std::clog << "ptSubject failed2! " << output_paths.size() << std::endl;
+            return 0;
         }
         
         ClipperLib::PolyTree polygons;
-        //clipper.StrictlySimple(true);
-        clipper.Execute(ClipperLib::ctUnion, polygons, ClipperLib::pftNonZero);
+        clipper.StrictlySimple(true);
+        clipper.Execute(ClipperLib::ctUnion, polygons); //, ClipperLib::pftNonZero);
         clipper.Clear();
         
         mapnik::geometry::multi_polygon<std::int64_t> mp;
@@ -1110,7 +1107,7 @@ struct encoder_visitor {
         if (geom.empty()) return 0;
             
         double clean_distance = 1.415;
-        double area_threshold = 1;
+        double area_threshold = 0.1;
         mapnik::geometry::line_string<std::int64_t> clip_box;
         clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
         clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.miny());
@@ -1129,12 +1126,12 @@ struct encoder_visitor {
             if (std::abs(outer_area) < area_threshold) continue;
             // The view transform inverts the y axis so this should be positive still despite now
             // being clockwise for the exterior ring. If it is not lets invert it.
-            if (outer_area < 0)
+            if (outer_area > 0)
             {   
                 std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
             }
             ClipperLib::Clipper poly_clipper;
-            //poly_clipper.StrictlySimple(true);
+            poly_clipper.StrictlySimple(true);
             if (!poly_clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true))
             {
                 continue;
@@ -1147,7 +1144,7 @@ struct encoder_visitor {
                 if (std::abs(inner_area) < area_threshold) continue;
                 // This should be a negative area, the y axis is down, so the ring will be "CCW" rather
                 // then "CW" after the view transform, but if it is not lets reverse it
-                if (inner_area > 0)
+                if (inner_area < 0)
                 {
                     std::reverse(ring.begin(), ring.end());
                 }
@@ -1161,7 +1158,7 @@ struct encoder_visitor {
                 return 0;
             }
             mapnik::geometry::multi_line_string<std::int64_t> output_paths;
-            poly_clipper.Execute(ClipperLib::ctIntersection, output_paths, ClipperLib::pftNonZero);
+            poly_clipper.Execute(ClipperLib::ctIntersection, output_paths);//, ClipperLib::pftNonZero);
             poly_clipper.Clear();
             if (output_paths.empty())
             {
@@ -1170,9 +1167,10 @@ struct encoder_visitor {
             ClipperLib::CleanPolygons(output_paths, clean_distance);
             clipper.AddPaths(output_paths, ClipperLib::ptSubject, true);
         }
+        
         ClipperLib::PolyTree polygons;
         clipper.StrictlySimple(true);
-        clipper.Execute(ClipperLib::ctUnion, polygons, ClipperLib::pftNonZero);
+        clipper.Execute(ClipperLib::ctUnion, polygons); //, ClipperLib::pftNonZero);
         clipper.Clear();
         
         mapnik::geometry::multi_polygon<std::int64_t> mp;
@@ -1181,7 +1179,7 @@ struct encoder_visitor {
         {
             process_polynode_branch(polynode, mp); 
         }
-
+        
         if (mp.empty())
         {
             return 0;
