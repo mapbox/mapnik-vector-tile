@@ -243,27 +243,24 @@ inline mapnik::geometry::geometry<double> decode_geometry(vector_tile::Tile_Feat
         else
         {
             bool exterior_was_degenerate = false;
+            bool first_winding_order = true;
             for (; rings_itr != rings_end; ++rings_itr)
             {
                 bool degenerate_ring = (rings_itr->size() < 4);
                 if (first)
                 {
-                    if (mapnik::util::is_clockwise(*rings_itr))
-                    {
-                        // If first ring is clockwise lets throw it out till we find a non clockwise one.
-                        continue;
-                    }
                     if (degenerate_ring)
                     {
                         exterior_was_degenerate = true;
                         continue;
                     }
-                    // first ring always exterior
+                    first_winding_order = mapnik::util::is_clockwise(*rings_itr);
+                    // first ring always exterior and sets all future winding order
                     multi_poly.emplace_back();
                     multi_poly.back().set_exterior_ring(std::move(*rings_itr));
                     first = false;
                 }
-                else if (!mapnik::util::is_clockwise(*rings_itr))
+                else if (first_winding_order == mapnik::util::is_clockwise(*rings_itr))
                 {
                     if (degenerate_ring) continue;
                     // hit a new exterior ring, so start a new polygon
