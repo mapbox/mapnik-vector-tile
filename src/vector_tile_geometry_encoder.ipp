@@ -3,7 +3,7 @@
 
 namespace mapnik { namespace vector_tile_impl {
 
-void handle_skipped_last(vector_tile::Tile_Feature & current_feature,
+inline void handle_skipped_last(vector_tile::Tile_Feature & current_feature,
                                 int32_t skipped_index,
                                 int32_t cur_x,
                                 int32_t cur_y,
