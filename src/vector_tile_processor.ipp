@@ -604,7 +604,7 @@ processor<T>::processor(T & backend,
               double scale_factor,
               unsigned offset_x,
               unsigned offset_y,
-              unsigned tolerance,
+              double area_threshold,
               std::string const& image_format,
               scaling_method_e scaling_method)
     : backend_(backend),
@@ -612,7 +612,7 @@ processor<T>::processor(T & backend,
       m_req_(m_req),
       scale_factor_(scale_factor),
       t_(m_req.width(),m_req.height(),m_req.extent(),offset_x,offset_y),
-      tolerance_(tolerance),
+      area_threshold_(area_threshold),
       image_format_(image_format),
       scaling_method_(scaling_method),
       painted_(false),
@@ -842,9 +842,9 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
 }
 
 inline void process_polynode_branch(ClipperLib::PolyNode* polynode, 
-                             mapnik::geometry::multi_polygon<std::int64_t> & mp)
+                             mapnik::geometry::multi_polygon<std::int64_t> & mp,
+                             double area_threshold)
 {
-    double area_threshold = 0.1;
     mapnik::geometry::polygon<std::int64_t> polygon;
     polygon.set_exterior_ring(std::move(polynode->Contour));
     if (polygon.exterior_ring.size() > 2) // Throw out invalid polygons
@@ -878,7 +878,7 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
     {
         for (auto * sub_ring : ring->Childs)
         {
-            process_polynode_branch(sub_ring, mp);
+            process_polynode_branch(sub_ring, mp, area_threshold);
         }
     }
 }
@@ -888,10 +888,12 @@ struct encoder_visitor {
     typedef T backend_type;
     encoder_visitor(backend_type & backend,
                     mapnik::feature_impl const& feature,
-                    mapnik::box2d<int> const& buffered_query_ext) :
+                    mapnik::box2d<int> const& buffered_query_ext,
+                    double area_threshold) :
       backend_(backend),
       feature_(feature),
-      buffered_query_ext_(buffered_query_ext) {}
+      buffered_query_ext_(buffered_query_ext),
+      area_threshold_(area_threshold) {}
 
     unsigned operator() (mapnik::geometry::point<std::int64_t> & geom)
     {
@@ -1016,7 +1018,6 @@ struct encoder_visitor {
         unsigned path_count = 0;
         if (geom.exterior_ring.size() < 3) return 0;
         double clean_distance = 1.415;
-        double area_threshold = 0.1;
         mapnik::geometry::line_string<std::int64_t> clip_box;
         clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
         clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.miny());
@@ -1026,7 +1027,7 @@ struct encoder_visitor {
         ClipperLib::Clipper clipper;
         ClipperLib::CleanPolygon(geom.exterior_ring, clean_distance);
         double outer_area = ClipperLib::Area(geom.exterior_ring);
-        if (std::abs(outer_area) < area_threshold)
+        if (std::abs(outer_area) < area_threshold_)
         {
             return 0;
         }
@@ -1047,7 +1048,7 @@ struct encoder_visitor {
             if (ring.size() < 3) continue;
             ClipperLib::CleanPolygon(ring, clean_distance);
             double inner_area = ClipperLib::Area(ring);
-            if (std::abs(inner_area) < area_threshold) continue;
+            if (std::abs(inner_area) < area_threshold_) continue;
             // This should be a negative area, the y axis is down, so the ring will be "CCW" rather
             // then "CW" after the view transform, but if it is not lets reverse it
             if (inner_area < 0)
@@ -1081,7 +1082,7 @@ struct encoder_visitor {
         
         for (auto * polynode : polygons.Childs)
         {
-            process_polynode_branch(polynode, mp); 
+            process_polynode_branch(polynode, mp, area_threshold_); 
         }
 
         if (mp.empty())
@@ -1107,7 +1108,6 @@ struct encoder_visitor {
         if (geom.empty()) return 0;
             
         double clean_distance = 1.415;
-        double area_threshold = 0.1;
         mapnik::geometry::line_string<std::int64_t> clip_box;
         clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
         clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.miny());
@@ -1123,7 +1123,7 @@ struct encoder_visitor {
             }
             ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
             double outer_area = ClipperLib::Area(poly.exterior_ring);
-            if (std::abs(outer_area) < area_threshold) continue;
+            if (std::abs(outer_area) < area_threshold_) continue;
             // The view transform inverts the y axis so this should be positive still despite now
             // being clockwise for the exterior ring. If it is not lets invert it.
             if (outer_area > 0)
@@ -1141,7 +1141,7 @@ struct encoder_visitor {
                 if (ring.size() < 3) continue;
                 ClipperLib::CleanPolygon(ring, clean_distance);
                 double inner_area = ClipperLib::Area(ring);
-                if (std::abs(inner_area) < area_threshold) continue;
+                if (std::abs(inner_area) < area_threshold_) continue;
                 // This should be a negative area, the y axis is down, so the ring will be "CCW" rather
                 // then "CW" after the view transform, but if it is not lets reverse it
                 if (inner_area < 0)
@@ -1177,7 +1177,7 @@ struct encoder_visitor {
         
         for (auto * polynode : polygons.Childs)
         {
-            process_polynode_branch(polynode, mp); 
+            process_polynode_branch(polynode, mp, area_threshold_); 
         }
         
         if (mp.empty())
@@ -1204,6 +1204,7 @@ struct encoder_visitor {
     backend_type & backend_;
     mapnik::feature_impl const& feature_;
     mapnik::box2d<int> const& buffered_query_ext_;
+    double area_threshold_;
 };
 
 template <typename T>
@@ -1289,7 +1290,7 @@ unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
     mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, sg);
     box2d<int> bbox(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
     mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(geom, sg);
-    encoder_visitor<T> encoder(backend_,feature,bbox);
+    encoder_visitor<T> encoder(backend_,feature,bbox, area_threshold_);
     if (simplify_distance_ > 0)
     {
         simplify_visitor<T> simplifier(simplify_distance_,encoder);

@@ -41,7 +41,7 @@ private:
     mapnik::request const& m_req_;
     double scale_factor_;
     mapnik::view_transform t_;
-    unsigned tolerance_;
+    double area_threshold_;
     std::string image_format_;
     scaling_method_e scaling_method_;
     bool painted_;
@@ -54,7 +54,7 @@ public:
               double scale_factor=1.0,
               unsigned offset_x=0,
               unsigned offset_y=0,
-              unsigned tolerance=1,
+              double area_threshold=0.1,
               std::string const& image_format="jpeg",
               scaling_method_e scaling_method=SCALING_NEAR
         );

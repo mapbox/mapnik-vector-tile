@@ -257,6 +257,11 @@ inline mapnik::geometry::geometry<double> decode_geometry(vector_tile::Tile_Feat
                     first_winding_order = mapnik::util::is_clockwise(*rings_itr);
                     // first ring always exterior and sets all future winding order
                     multi_poly.emplace_back();
+                    if (first_winding_order)
+                    {
+                        // Going into mapnik we want the outer ring to be CCW
+                        std::reverse(rings_itr->begin(), rings_itr->end());
+                    }
                     multi_poly.back().set_exterior_ring(std::move(*rings_itr));
                     first = false;
                 }
@@ -265,12 +270,26 @@ inline mapnik::geometry::geometry<double> decode_geometry(vector_tile::Tile_Feat
                     if (degenerate_ring) continue;
                     // hit a new exterior ring, so start a new polygon
                     multi_poly.emplace_back(); // start new polygon
+                    if (first_winding_order)
+                    {
+                        // Going into mapnik we want the outer ring to be CCW,
+                        // since first winding order was CW, we need to reverse
+                        // these rings.
+                        std::reverse(rings_itr->begin(), rings_itr->end());
+                    }
                     multi_poly.back().set_exterior_ring(std::move(*rings_itr));
                     exterior_was_degenerate = false;
                 }
                 else
                 {
                     if (exterior_was_degenerate || degenerate_ring) continue;
+                    if (first_winding_order)
+                    {
+                        // Going into mapnik we want the inner ring to be CW,
+                        // since first winding order of the outer ring CW, we 
+                        // need to reverse these rings as they are CCW.
+                        std::reverse(rings_itr->begin(), rings_itr->end());
+                    }
                     multi_poly.back().add_hole(std::move(*rings_itr));
                 }
             }

@@ -722,7 +722,7 @@ TEST_CASE( "vector tile multi_polygon encoding of single polygon", "should creat
     CHECK( new_geom.is<mapnik::geometry::polygon<double> >() );
 }
 
-TEST_CASE( "vector tile multi_polygon encoding of actual multi_polygon", "should create vector tile with data a single polygon" ) {
+TEST_CASE( "vector tile multi_polygon encoding of actual multi_polygon", "should create vector tile with data a multi polygon" ) {
     mapnik::geometry::multi_polygon<double> geom;
     mapnik::geometry::polygon<double> poly;
     poly.exterior_ring.add_coord(0,0);
@@ -756,7 +756,7 @@ TEST_CASE( "vector tile multi_polygon encoding of actual multi_polygon", "should
     geom.emplace_back(std::move(poly2));
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
     CHECK( !mapnik::geometry::is_empty(new_geom) );
-    CHECK( new_geom.is<mapnik::geometry::polygon<double> >() );
+    CHECK( new_geom.is<mapnik::geometry::multi_polygon<double> >() );
 }
 
 // simplification

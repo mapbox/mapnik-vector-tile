@@ -141,8 +141,4 @@ inline unsigned encode_geometry(mapnik::geometry::polygon<std::int64_t> const& p
 
 }} // end ns
 
-#if !defined(MAPNIK_VECTOR_TILE_LIBRARY)
-#include "vector_tile_geometry_encoder.ipp"
-#endif
-
 #endif // __MAPNIK_VECTOR_TILE_GEOMETRY_ENCODER_H__
