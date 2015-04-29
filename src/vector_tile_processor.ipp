@@ -1229,8 +1229,6 @@ struct simplify_visitor {
     {
         mapnik::geometry::line_string<std::int64_t> simplified;
         boost::geometry::simplify(geom,simplified,simplify_distance_);
-        mapnik::geometry::correct(simplified);
-        boost::geometry::unique(simplified);
         return encoder_(simplified);
     }
 
@@ -1238,8 +1236,6 @@ struct simplify_visitor {
     {
         mapnik::geometry::multi_line_string<std::int64_t> simplified;
         boost::geometry::simplify(geom,simplified,simplify_distance_);
-        mapnik::geometry::correct(simplified);
-        boost::geometry::unique(simplified);
         return encoder_(simplified);
     }
 
@@ -1247,8 +1243,6 @@ struct simplify_visitor {
     {
         mapnik::geometry::polygon<std::int64_t> simplified;
         boost::geometry::simplify(geom,simplified,simplify_distance_);
-        mapnik::geometry::correct(simplified);
-        boost::geometry::unique(simplified);
         return encoder_(simplified);
     }
 
@@ -1256,8 +1250,6 @@ struct simplify_visitor {
     {
         mapnik::geometry::multi_polygon<std::int64_t> simplified;
         boost::geometry::simplify(geom,simplified,simplify_distance_);
-        mapnik::geometry::correct(simplified);
-        boost::geometry::unique(simplified);
         return encoder_(simplified);
     }
 
