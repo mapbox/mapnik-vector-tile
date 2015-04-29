@@ -1038,7 +1038,7 @@ struct encoder_visitor {
             std::reverse(geom.exterior_ring.begin(), geom.exterior_ring.end());
         }
         ClipperLib::Clipper poly_clipper;
-        poly_clipper.StrictlySimple(true);
+        //poly_clipper.StrictlySimple(true);
         if (!poly_clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true))
         {
             return 0;
@@ -1074,7 +1074,7 @@ struct encoder_visitor {
         }
         
         ClipperLib::PolyTree polygons;
-        clipper.StrictlySimple(true);
+        //clipper.StrictlySimple(true);
         clipper.Execute(ClipperLib::ctUnion, polygons); //, ClipperLib::pftNonZero);
         clipper.Clear();
         
@@ -1131,7 +1131,7 @@ struct encoder_visitor {
                 std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
             }
             ClipperLib::Clipper poly_clipper;
-            poly_clipper.StrictlySimple(true);
+            //poly_clipper.StrictlySimple(true);
             if (!poly_clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true))
             {
                 continue;
@@ -1169,7 +1169,7 @@ struct encoder_visitor {
         }
         
         ClipperLib::PolyTree polygons;
-        clipper.StrictlySimple(true);
+        //clipper.StrictlySimple(true);
         clipper.Execute(ClipperLib::ctUnion, polygons); //, ClipperLib::pftNonZero);
         clipper.Clear();
         
