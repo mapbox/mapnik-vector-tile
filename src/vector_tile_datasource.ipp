@@ -28,7 +28,6 @@
 #include <string>
 
 #include <boost/optional.hpp>
-#include <boost/ptr_container/ptr_vector.hpp>
 #include <unicode/unistr.h>
 
 namespace mapnik { namespace vector_tile_impl {
