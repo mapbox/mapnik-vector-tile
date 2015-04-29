@@ -8,7 +8,6 @@ function setup_mason() {
         (cd ./.mason && git pull)
     fi
     export MASON_DIR=$(pwd)/.mason
-    if [[ $(uname -s) == 'Linux' ]]; then source ./.mason/scripts/setup_cpp11_toolchain.sh; fi
     export PATH=$(pwd)/.mason:$PATH
     export CXX=${CXX:-clang++}
     export CC=${CC:-clang}
@@ -23,10 +22,10 @@ function install() {
 }
 
 function install_mason_deps() {
-    install mapnik geom
+    install mapnik latest
     install protobuf 2.6.1
-    install freetype 2.5.4
-    install harfbuzz 2cd5323
+    install freetype 2.5.5
+    install harfbuzz 0.9.40
     install jpeg_turbo 1.4.0
     install libxml2 2.9.2
     install libpng 1.6.16

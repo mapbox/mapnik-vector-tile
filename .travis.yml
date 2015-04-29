@@ -1,5 +1,16 @@
 language: cpp
 
+git:
+  depth: 2
+
+addons:
+  apt:
+    sources:
+     - ubuntu-toolchain-r-test
+     - llvm-toolchain-precise-3.5
+    packages:
+     - clang-3.6
+
 sudo: false
 
 os:
@@ -10,6 +21,8 @@ compiler:
  - clang
 
 before_install:
+ - export CXX="clang++-3.6"
+ - export CC="clang-3.6"
  - source ./bootstrap.sh
 
 install:
