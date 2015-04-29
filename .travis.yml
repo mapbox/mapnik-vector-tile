@@ -7,7 +7,7 @@ addons:
   apt:
     sources:
      - ubuntu-toolchain-r-test
-     - llvm-toolchain-precise-3.5
+     - llvm-toolchain-precise-3.6
     packages:
      - clang-3.6
 
@@ -21,8 +21,7 @@ compiler:
  - clang
 
 before_install:
- - export CXX="clang++-3.6"
- - export CC="clang-3.6"
+ - if [[ $(uname -s) == 'Linux' ]]; then export CXX="clang++-3.6" && export CC="clang-3.6"; fi;
  - source ./bootstrap.sh
 
 install:
