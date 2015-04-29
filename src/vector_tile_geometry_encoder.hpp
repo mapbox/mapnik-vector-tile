@@ -5,7 +5,6 @@
 #include "vector_tile.pb.h"
 #include <mapnik/geometry.hpp>
 #include "vector_tile_config.hpp"
-#include <boost/range/adaptor/sliced.hpp>
 #include <cstdlib>
 #include <cmath>
 #include <sstream>
