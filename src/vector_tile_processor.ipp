@@ -3,6 +3,7 @@
 #include <mapnik/layer.hpp>
 #include <mapnik/query.hpp>
 #include <mapnik/geometry.hpp>
+#include <mapnik/vertex_adapters.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/datasource.hpp>
 #include <mapnik/projection.hpp>
@@ -22,33 +23,50 @@
 #include <mapnik/view_transform.hpp>
 #include <mapnik/util/noncopyable.hpp>
 #include <mapnik/transform_path_adapter.hpp>
+#include <mapnik/geometry_is_empty.hpp>
+#include <mapnik/geometry_envelope.hpp>
+#include <mapnik/geometry_adapters.hpp>
+#include <mapnik/geometry_correct.hpp>
+#include <mapnik/geometry_strategy.hpp>
+#include <mapnik/geometry_transform.hpp>
+#include <boost/geometry/algorithms/unique.hpp>
 
 // agg
 #include "agg_path_storage.h"
 
 // agg core clipper: http://www.angusj.com/delphi/clipper.php
-#include "agg_conv_clipper.h"
-
+//#include "agg_conv_clipper.h"
 // angus clipper
-#include "agg_conv_clip_polygon.h"
+//#include "agg_conv_clip_polygon.h"
+//#include "agg_conv_clip_polyline.h"
+#include "clipper.hpp"
 
-#include "agg_conv_clip_polyline.h"
 #include "agg_rendering_buffer.h"
 #include "agg_pixfmt_rgba.h"
 #include "agg_pixfmt_gray.h"
 #include "agg_renderer_base.h"
 
 #include <boost/optional.hpp>
-#include <boost/ptr_container/ptr_vector.hpp>
+#include <boost/geometry/algorithms/simplify.hpp>
 
 #include <iostream>
 #include <string>
 #include <stdexcept>
 
+//tmp
+#include <mapnik/util/geometry_to_geojson.hpp>
+#include <mapnik/geometry_reprojection.hpp>
+
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#include "vector_tile.pb.h"
+#pragma GCC diagnostic pop
+
 namespace mapnik { namespace vector_tile_impl {
 
 template <typename T>
-struct visitor_raster_processor 
+struct visitor_raster_processor
 {
 public:
     typedef T backend_type;
@@ -99,7 +117,7 @@ public:
           raster_height_(raster_height),
           start_x_(start_x),
           start_y_(start_y) {}
-    
+
     void operator() (mapnik::image_rgba8 & source_data)
     {
         mapnik::image_rgba8 data(raster_width_, raster_height_);
@@ -586,7 +604,7 @@ processor<T>::processor(T & backend,
               double scale_factor,
               unsigned offset_x,
               unsigned offset_y,
-              unsigned tolerance,
+              double area_threshold,
               std::string const& image_format,
               scaling_method_e scaling_method)
     : backend_(backend),
@@ -594,11 +612,12 @@ processor<T>::processor(T & backend,
       m_req_(m_req),
       scale_factor_(scale_factor),
       t_(m_req.width(),m_req.height(),m_req.extent(),offset_x,offset_y),
-      tolerance_(tolerance),
+      area_threshold_(area_threshold),
       image_format_(image_format),
       scaling_method_(scaling_method),
       painted_(false),
-      poly_clipper_type_(AGG_CLIPPER) {}
+      poly_clipper_type_(AGG_CLIPPER),
+      simplify_distance_(0.0) {}
 
 template <typename T>
 void processor<T>::set_poly_clipper(poly_clipper_type clipper)
@@ -636,6 +655,7 @@ bool processor<T>::painted() const
 {
     return painted_;
 }
+
 
 template <typename T>
 void processor<T>::apply_to_layer(mapnik::layer const& lay,
@@ -785,117 +805,493 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
         // vector pathway
         while (feature)
         {
-            mapnik::geometry_container const& paths = feature->paths();
-            if (paths.empty()) {
+            mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
+            if (mapnik::geometry::is_empty(geom))
+            {
                 feature = features->next();
                 continue;
             }
-            backend_.start_tile_feature(*feature);
-            for (mapnik::geometry_type const& geom : paths)
+            if (geom.is<mapnik::geometry::geometry_collection<double> >())
             {
-                mapnik::vertex_adapter va(geom);
-                mapnik::box2d<double> geom_box = va.envelope();
-                if (!geom_box.intersects(buffered_query_ext))
+                auto const& collection = mapnik::util::get<mapnik::geometry::geometry_collection<double> >(geom);
+                for (auto const& part : collection)
                 {
-                    continue;
+                    if (handle_geometry(*feature,
+                                        part,
+                                        prj_trans,
+                                        buffered_query_ext) > 0)
+                    {
+                        painted_ = true;
+                    }
                 }
-                if (handle_geometry(va,
+            }
+            else
+            {
+                if (handle_geometry(*feature,
+                                    geom,
                                     prj_trans,
                                     buffered_query_ext) > 0)
                 {
                     painted_ = true;
                 }
             }
-            backend_.stop_tile_feature();
             feature = features->next();
         }
         backend_.stop_tile_layer();
     }
 }
 
-template <typename T>
-unsigned processor<T>::handle_geometry(mapnik::vertex_adapter & geom,
-                         mapnik::proj_transform const& prj_trans,
-                         mapnik::box2d<double> const& buffered_query_ext)
+inline void process_polynode_branch(ClipperLib::PolyNode* polynode, 
+                             mapnik::geometry::multi_polygon<std::int64_t> & mp,
+                             double area_threshold)
 {
-    unsigned path_count = 0;
-    switch (geom.type())
+    mapnik::geometry::polygon<std::int64_t> polygon;
+    polygon.set_exterior_ring(std::move(polynode->Contour));
+    if (polygon.exterior_ring.size() > 2) // Throw out invalid polygons
     {
-    case mapnik::geometry_type::types::Point:
-    {
-        if (geom.size() > 0)
+        double outer_area = ClipperLib::Area(polygon.exterior_ring);
+        if (std::abs(outer_area) >= area_threshold)
         {
-            typedef mapnik::transform_path_adapter<mapnik::view_transform,
-                                          mapnik::vertex_adapter> path_type;
-            path_type path(t_, geom, prj_trans);
-            path_count = backend_.add_path(path, tolerance_, geom.type());
-        }
-        break;
-    }
-    case mapnik::geometry_type::types::LineString:
-    {
-        if (geom.size() > 1)
-        {
-            typedef agg::conv_clip_polyline<mapnik::vertex_adapter> line_clipper;
-            line_clipper clipped(geom);
-            clipped.clip_box(
-                buffered_query_ext.minx(),
-                buffered_query_ext.miny(),
-                buffered_query_ext.maxx(),
-                buffered_query_ext.maxy());
-            typedef mapnik::transform_path_adapter<mapnik::view_transform, line_clipper> path_type;
-            path_type path(t_, clipped, prj_trans);
-            path_count = backend_.add_path(path, tolerance_, geom.type());
-        }
-        break;
-    }
-    case mapnik::geometry_type::types::Polygon:
-    {
-        if (geom.size() > 2)
-        {
-            if (get_poly_clipper() == ANGUS_CLIPPER)
-            {
-                agg::path_storage ps;
-                ps.move_to(buffered_query_ext.minx(), buffered_query_ext.miny());
-                ps.line_to(buffered_query_ext.minx(), buffered_query_ext.maxy());
-                ps.line_to(buffered_query_ext.maxx(), buffered_query_ext.maxy());
-                ps.line_to(buffered_query_ext.maxx(), buffered_query_ext.miny());
-                ps.close_polygon();
-                typedef agg::conv_clipper<mapnik::vertex_adapter, agg::path_storage> poly_clipper;
-                poly_clipper clipped(geom,ps,
-                                     agg::clipper_and,
-                                     agg::clipper_non_zero,
-                                     agg::clipper_non_zero,
-                                     1);
-                typedef mapnik::transform_path_adapter<mapnik::view_transform, poly_clipper> path_type;
-                path_type path(t_, clipped, prj_trans);
-                path_count = backend_.add_path(path, tolerance_, geom.type());
+            // The view transform inverts the y axis so this should be positive still despite now
+            // being clockwise for the exterior ring. If it is not lets invert it.
+            if (outer_area > 0)
+            {   
+                std::reverse(polygon.exterior_ring.begin(), polygon.exterior_ring.end());
             }
-            else
+            
+            // children of exterior ring are always interior rings
+            for (auto * ring : polynode->Childs)
             {
-                typedef agg::conv_clip_polygon<mapnik::vertex_adapter> poly_clipper;
-                poly_clipper clipped(geom);
-                clipped.clip_box(
-                    buffered_query_ext.minx(),
-                    buffered_query_ext.miny(),
-                    buffered_query_ext.maxx(),
-                    buffered_query_ext.maxy());
+                if (ring->Contour.size() < 3) continue; // Throw out invalid holes
+                double inner_area = ClipperLib::Area(ring->Contour);
+                if (std::abs(inner_area) < area_threshold) continue;
+                if (inner_area < 0)
+                {
+                    std::reverse(ring->Contour.begin(), ring->Contour.end());
+                }
+                polygon.add_hole(std::move(ring->Contour));
+            }
+            mp.emplace_back(std::move(polygon));
+        }
+    }
+    for (auto * ring : polynode->Childs)
+    {
+        for (auto * sub_ring : ring->Childs)
+        {
+            process_polynode_branch(sub_ring, mp, area_threshold);
+        }
+    }
+}
 
-                typedef mapnik::transform_path_adapter<mapnik::view_transform, poly_clipper> path_type;
-                path_type path(t_, clipped, prj_trans);
-                path_count = backend_.add_path(path, tolerance_, geom.type());
+template <typename T>
+struct encoder_visitor {
+    typedef T backend_type;
+    encoder_visitor(backend_type & backend,
+                    mapnik::feature_impl const& feature,
+                    mapnik::box2d<int> const& buffered_query_ext,
+                    double area_threshold) :
+      backend_(backend),
+      feature_(feature),
+      buffered_query_ext_(buffered_query_ext),
+      area_threshold_(area_threshold) {}
+
+    unsigned operator() (mapnik::geometry::point<std::int64_t> & geom)
+    {
+        unsigned path_count = 0;
+        if (buffered_query_ext_.intersects(geom.x,geom.y))
+        {
+            backend_.start_tile_feature(feature_);
+            backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
+            path_count = backend_.add_path(geom);
+            backend_.stop_tile_feature();
+        }
+        return path_count;
+    }
+
+    unsigned operator() (mapnik::geometry::multi_point<std::int64_t> & geom)
+    {
+        unsigned path_count = 0;
+        bool first = true;
+        for (auto const& pt : geom)
+        {
+            if (buffered_query_ext_.intersects(pt.x,pt.y))
+            {
+                if (first)
+                {
+                    first = false;
+                    backend_.start_tile_feature(feature_);
+                    backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
+                }
+                path_count += backend_.add_path(pt);
             }
         }
-        break;
+        if (!first)
+        {
+            backend_.stop_tile_feature();
+        }
+        return path_count;
     }
-    case mapnik::geometry_type::types::Unknown:
-    default:
+
+    unsigned operator() (mapnik::geometry::line_string<std::int64_t> & geom)
     {
-        throw std::runtime_error("unhandled geometry type");
-        break;
+        unsigned path_count = 0;
+        if (geom.size() < 2) return 0;
+        mapnik::geometry::line_string<std::int64_t> clip_box;
+        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
+        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.miny());
+        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.maxy());
+        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.maxy());
+        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
+        ClipperLib::Clipper clipper;
+        //clipper.StrictlySimple(true);
+        if (!clipper.AddPath(geom, ClipperLib::ptSubject, false))
+        {
+            return 0;
+        }
+        if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+        {
+            return 0;
+        }
+        ClipperLib::PolyTree polylines;
+        mapnik::geometry::multi_line_string<std::int64_t> output_mls;
+        clipper.Execute(ClipperLib::ctIntersection, polylines); //, ClipperLib::pftNonZero);
+        ClipperLib::OpenPathsFromPolyTree(polylines, output_mls);
+        if (output_mls.empty())
+        {
+            return 0;
+        }
+        backend_.start_tile_feature(feature_);
+        backend_.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
+        for (auto const& ls : output_mls)
+        {
+            path_count += backend_.add_path(ls);
+        }
+        backend_.stop_tile_feature();
+        return path_count;
     }
+
+    unsigned operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom)
+    {
+        unsigned path_count = 0;
+        if (geom.empty()) return 0;
+        mapnik::geometry::line_string<std::int64_t> clip_box;
+        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
+        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.miny());
+        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.maxy());
+        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.maxy());
+        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
+        ClipperLib::Clipper clipper;
+        //clipper.StrictlySimple(true);
+        for (auto const& ls : geom)
+        {
+            if (ls.size() < 2) continue; 
+            if (!clipper.AddPath(ls, ClipperLib::ptSubject, false))
+            {
+                continue;
+            }
+        }
+        if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+        {
+            return 0;
+        }
+        ClipperLib::PolyTree polylines;
+        mapnik::geometry::multi_line_string<std::int64_t> output_mls;
+        clipper.Execute(ClipperLib::ctIntersection, polylines); //, ClipperLib::pftNonZero);
+        ClipperLib::OpenPathsFromPolyTree(polylines, output_mls);
+        clipper.Clear();
+        if (output_mls.empty())
+        {
+            return 0;
+        }
+        backend_.start_tile_feature(feature_);
+        backend_.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
+        for (auto const& ls : output_mls)
+        {
+            path_count += backend_.add_path(ls);
+        }
+        backend_.stop_tile_feature();
+        return path_count;
     }
-    return path_count;
+
+    unsigned operator() (mapnik::geometry::polygon<std::int64_t> & geom)
+    {
+        unsigned path_count = 0;
+        if (geom.exterior_ring.size() < 3) return 0;
+        double clean_distance = 1.415;
+        mapnik::geometry::line_string<std::int64_t> clip_box;
+        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
+        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.miny());
+        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.maxy());
+        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.maxy());
+        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
+        ClipperLib::Clipper clipper;
+        ClipperLib::CleanPolygon(geom.exterior_ring, clean_distance);
+        double outer_area = ClipperLib::Area(geom.exterior_ring);
+        if (std::abs(outer_area) < area_threshold_)
+        {
+            return 0;
+        }
+        // The view transform inverts the y axis so this should be positive still despite now
+        // being clockwise for the exterior ring. If it is not lets invert it.
+        if (outer_area > 0)
+        {   
+            std::reverse(geom.exterior_ring.begin(), geom.exterior_ring.end());
+        }
+        ClipperLib::Clipper poly_clipper;
+        //poly_clipper.StrictlySimple(true);
+        if (!poly_clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true))
+        {
+            return 0;
+        }
+        for (auto & ring : geom.interior_rings)
+        {
+            if (ring.size() < 3) continue;
+            ClipperLib::CleanPolygon(ring, clean_distance);
+            double inner_area = ClipperLib::Area(ring);
+            if (std::abs(inner_area) < area_threshold_) continue;
+            // This should be a negative area, the y axis is down, so the ring will be "CCW" rather
+            // then "CW" after the view transform, but if it is not lets reverse it
+            if (inner_area < 0)
+            {
+                std::reverse(ring.begin(), ring.end());
+            }
+            if (!poly_clipper.AddPath(ring, ClipperLib::ptSubject, true))
+            {
+                continue;
+            }
+        }
+        if (!poly_clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+        {
+            return 0;
+        }
+        mapnik::geometry::multi_line_string<std::int64_t> output_paths;
+        poly_clipper.Execute(ClipperLib::ctIntersection, output_paths, ClipperLib::pftNonZero);
+        poly_clipper.Clear();
+        ClipperLib::CleanPolygons(output_paths, clean_distance);
+        if (!clipper.AddPaths(output_paths, ClipperLib::ptSubject, true))
+        {
+            return 0;
+        }
+        
+        ClipperLib::PolyTree polygons;
+        //clipper.StrictlySimple(true);
+        clipper.Execute(ClipperLib::ctUnion, polygons); //, ClipperLib::pftNonZero);
+        clipper.Clear();
+        
+        mapnik::geometry::multi_polygon<std::int64_t> mp;
+        
+        for (auto * polynode : polygons.Childs)
+        {
+            process_polynode_branch(polynode, mp, area_threshold_); 
+        }
+
+        if (mp.empty())
+        {
+            return 0;
+        }
+
+        backend_.start_tile_feature(feature_);
+        backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POLYGON);
+        
+        for (auto const& poly : mp)
+        {
+            path_count += backend_.add_path(poly);
+        }
+        backend_.stop_tile_feature();
+        return path_count;
+    }
+
+    unsigned operator() (mapnik::geometry::multi_polygon<std::int64_t> & geom)
+    {
+        unsigned path_count = 0;
+        //mapnik::box2d<std::int64_t> bbox = mapnik::geometry::envelope(geom);
+        if (geom.empty()) return 0;
+            
+        double clean_distance = 1.415;
+        mapnik::geometry::line_string<std::int64_t> clip_box;
+        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
+        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.miny());
+        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.maxy());
+        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.maxy());
+        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
+        ClipperLib::Clipper clipper;
+        for (auto & poly : geom)
+        {
+            if (poly.exterior_ring.size() < 3)
+            {
+                continue;
+            }
+            ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
+            double outer_area = ClipperLib::Area(poly.exterior_ring);
+            if (std::abs(outer_area) < area_threshold_) continue;
+            // The view transform inverts the y axis so this should be positive still despite now
+            // being clockwise for the exterior ring. If it is not lets invert it.
+            if (outer_area > 0)
+            {   
+                std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
+            }
+            ClipperLib::Clipper poly_clipper;
+            //poly_clipper.StrictlySimple(true);
+            if (!poly_clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true))
+            {
+                continue;
+            }
+            for (auto & ring : poly.interior_rings)
+            {
+                if (ring.size() < 3) continue;
+                ClipperLib::CleanPolygon(ring, clean_distance);
+                double inner_area = ClipperLib::Area(ring);
+                if (std::abs(inner_area) < area_threshold_) continue;
+                // This should be a negative area, the y axis is down, so the ring will be "CCW" rather
+                // then "CW" after the view transform, but if it is not lets reverse it
+                if (inner_area < 0)
+                {
+                    std::reverse(ring.begin(), ring.end());
+                }
+                if (!poly_clipper.AddPath(ring, ClipperLib::ptSubject, true))
+                {
+                    continue;
+                }
+            }
+            if (!poly_clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+            {
+                return 0;
+            }
+            mapnik::geometry::multi_line_string<std::int64_t> output_paths;
+            poly_clipper.Execute(ClipperLib::ctIntersection, output_paths);//, ClipperLib::pftNonZero);
+            poly_clipper.Clear();
+            if (output_paths.empty())
+            {
+                continue;
+            }
+            ClipperLib::CleanPolygons(output_paths, clean_distance);
+            clipper.AddPaths(output_paths, ClipperLib::ptSubject, true);
+        }
+        
+        ClipperLib::PolyTree polygons;
+        //clipper.StrictlySimple(true);
+        clipper.Execute(ClipperLib::ctUnion, polygons); //, ClipperLib::pftNonZero);
+        clipper.Clear();
+        
+        mapnik::geometry::multi_polygon<std::int64_t> mp;
+        
+        for (auto * polynode : polygons.Childs)
+        {
+            process_polynode_branch(polynode, mp, area_threshold_); 
+        }
+        
+        if (mp.empty())
+        {
+            return 0;
+        }
+
+        backend_.start_tile_feature(feature_);
+        backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POLYGON);
+        
+        for (auto const& poly : mp)
+        {
+            path_count += backend_.add_path(poly);
+        }
+        backend_.stop_tile_feature();
+        return path_count;
+    }
+
+    template <typename Geom>
+    unsigned operator() (Geom const& geom) {
+        return 0;
+    }
+
+    backend_type & backend_;
+    mapnik::feature_impl const& feature_;
+    mapnik::box2d<int> const& buffered_query_ext_;
+    double area_threshold_;
+};
+
+template <typename T>
+struct simplify_visitor {
+    typedef T backend_type;
+    simplify_visitor(double simplify_distance,
+                     encoder_visitor<backend_type> & encoder) :
+      encoder_(encoder),
+      simplify_distance_(simplify_distance) {}
+
+    unsigned operator() (mapnik::geometry::point<std::int64_t> const& geom)
+    {
+        return encoder_(geom);
+    }
+
+    unsigned operator() (mapnik::geometry::multi_point<std::int64_t> const& geom)
+    {
+        return encoder_(geom);
+    }
+
+    unsigned operator() (mapnik::geometry::line_string<std::int64_t> const& geom)
+    {
+        mapnik::geometry::line_string<std::int64_t> simplified;
+        boost::geometry::simplify(geom,simplified,simplify_distance_);
+        return encoder_(simplified);
+    }
+
+    unsigned operator() (mapnik::geometry::multi_line_string<std::int64_t> const& geom)
+    {
+        mapnik::geometry::multi_line_string<std::int64_t> simplified;
+        boost::geometry::simplify(geom,simplified,simplify_distance_);
+        return encoder_(simplified);
+    }
+
+    unsigned operator() (mapnik::geometry::polygon<std::int64_t> const& geom)
+    {
+        mapnik::geometry::polygon<std::int64_t> simplified;
+        boost::geometry::simplify(geom,simplified,simplify_distance_);
+        return encoder_(simplified);
+    }
+
+    unsigned operator() (mapnik::geometry::multi_polygon<std::int64_t> const& geom)
+    {
+        mapnik::geometry::multi_polygon<std::int64_t> simplified;
+        boost::geometry::simplify(geom,simplified,simplify_distance_);
+        return encoder_(simplified);
+    }
+
+    template <typename Geom>
+    unsigned operator() (Geom const& geom) {
+        return encoder_(geom);
+    }
+
+    encoder_visitor<backend_type> & encoder_;
+    unsigned simplify_distance_;
+};
+
+
+template <typename T>
+unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
+                                       mapnik::geometry::geometry<double> const& geom,
+                                       mapnik::proj_transform const& prj_trans,
+                                       mapnik::box2d<double> const& buffered_query_ext)
+{
+    mapnik::proj_backward_strategy proj_strat(prj_trans);
+    mapnik::view_strategy view_strat(t_);
+    mapnik::geometry::scale_strategy scale_strat(backend_.get_path_multiplier(), 0.5);
+    using sg_type = mapnik::geometry::strategy_group<mapnik::proj_backward_strategy, 
+                                                     mapnik::view_strategy, 
+                                                     mapnik::geometry::scale_strategy >;
+    sg_type sg(proj_strat, view_strat, scale_strat);
+    mapnik::geometry::point<double> p1_min(buffered_query_ext.minx(), buffered_query_ext.miny());
+    mapnik::geometry::point<double> p1_max(buffered_query_ext.maxx(), buffered_query_ext.maxy());
+    mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, sg);
+    mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, sg);
+    box2d<int> bbox(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
+    mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(geom, sg);
+    encoder_visitor<T> encoder(backend_,feature,bbox, area_threshold_);
+    if (simplify_distance_ > 0)
+    {
+        simplify_visitor<T> simplifier(simplify_distance_,encoder);
+        return mapnik::util::apply_visitor(simplifier,new_geom);
+    }
+    else
+    {
+        return mapnik::util::apply_visitor(encoder,new_geom);
+    }
 }
 
 }} // end ns

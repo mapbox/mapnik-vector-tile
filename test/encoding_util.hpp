@@ -1,88 +1,155 @@
 #include <mapnik/vertex.hpp>
 #include <mapnik/geometry.hpp>
+#include <mapnik/geometry_adapters.hpp>
+#include <mapnik/vertex_processor.hpp>
+#include "vector_tile_geometry_decoder.hpp"
 #include "vector_tile_geometry_encoder.hpp"
 
-void decode_geometry(vector_tile::Tile_Feature const& f,
-                     mapnik::geometry_type & geom,
-                     double & x,
-                     double & y,
-                     double scale)
+namespace {
+
+using namespace mapnik::geometry;
+
+struct print
 {
-    int cmd = -1;
-    const int cmd_bits = 3;
-    unsigned length = 0;
-    for (int k = 0; k < f.geometry_size();)
+    void operator() (geometry_empty const&) const
     {
-        if (!length) {
-            unsigned cmd_length = f.geometry(k++);
-            cmd = cmd_length & ((1 << cmd_bits) - 1);
-            length = cmd_length >> cmd_bits;
-        }
-        if (length > 0) {
-            length--;
-            if (cmd == mapnik::SEG_MOVETO || cmd == mapnik::SEG_LINETO)
-            {
-                int32_t dx = f.geometry(k++);
-                int32_t dy = f.geometry(k++);
-                dx = ((dx >> 1) ^ (-(dx & 1)));
-                dy = ((dy >> 1) ^ (-(dy & 1)));
-                x += (static_cast<double>(dx) / scale);
-                y += (static_cast<double>(dy) / scale);
-                geom.push_vertex(x, y, static_cast<mapnik::CommandType>(cmd));
-            }
-            else if (cmd == (mapnik::SEG_CLOSE & ((1 << cmd_bits) - 1)))
-            {
-                geom.push_vertex(0, 0, mapnik::SEG_CLOSE);
-            }
-            else
-            {
-                std::stringstream msg;
-                msg << "Unknown command type (decode_geometry): "
-                    << cmd;
-                throw std::runtime_error(msg.str());
-            }
+        std::cerr << "EMPTY" << std::endl;
+    }
+    template <typename T>
+    void operator() (geometry_collection<T> const& collection) const
+    {
+    }
+    template <typename T>
+    void operator() (T const& geom) const
+    {
+        std::cerr << boost::geometry::wkt(geom) << std::endl;
+    }
+};
+
+}
+
+struct encode_geometry
+{
+    vector_tile::Tile_Feature & feature_;
+    int32_t x_;
+    int32_t y_;
+    encode_geometry(vector_tile::Tile_Feature & feature) :
+      feature_(feature),
+      x_(0),
+      y_(0) { }
+
+    void operator() (geometry_empty const&)
+    {
+    }
+    
+    template <typename T>
+    void operator()(T const& path)
+    {
+        mapnik::vector_tile_impl::encode_geometry(path,feature_,x_,y_);
+    }
+    
+    void operator()(mapnik::geometry::multi_point<std::int64_t> const & path)
+    {
+        for (auto const& pt : path)
+        {
+            mapnik::vector_tile_impl::encode_geometry(pt,feature_,x_,y_);
         }
     }
+
+    void operator()(mapnik::geometry::multi_line_string<std::int64_t> const & path)
+    {
+        for (auto const& ls : path)
+        {
+            mapnik::vector_tile_impl::encode_geometry(ls,feature_,x_,y_);
+        }
+    }
+    
+    void operator()(mapnik::geometry::multi_polygon<std::int64_t> const& path)
+    {
+        for (auto const& p : path)
+        {
+            mapnik::vector_tile_impl::encode_geometry(p,feature_,x_,y_);
+        }
+    }
+    
+    void operator()(mapnik::geometry::geometry_collection<std::int64_t> const& path)
+    {
+        for (auto const& p : path)
+        {
+            mapnik::util::apply_visitor((*this), p);
+        }
+    }
+};
+
+struct show_path
+{
+    std::string & str_;
+    show_path(std::string & out) :
+      str_(out) {}
+
+    template <typename T>
+    void operator()(T & path)
+    {
+        unsigned cmd = -1;
+        double x = 0;
+        double y = 0;
+        std::ostringstream s;
+        path.rewind(0);
+        while ((cmd = path.vertex(&x, &y)) != mapnik::SEG_END)
+        {
+            switch (cmd)
+            {
+                case mapnik::SEG_MOVETO: s << "move_to("; break;
+                case mapnik::SEG_LINETO: s << "line_to("; break;
+                case mapnik::SEG_CLOSE: s << "close_path("; break;
+                default: std::clog << "unhandled cmd " << cmd << "\n"; break;
+            }
+            s << x << "," << y << ")\n";
+        }
+        str_ += s.str();
+    }
+};
+
+template <typename T>
+vector_tile::Tile_Feature geometry_to_feature(mapnik::geometry::geometry<T> const& g)
+{
+    vector_tile::Tile_Feature feature;
+    encode_geometry ap(feature);
+    if (g.template is<mapnik::geometry::point<T> >() || g.template is<mapnik::geometry::multi_point<T> >())
+    {
+        feature.set_type(vector_tile::Tile_GeomType_POINT);
+    }
+    else if (g.template is<mapnik::geometry::line_string<T> >() || g.template is<mapnik::geometry::multi_line_string<T> >())
+    {
+        feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
+    }
+    else if (g.template is<mapnik::geometry::polygon<T> >() || g.template is<mapnik::geometry::multi_polygon<T> >())
+    {
+        feature.set_type(vector_tile::Tile_GeomType_POLYGON);
+    }
+    else
+    {
+        throw std::runtime_error("could not detect valid geometry type");
+    }
+    mapnik::util::apply_visitor(ap,g);
+    return feature;
 }
 
 template <typename T>
-std::string show_path(T & path)
+std::string decode_to_path_string(mapnik::geometry::geometry<T> const& g)
 {
-    unsigned cmd = -1;
-    double x = 0;
-    double y = 0;
-    std::ostringstream s;
-    path.rewind(0);
-    while ((cmd = path.vertex(&x, &y)) != mapnik::SEG_END)
-    {
-        switch (cmd)
-        {
-            case mapnik::SEG_MOVETO: s << "move_to("; break;
-            case mapnik::SEG_LINETO: s << "line_to("; break;
-            case mapnik::SEG_CLOSE: s << "close_path("; break;
-            default: std::clog << "unhandled cmd " << cmd << "\n"; break;
-        }
-        s << x << "," << y << ")\n";
-    }
-    return s.str();
+    //mapnik::util::apply_visitor(print(), g2);
+    using decode_path_type = mapnik::geometry::vertex_processor<show_path>;
+    std::string out;
+    show_path sp(out);
+    mapnik::util::apply_visitor(decode_path_type(sp), g);
+    return out;
 }
 
-std::string compare(mapnik::geometry_type const& g,
-                    unsigned tolerance=0,
-                    unsigned path_multiplier=1)
+template <typename T>
+std::string compare(mapnik::geometry::geometry<T> const& g)
 {
-    using namespace mapnik::vector_tile_impl;
-    // encode
-    vector_tile::Tile_Feature feature;
-    int32_t x = 0;
-    int32_t y = 0;
-    mapnik::vertex_adapter va(g);
-    encode_geometry(va,(vector_tile::Tile_GeomType)g.type(),feature,x,y,tolerance,path_multiplier);
-    // decode
-    mapnik::geometry_type g2(mapnik::geometry_type::types::Polygon);
-    double x0 = 0;
-    double y0 = 0;
-    decode_geometry(feature,g2,x0,y0,path_multiplier);
-    mapnik::vertex_adapter va2(g2);
-    return show_path(va2);
+    vector_tile::Tile_Feature feature = geometry_to_feature(g);
+    auto g2 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    return decode_to_path_string(g2);
 }

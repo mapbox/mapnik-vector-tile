@@ -10,6 +10,7 @@
 namespace testing {
 
 std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool second=false);
+std::shared_ptr<mapnik::memory_datasource> build_geojson_ds(std::string const& geojson_file);
 
 unsigned compare_images(std::string const& src_fn,
                         std::string const& dest_fn,

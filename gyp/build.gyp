@@ -69,13 +69,7 @@
       'hard_dependency': 1,
       "type": "static_library",
       "sources": [
-        "../src/vector_tile_util.cpp",
-        "../src/vector_tile_projection.cpp",
-        "../src/vector_tile_geometry_encoder.cpp",
-        "../src/vector_tile_datasource.cpp",
-        "../src/vector_tile_compression.cpp",
-        "../src/vector_tile_backend_pbf.cpp",
-        "../src/vector_tile_processor.cpp",
+        "<!@(find ../src/ -name '*.cpp')"
       ],
       'defines' : [
         'MAPNIK_VECTOR_TILE_LIBRARY=1'
@@ -106,6 +100,8 @@
         'libraries':[
           '<!@(mapnik-config --libs)',
           '<!@(mapnik-config --ldflags)',
+          '-lmapnik-wkt',
+          '-lmapnik-json',
           '<!@(mapnik-config --dep-libs)',
           '-lprotobuf-lite',
           '-lz'
@@ -120,11 +116,7 @@
         "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
       ], 
       "sources": [
-        "../test/test_main.cpp",
-        "../test/test_utils.cpp",
-        "../test/geometry_encoding.cpp",
-        "../test/vector_tile.cpp",
-        "../test/raster_tile.cpp",
+        "<!@(find ../test/ -name '*.cpp')"
       ],
       "include_dirs": [
         "../src"

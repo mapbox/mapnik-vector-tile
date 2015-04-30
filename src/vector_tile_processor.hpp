@@ -3,6 +3,7 @@
 
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
+#include <mapnik/feature.hpp>
 #include <mapnik/util/noncopyable.hpp>
 #include <mapnik/request.hpp>
 #include <mapnik/view_transform.hpp>
@@ -40,11 +41,12 @@ private:
     mapnik::request const& m_req_;
     double scale_factor_;
     mapnik::view_transform t_;
-    unsigned tolerance_;
+    double area_threshold_;
     std::string image_format_;
     scaling_method_e scaling_method_;
     bool painted_;
     poly_clipper_type poly_clipper_type_;
+    double simplify_distance_;
 public:
     MAPNIK_VECTOR_INLINE processor(T & backend,
               mapnik::Map const& map,
@@ -52,10 +54,20 @@ public:
               double scale_factor=1.0,
               unsigned offset_x=0,
               unsigned offset_y=0,
-              unsigned tolerance=1,
+              double area_threshold=0.1,
               std::string const& image_format="jpeg",
               scaling_method_e scaling_method=SCALING_NEAR
         );
+
+    inline void set_simplify_distance(double dist)
+    {
+        simplify_distance_ = dist;
+    }
+
+    inline double get_simplify_distance() const
+    {
+        return simplify_distance_;
+    }
 
     MAPNIK_VECTOR_INLINE void set_poly_clipper(poly_clipper_type clipper);
 
@@ -77,9 +89,10 @@ public:
                         box2d<double> const& extent,
                         int buffer_size);
 
-    MAPNIK_VECTOR_INLINE unsigned handle_geometry(mapnik::vertex_adapter & geom,
-                             mapnik::proj_transform const& prj_trans,
-                             mapnik::box2d<double> const& buffered_query_ext);
+    MAPNIK_VECTOR_INLINE unsigned handle_geometry(mapnik::feature_impl const& feature,
+                                                  mapnik::geometry::geometry<double> const& geom,
+                                                  mapnik::proj_transform const& prj_trans,
+                                                  mapnik::box2d<double> const& buffered_query_ext);
 };
 
 }} // end ns
