@@ -761,6 +761,13 @@ TEST_CASE( "vector tile multi_polygon encoding of actual multi_polygon", "should
 
 // simplification
 
+TEST_CASE( "vector tile point correctly passed through simplification code path", "should create vector tile with data" ) {
+    mapnik::geometry::point<double> geom(-122,48);
+    mapnik::geometry::geometry<double> new_geom = round_trip(geom,500);
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    CHECK( new_geom.is<mapnik::geometry::point<double> >() );
+}
+
 TEST_CASE( "vector tile line_string is simplified", "should create vector tile with data" ) {
     mapnik::geometry::multi_line_string<double> geom;
     mapnik::geometry::line_string<double> line;
