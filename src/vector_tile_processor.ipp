@@ -902,7 +902,7 @@ struct encoder_visitor {
 
     unsigned operator() (mapnik::geometry::geometry_collection<std::int64_t> const& geom)
     {
-        std::runtime_error("geometry_collections not supported in encoder_visitor");
+        throw std::runtime_error("geometry_collections not supported in encoder_visitor");
         return 0;
     }
 
