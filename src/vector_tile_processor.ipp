@@ -895,7 +895,18 @@ struct encoder_visitor {
       buffered_query_ext_(buffered_query_ext),
       area_threshold_(area_threshold) {}
 
-    unsigned operator() (mapnik::geometry::point<std::int64_t> & geom)
+    unsigned operator() (mapnik::geometry::geometry_empty const& geom)
+    {
+        return 0;
+    }
+
+    unsigned operator() (mapnik::geometry::geometry_collection<std::int64_t> const& geom)
+    {
+        std::runtime_error("geometry_collections not supported in encoder_visitor");
+        return 0;
+    }
+
+    unsigned operator() (mapnik::geometry::point<std::int64_t> const& geom)
     {
         unsigned path_count = 0;
         if (buffered_query_ext_.intersects(geom.x,geom.y))
@@ -908,7 +919,7 @@ struct encoder_visitor {
         return path_count;
     }
 
-    unsigned operator() (mapnik::geometry::multi_point<std::int64_t> & geom)
+    unsigned operator() (mapnik::geometry::multi_point<std::int64_t> const& geom)
     {
         unsigned path_count = 0;
         bool first = true;
@@ -1196,11 +1207,6 @@ struct encoder_visitor {
         return path_count;
     }
 
-    template <typename Geom>
-    unsigned operator() (Geom const& geom) {
-        return 0;
-    }
-
     backend_type & backend_;
     mapnik::feature_impl const& feature_;
     mapnik::box2d<int> const& buffered_query_ext_;
@@ -1253,9 +1259,15 @@ struct simplify_visitor {
         return encoder_(simplified);
     }
 
-    template <typename Geom>
-    unsigned operator() (Geom const& geom) {
-        return encoder_(geom);
+    unsigned operator() (mapnik::geometry::geometry_collection<std::int64_t> const& geom)
+    {
+        throw std::runtime_error("geometry_collection not supported in simplify_visitor");
+        return 0;
+    }
+
+    unsigned operator() (mapnik::geometry::geometry_empty const& geom)
+    {
+        return 0;
     }
 
     encoder_visitor<backend_type> & encoder_;
