@@ -28,7 +28,6 @@
 #include <mapnik/geometry_is_empty.hpp>
 #include <mapnik/geometry_envelope.hpp>
 #include <mapnik/geometry_adapters.hpp>
-#include <mapnik/geometry_correct.hpp>
 #include <mapnik/geometry_strategy.hpp>
 #include <mapnik/geometry_transform.hpp>
 #include <boost/geometry/algorithms/unique.hpp>
