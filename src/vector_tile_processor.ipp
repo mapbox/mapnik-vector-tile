@@ -30,7 +30,6 @@
 #include <mapnik/geometry_adapters.hpp>
 #include <mapnik/geometry_strategy.hpp>
 #include <mapnik/geometry_transform.hpp>
-#include <boost/geometry/algorithms/unique.hpp>
 
 // agg
 #include "agg_path_storage.h"
