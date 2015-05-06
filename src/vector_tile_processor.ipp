@@ -8,6 +8,7 @@
 #include <mapnik/datasource.hpp>
 #include <mapnik/projection.hpp>
 #include <mapnik/proj_transform.hpp>
+#include <mapnik/proj_strategy.hpp>
 #include <mapnik/scale_denominator.hpp>
 #include <mapnik/attribute_descriptor.hpp>
 #include <mapnik/feature_layer_desc.hpp>
@@ -21,6 +22,7 @@
 #include <mapnik/image_scaling.hpp>
 #include <mapnik/image_compositing.hpp>
 #include <mapnik/view_transform.hpp>
+#include <mapnik/view_strategy.hpp>
 #include <mapnik/util/noncopyable.hpp>
 #include <mapnik/transform_path_adapter.hpp>
 #include <mapnik/geometry_is_empty.hpp>
@@ -150,8 +152,8 @@ public:
         using renderer_type = agg::renderer_base<pixfmt_type>;
 
         mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_rgba8, true, true);
-        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
-        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        agg::rendering_buffer dst_buffer(im_tile.bytes(), im_tile.width(), im_tile.height(), im_tile.row_size());
+        agg::rendering_buffer src_buffer(target.data_.bytes(),target.data_.width(), target.data_.height(), target.data_.row_size());
         pixfmt_type src_pixf(src_buffer);
         pixfmt_type dst_pixf(dst_buffer);
         renderer_type ren(dst_pixf);
@@ -192,8 +194,8 @@ public:
         using renderer_type = agg::renderer_base<pixfmt_type>;
 
         mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray8);
-        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
-        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        agg::rendering_buffer dst_buffer(im_tile.bytes(), im_tile.width(), im_tile.height(), im_tile.row_size());
+        agg::rendering_buffer src_buffer(target.data_.bytes(),target.data_.width(), target.data_.height(), target.data_.row_size());
         pixfmt_type src_pixf(src_buffer);
         pixfmt_type dst_pixf(dst_buffer);
         renderer_type ren(dst_pixf);
@@ -234,8 +236,8 @@ public:
         using renderer_type = agg::renderer_base<pixfmt_type>;
 
         mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray8s);
-        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
-        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        agg::rendering_buffer dst_buffer(im_tile.bytes(), im_tile.width(), im_tile.height(), im_tile.row_size());
+        agg::rendering_buffer src_buffer(target.data_.bytes(),target.data_.width(), target.data_.height(), target.data_.row_size());
         pixfmt_type src_pixf(src_buffer);
         pixfmt_type dst_pixf(dst_buffer);
         renderer_type ren(dst_pixf);
@@ -276,8 +278,8 @@ public:
         using renderer_type = agg::renderer_base<pixfmt_type>;
 
         mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray16);
-        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
-        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        agg::rendering_buffer dst_buffer(im_tile.bytes(), im_tile.width(), im_tile.height(), im_tile.row_size());
+        agg::rendering_buffer src_buffer(target.data_.bytes(),target.data_.width(), target.data_.height(), target.data_.row_size());
         pixfmt_type src_pixf(src_buffer);
         pixfmt_type dst_pixf(dst_buffer);
         renderer_type ren(dst_pixf);
@@ -318,8 +320,8 @@ public:
         using renderer_type = agg::renderer_base<pixfmt_type>;
 
         mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray16s);
-        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
-        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        agg::rendering_buffer dst_buffer(im_tile.bytes(), im_tile.width(), im_tile.height(), im_tile.row_size());
+        agg::rendering_buffer src_buffer(target.data_.bytes(),target.data_.width(), target.data_.height(), target.data_.row_size());
         pixfmt_type src_pixf(src_buffer);
         pixfmt_type dst_pixf(dst_buffer);
         renderer_type ren(dst_pixf);
@@ -360,8 +362,8 @@ public:
         using renderer_type = agg::renderer_base<pixfmt_type>;
 
         mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray32);
-        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
-        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        agg::rendering_buffer dst_buffer(im_tile.bytes(), im_tile.width(), im_tile.height(), im_tile.row_size());
+        agg::rendering_buffer src_buffer(target.data_.bytes(),target.data_.width(), target.data_.height(), target.data_.row_size());
         pixfmt_type src_pixf(src_buffer);
         pixfmt_type dst_pixf(dst_buffer);
         renderer_type ren(dst_pixf);
@@ -402,8 +404,8 @@ public:
         using renderer_type = agg::renderer_base<pixfmt_type>;
 
         mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray32s);
-        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
-        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        agg::rendering_buffer dst_buffer(im_tile.bytes(), im_tile.width(), im_tile.height(), im_tile.row_size());
+        agg::rendering_buffer src_buffer(target.data_.bytes(),target.data_.width(), target.data_.height(), target.data_.row_size());
         pixfmt_type src_pixf(src_buffer);
         pixfmt_type dst_pixf(dst_buffer);
         renderer_type ren(dst_pixf);
@@ -444,8 +446,8 @@ public:
         using renderer_type = agg::renderer_base<pixfmt_type>;
 
         mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray32f);
-        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
-        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        agg::rendering_buffer dst_buffer(im_tile.bytes(), im_tile.width(), im_tile.height(), im_tile.row_size());
+        agg::rendering_buffer src_buffer(target.data_.bytes(),target.data_.width(), target.data_.height(), target.data_.row_size());
         pixfmt_type src_pixf(src_buffer);
         pixfmt_type dst_pixf(dst_buffer);
         renderer_type ren(dst_pixf);
@@ -486,8 +488,8 @@ public:
         using renderer_type = agg::renderer_base<pixfmt_type>;
 
         mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray64);
-        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
-        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        agg::rendering_buffer dst_buffer(im_tile.bytes(), im_tile.width(), im_tile.height(), im_tile.row_size());
+        agg::rendering_buffer src_buffer(target.data_.bytes(),target.data_.width(), target.data_.height(), target.data_.row_size());
         pixfmt_type src_pixf(src_buffer);
         pixfmt_type dst_pixf(dst_buffer);
         renderer_type ren(dst_pixf);
@@ -528,8 +530,8 @@ public:
         using renderer_type = agg::renderer_base<pixfmt_type>;
 
         mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray64s);
-        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
-        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        agg::rendering_buffer dst_buffer(im_tile.bytes(), im_tile.width(), im_tile.height(), im_tile.row_size());
+        agg::rendering_buffer src_buffer(target.data_.bytes(),target.data_.width(), target.data_.height(), target.data_.row_size());
         pixfmt_type src_pixf(src_buffer);
         pixfmt_type dst_pixf(dst_buffer);
         renderer_type ren(dst_pixf);
@@ -570,8 +572,8 @@ public:
         using renderer_type = agg::renderer_base<pixfmt_type>;
 
         mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_gray64f);
-        agg::rendering_buffer dst_buffer(im_tile.getBytes(), im_tile.width(), im_tile.height(), im_tile.getRowSize());
-        agg::rendering_buffer src_buffer(target.data_.getBytes(),target.data_.width(), target.data_.height(), target.data_.getRowSize());
+        agg::rendering_buffer dst_buffer(im_tile.bytes(), im_tile.width(), im_tile.height(), im_tile.row_size());
+        agg::rendering_buffer src_buffer(target.data_.bytes(),target.data_.width(), target.data_.height(), target.data_.row_size());
         pixfmt_type src_pixf(src_buffer);
         pixfmt_type dst_pixf(dst_buffer);
         renderer_type ren(dst_pixf);
