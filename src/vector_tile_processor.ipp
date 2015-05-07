@@ -50,10 +50,6 @@
 #include <string>
 #include <stdexcept>
 
-//tmp
-#include <mapnik/util/geometry_to_geojson.hpp>
-#include <mapnik/geometry_reprojection.hpp>
-
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
