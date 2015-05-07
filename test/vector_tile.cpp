@@ -18,6 +18,7 @@
 #include <mapnik/geometry_reprojection.hpp>
 #include <mapnik/geometry_transform.hpp>
 #include <mapnik/geometry_strategy.hpp>
+#include <mapnik/proj_strategy.hpp>
 
 
 // vector output api
@@ -831,4 +832,76 @@ TEST_CASE( "vector tile from simplified geojson", "should create vector tile wit
 }
 */
 
+mapnik::geometry::geometry<double> round_trip2(mapnik::geometry::geometry<double> const& geom,
+                                      double simplify_distance=0.0)
+{
+    typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+    typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+    typedef vector_tile::Tile tile_type;
+    tile_type tile;
+    backend_type backend(tile,160);
+    unsigned tile_size = 256;
+    mapnik::projection wgs84("+init=epsg:4326",true);
+    mapnik::projection merc("+init=epsg:3857",true);
+    mapnik::proj_transform prj_trans(merc,wgs84);
+    mapnik::box2d<double> bbox(0,0,11.25,11.178401873711785);
+    prj_trans.backward(bbox);
+    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::request m_req(tile_size,tile_size,bbox);
+    renderer_type ren(backend,map,m_req,1,0,0,0);
+    // instead of calling apply, let's cheat and test `handle_geometry` directly by adding features
+    backend.start_tile_layer("layer");
+    mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
+    mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
+    ren.set_simplify_distance(simplify_distance);
+    ren.handle_geometry(*feature,geom,prj_trans,bbox);
+    backend.stop_tile_layer();
+    if (tile.layers_size() != 1)
+    {
+        throw std::runtime_error("expected 1 layer in `round_trip`");
+    }
+    vector_tile::Tile_Layer const& layer = tile.layers(0);
+    if (layer.features_size() != 1)
+    {
+        throw std::runtime_error("expected 1 feature in `round_trip`");
+    }
+    vector_tile::Tile_Feature const& f = layer.features(0);
+    unsigned z = 5;
+    unsigned x = 16;
+    unsigned y = 15;
+    double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z);
+    double tile_x = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x * resolution;
+    double tile_y =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
+    double scale = (static_cast<double>(layer.extent()) / tile_size) * tile_size/resolution;
+    return mapnik::vector_tile_impl::decode_geometry(f,tile_x,tile_y,scale,-1*scale);
+}
 
+TEST_CASE( "vector tile line_string is verify direction", "should line string with proper directions" ) {
+    mapnik::geometry::line_string<double> line;
+    line.add_coord(-20,2);
+    line.add_coord(2,2);
+    line.add_coord(2,-20);
+    line.add_coord(8,-20);
+    line.add_coord(8,2);
+    line.add_coord(60,2);
+    line.add_coord(60,8);
+    line.add_coord(8,8);
+    line.add_coord(8,60);
+    line.add_coord(2,60);
+    line.add_coord(2,8);
+    line.add_coord(-20,8);
+
+    mapnik::geometry::geometry<double> new_geom = round_trip2(line);
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    CHECK( new_geom.is<mapnik::geometry::multi_line_string<double> >() );
+    mapnik::projection wgs84("+init=epsg:4326",true);
+    mapnik::projection merc("+init=epsg:3857",true);
+    mapnik::proj_transform prj_trans(merc,wgs84);
+    mapnik::proj_strategy proj_strat(prj_trans);
+    mapnik::geometry::geometry<double> xgeom = mapnik::geometry::transform<double>(new_geom, proj_strat);
+    std::string foo;
+    mapnik::util::to_wkt(foo, xgeom);
+    std::clog << foo << std::endl;
+    //auto const& line2 = mapnik::util::get<mapnik::geometry::line_string<double> >(new_geom);
+    //CHECK( line2.size() == 2 );
+}
