@@ -23,19 +23,27 @@ matrix:
         apt:
           sources: ['ubuntu-toolchain-r-test','llvm-toolchain-precise-3.5']
           packages: ['clang-3.5']
+    - os: linux
+      compiler: clang
+      env: JOBS=10 CXX=clang++-3.5 BUILDTYPE=Debug
+      sudo: false
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test','llvm-toolchain-precise-3.5']
+          packages: ['clang-3.5']
     - os: osx
       compiler: clang
-      env: JOBS=10 BUILDTYPE=Debug
+      env: JOBS=10 COVERAGE=True BUILDTYPE=Debug
       sudo: false
 
 before_install:
  - source ./bootstrap.sh
 
 install:
- - echo ${CXX}
+ - source ./scripts/build.sh
 
 before_script:
- - make -j${JOBS} test BUILDTYPE=${BUILDTYPE:-Release}
+ - ./scripts/coverage.sh
 
 script:
  # make sure tileinfo command works
