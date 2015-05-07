@@ -20,6 +20,8 @@
 #include <mapnik/proj_strategy.hpp>
 #include <mapnik/geometry.hpp>
 
+#include <boost/optional/optional_io.hpp>
+
 // vector output api
 #include "vector_tile_compression.hpp"
 #include "vector_tile_processor.hpp"
@@ -248,6 +250,8 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
                                     mapnik::vector_tile_impl::tile_datasource>(
                                         layer2,0,0,0,map2.width());
     ds->set_envelope(bbox);
+    CHECK( ds->type() == mapnik::datasource::Vector );
+    CHECK( ds->get_geometry_type() == mapnik::datasource_geometry_t::Collection );
     mapnik::layer_descriptor lay_desc = ds->get_descriptor();
     std::vector<std::string> expected_names;
     expected_names.push_back("name");
@@ -354,6 +358,19 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     CHECK(f_ptr->context()->size() == 1);
 }
 
+TEST_CASE( "backend does not crash on misusage", "adding feature before layer" ) {
+    vector_tile::Tile tile;
+    mapnik::vector_tile_impl::backend_pbf backend(tile,1);
+    mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
+    backend.start_tile_feature(*feature);
+}
+
+TEST_CASE( "backend does not crash on misusage 2", "adding path before feature" ) {
+    vector_tile::Tile tile;
+    mapnik::vector_tile_impl::backend_pbf backend(tile,1);
+    mapnik::geometry::point<std::int64_t> geom;
+    CHECK(0 == backend.add_path(geom) );
+}
 
 // NOTE: encoding multiple lines as one path is technically incorrect
 // because in Mapnik the protocol is to split geometry parts into separate paths.
@@ -959,6 +976,11 @@ mapnik::geometry::geometry<double> round_trip2(mapnik::geometry::geometry<double
     mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
     ren.set_simplify_distance(simplify_distance);
+    double simp2 = ren.get_simplify_distance();
+    if (simp2 != simplify_distance)
+    {
+        throw std::runtime_error("simplify_distance setter did not work");
+    }
     ren.handle_geometry(*feature,geom,prj_trans,bbox);
     backend.stop_tile_layer();
     if (tile.layers_size() != 1)

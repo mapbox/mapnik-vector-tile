@@ -84,50 +84,53 @@ void backend_pbf::stop_tile_feature()
 
 void backend_pbf::start_tile_feature(mapnik::feature_impl const& feature)
 {
-    current_feature_ = current_layer_->add_features();
-    x_ = y_ = 0;
-
-    // TODO - encode as sint64: (n << 1) ^ ( n >> 63)
-    // test current behavior with negative numbers
-    current_feature_->set_id(feature.id());
-
-    feature_kv_iterator itr = feature.begin();
-    feature_kv_iterator end = feature.end();
-    for ( ;itr!=end; ++itr)
+    if (current_layer_)
     {
-        std::string const& name = std::get<0>(*itr);
-        mapnik::value const& val = std::get<1>(*itr);
-        if (!val.is_null())
-        {
-            // Insert the key index
-            keys_container::const_iterator key_itr = keys_.find(name);
-            if (key_itr == keys_.end())
-            {
-                // The key doesn't exist yet in the dictionary.
-                current_layer_->add_keys(name.c_str(), name.length());
-                size_t index = keys_.size();
-                keys_.insert(keys_container::value_type(name, index));
-                current_feature_->add_tags(index);
-            }
-            else
-            {
-                current_feature_->add_tags(key_itr->second);
-            }
+        current_feature_ = current_layer_->add_features();
+        x_ = y_ = 0;
 
-            // Insert the value index
-            values_container::const_iterator val_itr = values_.find(val);
-            if (val_itr == values_.end())
+        // TODO - encode as sint64: (n << 1) ^ ( n >> 63)
+        // test current behavior with negative numbers
+        current_feature_->set_id(feature.id());
+
+        feature_kv_iterator itr = feature.begin();
+        feature_kv_iterator end = feature.end();
+        for ( ;itr!=end; ++itr)
+        {
+            std::string const& name = std::get<0>(*itr);
+            mapnik::value const& val = std::get<1>(*itr);
+            if (!val.is_null())
             {
-                // The value doesn't exist yet in the dictionary.
-                to_tile_value visitor(current_layer_->add_values());
-                mapnik::util::apply_visitor(visitor, val);
-                size_t index = values_.size();
-                values_.insert(values_container::value_type(val, index));
-                current_feature_->add_tags(index);
-            }
-            else
-            {
-                current_feature_->add_tags(val_itr->second);
+                // Insert the key index
+                keys_container::const_iterator key_itr = keys_.find(name);
+                if (key_itr == keys_.end())
+                {
+                    // The key doesn't exist yet in the dictionary.
+                    current_layer_->add_keys(name.c_str(), name.length());
+                    size_t index = keys_.size();
+                    keys_.insert(keys_container::value_type(name, index));
+                    current_feature_->add_tags(index);
+                }
+                else
+                {
+                    current_feature_->add_tags(key_itr->second);
+                }
+
+                // Insert the value index
+                values_container::const_iterator val_itr = values_.find(val);
+                if (val_itr == values_.end())
+                {
+                    // The value doesn't exist yet in the dictionary.
+                    to_tile_value visitor(current_layer_->add_values());
+                    mapnik::util::apply_visitor(visitor, val);
+                    size_t index = values_.size();
+                    values_.insert(values_container::value_type(val, index));
+                    current_feature_->add_tags(index);
+                }
+                else
+                {
+                    current_feature_->add_tags(val_itr->second);
+                }
             }
         }
     }
