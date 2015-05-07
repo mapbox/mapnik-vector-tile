@@ -13,7 +13,7 @@ libvtile: build/Makefile Makefile
 	@$(MAKE) -C build/ BUILDTYPE=$(BUILDTYPE) V=$(V)
 
 test: libvtile
-	./build/Release/tests
+	./build/$(BUILDTYPE)/tests
 
 clean:
 	rm -rf ./build
