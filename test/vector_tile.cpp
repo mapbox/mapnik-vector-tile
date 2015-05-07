@@ -11,7 +11,6 @@
 #include <mapnik/vertex_adapters.hpp>
 #include <mapnik/projection.hpp>
 #include <mapnik/proj_transform.hpp>
-#include <mapnik/geometry_reprojection.hpp>
 #include <mapnik/geometry_is_empty.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
 #include <mapnik/util/geometry_to_wkt.hpp>
@@ -19,7 +18,7 @@
 #include <mapnik/geometry_transform.hpp>
 #include <mapnik/geometry_strategy.hpp>
 #include <mapnik/proj_strategy.hpp>
-
+#include <mapnik/geometry.hpp>
 
 // vector output api
 #include "vector_tile_compression.hpp"
@@ -612,26 +611,6 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     return mapnik::vector_tile_impl::decode_geometry(f,0,0,scale,-1*scale);
 }
 
-/*
-auto pt2 = mapnik::util::get<mapnik::geometry::point>(geom);
-std::clog << "pt2 " << pt2.x << " " << pt2.y << "\n";
-unsigned int n_err = 0;
-mapnik::geometry::geometry projected_geom = mapnik::reproject(geom,prj_trans,n_err,true);
-auto pt1 = mapnik::util::get<mapnik::geometry::point>(projected_geom);
-CHECK( pt0.x == pt1.x );
-CHECK( pt0.y == pt1.y );
-
-mapnik::vector_tile_impl::tile_datasource ds(layer,0,0,0,tile_size);
-mapnik::featureset_ptr fs;
-
-// ensure we can query single feature
-fs = ds.features(mapnik::query(bbox));
-mapnik::feature_ptr feat = fs->next();
-auto const& geom2 = feat->get_geometry();
-auto pt3 = mapnik::util::get<mapnik::geometry::point>(geom2);
-std::clog << "pt3 " << pt3.x << " " << pt3.y << "\n";
-*/
-
 TEST_CASE( "vector tile point encoding", "should create vector tile with data" ) {
     mapnik::geometry::point<double> geom(0,0);
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
@@ -825,7 +804,6 @@ TEST_CASE( "vector tile line_string is simplified when outside bounds", "should 
     CHECK( line2.size() == 2 );
 }
 
-/*
 TEST_CASE( "vector tile from simplified geojson", "should create vector tile with data" ) {
     typedef mapnik::vector_tile_impl::backend_pbf backend_type;
     typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
@@ -865,13 +843,12 @@ TEST_CASE( "vector tile from simplified geojson", "should create vector tile wit
     mapnik::projection wgs84("+init=epsg:4326",true);
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform prj_trans(merc,wgs84);
-    mapnik::geometry::geometry projected_geom = mapnik::reproject(geom,prj_trans,n_err);
-    //if (n_err > 0) return false;
+    mapnik::geometry::geometry<double> projected_geom = mapnik::geometry::reproject_copy(geom,prj_trans,n_err);
+    CHECK( n_err == 0 );
     std::string geojson_string;
     CHECK( mapnik::util::to_geojson(geojson_string,projected_geom) );
-    //std::clog << geojson_string << "\n";
+    CHECK( geojson_string == "{\"type\":\"MultiPolygon\",\"coordinates\":[[[[160.42640625,11.4238608092025],[160.41375,11.404562686369],[160.3996875,11.3949131331061],[160.3996875,11.3990486960562],[160.39265625,11.4031841988239],[160.3940625,11.3976701817588],[160.38703125,11.3838846711709],[160.39265625,11.3825060833676],[160.39125,11.3618264654176],[160.3378125,11.3397665531013],[160.3434375,11.3604477708622],[160.26609375,11.3094313929343],[160.28296875,11.3011576095711],[160.29,11.2128890967052],[160.28296875,11.1990947005919],[160.28859375,11.1866791818427],[160.318125,11.1784018737118],[160.31390625,11.1701243292693],[160.318125,11.1646058351055],[160.3265625,11.1632261951713],[160.27875,11.1094151318478],[160.25203125,11.1135547973836],[160.2703125,11.1245936181879],[160.25484375,11.128733068196],[160.22109375,11.1025155587833],[160.2196875,11.0707754241188],[160.205625,11.07491563701],[160.205625,11.068015249669],[160.17890625,11.0583544343014],[160.19015625,11.0569742918251],[160.1859375,11.0473131126319],[160.21828125,11.0611146997615],[160.273125,11.0583544343014],[160.27171875,11.0611146997615],[160.25484375,11.0652550492086],[160.26890625,11.0914759027807],[160.32234375,11.095615822671],[160.340625,11.0887159236072],[160.34625,11.0942358558913],[160.3603125,11.0997556838987],[160.36171875,11.1080352302834],[160.374375,11.1149346728405],[160.39125,11.1052754075802],[160.4053125,11.1273532580621],[160.39265625,11.1370117917052],[160.51078125,11.1866791818427],[160.50796875,11.179781441482],[160.531875,11.1715039364132],[160.55578125,11.1135547973836],[160.576875,11.1328724593753],[160.58671875,11.1273532580621],[160.599375,11.1259734413925],[160.62046875,11.1121749153987],[160.6246875,11.1149346728405],[160.65,11.0969957829327],[160.6584375,11.0997556838987],[160.62328125,11.1342522433585],[160.61765625,11.128733068196],[160.610625,11.153568532114],[160.54734375,11.1604668956365],[160.56140625,11.1687447155659],[160.54875,11.1770222993774],[160.52203125,11.2115096867066],[160.5234375,11.2349587608161],[160.49390625,11.2032330885061],[160.475625,11.2101302701253],[160.464375,11.201853632445],[160.4165625,11.2073714172179],[160.42078125,11.2184066708578],[160.374375,11.2266828344767],[160.374375,11.2184066708578],[160.37015625,11.2170272871975],[160.3490625,11.2335794562443],[160.35609375,11.2363380587922],[160.35609375,11.2446137080958],[160.363125,11.2584059287671],[160.35328125,11.2639226320335],[160.351875,11.2859883867159],[160.32796875,11.2721974885629],[160.31953125,11.2763348275162],[160.36171875,11.3149471157772],[160.37296875,11.2901255270268],[160.40671875,11.3066734916869],[160.40671875,11.3011576095711],[160.41796875,11.3052945311095],[160.419375,11.3370089442254],[160.4109375,11.33838775199],[160.3940625,11.3756130442004],[160.4025,11.3838846711709],[160.3996875,11.3852632522956],[160.40390625,11.3907775099941],[160.40671875,11.3866418267411],[160.419375,11.3990486960562],[160.41515625,11.404562686369],[160.419375,11.4114550237293],[160.42359375,11.4114550237293],[160.42640625,11.4238608092025]],[[160.34625,11.1149346728405],[160.3490625,11.1135547973836],[160.34484375,11.1107950268865],[160.34625,11.1149346728405]],[[160.34203125,11.1480497233847],[160.34484375,11.1466700048322],[160.34625,11.1383915560672],[160.34203125,11.1480497233847]],[[160.57125,11.1549482179223],[160.576875,11.150809140847],[160.57265625,11.1425308098987],[160.57125,11.1549482179223]]],[[[160.35609375,11.3687198381851],[160.34625,11.3632051533067],[160.35328125,11.3604477708622],[160.35609375,11.3687198381851]]]]}" );
 }
-*/
 
 mapnik::geometry::geometry<double> round_trip2(mapnik::geometry::geometry<double> const& geom,
                                       double simplify_distance=0.0)
@@ -940,9 +917,11 @@ TEST_CASE( "vector tile line_string is verify direction", "should line string wi
     mapnik::proj_transform prj_trans(merc,wgs84);
     mapnik::proj_strategy proj_strat(prj_trans);
     mapnik::geometry::geometry<double> xgeom = mapnik::geometry::transform<double>(new_geom, proj_strat);
-    std::string foo;
-    mapnik::util::to_wkt(foo, xgeom);
-    std::clog << foo << std::endl;
-    //auto const& line2 = mapnik::util::get<mapnik::geometry::line_string<double> >(new_geom);
-    //CHECK( line2.size() == 2 );
+    std::string wkt;
+    mapnik::util::to_wkt(wkt, xgeom);
+    CHECK( wkt == "MULTILINESTRING((0 1.99992945603165,2.00006103515625 1.99992945603165,2.00006103515625 0),(7.99996948242188 0,7.99996948242188 1.99992945603165,59.9999084472656 1.99992945603165,59.9999084472656 7.99994115658818,7.99996948242188 7.99994115658818,7.99996948242188 59.9998101102059,2.00006103515625 59.9998101102059,2.00006103515625 7.99994115658817,0.0000000000000005 7.99994115658817))" );
+    REQUIRE( !mapnik::geometry::is_empty(xgeom) );
+    REQUIRE( new_geom.is<mapnik::geometry::multi_line_string<double> >() );
+    auto const& line2 = mapnik::util::get<mapnik::geometry::multi_line_string<double> >(new_geom);
+    CHECK( line2.size() == 2 );
 }

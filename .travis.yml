@@ -1,35 +1,50 @@
-language: cpp
+language: c
 
 git:
-  depth: 2
-
-addons:
-  apt:
-    sources:
-     - ubuntu-toolchain-r-test
-     - llvm-toolchain-precise-3.5
-    packages:
-     - clang-3.5
+  depth: 10
 
 sudo: false
 
-os:
- - osx
- - linux
-
-compiler:
- - clang
+matrix:
+  include:
+    # Broken: https://github.com/mapbox/mapnik-vector-tile/issues/103
+    #- os: linux
+    #  compiler: gcc
+    #  env: JOBS=2 CXX=g++-4.9
+    #  addons:
+    #    apt:
+    #      sources: ['ubuntu-toolchain-r-test']
+    #      packages: ['g++-4.9']
+    - os: linux
+      compiler: clang
+      env: JOBS=10 CXX=clang++-3.5
+      sudo: false
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test','llvm-toolchain-precise-3.5']
+          packages: ['clang-3.5']
+    - os: linux
+      compiler: clang
+      env: JOBS=10 CXX=clang++-3.5 BUILDTYPE=Debug
+      sudo: false
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test','llvm-toolchain-precise-3.5']
+          packages: ['clang-3.5']
+    - os: osx
+      compiler: clang
+      env: JOBS=10 COVERAGE=true BUILDTYPE=Debug
+      sudo: false
 
 before_install:
- - if [[ $(uname -s) == 'Linux' ]]; then export CXX="clang++-3.5" && export CC="clang-3.5"; fi;
  - source ./bootstrap.sh
 
 install:
- - make -j10
+ - source ./scripts/build.sh
 
 before_script:
- - make test
+ - ./scripts/coverage.sh
 
 script:
  # make sure tileinfo command works
- - ./build/Release/tileinfo examples/data/14_2620_6331.vector.pbf.z
+ - ./build/${BUILDTYPE:-Release}/tileinfo examples/data/14_2620_6331.vector.pbf.z
