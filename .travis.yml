@@ -3,17 +3,19 @@ language: c
 git:
   depth: 10
 
+sudo: false
+
 matrix:
   include:
     - os: linux
       compiler: gcc
-      env: JOBS=10 CXX=g++-4.8
-      sudo: false
+      env: JOBS=2 CXX=g++-4.9
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-4.8']
+          packages: ['g++-4.9']
     - os: linux
+      compiler: clang
       env: JOBS=10 CXX=clang++-3.5
       sudo: false
       addons:
