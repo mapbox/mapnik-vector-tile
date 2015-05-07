@@ -657,7 +657,7 @@ TEST_CASE( "vector tile multi_point encoding of actual multi_point", "should cre
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     std::string wkt;
     CHECK( mapnik::util::to_wkt(wkt, new_geom) );
-    CHECK( wkt == "MULTIPOINT(128 -128,128.711 -126.578" );
+    CHECK( wkt == "MULTIPOINT(128 -128,128.711 -126.578)" );
     CHECK( new_geom.is<mapnik::geometry::multi_point<double> >() );
 }
 
@@ -698,6 +698,9 @@ TEST_CASE( "vector tile multi_line_string encoding of actual multi_line_string",
     line2.add_coord(-100,-100);
     geom.emplace_back(std::move(line2));
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "MULTILINESTRING((128 -128,192.001 0),(120.889 -128,63.288 -256))" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::multi_line_string<double> >() );
 }
@@ -713,9 +716,9 @@ TEST_CASE( "vector tile polygon encoding", "should create vector tile with data"
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::polygon<double> >() );
-    std::string foo;
-    mapnik::util::to_wkt(foo, new_geom);
-    INFO(foo);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "POLYGON((128 -113.778,120.889 -113.778,120.889 -128,128 -128,128 -113.778))" );
 }
 
 
@@ -729,6 +732,9 @@ TEST_CASE( "vector tile multi_polygon encoding of single polygon", "should creat
     mapnik::geometry::multi_polygon<double> geom;
     geom.emplace_back(std::move(poly));
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "POLYGON((128 -113.778,120.889 -113.778,120.889 -128,128 -128,128 -113.778))" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::polygon<double> >() );
 }
@@ -775,6 +781,9 @@ TEST_CASE( "vector tile multi_polygon encoding of actual multi_polygon", "should
 TEST_CASE( "vector tile point correctly passed through simplification code path", "should create vector tile with data" ) {
     mapnik::geometry::point<double> geom(-122,48);
     mapnik::geometry::geometry<double> new_geom = round_trip(geom,500);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "POINT(41.244 -59.733)" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::point<double> >() );
 }
@@ -788,6 +797,27 @@ TEST_CASE( "vector tile line_string is simplified", "should create vector tile w
     line.add_coord(100,100);
     geom.emplace_back(std::move(line));
     mapnik::geometry::geometry<double> new_geom = round_trip(geom,500);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "LINESTRING(128 -128,192.001 0)" );
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    CHECK( new_geom.is<mapnik::geometry::line_string<double> >() );
+    auto const& line2 = mapnik::util::get<mapnik::geometry::line_string<double> >(new_geom);
+    CHECK( line2.size() == 2 );
+}
+
+TEST_CASE( "vector tile line_string is simplified when outside bounds", "should create vector tile with data" ) {
+    mapnik::geometry::multi_line_string<double> geom;
+    mapnik::geometry::line_string<double> line;
+    line.add_coord(-10000,0);
+    line.add_coord(-10000.1,0);
+    line.add_coord(100000,0);
+    geom.emplace_back(std::move(line));
+    mapnik::geometry::geometry<double> new_geom = round_trip(geom,100);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    // yep this test is weird - more of a fuzz than anything
+    CHECK( wkt == "LINESTRING(-7369.526 -128,-7113.526 -128)" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::line_string<double> >() );
     auto const& line2 = mapnik::util::get<mapnik::geometry::line_string<double> >(new_geom);
