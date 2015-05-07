@@ -64,38 +64,6 @@ std::shared_ptr<mapnik::memory_datasource> build_geojson_ds(std::string const& g
     return ds;
 }
 
-unsigned compare_images(std::string const& src_fn,
-                        std::string const& dest_fn,
-                        int threshold,
-                        bool alpha)
-{
-    boost::optional<std::string> type = mapnik::type_from_filename(dest_fn);
-    if (!type)
-    {
-        throw mapnik::image_reader_exception("Failed to detect type of: " + dest_fn);
-    }
-    std::unique_ptr<mapnik::image_reader> reader1(mapnik::get_image_reader(dest_fn,*type));
-    if (!reader1.get())
-    {
-        throw mapnik::image_reader_exception("Failed to load: " + dest_fn);
-    }
-    mapnik::image_any const& image_1 = reader1->read(0,0,reader1->width(),reader1->height());
-
-    boost::optional<std::string> type2 = mapnik::type_from_filename(src_fn);
-    if (!type2)
-    {
-        throw mapnik::image_reader_exception("Failed to detect type of: " + src_fn);
-    }
-    std::unique_ptr<mapnik::image_reader> reader2(mapnik::get_image_reader(src_fn,*type2));
-    if (!reader2.get())
-    {
-        throw mapnik::image_reader_exception("Failed to load: " + src_fn);
-    }
-    mapnik::image_any const& image_2 = reader2->read(0,0,reader2->width(),reader2->height());
-
-    return mapnik::compare(image_1,image_2,threshold,alpha);
-}
-
 unsigned compare_images(mapnik::image_rgba8 const& src1,
                         std::string const& filepath,
                         int threshold,
@@ -117,24 +85,5 @@ unsigned compare_images(mapnik::image_rgba8 const& src1,
     return mapnik::compare(src1,src2,threshold,alpha);
 }
 
-unsigned compare_images(mapnik::image_any const& image_1,
-                        std::string const& filepath,
-                        int threshold,
-                        bool alpha)
-{
-    boost::optional<std::string> type = mapnik::type_from_filename(filepath);
-    if (!type)
-    {
-        throw mapnik::image_reader_exception("Failed to detect type of: " + filepath);
-    }
-    std::unique_ptr<mapnik::image_reader> reader2(mapnik::get_image_reader(filepath,*type));
-    if (!reader2.get())
-    {
-        throw mapnik::image_reader_exception("Failed to load: " + filepath);
-    }
-    mapnik::image_any const& image_2 = reader2->read(0,0,reader2->width(),reader2->height());
-
-    return mapnik::compare(image_1,image_2,threshold,alpha);
-}
 
 } // end ns

@@ -11,7 +11,6 @@
 #include <mapnik/vertex_adapters.hpp>
 #include <mapnik/projection.hpp>
 #include <mapnik/proj_transform.hpp>
-#include <mapnik/geometry_reprojection.hpp>
 #include <mapnik/geometry_is_empty.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
 #include <mapnik/util/geometry_to_wkt.hpp>
@@ -19,7 +18,7 @@
 #include <mapnik/geometry_transform.hpp>
 #include <mapnik/geometry_strategy.hpp>
 #include <mapnik/proj_strategy.hpp>
-
+#include <mapnik/geometry.hpp>
 
 // vector output api
 #include "vector_tile_compression.hpp"
@@ -612,26 +611,6 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     return mapnik::vector_tile_impl::decode_geometry(f,0,0,scale,-1*scale);
 }
 
-/*
-auto pt2 = mapnik::util::get<mapnik::geometry::point>(geom);
-std::clog << "pt2 " << pt2.x << " " << pt2.y << "\n";
-unsigned int n_err = 0;
-mapnik::geometry::geometry projected_geom = mapnik::reproject(geom,prj_trans,n_err,true);
-auto pt1 = mapnik::util::get<mapnik::geometry::point>(projected_geom);
-CHECK( pt0.x == pt1.x );
-CHECK( pt0.y == pt1.y );
-
-mapnik::vector_tile_impl::tile_datasource ds(layer,0,0,0,tile_size);
-mapnik::featureset_ptr fs;
-
-// ensure we can query single feature
-fs = ds.features(mapnik::query(bbox));
-mapnik::feature_ptr feat = fs->next();
-auto const& geom2 = feat->get_geometry();
-auto pt3 = mapnik::util::get<mapnik::geometry::point>(geom2);
-std::clog << "pt3 " << pt3.x << " " << pt3.y << "\n";
-*/
-
 TEST_CASE( "vector tile point encoding", "should create vector tile with data" ) {
     mapnik::geometry::point<double> geom(0,0);
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
@@ -825,7 +804,6 @@ TEST_CASE( "vector tile line_string is simplified when outside bounds", "should 
     CHECK( line2.size() == 2 );
 }
 
-/*
 TEST_CASE( "vector tile from simplified geojson", "should create vector tile with data" ) {
     typedef mapnik::vector_tile_impl::backend_pbf backend_type;
     typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
@@ -865,13 +843,12 @@ TEST_CASE( "vector tile from simplified geojson", "should create vector tile wit
     mapnik::projection wgs84("+init=epsg:4326",true);
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform prj_trans(merc,wgs84);
-    mapnik::geometry::geometry projected_geom = mapnik::reproject(geom,prj_trans,n_err);
+    mapnik::geometry::geometry<double> projected_geom = mapnik::geometry::reproject(geom,prj_trans,n_err);
     //if (n_err > 0) return false;
     std::string geojson_string;
     CHECK( mapnik::util::to_geojson(geojson_string,projected_geom) );
     //std::clog << geojson_string << "\n";
 }
-*/
 
 mapnik::geometry::geometry<double> round_trip2(mapnik::geometry::geometry<double> const& geom,
                                       double simplify_distance=0.0)
