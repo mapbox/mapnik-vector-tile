@@ -110,6 +110,7 @@ TEST_CASE( "vector tile output 1", "should create vector tile with two points" )
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
+    CHECK( ren.painted() == true );
     std::string key("");
     CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
@@ -143,6 +144,7 @@ TEST_CASE( "vector tile output 2", "adding empty layers should result in empty t
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
+    CHECK( ren.painted() == false );
     std::string key("");
     CHECK(true == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
@@ -825,6 +827,7 @@ TEST_CASE( "vector tile from simplified geojson", "should create vector tile wit
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
+    CHECK( ren.painted() == true );
     CHECK(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());

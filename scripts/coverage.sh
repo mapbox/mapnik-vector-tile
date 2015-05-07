@@ -17,7 +17,7 @@ if [[ ${COVERAGE} == true ]]; then
         --gcov-options '\-lp' \
         --exclude test/catch.hpp \
         --exclude examples \
-        --exclude build/Debug/obj/gen/vector_tile.pb.cc \
+        --exclude build/Debug/obj/gen/ \
         --exclude mason_packages \
         --exclude scripts > /dev/null
 fi

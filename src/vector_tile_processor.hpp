@@ -25,11 +25,6 @@ namespace mapnik { namespace vector_tile_impl {
   that would normally come from a style's symbolizers
 */
 
-enum poly_clipper_type : std::uint8_t {
-    ANGUS_CLIPPER,
-    AGG_CLIPPER
-};
-
 template <typename T>
 class processor : private mapnik::util::noncopyable
 {
@@ -45,7 +40,6 @@ private:
     std::string image_format_;
     scaling_method_e scaling_method_;
     bool painted_;
-    poly_clipper_type poly_clipper_type_;
     double simplify_distance_;
 public:
     MAPNIK_VECTOR_INLINE processor(T & backend,
@@ -67,13 +61,6 @@ public:
     inline double get_simplify_distance() const
     {
         return simplify_distance_;
-    }
-
-    MAPNIK_VECTOR_INLINE void set_poly_clipper(poly_clipper_type clipper);
-
-    inline poly_clipper_type get_poly_clipper() const
-    {
-        return poly_clipper_type_;
     }
 
     MAPNIK_VECTOR_INLINE void apply(double scale_denom=0.0);

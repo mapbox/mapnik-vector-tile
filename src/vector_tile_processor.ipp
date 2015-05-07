@@ -34,11 +34,7 @@
 // agg
 #include "agg_path_storage.h"
 
-// agg core clipper: http://www.angusj.com/delphi/clipper.php
-//#include "agg_conv_clipper.h"
-// angus clipper
-//#include "agg_conv_clip_polygon.h"
-//#include "agg_conv_clip_polyline.h"
+// http://www.angusj.com/delphi/clipper.php
 #include "clipper.hpp"
 
 #include "agg_rendering_buffer.h"
@@ -69,7 +65,6 @@ namespace mapnik { namespace vector_tile_impl {
 template <typename T>
 struct visitor_raster_processor
 {
-public:
     typedef T backend_type;
 private:
     mapnik::raster const& source_;
@@ -617,14 +612,7 @@ processor<T>::processor(T & backend,
       image_format_(image_format),
       scaling_method_(scaling_method),
       painted_(false),
-      poly_clipper_type_(AGG_CLIPPER),
       simplify_distance_(0.0) {}
-
-template <typename T>
-void processor<T>::set_poly_clipper(poly_clipper_type clipper)
-{
-    poly_clipper_type_ = clipper;
-}
 
 template <typename T>
 void processor<T>::apply(double scale_denom)
