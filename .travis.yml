@@ -7,13 +7,14 @@ sudo: false
 
 matrix:
   include:
-    - os: linux
-      compiler: gcc
-      env: JOBS=2 CXX=g++-4.9
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-4.9']
+    # Broken: https://github.com/mapbox/mapnik-vector-tile/issues/103
+    #- os: linux
+    #  compiler: gcc
+    #  env: JOBS=2 CXX=g++-4.9
+    #  addons:
+    #    apt:
+    #      sources: ['ubuntu-toolchain-r-test']
+    #      packages: ['g++-4.9']
     - os: linux
       compiler: clang
       env: JOBS=10 CXX=clang++-3.5
