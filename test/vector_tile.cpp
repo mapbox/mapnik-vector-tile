@@ -770,7 +770,35 @@ TEST_CASE( "vector tile point correctly passed through simplification code path"
     CHECK( new_geom.is<mapnik::geometry::point<double> >() );
 }
 
+TEST_CASE( "vector tile mulit_point correctly passed through simplification code path", "should create vector tile with data" ) {
+    mapnik::geometry::multi_point<double> geom;
+    geom.emplace_back(-122,48);
+    geom.emplace_back(-123,49);
+    mapnik::geometry::geometry<double> new_geom = round_trip(geom,500);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "MULTIPOINT(41.244 -59.733,40.533 -58.311)" );
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    CHECK( new_geom.is<mapnik::geometry::multi_point<double> >() );
+}
+
 TEST_CASE( "vector tile line_string is simplified", "should create vector tile with data" ) {
+    mapnik::geometry::line_string<double> line;
+    line.add_coord(0,0);
+    line.add_coord(1,1);
+    line.add_coord(2,2);
+    line.add_coord(100,100);
+    mapnik::geometry::geometry<double> new_geom = round_trip(line,500);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "LINESTRING(128 -128,192.001 0)" );
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    CHECK( new_geom.is<mapnik::geometry::line_string<double> >() );
+    auto const& line2 = mapnik::util::get<mapnik::geometry::line_string<double> >(new_geom);
+    CHECK( line2.size() == 2 );
+}
+
+TEST_CASE( "vector tile multi_line_string is simplified", "should create vector tile with data" ) {
     mapnik::geometry::multi_line_string<double> geom;
     mapnik::geometry::line_string<double> line;
     line.add_coord(0,0);
@@ -786,6 +814,62 @@ TEST_CASE( "vector tile line_string is simplified", "should create vector tile w
     CHECK( new_geom.is<mapnik::geometry::line_string<double> >() );
     auto const& line2 = mapnik::util::get<mapnik::geometry::line_string<double> >(new_geom);
     CHECK( line2.size() == 2 );
+}
+
+TEST_CASE( "vector tile polygon is simplified", "should create vector tile with data" ) {
+    using namespace mapnik::geometry;
+    polygon<double> poly;
+    {
+        linear_ring<double> ring;
+        ring.add_coord(0,0);
+        ring.add_coord(-10,0);
+        ring.add_coord(-10,10);
+        ring.add_coord(0,10);
+        ring.add_coord(0,0);
+        poly.set_exterior_ring(std::move(ring));
+        linear_ring<double> hole;
+        hole.add_coord(-7,7);
+        hole.add_coord(-7,3);
+        hole.add_coord(-3,3);
+        hole.add_coord(-3,7);
+        hole.add_coord(-7,7);
+        poly.add_hole(std::move(hole));
+    }
+    mapnik::geometry::geometry<double> new_geom = round_trip(poly,500);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "POLYGON((128 -113.778,120.889 -113.778,120.889 -128,128 -128,128 -113.778),(125.867 -118.044,125.867 -123.733,123.022 -123.733,123.022 -118.044,125.867 -118.044))" );
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    REQUIRE( new_geom.is<mapnik::geometry::polygon<double> >() );
+}
+
+TEST_CASE( "vector tile mulit_polygon is simplified", "should create vector tile with data" ) {
+    using namespace mapnik::geometry;
+    polygon<double> poly;
+    {
+        linear_ring<double> ring;
+        ring.add_coord(0,0);
+        ring.add_coord(-10,0);
+        ring.add_coord(-10,10);
+        ring.add_coord(0,10);
+        ring.add_coord(0,0);
+        poly.set_exterior_ring(std::move(ring));
+        linear_ring<double> hole;
+        hole.add_coord(-7,7);
+        hole.add_coord(-7,3);
+        hole.add_coord(-3,3);
+        hole.add_coord(-3,7);
+        hole.add_coord(-7,7);
+        poly.add_hole(std::move(hole));
+    }
+    multi_polygon<double> mp;
+    mp.push_back(poly);
+    mapnik::geometry::geometry<double> new_geom = round_trip(mp,500);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "POLYGON((128 -113.778,120.889 -113.778,120.889 -128,128 -128,128 -113.778),(125.867 -118.044,125.867 -123.733,123.022 -123.733,123.022 -118.044,125.867 -118.044))" );
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    REQUIRE( new_geom.is<mapnik::geometry::polygon<double> >() );
 }
 
 TEST_CASE( "vector tile line_string is simplified when outside bounds", "should create vector tile with data" ) {
