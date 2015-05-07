@@ -577,10 +577,11 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
     typedef vector_tile::Tile tile_type;
     tile_type tile;
-    backend_type backend(tile,160);
+    unsigned path_multiplier = 1000;
+    backend_type backend(tile,path_multiplier);
     unsigned tile_size = 256;
-    mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
-    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::box2d<double> bbox(-180,-90,180,90);
+    mapnik::Map map(tile_size,tile_size,"+init=epsg:4326");
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req,1,0,0,0);
     // instead of calling apply, let's cheat and test `handle_geometry` directly by adding features
@@ -588,29 +589,27 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
     mapnik::projection wgs84("+init=epsg:4326",true);
-    mapnik::projection merc("+init=epsg:3857",true);
+    mapnik::projection merc("+init=epsg:4326",true);
     mapnik::proj_transform prj_trans(merc,wgs84);
     ren.set_simplify_distance(simplify_distance);
     ren.handle_geometry(*feature,geom,prj_trans,bbox);
     backend.stop_tile_layer();
     if (tile.layers_size() != 1)
     {
-        throw std::runtime_error("expected 1 layer in `round_trip`");
+        std::stringstream s;
+        s << "expected 1 layer in `round_trip` found " << tile.layers_size();
+        throw std::runtime_error(s.str());
     }
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     if (layer.features_size() != 1)
     {
-        throw std::runtime_error("expected 1 feature in `round_trip`");
+        std::stringstream s;
+        s << "expected 1 feature in `round_trip` found " << layer.features_size();
+        throw std::runtime_error(s.str());
     }
     vector_tile::Tile_Feature const& f = layer.features(0);
-    unsigned z = 0;
-    unsigned x = 0;
-    unsigned y = 0;
-    double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z);
-    double tile_x = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x * resolution;
-    double tile_y =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
-    double scale = (static_cast<double>(layer.extent()) / tile_size) * tile_size/resolution;
-    return mapnik::vector_tile_impl::decode_geometry(f,tile_x,tile_y,scale,-1*scale);
+    double scale = (double)path_multiplier;
+    return mapnik::vector_tile_impl::decode_geometry(f,0,0,scale,-1*scale);
 }
 
 /*
@@ -645,6 +644,9 @@ TEST_CASE( "vector tile multi_point encoding of single point", "should create ve
     geom.emplace_back(0,0);
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
     CHECK( !mapnik::geometry::is_empty(new_geom) );
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "POINT(128 -128)" );
     CHECK( new_geom.is<mapnik::geometry::point<double> >() );
 }
 
@@ -654,6 +656,9 @@ TEST_CASE( "vector tile multi_point encoding of actual multi_point", "should cre
     geom.emplace_back(1,1);
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
     CHECK( !mapnik::geometry::is_empty(new_geom) );
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "MULTIPOINT(128 -128,128.711 -126.578)" );
     CHECK( new_geom.is<mapnik::geometry::multi_point<double> >() );
 }
 
@@ -662,6 +667,9 @@ TEST_CASE( "vector tile line_string encoding", "should create vector tile with d
     geom.add_coord(0,0);
     geom.add_coord(100,100);
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "LINESTRING(128 -128,192.001 0)" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::line_string<double> >() );
 }
@@ -673,6 +681,9 @@ TEST_CASE( "vector tile multi_line_string encoding of single line_string", "shou
     line.add_coord(100,100);
     geom.emplace_back(std::move(line));
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "LINESTRING(128 -128,192.001 0)" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::line_string<double> >() );
 }
@@ -688,6 +699,9 @@ TEST_CASE( "vector tile multi_line_string encoding of actual multi_line_string",
     line2.add_coord(-100,-100);
     geom.emplace_back(std::move(line2));
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "MULTILINESTRING((128 -128,192.001 0),(120.889 -128,63.288 -256))" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::multi_line_string<double> >() );
 }
@@ -703,9 +717,9 @@ TEST_CASE( "vector tile polygon encoding", "should create vector tile with data"
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::polygon<double> >() );
-    std::string foo;
-    mapnik::util::to_wkt(foo, new_geom);
-    INFO(foo);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "POLYGON((128 -113.778,120.889 -113.778,120.889 -128,128 -128,128 -113.778))" );
 }
 
 
@@ -719,6 +733,9 @@ TEST_CASE( "vector tile multi_polygon encoding of single polygon", "should creat
     mapnik::geometry::multi_polygon<double> geom;
     geom.emplace_back(std::move(poly));
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "POLYGON((128 -113.778,120.889 -113.778,120.889 -128,128 -128,128 -113.778))" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::polygon<double> >() );
 }
@@ -765,6 +782,9 @@ TEST_CASE( "vector tile multi_polygon encoding of actual multi_polygon", "should
 TEST_CASE( "vector tile point correctly passed through simplification code path", "should create vector tile with data" ) {
     mapnik::geometry::point<double> geom(-122,48);
     mapnik::geometry::geometry<double> new_geom = round_trip(geom,500);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "POINT(41.244 -59.733)" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::point<double> >() );
 }
@@ -778,6 +798,27 @@ TEST_CASE( "vector tile line_string is simplified", "should create vector tile w
     line.add_coord(100,100);
     geom.emplace_back(std::move(line));
     mapnik::geometry::geometry<double> new_geom = round_trip(geom,500);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "LINESTRING(128 -128,192.001 0)" );
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    CHECK( new_geom.is<mapnik::geometry::line_string<double> >() );
+    auto const& line2 = mapnik::util::get<mapnik::geometry::line_string<double> >(new_geom);
+    CHECK( line2.size() == 2 );
+}
+
+TEST_CASE( "vector tile line_string is simplified when outside bounds", "should create vector tile with data" ) {
+    mapnik::geometry::multi_line_string<double> geom;
+    mapnik::geometry::line_string<double> line;
+    line.add_coord(-10000,0);
+    line.add_coord(-10000.1,0);
+    line.add_coord(100000,0);
+    geom.emplace_back(std::move(line));
+    mapnik::geometry::geometry<double> new_geom = round_trip(geom,100);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    // yep this test is weird - more of a fuzz than anything
+    CHECK( wkt == "LINESTRING(-7369.526 -128,-7113.526 -128)" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::line_string<double> >() );
     auto const& line2 = mapnik::util::get<mapnik::geometry::line_string<double> >(new_geom);

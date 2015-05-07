@@ -28,10 +28,8 @@
 #include <mapnik/geometry_is_empty.hpp>
 #include <mapnik/geometry_envelope.hpp>
 #include <mapnik/geometry_adapters.hpp>
-#include <mapnik/geometry_correct.hpp>
 #include <mapnik/geometry_strategy.hpp>
 #include <mapnik/geometry_transform.hpp>
-#include <boost/geometry/algorithms/unique.hpp>
 
 // agg
 #include "agg_path_storage.h"
@@ -50,6 +48,7 @@
 
 #include <boost/optional.hpp>
 #include <boost/geometry/algorithms/simplify.hpp>
+#include <boost/geometry/algorithms/intersection.hpp>
 
 #include <iostream>
 #include <string>
@@ -949,80 +948,63 @@ struct encoder_visitor {
     {
         unsigned path_count = 0;
         if (geom.size() < 2) return 0;
-        mapnik::geometry::line_string<std::int64_t> clip_box;
+        std::deque<mapnik::geometry::line_string<int64_t>> result;
+        mapnik::geometry::linear_ring<std::int64_t> clip_box;
         clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
         clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.miny());
         clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.maxy());
         clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.maxy());
         clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
-        ClipperLib::Clipper clipper;
-        //clipper.StrictlySimple(true);
-        if (!clipper.AddPath(geom, ClipperLib::ptSubject, false))
+        boost::geometry::intersection(clip_box,geom,result);
+        if (!result.empty())
         {
-            return 0;
+            backend_.start_tile_feature(feature_);
+            backend_.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
+            for (auto const& ls : result)
+            {
+                path_count += backend_.add_path(ls);
+            }
+            backend_.stop_tile_feature();
         }
-        if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
-        {
-            return 0;
-        }
-        ClipperLib::PolyTree polylines;
-        mapnik::geometry::multi_line_string<std::int64_t> output_mls;
-        clipper.Execute(ClipperLib::ctIntersection, polylines); //, ClipperLib::pftNonZero);
-        ClipperLib::OpenPathsFromPolyTree(polylines, output_mls);
-        if (output_mls.empty())
-        {
-            return 0;
-        }
-        backend_.start_tile_feature(feature_);
-        backend_.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
-        for (auto const& ls : output_mls)
-        {
-            path_count += backend_.add_path(ls);
-        }
-        backend_.stop_tile_feature();
         return path_count;
     }
 
     unsigned operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom)
     {
         unsigned path_count = 0;
-        if (geom.empty()) return 0;
-        mapnik::geometry::line_string<std::int64_t> clip_box;
+        mapnik::geometry::linear_ring<std::int64_t> clip_box;
         clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
         clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.miny());
         clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.maxy());
         clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.maxy());
         clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
-        ClipperLib::Clipper clipper;
-        //clipper.StrictlySimple(true);
-        for (auto const& ls : geom)
+        bool first = true;
+        for (auto const& line : geom)
         {
-            if (ls.size() < 2) continue; 
-            if (!clipper.AddPath(ls, ClipperLib::ptSubject, false))
+            if (line.size() < 2)
             {
-                continue;
+               continue;
+            }
+            std::deque<mapnik::geometry::line_string<int64_t>> result;
+            boost::geometry::intersection(clip_box,line,result);
+            if (!result.empty())
+            {
+                if (first)
+                {
+                    first = false;
+                    backend_.start_tile_feature(feature_);
+                    backend_.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
+                }
+                for (auto const& ls : result)
+                {
+                    path_count += backend_.add_path(ls);
+                }
             }
         }
-        if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+        if (!first)
         {
-            return 0;
+            backend_.stop_tile_feature();
         }
-        ClipperLib::PolyTree polylines;
-        mapnik::geometry::multi_line_string<std::int64_t> output_mls;
-        clipper.Execute(ClipperLib::ctIntersection, polylines); //, ClipperLib::pftNonZero);
-        ClipperLib::OpenPathsFromPolyTree(polylines, output_mls);
-        clipper.Clear();
-        if (output_mls.empty())
-        {
-            return 0;
-        }
-        backend_.start_tile_feature(feature_);
-        backend_.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
-        for (auto const& ls : output_mls)
-        {
-            path_count += backend_.add_path(ls);
-        }
-        backend_.stop_tile_feature();
         return path_count;
     }
 
