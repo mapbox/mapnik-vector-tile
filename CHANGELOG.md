@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0
+
+ - Now using `boost::geometry` to clip lines and `ClipperLib` to clip polygons
+ - Now splitting geometry collections into multiple features
+ - Updated to new Mapnik 3.x geometry storage
+ - Added support for simplifying geometries using `boost::geometry::simplify`
+ - Added `area_threshold` option to throw out small polygons
+
 ## 0.7.1
 
  - Minor build fixes
