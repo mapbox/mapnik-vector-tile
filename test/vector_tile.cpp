@@ -569,7 +569,7 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
         ring.add_coord(168.267850,-24.576888);
         geom.set_exterior_ring(std::move(ring));
     }
-    mapnik::geometry::scale_strategy scale_strat(backend.get_path_multiplier(), 0.5);
+    mapnik::geometry::scale_rounding_strategy scale_strat(backend.get_path_multiplier());
     mapnik::geometry::polygon<std::int64_t> poly = mapnik::geometry::transform<std::int64_t>(geom, scale_strat);
     std::string foo;
     mapnik::util::to_wkt(foo, poly);
@@ -667,7 +667,7 @@ TEST_CASE( "vector tile line_string encoding", "should create vector tile with d
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
     std::string wkt;
     CHECK( mapnik::util::to_wkt(wkt, new_geom) );
-    CHECK( wkt == "LINESTRING(128 -128,192.001 0)" );
+    CHECK( wkt == "LINESTRING(128 -128,192 0)" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::line_string<double> >() );
 }
@@ -681,7 +681,7 @@ TEST_CASE( "vector tile multi_line_string encoding of single line_string", "shou
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
     std::string wkt;
     CHECK( mapnik::util::to_wkt(wkt, new_geom) );
-    CHECK( wkt == "LINESTRING(128 -128,192.001 0)" );
+    CHECK( wkt == "LINESTRING(128 -128,192 0)" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::line_string<double> >() );
 }
@@ -699,7 +699,7 @@ TEST_CASE( "vector tile multi_line_string encoding of actual multi_line_string",
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
     std::string wkt;
     CHECK( mapnik::util::to_wkt(wkt, new_geom) );
-    CHECK( wkt == "MULTILINESTRING((128 -128,192.001 0),(120.889 -128,63.288 -256))" );
+    CHECK( wkt == "MULTILINESTRING((128 -128,192 0),(120.889 -128,63.288 -256))" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::multi_line_string<double> >() );
 }
@@ -808,7 +808,7 @@ TEST_CASE( "vector tile line_string is simplified", "should create vector tile w
     mapnik::geometry::geometry<double> new_geom = round_trip(line,500);
     std::string wkt;
     CHECK( mapnik::util::to_wkt(wkt, new_geom) );
-    CHECK( wkt == "LINESTRING(128 -128,192.001 0)" );
+    CHECK( wkt == "LINESTRING(128 -128,192 0)" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::line_string<double> >() );
     auto const& line2 = mapnik::util::get<mapnik::geometry::line_string<double> >(new_geom);
@@ -826,7 +826,7 @@ TEST_CASE( "vector tile multi_line_string is simplified", "should create vector 
     mapnik::geometry::geometry<double> new_geom = round_trip(geom,500);
     std::string wkt;
     CHECK( mapnik::util::to_wkt(wkt, new_geom) );
-    CHECK( wkt == "LINESTRING(128 -128,192.001 0)" );
+    CHECK( wkt == "LINESTRING(128 -128,192 0)" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::line_string<double> >() );
     auto const& line2 = mapnik::util::get<mapnik::geometry::line_string<double> >(new_geom);
@@ -1028,7 +1028,7 @@ TEST_CASE( "vector tile line_string is verify direction", "should line string wi
     mapnik::geometry::geometry<double> xgeom = mapnik::geometry::transform<double>(new_geom, proj_strat);
     std::string wkt;
     mapnik::util::to_wkt(wkt, xgeom);
-    CHECK( wkt == "MULTILINESTRING((0 1.99992945603165,2.00006103515625 1.99992945603165,2.00006103515625 0),(7.99996948242188 0,7.99996948242188 1.99992945603165,59.9999084472656 1.99992945603165,59.9999084472656 7.99994115658818,7.99996948242188 7.99994115658818,7.99996948242188 59.9998101102059,2.00006103515625 59.9998101102059,2.00006103515625 7.99994115658817,0.0000000000000005 7.99994115658817))" );
+    CHECK( wkt == "MULTILINESTRING((0 1.99992945603165,2.00006103515625 1.99992945603165,2.00006103515625 0),(7.99996948242188 0,7.99996948242188 1.99992945603165,59.9999084472656 1.99992945603165,59.9999084472656 7.99994115658818,7.99996948242188 7.99994115658818,7.99996948242188 59.9999474398107,2.00006103515625 59.9999474398107,2.00006103515625 7.99994115658818,0.0000000000000005 7.99994115658818))" );
     REQUIRE( !mapnik::geometry::is_empty(xgeom) );
     REQUIRE( new_geom.is<mapnik::geometry::multi_line_string<double> >() );
     auto const& line2 = mapnik::util::get<mapnik::geometry::multi_line_string<double> >(new_geom);

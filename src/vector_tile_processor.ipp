@@ -1251,10 +1251,10 @@ unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
 {
     mapnik::proj_backward_strategy proj_strat(prj_trans);
     mapnik::view_strategy view_strat(t_);
-    mapnik::geometry::scale_strategy scale_strat(backend_.get_path_multiplier(), 0.5);
+    mapnik::geometry::scale_rounding_strategy scale_strat(backend_.get_path_multiplier());
     using sg_type = mapnik::geometry::strategy_group<mapnik::proj_backward_strategy, 
                                                      mapnik::view_strategy, 
-                                                     mapnik::geometry::scale_strategy >;
+                                                     mapnik::geometry::scale_rounding_strategy >;
     sg_type sg(proj_strat, view_strat, scale_strat);
     mapnik::geometry::point<double> p1_min(buffered_query_ext.minx(), buffered_query_ext.miny());
     mapnik::geometry::point<double> p1_max(buffered_query_ext.maxx(), buffered_query_ext.maxy());
