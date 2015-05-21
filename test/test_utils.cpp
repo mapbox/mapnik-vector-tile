@@ -53,6 +53,7 @@ std::shared_ptr<mapnik::memory_datasource> build_geojson_ds(std::string const& g
     {
         throw std::runtime_error("failed to parse geojson");
     }
+    mapnik::geometry::correct(geom);
     mapnik::parameters params;
     params["type"] = "memory";
     std::shared_ptr<mapnik::memory_datasource> ds = std::make_shared<mapnik::memory_datasource>(params);
