@@ -8,7 +8,6 @@
 #include <mapnik/datasource.hpp>
 #include <mapnik/projection.hpp>
 #include <mapnik/proj_transform.hpp>
-#include <mapnik/proj_strategy.hpp>
 #include <mapnik/scale_denominator.hpp>
 #include <mapnik/attribute_descriptor.hpp>
 #include <mapnik/feature_layer_desc.hpp>
@@ -22,13 +21,11 @@
 #include <mapnik/image_scaling.hpp>
 #include <mapnik/image_compositing.hpp>
 #include <mapnik/view_transform.hpp>
-#include <mapnik/view_strategy.hpp>
 #include <mapnik/util/noncopyable.hpp>
 #include <mapnik/transform_path_adapter.hpp>
 #include <mapnik/geometry_is_empty.hpp>
 #include <mapnik/geometry_envelope.hpp>
 #include <mapnik/geometry_adapters.hpp>
-#include <mapnik/geometry_strategy.hpp>
 #include <mapnik/geometry_transform.hpp>
 
 // agg
@@ -797,29 +794,12 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
                 feature = features->next();
                 continue;
             }
-            if (geom.is<mapnik::geometry::geometry_collection<double> >())
+            if (handle_geometry(*feature,
+                                geom,
+                                prj_trans,
+                                buffered_query_ext) > 0)
             {
-                auto const& collection = mapnik::util::get<mapnik::geometry::geometry_collection<double> >(geom);
-                for (auto const& part : collection)
-                {
-                    if (handle_geometry(*feature,
-                                        part,
-                                        prj_trans,
-                                        buffered_query_ext) > 0)
-                    {
-                        painted_ = true;
-                    }
-                }
-            }
-            else
-            {
-                if (handle_geometry(*feature,
-                                    geom,
-                                    prj_trans,
-                                    buffered_query_ext) > 0)
-                {
-                    painted_ = true;
-                }
+                painted_ = true;
             }
             feature = features->next();
         }
@@ -886,10 +866,14 @@ struct encoder_visitor {
         return 0;
     }
 
-    unsigned operator() (mapnik::geometry::geometry_collection<std::int64_t> const& geom)
+    unsigned operator() (mapnik::geometry::geometry_collection<std::int64_t> & geom)
     {
-        //throw std::runtime_error("geometry_collections not supported in encoder_visitor");
-        return 0;
+        unsigned count = 0;
+        for (auto & g : geom)
+        {
+            count += mapnik::util::apply_visitor((*this), g);
+        }
+        return count;
     }
 
     unsigned operator() (mapnik::geometry::point<std::int64_t> const& geom)
@@ -1230,8 +1214,12 @@ struct simplify_visitor {
 
     unsigned operator() (mapnik::geometry::geometry_collection<std::int64_t> const& geom)
     {
-        //throw std::runtime_error("geometry_collection not supported in simplify_visitor");
-        return 0;
+        unsigned count = 0;
+        for (auto const& g : geom)
+        {
+            count += mapnik::util::apply_visitor((*this), g);
+        }
+        return count;
     }
 
     unsigned operator() (mapnik::geometry::geometry_empty const& geom)

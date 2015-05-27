@@ -540,25 +540,11 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
 // ported from shapefile test in tilelive-bridge (a:should render a (1.0.1))
 TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
     unsigned path_multiplier = 16;
-    //unsigned tolerance = 5;
     vector_tile::Tile tile;
     mapnik::vector_tile_impl::backend_pbf backend(tile,path_multiplier);
     backend.start_tile_layer("layer");
     mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
     backend.start_tile_feature(*feature);
-    /*
-    std::unique_ptr<mapnik::geometry_type> g(new mapnik::geometry_type(mapnik::geometry_type::types::Polygon));
-    g->move_to(168.267850,-24.576888);
-    g->line_to(167.982618,-24.697145);
-    g->line_to(168.114561,-24.783548);
-    g->line_to(168.267850,-24.576888);
-    g->line_to(168.267850,-24.576888);
-    g->close_path();
-    //g->push_vertex(256.000000,-0.00000, mapnik::SEG_CLOSE);
-    // todo - why does shape_io result in on-zero close path x,y?
-    mapnik::vertex_adapter va(*g);
-    backend.add_path(va, tolerance, g->type());
-    */
     mapnik::geometry::polygon<double> geom;
     {
         mapnik::geometry::linear_ring<double> ring;
@@ -634,6 +620,35 @@ TEST_CASE( "vector tile point encoding", "should create vector tile with data" )
     mapnik::geometry::point<double> geom(0,0);
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
     CHECK( !mapnik::geometry::is_empty(new_geom) );
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "POINT(128 -128)" );
+    CHECK( new_geom.is<mapnik::geometry::point<double> >() );
+}
+
+TEST_CASE( "vector tile geometry collection encoding", "should create vector tile with data" ) {
+    mapnik::geometry::point<double> geom_p(0,0);
+    mapnik::geometry::geometry_collection<double> geom;
+    geom.push_back(geom_p);
+    mapnik::geometry::geometry<double> new_geom = round_trip(geom);
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "POINT(128 -128)" );
+    CHECK( new_geom.is<mapnik::geometry::point<double> >() );
+}
+
+TEST_CASE( "vector tile geometry collection encoding x2", "should create vector tile with data" ) {
+    mapnik::geometry::point<double> geom_p(0,0);
+    mapnik::geometry::geometry_collection<double> geom_t;
+    geom_t.push_back(geom_p);
+    mapnik::geometry::geometry_collection<double> geom;
+    geom.push_back(std::move(geom_t));
+    mapnik::geometry::geometry<double> new_geom = round_trip(geom);
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "POINT(128 -128)" );
     CHECK( new_geom.is<mapnik::geometry::point<double> >() );
 }
 
