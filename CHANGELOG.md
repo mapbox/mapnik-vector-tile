@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1
+
+ - Added mapnik vector tile strategy for transform
+ - Updated test cases
+
 ## 0.8.0
 
  - Now using `boost::geometry` to clip lines and `ClipperLib` to clip polygons

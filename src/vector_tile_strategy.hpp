@@ -62,8 +62,8 @@ struct vector_tile_strategy
         tr_.forward(&x,&y);
         x = x * scaling_;
         y = y * scaling_;
-        x = std::floor(x + 0.5);
-        y = std::floor(y + 0.5);
+        x = std::round(x);
+        y = std::round(y);
         boost::geometry::set<0>(p2, static_cast<p2_type>(x));
         boost::geometry::set<1>(p2, static_cast<p2_type>(y));
         return true;
