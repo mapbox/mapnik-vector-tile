@@ -302,7 +302,7 @@ inline mapnik::geometry::geometry<double> decode_geometry(vector_tile::Tile_Feat
         else if (num_poly == 1)
         {
             auto itr = std::make_move_iterator(multi_poly.begin());
-            geom = std::move(mapnik::geometry::polygon<double>(std::move(*itr)));
+            geom = mapnik::geometry::polygon<double>(std::move(*itr));
             return geom;
         }
         else
