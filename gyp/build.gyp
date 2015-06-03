@@ -34,7 +34,8 @@
         "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc"
       ],
       'include_dirs': [
-        '<(SHARED_INTERMEDIATE_DIR)/'
+        '<(SHARED_INTERMEDIATE_DIR)/',
+        '../deps/clipper'
       ],
       'cflags_cc' : [
           '-D_THREAD_SAFE',
@@ -48,7 +49,8 @@
       },
       'direct_dependent_settings': {
         'include_dirs': [
-          '<(SHARED_INTERMEDIATE_DIR)/'
+          '<(SHARED_INTERMEDIATE_DIR)/',
+          '../deps/clipper'
         ],
         'libraries':[
           '-lprotobuf-lite'
