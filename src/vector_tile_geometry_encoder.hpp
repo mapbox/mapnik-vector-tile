@@ -21,8 +21,8 @@ inline unsigned encode_geometry(mapnik::geometry::point<std::int64_t> const& pt,
     int32_t dx = pt.x - start_x;
     int32_t dy = pt.y - start_y;
     // Manual zigzag encoding.
-    current_feature.add_geometry((dx << 1) ^ (dx >> 31));
-    current_feature.add_geometry((dy << 1) ^ (dy >> 31));
+    current_feature.add_geometry((static_cast<unsigned>(dx) << 1) ^ (dx >> 31));
+    current_feature.add_geometry((static_cast<unsigned>(dy) << 1) ^ (dy >> 31));
     start_x = pt.x;
     start_y = pt.y;
     return 1;
@@ -57,8 +57,8 @@ inline unsigned encode_geometry(mapnik::geometry::line_string<std::int64_t> cons
         int32_t dx = pt.x - start_x;
         int32_t dy = pt.y - start_y;
         // Manual zigzag encoding.
-        current_feature.add_geometry((dx << 1) ^ (dx >> 31));
-        current_feature.add_geometry((dy << 1) ^ (dy >> 31));
+        current_feature.add_geometry((static_cast<unsigned>(dx) << 1) ^ (dx >> 31));
+        current_feature.add_geometry((static_cast<unsigned>(dy) << 1) ^ (dy >> 31));
         start_x = pt.x;
         start_y = pt.y;
     }
@@ -109,8 +109,8 @@ inline unsigned encode_geometry(mapnik::geometry::linear_ring<std::int64_t> cons
         int32_t dx = pt.x - start_x;
         int32_t dy = pt.y - start_y;
         // Manual zigzag encoding.
-        current_feature.add_geometry((dx << 1) ^ (dx >> 31));
-        current_feature.add_geometry((dy << 1) ^ (dy >> 31));
+        current_feature.add_geometry((static_cast<unsigned>(dx) << 1) ^ (dx >> 31));
+        current_feature.add_geometry((static_cast<unsigned>(dy) << 1) ^ (dy >> 31));
         start_x = pt.x;
         start_y = pt.y;
         ++count;
