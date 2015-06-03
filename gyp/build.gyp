@@ -71,6 +71,9 @@
       "sources": [
         "<!@(find ../src/ -name '*.cpp')"
       ],
+      "include_dirs": [
+        "../deps/pbf"
+      ],
       'defines' : [
         'MAPNIK_VECTOR_TILE_LIBRARY=1'
       ],
@@ -119,7 +122,8 @@
         "<!@(find ../test/ -name '*.cpp')"
       ],
       "include_dirs": [
-        "../src"
+        "../src",
+        "../deps/pbf"
       ]
     },
     {
