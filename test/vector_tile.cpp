@@ -613,7 +613,9 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     }
     vector_tile::Tile_Feature const& f = layer.features(0);
     double scale = (double)path_multiplier;
-    return mapnik::vector_tile_impl::decode_geometry(f,0,0,scale,-1*scale);
+
+    mapnik::vector_tile_impl::Geometry geoms(f,0,0,scale,-1*scale);
+    return mapnik::vector_tile_impl::decode_geometry(geoms, f.type());
 }
 
 TEST_CASE( "vector tile point encoding", "should create vector tile with data" ) {
@@ -953,7 +955,8 @@ TEST_CASE( "vector tile from simplified geojson", "should create vector tile wit
     double tile_x = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x * resolution;
     double tile_y =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
     double scale = (static_cast<double>(layer.extent()) / tile_size) * tile_size/resolution;
-    auto geom = mapnik::vector_tile_impl::decode_geometry(f,tile_x,tile_y,scale,-1*scale);
+    mapnik::vector_tile_impl::Geometry geoms(f,tile_x, tile_y,scale,-1*scale);
+    auto geom = mapnik::vector_tile_impl::decode_geometry(geoms,f.type());
 
     unsigned int n_err = 0;
     mapnik::projection wgs84("+init=epsg:4326",true);
@@ -1012,7 +1015,8 @@ mapnik::geometry::geometry<double> round_trip2(mapnik::geometry::geometry<double
     double tile_x = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x * resolution;
     double tile_y =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
     double scale = (static_cast<double>(layer.extent()) / tile_size) * tile_size/resolution;
-    return mapnik::vector_tile_impl::decode_geometry(f,tile_x,tile_y,scale,-1*scale);
+    mapnik::vector_tile_impl::Geometry geoms(f,tile_x, tile_y,scale,-1*scale);
+    return mapnik::vector_tile_impl::decode_geometry(geoms,f.type());
 }
 
 TEST_CASE( "vector tile line_string is verify direction", "should line string with proper directions" ) {

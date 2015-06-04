@@ -35,7 +35,8 @@
       ],
       'include_dirs': [
         '<(SHARED_INTERMEDIATE_DIR)/',
-        '../deps/clipper'
+        '../deps/clipper',
+        '../deps/pbf'
       ],
       'cflags_cc' : [
           '-D_THREAD_SAFE',
@@ -50,7 +51,8 @@
       'direct_dependent_settings': {
         'include_dirs': [
           '<(SHARED_INTERMEDIATE_DIR)/',
-          '../deps/clipper'
+          '../deps/clipper',
+          '../deps/pbf'
         ],
         'libraries':[
           '-lprotobuf-lite'
@@ -72,9 +74,6 @@
       "type": "static_library",
       "sources": [
         "<!@(find ../src/ -name '*.cpp')"
-      ],
-      "include_dirs": [
-        "../deps/pbf"
       ],
       'defines' : [
         'MAPNIK_VECTOR_TILE_LIBRARY=1'

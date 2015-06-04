@@ -190,7 +190,8 @@ namespace mapnik { namespace vector_tile_impl {
                 {
                     continue;
                 }
-                mapnik::geometry::geometry<double> geom = decode_geometry(f,tile_x_,tile_y_,scale_,-1*scale_);
+                mapnik::vector_tile_impl::Geometry geoms(f,tile_x_, tile_y_, scale_, -1*scale_);
+                mapnik::geometry::geometry<double> geom = decode_geometry(geoms, f.type());
                 if (geom.is<mapnik::geometry::geometry_empty>())
                 {
                     continue;

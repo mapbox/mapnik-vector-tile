@@ -1,5 +1,5 @@
 #include "vector_tile_projection.hpp"
-#include "vector_tile_geometry_decoder_pbf.hpp"
+#include "vector_tile_geometry_decoder.hpp"
 
 #include <mapnik/box2d.hpp>
 #include <mapnik/coord.hpp>
@@ -203,7 +203,8 @@ namespace mapnik { namespace vector_tile_impl {
                         case 4:
                             {
                                 std::pair< mapbox::util::pbf::const_uint32_iterator, mapbox::util::pbf::const_uint32_iterator > geom_itr = f.packed_uint32();
-                                mapnik::geometry::geometry<double> geom = decode_geometry_pbf(geom_itr, geometry_type, tile_x_,tile_y_,scale_,-1*scale_);
+                                mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr, tile_x_,tile_y_,scale_,-1*scale_);
+                                mapnik::geometry::geometry<double> geom = decode_geometry(geoms, geometry_type);
                                 if (geom.is<mapnik::geometry::geometry_empty>())
                                 {
                                     continue;
