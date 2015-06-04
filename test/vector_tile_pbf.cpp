@@ -36,6 +36,10 @@
 #include "vector_tile_datasource_pbf.hpp"
 #include "pbf_reader.hpp"
 
+#include <string>
+#include <fstream>
+#include <streambuf>
+
 TEST_CASE( "pbf vector tile input", "should be able to parse message and render point" ) {
     typedef mapnik::vector_tile_impl::backend_pbf backend_type;
     typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
@@ -55,7 +59,7 @@ TEST_CASE( "pbf vector tile input", "should be able to parse message and render 
     // serialize to message
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(52 == buffer.size());
+    CHECK(151 == buffer.size());
     // now create new objects
     mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
     tile_type tile2;
@@ -82,7 +86,13 @@ TEST_CASE( "pbf vector tile input", "should be able to parse message and render 
     CHECK( ds->get_geometry_type() == mapnik::datasource_geometry_t::Collection );
     mapnik::layer_descriptor lay_desc = ds->get_descriptor();
     std::vector<std::string> expected_names;
+    expected_names.push_back("bool");
+    expected_names.push_back("boolf");
+    expected_names.push_back("double");
+    expected_names.push_back("float");
+    expected_names.push_back("int");
     expected_names.push_back("name");
+    expected_names.push_back("uint");
     std::vector<std::string> names;
     for (auto const& desc : lay_desc.get_descriptors())
     {
@@ -354,6 +364,7 @@ TEST_CASE( "pbf decoding some truncated buffers", "should throw exception" ) {
           mapnik::featureset_ptr fs;
           mapnik::feature_ptr f_ptr;
           fs = ds.features(mapnik::query(bbox));
+          f_ptr = fs->next();
           while (f_ptr != mapnik::feature_ptr()) {
               f_ptr = fs->next();
           }
@@ -510,4 +521,36 @@ TEST_CASE( "pbf raster tile output", "should be able to overzoom raster" ) {
     if (diff > 0) {
         mapnik::save_to_file(im,"test/fixtures/actual-3.png","png32");
     }
+}
+
+TEST_CASE("Check that we throw on various valid-but-we-don't-handle PBF encoded files","Should be throwing exceptions")
+{
+    std::vector<std::string> filenames = {"test/data/tile_with_extra_feature_field.pbf",
+                                          "test/data/tile_with_extra_layer_fields.pbf",
+                                          "test/data/tile_with_invalid_layer_value_type.pbf",
+                                          "test/data/tile_with_unexpected_geomtype.pbf"};
+
+    for (auto f : filenames) {
+
+      CHECK_THROWS({
+        std::ifstream t = std::ifstream(f);
+        std::string buffer((std::istreambuf_iterator<char>(t)),
+                            std::istreambuf_iterator<char>());
+
+        mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
+        unsigned tile_size = 256;
+          mapbox::util::pbf pbf_tile(buffer.c_str(), buffer.size());
+          pbf_tile.next();
+          mapbox::util::pbf layer2 = pbf_tile.get_message();
+          mapnik::vector_tile_impl::tile_datasource_pbf ds(layer2,0,0,0,tile_size);
+          mapnik::featureset_ptr fs;
+          mapnik::feature_ptr f_ptr;
+          fs = ds.features(mapnik::query(bbox));
+          f_ptr = fs->next();
+          while (f_ptr != mapnik::feature_ptr()) {
+              f_ptr = fs->next();
+          }
+      });
+   }
+
 }

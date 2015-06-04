@@ -149,6 +149,15 @@ namespace mapnik { namespace vector_tile_impl {
                             break;
                         case 3:
                             geometry_type = f.get_enum();
+                            switch (geometry_type)
+                            {
+                              case 1: //vector_tile::Tile_GeomType_POINT
+                              case 2: // vector_tile::Tile_GeomType_LINESTRING
+                              case 3: // vector_tile::Tile_GeomType_POLYGON
+                                break;
+                              default:  // vector_tile::Tile_GeomType_UNKNOWN or any other value
+                                throw std::runtime_error("unknown geometry type " + std::to_string(geometry_type) + " in feature");
+                            }
                             break;
                         case 5:
                             {
@@ -225,7 +234,7 @@ namespace mapnik { namespace vector_tile_impl {
                             //        However, if we're fed a corrupt file (or random data), we don't
                             //        want to just blindly follow the bytes, so we have made the decision
                             //        to abort cleanly, rather than doing GIGO.
-                            throw std::runtime_error("unknown field type in feature");
+                            throw std::runtime_error("unknown field type " + std::to_string(f.tag()) +" in feature");
 
                     }
                 }
@@ -312,7 +321,7 @@ namespace mapnik { namespace vector_tile_impl {
                                 layer_values_.push_back(val_msg.get_bool());
                                 break;
                             default:
-                                throw std::runtime_error("unknown attribute type in layer");
+                                throw std::runtime_error("unknown Value type " + std::to_string(layer_.tag()) + " in layer.values");
                         }
                     }
                     break;
@@ -323,7 +332,7 @@ namespace mapnik { namespace vector_tile_impl {
                     layer_.skip();
                     break;
                 default:
-                    throw std::runtime_error("unknown PBF field in layer");
+                    throw std::runtime_error("unknown field type " + std::to_string(layer_.tag()) + " in layer");
             }
         }
         scale_ = (static_cast<double>(layer_extent_) / tile_size_) * tile_size_/resolution;

@@ -30,6 +30,12 @@ std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool seco
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
     mapnik::transcoder tr("utf-8");
     feature->put("name",tr.transcode("null island"));
+    feature->put_new("int",static_cast<int64_t>(-73));
+    feature->put_new("uint",static_cast<uint64_t>(37));
+    feature->put_new("float",static_cast<float>(99.2));
+    feature->put_new("double",static_cast<double>(83.4));
+    feature->put_new("bool",true);
+    feature->put_new("boolf",false);
     feature->set_geometry(mapnik::geometry::point<double>(x,y));
     ds->push(feature);
     if (second) {
