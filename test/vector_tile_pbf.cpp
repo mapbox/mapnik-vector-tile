@@ -19,6 +19,7 @@
 #include <mapnik/geometry_strategy.hpp>
 #include <mapnik/proj_strategy.hpp>
 #include <mapnik/geometry.hpp>
+#include <mapnik/datasource_cache.hpp>
 
 #include <boost/optional/optional_io.hpp>
 
@@ -425,4 +426,88 @@ TEST_CASE( "pbf vector tile from simplified geojson", "should create vector tile
       }
     }
     REQUIRE( found );
+}
+
+
+TEST_CASE( "pbf raster tile output", "should be able to overzoom raster" ) {
+    mapnik::datasource_cache::instance().register_datasources(MAPNIK_PLUGINDIR);
+    typedef vector_tile::Tile tile_type;
+    tile_type tile;
+    {
+        typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+        typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+        double minx,miny,maxx,maxy;
+        mapnik::vector_tile_impl::spherical_mercator merc(256);
+        merc.xyz(0,0,0,minx,miny,maxx,maxy);
+        mapnik::box2d<double> bbox(minx,miny,maxx,maxy);
+        backend_type backend(tile,16);
+        mapnik::Map map(256,256,"+init=epsg:3857");
+        map.set_buffer_size(1024);
+        mapnik::layer lyr("layer",map.srs());
+        mapnik::parameters params;
+        params["type"] = "gdal";
+        std::ostringstream s;
+        s << std::fixed << std::setprecision(16)
+          << bbox.minx() << ',' << bbox.miny() << ','
+          << bbox.maxx() << ',' << bbox.maxy();
+        params["extent"] = s.str();
+        params["file"] = "test/data/256x256.png";
+        std::shared_ptr<mapnik::datasource> ds =
+            mapnik::datasource_cache::instance().create(params);
+        lyr.set_datasource(ds);
+        map.add_layer(lyr);
+        mapnik::request m_req(256,256,bbox);
+        m_req.set_buffer_size(map.buffer_size());
+        renderer_type ren(backend,map,m_req,1.0,0,0,1,"jpeg",mapnik::SCALING_BILINEAR);
+        ren.apply();
+    }
+    // Done creating test data, now test created tile
+    CHECK(1 == tile.layers_size());
+    vector_tile::Tile_Layer const& layer = tile.layers(0);
+    CHECK(std::string("layer") == layer.name());
+    CHECK(1 == layer.features_size());
+    vector_tile::Tile_Feature const& f = layer.features(0);
+    CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
+    CHECK(0 == f.geometry_size());
+    CHECK(f.has_raster());
+    std::string const& ras_buffer = f.raster();
+    CHECK(!ras_buffer.empty());
+
+    // confirm tile looks correct as encoded
+    std::string buffer;
+    CHECK(tile.SerializeToString(&buffer));
+
+    mapbox::util::pbf pbf_tile(buffer.c_str(), buffer.size());
+    pbf_tile.next();
+    mapbox::util::pbf layer2 = pbf_tile.get_message();
+
+    // now read back and render image at larger size
+    // and zoomed in
+    double minx,miny,maxx,maxy;
+    mapnik::vector_tile_impl::spherical_mercator merc(256);
+    // 2/0/1.png
+    merc.xyz(0,1,2,minx,miny,maxx,maxy);
+    mapnik::box2d<double> bbox(minx,miny,maxx,maxy);
+    mapnik::Map map2(256,256,"+init=epsg:3857");
+    map2.set_buffer_size(1024);
+    mapnik::layer lyr2("layer",map2.srs());
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds2 = std::make_shared<
+                                    mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                        layer2,0,0,0,256);
+    lyr2.set_datasource(ds2);
+    lyr2.add_style("style");
+    map2.add_layer(lyr2);
+    mapnik::load_map(map2,"test/data/raster_style.xml");
+    map2.zoom_to_box(bbox);
+    mapnik::image_rgba8 im(map2.width(),map2.height());
+    mapnik::agg_renderer<mapnik::image_rgba8> ren2(map2,im);
+    ren2.apply();
+    if (!mapnik::util::exists("test/fixtures/expected-3.png")) {
+        mapnik::save_to_file(im,"test/fixtures/expected-3.png","png32");
+    }
+    unsigned diff = testing::compare_images(im,"test/fixtures/expected-3.png");
+    CHECK(0 == diff);
+    if (diff > 0) {
+        mapnik::save_to_file(im,"test/fixtures/actual-3.png","png32");
+    }
 }
