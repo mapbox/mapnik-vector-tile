@@ -7,7 +7,7 @@ all: libvtile
 	git clone https://chromium.googlesource.com/external/gyp.git ./deps/gyp && cd ./deps/gyp && git checkout 3464008
 
 ./deps/clipper:
-	git clone https://github.com/mapnik/angus-clipper.git ./deps/clipper && cd ./deps/clipper && git checkout 972a403
+	git clone https://github.com/mapnik/clipper.git ./deps/clipper && cd ./deps/clipper && git checkout 11859d5
 
 build/Makefile: ./deps/gyp ./deps/clipper gyp/build.gyp test/*cpp
 	deps/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(MAPNIK_PLUGINDIR)\" -Goutput_dir=. --generator-output=./build -f make

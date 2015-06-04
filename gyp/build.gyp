@@ -35,7 +35,6 @@
       ],
       'include_dirs': [
         '<(SHARED_INTERMEDIATE_DIR)/',
-        '../deps/clipper'
       ],
       'cflags_cc' : [
           '-D_THREAD_SAFE',
@@ -49,8 +48,7 @@
       },
       'direct_dependent_settings': {
         'include_dirs': [
-          '<(SHARED_INTERMEDIATE_DIR)/',
-          '../deps/clipper'
+          '<(SHARED_INTERMEDIATE_DIR)/'
         ],
         'libraries':[
           '-lprotobuf-lite'
@@ -71,13 +69,21 @@
       'hard_dependency': 1,
       "type": "static_library",
       "sources": [
-        "<!@(find ../src/ -name '*.cpp')"
+        "<!@(find ../src/ -name '*.cpp')",
+        "../deps/clipper/cpp/clipper.cpp"
       ],
       'defines' : [
-        'MAPNIK_VECTOR_TILE_LIBRARY=1'
+        'MAPNIK_VECTOR_TILE_LIBRARY=1',
+        'CLIPPER_INTPOINT_IMPL=mapnik::geometry::point<cInt>',
+        'CLIPPER_PATH_IMPL=mapnik::geometry::line_string<cInt>',
+        'CLIPPER_PATHS_IMPL=mapnik::geometry::multi_line_string<cInt>',
+        'CLIPPER_IMPL_INCLUDE=<mapnik/geometry.hpp>'
       ],
       'cflags_cc' : [
           '<!@(mapnik-config --cflags)'
+      ],
+      'include_dirs': [
+        '../deps/clipper/cpp'
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS':[
@@ -86,7 +92,8 @@
       },
       'direct_dependent_settings': {
         'include_dirs': [
-          '<(SHARED_INTERMEDIATE_DIR)/'
+          '<(SHARED_INTERMEDIATE_DIR)/',
+          '../deps/clipper/cpp'
         ],
         'defines' : [
           'MAPNIK_VECTOR_TILE_LIBRARY=1'
