@@ -530,10 +530,10 @@ TEST_CASE("Check that we throw on various valid-but-we-don't-handle PBF encoded 
                                           "test/data/tile_with_invalid_layer_value_type.pbf",
                                           "test/data/tile_with_unexpected_geomtype.pbf"};
 
-    for (auto f : filenames) {
+    for (auto const& f : filenames) {
 
       CHECK_THROWS({
-        std::ifstream t = std::ifstream(f);
+        std::ifstream t(f);
         std::string buffer((std::istreambuf_iterator<char>(t)),
                             std::istreambuf_iterator<char>());
 
