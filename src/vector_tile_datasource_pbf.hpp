@@ -7,6 +7,10 @@
 
 namespace mapnik { namespace vector_tile_impl {
 
+    // TODO: consider using mapnik::value here instead
+    using pbf_attr_value_type = mapnik::util::variant<std::string, float, double, int64_t, uint64_t, bool>;
+    using layer_pbf_attr_type = std::vector<pbf_attr_value_type>;
+
     class tile_datasource_pbf : public datasource
     {
     public:
@@ -42,7 +46,7 @@ namespace mapnik { namespace vector_tile_impl {
         std::string name_;
         std::vector<mapbox::util::pbf> features_;
         std::vector<std::string> layer_keys_;
-        std::vector<mapnik::util::variant<std::string, float, double, int64_t, uint64_t, bool>> layer_values_;
+        layer_pbf_attr_type layer_values_;
     };
 
 }} // end ns

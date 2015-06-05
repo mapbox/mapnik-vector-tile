@@ -45,7 +45,7 @@ namespace mapnik { namespace vector_tile_impl {
                         double tile_y,
                         double scale,
                         std::vector<std::string> const& layer_keys,
-                        std::vector<mapnik::util::variant<std::string, float, double, int64_t, uint64_t, bool>> const& layer_values)
+                        layer_pbf_attr_type const& layer_values)
             : filter_(filter),
               tile_extent_(tile_extent),
               unbuffered_query_(unbuffered_query),
@@ -83,8 +83,7 @@ namespace mapnik { namespace vector_tile_impl {
                 mapbox::util::pbf f = features_.at(itr_);
                 // TODO: auto-increment feature id counter here
                 mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,itr_);
-                mapnik::util::variant<std::string, float, double, int64_t, uint64_t, bool> val;
-
+                pbf_attr_value_type val;
 
                 ++itr_;
                 int tagcount=0;
@@ -248,7 +247,7 @@ namespace mapnik { namespace vector_tile_impl {
         mapnik::box2d<double> unbuffered_query_;
         std::vector<mapbox::util::pbf> const& features_;
         std::vector<std::string> const& layer_keys_;
-        std::vector<mapnik::util::variant<std::string, float, double, int64_t, uint64_t, bool>> const& layer_values_;
+        layer_pbf_attr_type const& layer_values_;
 
         double tile_x_;
         double tile_y_;
