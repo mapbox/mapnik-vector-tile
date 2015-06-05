@@ -30,6 +30,8 @@ std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool seco
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
     mapnik::transcoder tr("utf-8");
     feature->put("name",tr.transcode("null island"));
+    // NOTE: all types below that are not part of mapnik::value
+    // are likely getting converted, e.g. float -> double
     feature->put_new("int",static_cast<int64_t>(-73));
     feature->put_new("uint",static_cast<uint64_t>(37));
     feature->put_new("float",static_cast<float>(99.2));
