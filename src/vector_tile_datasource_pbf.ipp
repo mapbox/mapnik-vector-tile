@@ -260,7 +260,7 @@ namespace mapnik { namespace vector_tile_impl {
     };
 
     // tile_datasource impl
-    tile_datasource_pbf::tile_datasource_pbf(mapbox::util::pbf layer,
+    tile_datasource_pbf::tile_datasource_pbf(mapbox::util::pbf const& layer,
                                      unsigned x,
                                      unsigned y,
                                      unsigned z,
