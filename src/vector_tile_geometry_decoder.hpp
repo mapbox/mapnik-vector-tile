@@ -46,7 +46,7 @@ private:
 class GeometryPBF {
 
 public:
-    inline explicit GeometryPBF(std::pair< mapbox::util::pbf::const_uint32_iterator, mapbox::util::pbf::const_uint32_iterator > geo_iterator,
+    inline explicit GeometryPBF(std::pair< mapbox::util::pbf::const_uint32_iterator, mapbox::util::pbf::const_uint32_iterator > const& geo_iterator,
                              double tile_x, double tile_y,
                              double scale_x, double scale_y);
 
@@ -121,7 +121,7 @@ Geometry::command Geometry::next(double& rx, double& ry) {
     }
 }
 
-GeometryPBF::GeometryPBF(std::pair<mapbox::util::pbf::const_uint32_iterator, mapbox::util::pbf::const_uint32_iterator > geo_iterator,
+GeometryPBF::GeometryPBF(std::pair<mapbox::util::pbf::const_uint32_iterator, mapbox::util::pbf::const_uint32_iterator > const& geo_iterator,
                    double tile_x, double tile_y,
                    double scale_x, double scale_y)
     : geo_iterator_(geo_iterator),
