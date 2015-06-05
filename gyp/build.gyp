@@ -85,6 +85,7 @@
           '<!@(mapnik-config --cflags)'
       ],
       'include_dirs': [
+        '../deps/pbf',
         '../deps/clipper/cpp'
       ],
       'xcode_settings': {
@@ -95,6 +96,7 @@
       'direct_dependent_settings': {
         'include_dirs': [
           '<(SHARED_INTERMEDIATE_DIR)/',
+          '../deps/pbf',
           '../deps/clipper/cpp'
         ],
         'defines' : [
@@ -131,7 +133,7 @@
       ],
       "include_dirs": [
         "../src",
-        "../deps/pbf"
+        '../deps/pbf'
       ]
     },
     {
