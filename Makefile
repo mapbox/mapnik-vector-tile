@@ -9,8 +9,6 @@ all: libvtile
 ./deps/pbf:
 	git clone https://github.com/mapbox/pbf.hpp.git ./deps/pbf && cd ./deps/pbf && git checkout 0d1c0061e4
 
-build/Makefile: ./deps/pbf ./deps/gyp gyp/build.gyp test/*cpp
-
 ./deps/clipper:
 	git clone https://github.com/mapnik/clipper.git ./deps/clipper && cd ./deps/clipper && git checkout 11859d5
 
