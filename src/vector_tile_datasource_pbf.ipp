@@ -99,9 +99,9 @@ namespace mapnik { namespace vector_tile_impl {
                             break;
                         case 2:
                             {
-                                std::pair< mapbox::util::pbf::const_uint32_iterator, mapbox::util::pbf::const_uint32_iterator > tag_iterator = f.packed_uint32();
+                                auto tag_iterator = f.packed_uint32();
 
-                                for (mapbox::util::pbf::const_uint32_iterator _i = tag_iterator.first; _i != tag_iterator.second; ++_i)
+                                for (auto _i = tag_iterator.first; _i != tag_iterator.second; ++_i)
                                 {
                                     if (tagcount % 2 == 0)
                                     {
@@ -211,7 +211,7 @@ namespace mapnik { namespace vector_tile_impl {
                             break;
                         case 4:
                             {
-                                std::pair< mapbox::util::pbf::const_uint32_iterator, mapbox::util::pbf::const_uint32_iterator > geom_itr = f.packed_uint32();
+                                auto geom_itr = f.packed_uint32();
                                 mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr, tile_x_,tile_y_,scale_,-1*scale_);
                                 mapnik::geometry::geometry<double> geom = decode_geometry(geoms, geometry_type);
                                 if (geom.is<mapnik::geometry::geometry_empty>())
