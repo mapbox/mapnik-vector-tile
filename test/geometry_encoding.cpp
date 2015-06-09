@@ -180,7 +180,8 @@ TEST_CASE( "polygon with degenerate exterior ring ", "should be culled" ) {
 
     vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(p0);
     // since first ring is degenerate the whole polygon should be culled
-    auto p1 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
+    auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::geometry_empty>() );
 }
 
@@ -206,7 +207,8 @@ TEST_CASE( "polygon with degenerate exterior ring ", "should be culled" ) {
 
     vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(p0);
     // since first ring is degenerate the whole polygon should be culled
-    auto p1 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
+    auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::geometry_empty>() );
 }*/
 
@@ -230,7 +232,8 @@ TEST_CASE( "polygon with valid exterior ring but degenerate interior ring", "sho
     CHECK( wkt0 == expected_wkt0);
 
     vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(p0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
+    auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::polygon<double> >() );
     auto const& poly = mapnik::util::get<mapnik::geometry::polygon<double> >(p1);
     // since interior ring is degenerate it should have been culled when decoded
@@ -270,7 +273,8 @@ TEST_CASE( "polygon with valid exterior ring but one degenerate interior ring of
     CHECK( wkt0 == expected_wkt0);
 
     vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(p0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
+    auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::polygon<double> >() );
     auto const& poly = mapnik::util::get<mapnik::geometry::polygon<double> >(p1);
     // since first interior ring is degenerate it should have been culled when decoded
@@ -311,7 +315,8 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     CHECK( wkt0 == expected_wkt0);
 
     vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(p0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
+    auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::polygon<double> >() );
     CHECK( extent == mapnik::geometry::envelope(p1) );
 
@@ -323,7 +328,9 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     // for polygons rings that were encoded correctly in vtiles (CCW exterior, CW interior)
     // then this should be unneeded, but for rings with incorrect order then this style of
     // decoding should allow them still to be queried correctly using the current mapnik hit_test algos
-    auto _p1 = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0,true);
+    // Note, we need a new Geometry here, the old object can't be rewound.
+    mapnik::vector_tile_impl::Geometry geoms2(feature,0.0,0.0,1.0,1.0);
+    auto _p1 = mapnik::vector_tile_impl::decode_geometry(geoms2, feature.type(), true);
     wkt0.clear();
     CHECK( mapnik::util::to_wkt(wkt0,_p1) );
     CHECK( _p1.is<mapnik::geometry::multi_polygon<double> >() );
@@ -378,7 +385,8 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     mapnik::box2d<double> multi_extent = mapnik::geometry::envelope(multi_poly);
 
     vector_tile::Tile_Feature feature1 = geometry_to_feature<std::int64_t>(multi_poly);
-    auto mp = mapnik::vector_tile_impl::decode_geometry(feature1,0.0,0.0,1.0,1.0);
+    mapnik::vector_tile_impl::Geometry geoms1(feature1,0.0,0.0,1.0,1.0);
+    auto mp = mapnik::vector_tile_impl::decode_geometry(geoms1, feature1.type());
     CHECK( mp.is<mapnik::geometry::multi_polygon<double> >() );
 
     CHECK( multi_extent == mapnik::geometry::envelope(mp) );

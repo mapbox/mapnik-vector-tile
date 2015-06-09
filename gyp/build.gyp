@@ -35,6 +35,7 @@
       ],
       'include_dirs': [
         '<(SHARED_INTERMEDIATE_DIR)/',
+        '../deps/pbf'
       ],
       'cflags_cc' : [
           '-D_THREAD_SAFE',
@@ -48,7 +49,8 @@
       },
       'direct_dependent_settings': {
         'include_dirs': [
-          '<(SHARED_INTERMEDIATE_DIR)/'
+          '<(SHARED_INTERMEDIATE_DIR)/',
+          '../deps/pbf'
         ],
         'libraries':[
           '-lprotobuf-lite'
@@ -83,6 +85,7 @@
           '<!@(mapnik-config --cflags)'
       ],
       'include_dirs': [
+        '../deps/pbf',
         '../deps/clipper/cpp'
       ],
       'xcode_settings': {
@@ -93,6 +96,7 @@
       'direct_dependent_settings': {
         'include_dirs': [
           '<(SHARED_INTERMEDIATE_DIR)/',
+          '../deps/pbf',
           '../deps/clipper/cpp'
         ],
         'defines' : [
@@ -128,7 +132,8 @@
         "<!@(find ../test/ -name '*.cpp')"
       ],
       "include_dirs": [
-        "../src"
+        "../src",
+        '../deps/pbf'
       ]
     },
     {

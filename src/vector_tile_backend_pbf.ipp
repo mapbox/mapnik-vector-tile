@@ -59,6 +59,8 @@ backend_pbf::backend_pbf(vector_tile::Tile & _tile,
     : tile_(_tile),
       path_multiplier_(path_multiplier),
       current_layer_(NULL),
+      x_(0),
+      y_(0),
       current_feature_(NULL)
 {
 }

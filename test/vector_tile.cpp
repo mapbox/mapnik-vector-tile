@@ -126,10 +126,10 @@ TEST_CASE( "vector tile output 1", "should create vector tile with two points" )
     CHECK(9 == f.geometry(0));
     CHECK(4096 == f.geometry(1));
     CHECK(4096 == f.geometry(2));
-    CHECK(95 == tile.ByteSize());
+    CHECK(194 == tile.ByteSize());
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(95 == buffer.size());
+    CHECK(194 == buffer.size());
 }
 
 TEST_CASE( "vector tile output 2", "adding empty layers should result in empty tile" ) {
@@ -232,7 +232,7 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     // serialize to message
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(52 == buffer.size());
+    CHECK(151 == buffer.size());
     // now create new objects
     mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
     tile_type tile2;
@@ -254,7 +254,13 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     CHECK( ds->get_geometry_type() == mapnik::datasource_geometry_t::Collection );
     mapnik::layer_descriptor lay_desc = ds->get_descriptor();
     std::vector<std::string> expected_names;
+    expected_names.push_back("bool");
+    expected_names.push_back("boolf");
+    expected_names.push_back("double");
+    expected_names.push_back("float");
+    expected_names.push_back("int");
     expected_names.push_back("name");
+    expected_names.push_back("uint");
     std::vector<std::string> names;
     for (auto const& desc : lay_desc.get_descriptors())
     {
@@ -613,7 +619,9 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     }
     vector_tile::Tile_Feature const& f = layer.features(0);
     double scale = (double)path_multiplier;
-    return mapnik::vector_tile_impl::decode_geometry(f,0,0,scale,-1*scale);
+
+    mapnik::vector_tile_impl::Geometry geoms(f,0,0,scale,-1*scale);
+    return mapnik::vector_tile_impl::decode_geometry(geoms, f.type());
 }
 
 TEST_CASE( "vector tile point encoding", "should create vector tile with data" ) {
@@ -953,7 +961,8 @@ TEST_CASE( "vector tile from simplified geojson", "should create vector tile wit
     double tile_x = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x * resolution;
     double tile_y =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
     double scale = (static_cast<double>(layer.extent()) / tile_size) * tile_size/resolution;
-    auto geom = mapnik::vector_tile_impl::decode_geometry(f,tile_x,tile_y,scale,-1*scale);
+    mapnik::vector_tile_impl::Geometry geoms(f,tile_x, tile_y,scale,-1*scale);
+    auto geom = mapnik::vector_tile_impl::decode_geometry(geoms,f.type());
 
     unsigned int n_err = 0;
     mapnik::projection wgs84("+init=epsg:4326",true);
@@ -1012,7 +1021,8 @@ mapnik::geometry::geometry<double> round_trip2(mapnik::geometry::geometry<double
     double tile_x = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x * resolution;
     double tile_y =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
     double scale = (static_cast<double>(layer.extent()) / tile_size) * tile_size/resolution;
-    return mapnik::vector_tile_impl::decode_geometry(f,tile_x,tile_y,scale,-1*scale);
+    mapnik::vector_tile_impl::Geometry geoms(f,tile_x, tile_y,scale,-1*scale);
+    return mapnik::vector_tile_impl::decode_geometry(geoms,f.type());
 }
 
 TEST_CASE( "vector tile line_string is verify direction", "should line string with proper directions" ) {
