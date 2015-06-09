@@ -2,6 +2,8 @@
 
 ## 0.8.1
 
+ - Added `tile_datasource_pbf` - It should be used in places where you need to plug
+   in a `mapnik::datasource` to read from a binary encoded .pbf buffer. (@danpat #114)
  - Added mapnik vector tile strategy for transform
  - Updated test cases
 
