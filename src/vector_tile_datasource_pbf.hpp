@@ -28,6 +28,7 @@ namespace mapnik { namespace vector_tile_impl {
         box2d<double> envelope() const;
         boost::optional<datasource_geometry_t> get_geometry_type() const;
         layer_descriptor get_descriptor() const;
+        std::string const& get_name() { return name_; }
     private:
         mutable mapnik::layer_descriptor desc_;
         mutable bool attributes_added_;
