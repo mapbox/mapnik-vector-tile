@@ -6,7 +6,14 @@
 
 int main (int argc, char* const argv[])
 {
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
+    try
+    {
+        GOOGLE_PROTOBUF_VERIFY_VERSION;
+    }
+    catch (std::exception const& ex) {
+        std::clog << ex.what() << "\n";
+        return -1;
+    }
     int result = Catch::Session().run( argc, argv );
     if (!result) printf("\x1b[1;32m ✓ \x1b[0m\n");
     google::protobuf::ShutdownProtobufLibrary();
