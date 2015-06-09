@@ -81,6 +81,7 @@ TEST_CASE( "pbf vector tile input", "should be able to parse message and render 
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource_pbf>(
                                         layer3,0,0,0,map2.width());
+    CHECK(ds->get_name() == "layer");
     ds->set_envelope(bbox);
     CHECK( ds->type() == mapnik::datasource::Vector );
     CHECK( ds->get_geometry_type() == mapnik::datasource_geometry_t::Collection );
