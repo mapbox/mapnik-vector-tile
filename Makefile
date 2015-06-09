@@ -7,7 +7,7 @@ all: libvtile
 	git clone https://chromium.googlesource.com/external/gyp.git ./deps/gyp && cd ./deps/gyp && git checkout 3464008
 
 ./deps/pbf:
-	git clone https://github.com/mapbox/pbf.hpp.git ./deps/pbf && cd ./deps/pbf && git checkout 0d1c0061e4
+	git clone https://github.com/mapbox/pbf.hpp.git ./deps/pbf && cd ./deps/pbf && git checkout 1df6453
 
 ./deps/clipper:
 	git clone https://github.com/mapnik/clipper.git -b r493-mapnik ./deps/clipper && cd ./deps/clipper && git checkout 9b56a75 && ./cpp/fix_members.sh
