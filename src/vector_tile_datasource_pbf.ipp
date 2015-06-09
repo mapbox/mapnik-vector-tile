@@ -272,11 +272,15 @@ namespace mapnik { namespace vector_tile_impl {
           y_(y),
           z_(z),
           tile_size_(tile_size),
-          extent_initialized_(false) {
+          extent_initialized_(false),
+          tile_x_(0.0),
+          tile_y_(0.0),
+          scale_(0.0),
+          layer_extent_(0)
+    {
         double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z_);
         tile_x_ = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x_ * resolution;
         tile_y_ =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y_ * resolution;
-
 
         mapbox::util::pbf val_msg;
 
