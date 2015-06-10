@@ -104,7 +104,6 @@ int main(int argc, char** argv)
                 {
                     vector_tile::Tile_Feature const & f = layer.features(j);
                     total_repeated += f.geometry_size();
-                    eGeomType g_type = static_cast<eGeomType>(f.type());
                     int cmd = -1;
                     const int cmd_bits = 3;
                     unsigned length = 0;
@@ -117,7 +116,6 @@ int main(int argc, char** argv)
                             length = cmd_length >> cmd_bits;
                             if (length <= 0) num_empty++;
                             num_commands++;
-                            g_length = 0;
                         }
                         if (length > 0) {
                             length--;
@@ -138,6 +136,7 @@ int main(int argc, char** argv)
                             else if (cmd == (SEG_CLOSE & ((1 << cmd_bits) - 1)))
                             {
                                 if (g_length <= 2) degenerate++;
+                                g_length = 0;
                                 num_close++;
                             }
                             else
