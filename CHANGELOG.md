@@ -4,6 +4,9 @@
 
  - Added `tile_datasource_pbf` - It should be used in places where you need to plug
    in a `mapnik::datasource` to read from a binary encoded .pbf buffer. (@danpat #114)
+ - Updated bundled clipper to https://github.com/mapnik/clipper/commit/bfad32ec4b41783497d076c2ec44c7cbf4ebe56b
+ - Clipper is now patched to avoid abort on out of range coordinates (#111)
+ - Fixed handling of geometry collections (#106)
  - Added mapnik vector tile strategy for transform
  - Updated test cases
 
