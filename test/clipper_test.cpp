@@ -1,7 +1,8 @@
-#include "catch.hpp"
-#include "clipper.hpp"
 #include <limits>
 #include <iostream>
+
+#include "catch.hpp"
+#include "clipper.hpp"
 
 TEST_CASE( "clipper IntPoint", "should accept 64bit values" ) {
     std::int64_t x = 4611686018427387903;
@@ -48,10 +49,10 @@ TEST_CASE( "clipper AddPath 1", "should not throw within range coords" ) {
 TEST_CASE( "clipper AddPath 2", "should throw on out of range coords" ) {
     ClipperLib::Clipper clipper;
     ClipperLib::Path clip_box; // actually mapnik::geometry::line_string<std::int64_t>
-    auto x0 = std::numeric_limits<std::int64_t>::min();
-    auto y0 = std::numeric_limits<std::int64_t>::min();
-    auto x1 = std::numeric_limits<std::int64_t>::max();
-    auto y1 = std::numeric_limits<std::int64_t>::max();
+    auto x0 = std::numeric_limits<std::int64_t>::min()+1;
+    auto y0 = std::numeric_limits<std::int64_t>::min()+1;
+    auto x1 = std::numeric_limits<std::int64_t>::max()-1;
+    auto y1 = std::numeric_limits<std::int64_t>::max()-1;
     clip_box.emplace_back(x0,y0);
     clip_box.emplace_back(x1,y0);
     clip_box.emplace_back(x1,y1);
@@ -64,7 +65,7 @@ TEST_CASE( "clipper AddPath 2", "should throw on out of range coords" ) {
     }
     catch(std::exception const& ex)
     {
-      REQUIRE(std::string(ex.what()) == "Coordinate outside allowed range: -9223372036854775808 -9223372036854775808 -9223372036854775808 -9223372036854775808");
+      REQUIRE(std::string(ex.what()) == "Coordinate outside allowed range: -9223372036854775807 -9223372036854775807 9223372036854775807 9223372036854775807");
     }        
 }
 
