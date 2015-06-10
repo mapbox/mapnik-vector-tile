@@ -1,8 +1,80 @@
 #include <limits>
 #include <iostream>
+#include <mapnik/projection.hpp>
+#include <mapnik/geometry_transform.hpp>
+//#include <mapnik/util/geometry_to_geojson.hpp>
+
+#include "vector_tile_strategy.hpp"
+#include "vector_tile_projection.hpp"
 
 #include "catch.hpp"
 #include "clipper.hpp"
+
+TEST_CASE( "vector_tile_strategy", "should not overflow" ) {
+    mapnik::projection merc("+init=epsg:3857",true);
+    mapnik::proj_transform prj_trans(merc,merc); // no-op
+    unsigned tile_size = 256;
+    mapnik::vector_tile_impl::spherical_mercator merc_tiler(tile_size);
+    double minx,miny,maxx,maxy;
+    merc_tiler.xyz(9664,20435,15,minx,miny,maxx,maxy);
+    mapnik::box2d<double> z15_extent(minx,miny,maxx,maxy);
+    mapnik::view_transform tr(tile_size,tile_size,z15_extent,0,0);
+    {
+        mapnik::vector_tile_impl::vector_tile_strategy vs(prj_trans, tr, 16);
+        // even an invalid point is not expected to result in values beyond hirange
+        mapnik::geometry::point<std::int64_t> g(-20037508.342789*2,-20037508.342789*2);
+        mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(g, vs);
+        REQUIRE( new_geom.is<mapnik::geometry::point<std::int64_t>>() );
+        auto const& pt = mapnik::util::get<mapnik::geometry::point<std::int64_t>>(new_geom);
+        REQUIRE( (pt.x < ClipperLib::hiRange) );
+        REQUIRE( (pt.y < ClipperLib::hiRange) );
+        REQUIRE( (-pt.x < ClipperLib::hiRange) );
+        REQUIRE( (-pt.y < ClipperLib::hiRange) );
+    }
+    merc_tiler.xyz(0,0,0,minx,miny,maxx,maxy);
+    mapnik::geometry::polygon<std::int64_t> g;
+    g.exterior_ring.add_coord(minx,miny);
+    g.exterior_ring.add_coord(maxx,miny);
+    g.exterior_ring.add_coord(maxx,maxy);
+    g.exterior_ring.add_coord(minx,maxy);
+    g.exterior_ring.add_coord(minx,miny);
+    {
+        // absurdly large but still should not result in values beyond hirange
+        double path_multiplier = 100000000000.0;
+        mapnik::vector_tile_impl::vector_tile_strategy vs(prj_trans, tr, path_multiplier);
+        mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(g, vs);
+        REQUIRE( new_geom.is<mapnik::geometry::polygon<std::int64_t>>() );
+        auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);
+        for (auto const& pt : poly.exterior_ring)
+        {
+            INFO( pt.x )
+            INFO( ClipperLib::hiRange )
+            REQUIRE( (pt.x < ClipperLib::hiRange) );
+            REQUIRE( (pt.y < ClipperLib::hiRange) );
+            REQUIRE( (-pt.x < ClipperLib::hiRange) );
+            REQUIRE( (-pt.y < ClipperLib::hiRange) );
+        }
+    }
+    {
+        // expected to trigger values above hirange
+        double path_multiplier = 1000000000000.0;
+        mapnik::vector_tile_impl::vector_tile_strategy vs(prj_trans, tr, path_multiplier);
+        mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(g, vs);
+        REQUIRE( new_geom.is<mapnik::geometry::polygon<std::int64_t>>() );
+        auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);
+        for (auto const& pt : poly.exterior_ring)
+        {
+            INFO( pt.x )
+            INFO( ClipperLib::hiRange )
+            REQUIRE(( (pt.x > ClipperLib::hiRange) ||
+                       (pt.y > ClipperLib::hiRange) ||
+                       (-pt.x < ClipperLib::hiRange) ||
+                       (-pt.y < ClipperLib::hiRange)
+                    ));
+        }
+    }
+
+}
 
 TEST_CASE( "clipper IntPoint", "should accept 64bit values" ) {
     std::int64_t x = 4611686018427387903;
