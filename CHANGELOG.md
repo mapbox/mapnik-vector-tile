@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.2
+
+ - Optimized coordinate transform that skips proj4 failures (#116)
+
 ## 0.8.1
 
  - Added `tile_datasource_pbf` - It should be used in places where you need to plug
