@@ -562,11 +562,13 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
         geom.set_exterior_ring(std::move(ring));
     }
     mapnik::geometry::scale_rounding_strategy scale_strat(backend.get_path_multiplier());
-    mapnik::geometry::geometry<std::int64_t> poly = mapnik::geometry::transform<std::int64_t>(geom, scale_strat);
+    mapnik::geometry::geometry<std::int64_t> geom2 = mapnik::geometry::transform<std::int64_t>(geom, scale_strat);
     std::string foo;
-    mapnik::util::to_wkt(foo, poly);
+    mapnik::util::to_wkt(foo, geom2);
     INFO(foo);
     backend.current_feature_->set_type(vector_tile::Tile_GeomType_POLYGON);
+    REQUIRE( geom2.is<mapnik::geometry::polygon<std::int64_t> >() );
+    auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(geom2);
     backend.add_path(poly);
     backend.stop_tile_feature();
     backend.stop_tile_layer();

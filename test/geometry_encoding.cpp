@@ -173,7 +173,7 @@ TEST_CASE( "polygon with degenerate exterior ring ", "should be culled" ) {
     p0.exterior_ring.add_coord(0,10);
 
     std::string wkt0;
-    CHECK( mapnik::util::to_wkt(wkt0,p0) );
+    CHECK( mapnik::util::to_wkt(wkt0,mapnik::geometry::geometry<std::int64_t>(p0)) );
     // wkt writer copes with busted polygon
     std::string expected_wkt0("POLYGON((0 0,0 10))");
     CHECK( wkt0 == expected_wkt0);
@@ -226,7 +226,7 @@ TEST_CASE( "polygon with valid exterior ring but degenerate interior ring", "sho
     p0.add_hole(std::move(hole));
 
     std::string wkt0;
-    CHECK( mapnik::util::to_wkt(wkt0,p0) );
+    CHECK( mapnik::util::to_wkt(wkt0,mapnik::geometry::geometry<std::int64_t>(p0)) );
     // wkt writer copes with busted polygon
     std::string expected_wkt0("POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7))");
     CHECK( wkt0 == expected_wkt0);
@@ -267,7 +267,7 @@ TEST_CASE( "polygon with valid exterior ring but one degenerate interior ring of
     }
 
     std::string wkt0;
-    CHECK( mapnik::util::to_wkt(wkt0,p0) );
+    CHECK( mapnik::util::to_wkt(wkt0,mapnik::geometry::geometry<std::int64_t>(p0)) );
     // wkt writer copes with busted polygon
     std::string expected_wkt0("POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7),(-6 4,-6 6,-4 6,-4 4,-6 4))");
     CHECK( wkt0 == expected_wkt0);
@@ -304,14 +304,14 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     mapnik::box2d<double> extent = mapnik::geometry::envelope(p0);
 
     std::string wkt0;
-    CHECK( mapnik::util::to_wkt(wkt0,p0) );
+    CHECK( mapnik::util::to_wkt(wkt0,mapnik::geometry::geometry<std::int64_t>(p0) ) );
     std::string expected_wkt0("POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
     CHECK( wkt0 == expected_wkt0);
     // ensure correcting geometry has no effect
     // as a way of confirming the original was correct
     mapnik::geometry::correct(p0);
     wkt0.clear();
-    CHECK( mapnik::util::to_wkt(wkt0,p0) );
+    CHECK( mapnik::util::to_wkt(wkt0,mapnik::geometry::geometry<std::int64_t>(p0)) );
     CHECK( wkt0 == expected_wkt0);
 
     vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(p0);
