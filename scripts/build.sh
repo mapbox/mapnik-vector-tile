@@ -6,6 +6,8 @@ if [[ ${COVERAGE:-false} == true ]]; then
     export CXXFLAGS="--coverage"
 fi
 
+echo $PROJ_LIB
+ls $PROJ_LIB/
 make -j${JOBS} test BUILDTYPE=${BUILDTYPE:-Release} V=1
 
 set +e +u
