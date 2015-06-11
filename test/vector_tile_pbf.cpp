@@ -442,7 +442,6 @@ TEST_CASE( "pbf vector tile from simplified geojson", "should create vector tile
 
 
 TEST_CASE( "pbf raster tile output", "should be able to overzoom raster" ) {
-    mapnik::datasource_cache::instance().register_datasources(MAPNIK_PLUGINDIR);
     typedef vector_tile::Tile tile_type;
     tile_type tile;
     {
