@@ -1082,7 +1082,56 @@ TEST_CASE( "vector tile transform", "should not throw on coords outside merc ran
     map.zoom_to_box(bbox);
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
-    // todo - should not throw
-    // https://github.com/mapbox/mapnik-vector-tile/issues/116
+    // should no longer throw after https://github.com/mapbox/mapnik-vector-tile/issues/116
     ren.apply();
+
+    // serialize to message
+    std::string buffer;
+    CHECK(tile.SerializeToString(&buffer));
+    CHECK(70 == buffer.size());
+    // now create new objects
+    mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
+    tile_type tile2;
+    CHECK(tile2.ParseFromString(buffer));
+    std::string key("");
+    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
+    CHECK("" == key);
+    CHECK(1 == tile2.layers_size());
+    vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
+    CHECK(std::string("layer") == layer2.name());
+    CHECK(1 == layer2.features_size());
+
+    mapnik::layer lyr2("layer",map.srs());
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds2 = std::make_shared<
+                                    mapnik::vector_tile_impl::tile_datasource>(
+                                        layer2,0,0,0,map2.width());
+    ds2->set_envelope(bbox);
+    CHECK( ds2->type() == mapnik::datasource::Vector );
+    CHECK( ds2->get_geometry_type() == mapnik::datasource_geometry_t::Collection );
+    mapnik::layer_descriptor lay_desc = ds2->get_descriptor();
+    std::vector<std::string> expected_names;
+    expected_names.push_back("FID");
+    std::vector<std::string> names;
+    for (auto const& desc : lay_desc.get_descriptors())
+    {
+        names.push_back(desc.get_name());
+    }
+    CHECK(names == expected_names);
+    lyr2.set_datasource(ds2);
+    lyr2.add_style("style");
+    map2.add_layer(lyr2);
+    mapnik::load_map(map2,"test/data/polygon-style.xml");
+    //std::clog << mapnik::save_map_to_string(map2) << "\n";
+    map2.zoom_to_box(bbox);
+    mapnik::image_rgba8 im(map2.width(),map2.height());
+    mapnik::agg_renderer<mapnik::image_rgba8> ren2(map2,im);
+    ren2.apply();
+    if (!mapnik::util::exists("test/fixtures/transform-expected-1.png")) {
+        mapnik::save_to_file(im,"test/fixtures/transform-expected-1.png","png32");
+    }
+    unsigned diff = testing::compare_images(im,"test/fixtures/transform-expected-1.png");
+    CHECK(0 == diff);
+    if (diff > 0) {
+        mapnik::save_to_file(im,"test/fixtures/transform-actual-1.png","png32");
+    }
 }
