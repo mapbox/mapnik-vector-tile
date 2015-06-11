@@ -19,6 +19,7 @@
 #include <mapnik/geometry_strategy.hpp>
 #include <mapnik/proj_strategy.hpp>
 #include <mapnik/geometry.hpp>
+#include <mapnik/datasource_cache.hpp>
 
 #include <boost/optional/optional_io.hpp>
 
@@ -1057,4 +1058,31 @@ TEST_CASE( "vector tile line_string is verify direction", "should line string wi
     REQUIRE( new_geom.is<mapnik::geometry::multi_line_string<double> >() );
     auto const& line2 = mapnik::util::get<mapnik::geometry::multi_line_string<double> >(new_geom);
     CHECK( line2.size() == 2 );
+}
+
+TEST_CASE( "vector tile transform", "should not throw on coords outside merc range" ) {
+    typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+    typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+    typedef vector_tile::Tile tile_type;
+    tile_type tile;
+    backend_type backend(tile,64);
+    unsigned tile_size = 256;
+    mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
+    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    // Note: 4269 is key. 4326 will trigger custom mapnik reprojection code
+    // that does not hit proj4 and clamps values
+    mapnik::layer lyr("layer","+init=epsg:4269");
+    mapnik::parameters params;
+    params["type"] = "shape";
+    params["file"] = "./test/data/poly-lat-invalid-4269.shp";
+    std::shared_ptr<mapnik::datasource> ds =
+        mapnik::datasource_cache::instance().create(params);
+    lyr.set_datasource(ds);
+    map.add_layer(lyr);
+    map.zoom_to_box(bbox);
+    mapnik::request m_req(tile_size,tile_size,bbox);
+    renderer_type ren(backend,map,m_req);
+    // todo - should not throw
+    // https://github.com/mapbox/mapnik-vector-tile/issues/116
+    ren.apply();
 }
