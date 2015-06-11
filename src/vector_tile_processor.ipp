@@ -1244,7 +1244,8 @@ unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
     mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
     mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
     box2d<int> bbox(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
-    mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(geom, vs);
+    mapnik::vector_tile_impl::transform_visitor skipping_transformer(vs);
+    mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(skipping_transformer,geom);
     encoder_visitor<T> encoder(backend_,feature,bbox, area_threshold_);
     if (simplify_distance_ > 0)
     {

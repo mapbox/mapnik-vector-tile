@@ -3,6 +3,7 @@
 #include "catch.hpp"
 
 #include <google/protobuf/stubs/common.h>
+#include <mapnik/datasource_cache.hpp>
 
 int main (int argc, char* const argv[])
 {
@@ -14,6 +15,7 @@ int main (int argc, char* const argv[])
         std::clog << ex.what() << "\n";
         return -1;
     }
+    mapnik::datasource_cache::instance().register_datasources(MAPNIK_PLUGINDIR);
     int result = Catch::Session().run( argc, argv );
     if (!result) printf("\x1b[1;32m ✓ \x1b[0m\n");
     google::protobuf::ShutdownProtobufLibrary();

@@ -131,9 +131,25 @@
       "defines": [
         "<@(common_defines)",
         "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
-      ], 
+      ],
       "sources": [
         "<!@(find ../test/ -name '*.cpp')"
+      ],
+      "include_dirs": [
+        "../src",
+        '../deps/pbf'
+      ]
+    },
+    {
+      "target_name": "vtile-transform",
+      'dependencies': [ 'mapnik_vector_tile_impl' ],
+      "type": "executable",
+      "defines": [
+        "<@(common_defines)",
+        "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
+      ],
+      "sources": [
+        "../bench/vtile-transform.cpp"
       ],
       "include_dirs": [
         "../src",

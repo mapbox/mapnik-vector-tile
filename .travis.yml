@@ -35,6 +35,10 @@ matrix:
       compiler: clang
       env: JOBS=10 COVERAGE=true BUILDTYPE=Debug
       sudo: false
+    - os: osx
+      compiler: clang
+      env: JOBS=10
+      sudo: false
 
 before_install:
  - source ./bootstrap.sh
