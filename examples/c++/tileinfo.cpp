@@ -83,16 +83,16 @@ int main(int argc, char** argv)
             }
         }
         if (!verbose) {
-            std::cout << "layers: " << tile.layers_size() << "\n";
-            for (unsigned i=0;i<tile.layers_size();++i)
+            std::cout << "layers: " << static_cast<std::size_t>(tile.layers_size()) << "\n";
+            for (std::size_t i=0;i<static_cast<std::size_t>(tile.layers_size());++i)
             {
                 vector_tile::Tile_Layer const& layer = tile.layers(i);
                 std::cout << layer.name() << ":\n";
                 std::cout << "  version: " << layer.version() << "\n";
                 std::cout << "  extent: " << layer.extent() << "\n";
-                std::cout << "  features: " << layer.features_size() << "\n";
-                std::cout << "  keys: " << layer.keys_size() << "\n";
-                std::cout << "  values: " << layer.values_size() << "\n";
+                std::cout << "  features: " << static_cast<std::size_t>(layer.features_size()) << "\n";
+                std::cout << "  keys: " << static_cast<std::size_t>(layer.keys_size()) << "\n";
+                std::cout << "  values: " << static_cast<std::size_t>(layer.values_size()) << "\n";
                 unsigned total_repeated = 0;
                 unsigned num_commands = 0;
                 unsigned num_move_to = 0;
@@ -100,7 +100,7 @@ int main(int argc, char** argv)
                 unsigned num_close = 0;
                 unsigned num_empty = 0;
                 unsigned degenerate = 0;
-                for (unsigned j=0;j<layer.features_size();++j)
+                for (std::size_t j=0;j<static_cast<std::size_t>(layer.features_size());++j)
                 {
                     vector_tile::Tile_Feature const & f = layer.features(j);
                     total_repeated += f.geometry_size();
@@ -158,26 +158,26 @@ int main(int argc, char** argv)
                 std::cout << "    empty geoms: " << num_empty << "\n";
             }
         } else {
-            for (unsigned i=0;i<tile.layers_size();++i)
+            for (std::size_t j=0;j<static_cast<std::size_t>(tile.layers_size());++j)
             {
-                vector_tile::Tile_Layer const& layer = tile.layers(i);
+                vector_tile::Tile_Layer const& layer = tile.layers(j);
                 std::cout << "layer: " << layer.name() << "\n";
                 std::cout << "  version: " << layer.version() << "\n";
                 std::cout << "  extent: " << layer.extent() << "\n";
                 std::cout << "  keys: ";
-                for (unsigned i=0;i<layer.keys_size();++i)
+                for (std::size_t k=0;k<static_cast<std::size_t>(layer.keys_size());++k)
                 {
-                     std::string const& key = layer.keys(i);
+                     std::string const& key = layer.keys(k);
                      std::cout << key;
-                     if (i<layer.keys_size()-1) {
+                     if (k<static_cast<std::size_t>(layer.keys_size())-1) {
                         std::cout << ",";
                      }
                 }
                 std::cout << "\n";
                 std::cout << "  values: ";
-                for (unsigned i=0;i<layer.values_size();++i)
+                for (std::size_t l=0;l<static_cast<std::size_t>(layer.values_size());++l)
                 {
-                     vector_tile::Tile_Value const & value = layer.values(i);
+                     vector_tile::Tile_Value const & value = layer.values(l);
                      if (value.has_string_value()) {
                           std::cout << value.string_value();
                      } else if (value.has_int_value()) {
@@ -195,14 +195,14 @@ int main(int argc, char** argv)
                      } else {
                           std::cout << "null";
                      }
-                     if (i<layer.values_size()-1) {
+                     if (l<static_cast<std::size_t>(layer.values_size())-1) {
                         std::cout << ",";
                      }
                  }
                  std::cout << "\n";
-                 for (unsigned i=0;i<layer.features_size();++i)
+                 for (std::size_t l=0;l<static_cast<std::size_t>(layer.features_size());++l)
                  {
-                     vector_tile::Tile_Feature const & feat = layer.features(i);
+                     vector_tile::Tile_Feature const & feat = layer.features(l);
                      std::cout << "  feature: " << feat.id() << "\n";
                      std::cout << "    type: ";
                      unsigned feat_type = feat.type();
@@ -217,21 +217,21 @@ int main(int argc, char** argv)
                      }
                      std::cout << "\n";
                      std::cout << "    tags: ";
-                     for (unsigned j=0;j<feat.tags_size();++j)
+                     for (std::size_t m=0;m<static_cast<std::size_t>(feat.tags_size());++m)
                      {
                           uint32_t tag = feat.tags(j);
                           std::cout << tag;
-                          if (j<feat.tags_size()-1) {
+                          if (m<static_cast<std::size_t>(feat.tags_size())-1) {
                             std::cout << ",";
                           }
                      }
                      std::cout << "\n";
                      std::cout << "    geometries: ";
-                     for (unsigned j=0;j<feat.geometry_size();++j)
+                     for (std::size_t m=0;m<static_cast<std::size_t>(feat.geometry_size());++m)
                      {
-                          uint32_t geom = feat.geometry(j);
+                          uint32_t geom = feat.geometry(m);
                           std::cout << geom;
-                          if (j<feat.geometry_size()-1) {
+                          if (m<static_cast<std::size_t>(feat.geometry_size())-1) {
                             std::cout << ",";
                           }
                      }

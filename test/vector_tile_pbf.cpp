@@ -355,7 +355,7 @@ TEST_CASE( "pbf decoding some truncated buffers", "should throw exception" ) {
     // it off at a point that would be valid anyway.
     std::string buffer;
     tile.SerializeToString(&buffer);
-    for (int i=1; i< buffer.size(); i++) 
+    for (std::size_t i=1; i< buffer.size(); ++i)
     {
       CHECK_THROWS({
           mapbox::util::pbf pbf_tile(buffer.c_str(), i);
