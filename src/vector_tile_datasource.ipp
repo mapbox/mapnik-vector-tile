@@ -1,4 +1,9 @@
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include "vector_tile.pb.h"
+#pragma GCC diagnostic pop
+
 #include "vector_tile_projection.hpp"
 #include "vector_tile_geometry_decoder.hpp"
 

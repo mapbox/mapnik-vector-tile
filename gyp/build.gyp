@@ -47,13 +47,15 @@
       'cflags_cc' : [
           '-D_THREAD_SAFE',
           '<!@(mapnik-config --cflags)', # assume protobuf headers are here
-          '-Wno-sign-compare' # to avoid warning from wire_format_lite_inl.h
+          '-Wno-sign-compare',
+          '-Wsign-conversion'
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS':[
            '-D_THREAD_SAFE',
            '<!@(mapnik-config --cflags)', # assume protobuf headers are here
-          '-Wno-sign-compare' # to avoid warning from wire_format_lite_inl.h
+           '-Wno-sign-compare',
+           '-Wsign-conversion'
         ],
       },
       'direct_dependent_settings': {

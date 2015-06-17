@@ -1,7 +1,12 @@
 #ifndef __MAPNIK_VECTOR_TILE_GEOMETRY_DECODER_H__
 #define __MAPNIK_VECTOR_TILE_GEOMETRY_DECODER_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include "vector_tile.pb.h"
+#pragma GCC diagnostic pop
+
 #include "pbf_reader.hpp"
 
 #include <mapnik/util/is_clockwise.hpp>

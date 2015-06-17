@@ -2,7 +2,12 @@
 #define __MAPNIK_VECTOR_TILE_GEOMETRY_ENCODER_H__
 
 // vector tile
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include "vector_tile.pb.h"
+#pragma GCC diagnostic pop
+
 #include <mapnik/geometry.hpp>
 #include "vector_tile_config.hpp"
 #include <cstdlib>
