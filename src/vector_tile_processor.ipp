@@ -28,9 +28,6 @@
 #include <mapnik/geometry_adapters.hpp>
 #include <mapnik/geometry_transform.hpp>
 
-// agg
-#include "agg_path_storage.h"
-
 // http://www.angusj.com/delphi/clipper.php
 #include "clipper.hpp"
 
