@@ -48,14 +48,14 @@
           '-D_THREAD_SAFE',
           '<!@(mapnik-config --cflags)', # assume protobuf headers are here
           '-Wno-sign-compare',
-          '-Wsign-conversion'
+          '-Wno-sign-conversion'
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS':[
            '-D_THREAD_SAFE',
            '<!@(mapnik-config --cflags)', # assume protobuf headers are here
            '-Wno-sign-compare',
-           '-Wsign-conversion'
+           '-Wno-sign-conversion'
         ],
       },
       'direct_dependent_settings': {
