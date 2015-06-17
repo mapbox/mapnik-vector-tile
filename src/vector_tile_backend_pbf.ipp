@@ -111,7 +111,7 @@ void backend_pbf::start_tile_feature(mapnik::feature_impl const& feature)
                     // The key doesn't exist yet in the dictionary.
                     current_layer_->add_keys(name.c_str(), name.length());
                     size_t index = keys_.size();
-                    keys_.insert(keys_container::value_type(name, index));
+                    keys_.emplace(name, index);
                     current_feature_->add_tags(index);
                 }
                 else
@@ -127,7 +127,7 @@ void backend_pbf::start_tile_feature(mapnik::feature_impl const& feature)
                     to_tile_value visitor(current_layer_->add_values());
                     mapnik::util::apply_visitor(visitor, val);
                     size_t index = values_.size();
-                    values_.insert(values_container::value_type(val, index));
+                    values_.emplace(val, index);
                     current_feature_->add_tags(index);
                 }
                 else
