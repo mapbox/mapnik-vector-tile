@@ -33,6 +33,7 @@
 
 // vector input api
 #include "vector_tile_datasource.hpp"
+#include "pbf_writer.hpp"
 
 /*
 TEST_CASE( "vector tile negative id", "hmm" ) {
@@ -530,7 +531,7 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     // 5th and 6th are the x,y of the first line_to command
     // due zigzag encoding the 2,2 should be 4,4
     // delta encoding has no impact since the previous coordinate was 0,0
-    unsigned four = (2 << 1) ^ (2 >> 31);
+    unsigned four = mapbox::util::pbf_writer::encode_zigzag32(2u);
     CHECK(4 == four);
     CHECK(4 == f.geometry(4));
     CHECK(4 == f.geometry(5));

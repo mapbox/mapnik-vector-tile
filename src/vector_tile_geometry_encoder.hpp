@@ -10,6 +10,8 @@
 
 #include <mapnik/geometry.hpp>
 #include "vector_tile_config.hpp"
+#include "pbf_writer.hpp"
+
 #include <cstdlib>
 #include <cmath>
 #include <sstream>
@@ -26,11 +28,16 @@ inline unsigned encode_geometry(mapnik::geometry::point<std::int64_t> const& pt,
     int32_t dx = pt.x - start_x;
     int32_t dy = pt.y - start_y;
     // Manual zigzag encoding.
-    current_feature.add_geometry((static_cast<unsigned>(dx) << 1) ^ (dx >> 31));
-    current_feature.add_geometry((static_cast<unsigned>(dy) << 1) ^ (dy >> 31));
+    current_feature.add_geometry(mapbox::util::pbf_writer::encode_zigzag32(dx));
+    current_feature.add_geometry(mapbox::util::pbf_writer::encode_zigzag32(dy));
     start_x = pt.x;
     start_y = pt.y;
     return 1;
+}
+
+inline unsigned encode_length(unsigned len)
+{
+    return (len << 3u) | 2u;
 }
 
 inline unsigned encode_geometry(mapnik::geometry::line_string<std::int64_t> const& line,
@@ -38,8 +45,12 @@ inline unsigned encode_geometry(mapnik::geometry::line_string<std::int64_t> cons
                         int32_t & start_x,
                         int32_t & start_y)
 {
-    const int cmd_bits = 3;
-    int32_t line_to_length = static_cast<int32_t>(line.size()) - 1;
+    std::size_t line_size = line.size();
+    if (line_size <= 0)
+    {
+        return 0;
+    }
+    unsigned line_to_length = static_cast<unsigned>(line_size) - 1;
 
     enum {
         move_to = 1,
@@ -57,13 +68,13 @@ inline unsigned encode_geometry(mapnik::geometry::line_string<std::int64_t> cons
         else if (status == line_to)
         {
             status = coords;
-            current_feature.add_geometry((line_to_length << cmd_bits) | 2); // len | (line_to << 3)
+            current_feature.add_geometry(encode_length(line_to_length));
         }
         int32_t dx = pt.x - start_x;
         int32_t dy = pt.y - start_y;
         // Manual zigzag encoding.
-        current_feature.add_geometry((static_cast<unsigned>(dx) << 1) ^ (dx >> 31));
-        current_feature.add_geometry((static_cast<unsigned>(dy) << 1) ^ (dy >> 31));
+        current_feature.add_geometry(mapbox::util::pbf_writer::encode_zigzag32(dx));
+        current_feature.add_geometry(mapbox::util::pbf_writer::encode_zigzag32(dy));
         start_x = pt.x;
         start_y = pt.y;
     }
@@ -75,10 +86,13 @@ inline unsigned encode_geometry(mapnik::geometry::linear_ring<std::int64_t> cons
                         int32_t & start_x,
                         int32_t & start_y)
 {
-    if (ring.size() < 3) return 0;
-    const int cmd_bits = 3;
-    int32_t line_to_length = static_cast<int32_t>(ring.size()) - 1;
-    int count = 0;
+    std::size_t ring_size = ring.size();
+    if (ring_size < 3)
+    {
+        return 0;
+    }
+    unsigned line_to_length = static_cast<unsigned>(ring_size) - 1;
+    unsigned count = 0;
     enum {
         move_to = 1,
         line_to = 2,
@@ -105,7 +119,7 @@ inline unsigned encode_geometry(mapnik::geometry::linear_ring<std::int64_t> cons
         else if (status == line_to)
         {
             status = coords;
-            current_feature.add_geometry((line_to_length<< cmd_bits) | 2); // len | (line_to << 3)
+            current_feature.add_geometry(encode_length(line_to_length));
         }
         else if (drop_last && count == line_to_length + 1)
         {
@@ -114,8 +128,8 @@ inline unsigned encode_geometry(mapnik::geometry::linear_ring<std::int64_t> cons
         int32_t dx = pt.x - start_x;
         int32_t dy = pt.y - start_y;
         // Manual zigzag encoding.
-        current_feature.add_geometry((static_cast<unsigned>(dx) << 1) ^ (dx >> 31));
-        current_feature.add_geometry((static_cast<unsigned>(dy) << 1) ^ (dy >> 31));
+        current_feature.add_geometry(mapbox::util::pbf_writer::encode_zigzag32(dx));
+        current_feature.add_geometry(mapbox::util::pbf_writer::encode_zigzag32(dy));
         start_x = pt.x;
         start_y = pt.y;
         ++count;
