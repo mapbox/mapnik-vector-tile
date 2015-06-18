@@ -12,12 +12,11 @@
 #include "vector_tile_geometry_encoder.hpp"
 #include <mapnik/value.hpp>
 #include <mapnik/geometry.hpp>
+#include <unordered_map>
 
-// boost
-#include <boost/unordered_map.hpp>
-
-namespace mapnik {
-    class feature_impl;
+namespace mapnik
+{
+class feature_impl;
 }
 
 namespace mapnik { namespace vector_tile_impl {
@@ -25,7 +24,7 @@ namespace mapnik { namespace vector_tile_impl {
     struct backend_pbf
     {
         typedef std::map<std::string, unsigned> keys_container;
-        typedef boost::unordered_map<mapnik::value, unsigned> values_container;
+        typedef std::unordered_map<mapnik::value, unsigned> values_container;
     private:
         vector_tile::Tile & tile_;
         unsigned path_multiplier_;
