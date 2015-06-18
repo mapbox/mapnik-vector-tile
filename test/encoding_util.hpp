@@ -16,8 +16,9 @@ struct print
         std::cerr << "EMPTY" << std::endl;
     }
     template <typename T>
-    void operator() (geometry_collection<T> const& collection) const
+    void operator() (geometry_collection<T> const&) const
     {
+        std::cerr << "COLLECTION" << std::endl;
     }
     template <typename T>
     void operator() (T const& geom) const
