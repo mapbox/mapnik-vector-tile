@@ -7,6 +7,7 @@
 #include "vector_tile_strategy.hpp"
 #include "vector_tile_projection.hpp"
 
+#include "test_utils.hpp"
 #include "catch.hpp"
 #include "clipper.hpp"
 
@@ -72,6 +73,32 @@ TEST_CASE( "vector_tile_strategy", "should not overflow" ) {
                        (-pt.y < ClipperLib::hiRange)
                     ));
         }
+    }
+}
+
+TEST_CASE( "vector_tile_strategy2", "invalid mercator coord in interior ring" ) {
+    mapnik::geometry::geometry<double> geom = testing::read_geojson("./test/data/invalid-interior-ring.json");
+    mapnik::projection merc("+init=epsg:3857",true);
+    mapnik::proj_transform prj_trans(merc,merc); // no-op
+    unsigned tile_size = 256;
+    mapnik::vector_tile_impl::spherical_mercator merc_tiler(tile_size);
+    double minx,miny,maxx,maxy;
+    merc_tiler.xyz(9664,20435,15,minx,miny,maxx,maxy);
+    mapnik::box2d<double> z15_extent(minx,miny,maxx,maxy);
+    mapnik::view_transform tr(tile_size,tile_size,z15_extent,0,0);
+    mapnik::vector_tile_impl::vector_tile_strategy vs(prj_trans, tr, 16);
+    mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(geom, vs);
+    REQUIRE( new_geom.is<mapnik::geometry::geometry_empty>() );
+    auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);
+    for (auto const& pt : poly.exterior_ring)
+    {
+        INFO( pt.x )
+        INFO( ClipperLib::hiRange )
+        REQUIRE(( (pt.x > ClipperLib::hiRange) ||
+                   (pt.y > ClipperLib::hiRange) ||
+                   (-pt.x < ClipperLib::hiRange) ||
+                   (-pt.y < ClipperLib::hiRange)
+                ));
     }
 }
 
