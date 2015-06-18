@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.3
+
+ - Minor optimization in attribute encoding by using `emplace` instead of `insert`
+ - Now depends on `pbf_writer.hpp` for zigzag implementation (no change in behavior)
+ - Minor code cleanup to avoid unnecessary compiler warnings
+
 ## 0.8.2
 
  - Optimized coordinate transform that skips proj4 failures (#116)
