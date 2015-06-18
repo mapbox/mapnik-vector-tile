@@ -859,7 +859,7 @@ struct encoder_visitor {
       buffered_query_ext_(buffered_query_ext),
       area_threshold_(area_threshold) {}
 
-    unsigned operator() (mapnik::geometry::geometry_empty const& geom)
+    unsigned operator() (mapnik::geometry::geometry_empty const&)
     {
         return 0;
     }
@@ -1220,7 +1220,7 @@ struct simplify_visitor {
         return count;
     }
 
-    unsigned operator() (mapnik::geometry::geometry_empty const& geom)
+    unsigned operator() (mapnik::geometry::geometry_empty const&)
     {
         return 0;
     }
