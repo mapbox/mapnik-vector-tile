@@ -22,7 +22,7 @@ TEST_CASE( "vector_tile_strategy", "should not overflow" ) {
     {
         mapnik::vector_tile_impl::vector_tile_strategy vs(prj_trans, tr, 16);
         // even an invalid point is not expected to result in values beyond hirange
-        mapnik::geometry::point<std::int64_t> g(-20037508.342789*2,-20037508.342789*2);
+        mapnik::geometry::point<double> g(-20037508.342789*2.0,-20037508.342789*2.0);
         mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(g, vs);
         REQUIRE( new_geom.is<mapnik::geometry::point<std::int64_t>>() );
         auto const& pt = mapnik::util::get<mapnik::geometry::point<std::int64_t>>(new_geom);
@@ -32,7 +32,7 @@ TEST_CASE( "vector_tile_strategy", "should not overflow" ) {
         REQUIRE( (-pt.y < ClipperLib::hiRange) );
     }
     merc_tiler.xyz(0,0,0,minx,miny,maxx,maxy);
-    mapnik::geometry::polygon<std::int64_t> g;
+    mapnik::geometry::polygon<double> g;
     g.exterior_ring.add_coord(minx,miny);
     g.exterior_ring.add_coord(maxx,miny);
     g.exterior_ring.add_coord(maxx,maxy);
@@ -73,7 +73,6 @@ TEST_CASE( "vector_tile_strategy", "should not overflow" ) {
                     ));
         }
     }
-
 }
 
 TEST_CASE( "clipper IntPoint", "should accept 64bit values" ) {
