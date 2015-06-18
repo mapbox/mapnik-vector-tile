@@ -307,7 +307,7 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     std::string key("");
     CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
-    CHECK(1 == tile.layers_size());
+    REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
     CHECK(1 == layer.features_size());
@@ -431,7 +431,7 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     std::string key("");
     CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
-    CHECK(1 == tile.layers_size());
+    REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(1 == layer.features_size());
     vector_tile::Tile_Feature const& f = layer.features(0);
@@ -500,7 +500,7 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     std::string key("");
     CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
-    CHECK(1 == tile.layers_size());
+    REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(1 == layer.features_size());
     vector_tile::Tile_Feature const& f = layer.features(0);
@@ -577,7 +577,7 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
     std::string key("");
     CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
-    CHECK(1 == tile.layers_size());
+    REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(1 == layer.features_size());
     vector_tile::Tile_Feature const& f = layer.features(0);
@@ -953,7 +953,7 @@ TEST_CASE( "vector tile from simplified geojson", "should create vector tile wit
     renderer_type ren(backend,map,m_req);
     ren.apply();
     CHECK( ren.painted() == true );
-    CHECK(1 == tile.layers_size());
+    REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
     CHECK(1 == layer.features_size());
