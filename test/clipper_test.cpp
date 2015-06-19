@@ -60,26 +60,27 @@ TEST_CASE( "vector_tile_strategy", "should not overflow" ) {
         // expected to trigger values above hirange
         double path_multiplier = 1000000000000.0;
         mapnik::vector_tile_impl::vector_tile_strategy vs(prj_trans, tr, path_multiplier);
-        mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(g, vs);
+        CHECK_THROWS( mapnik::geometry::transform<std::int64_t>(g, vs) );
+        mapnik::vector_tile_impl::transform_visitor skipping_transformer(vs);
+        mapnik::geometry::geometry<std::int64_t> new_geom = skipping_transformer(g);
         REQUIRE( new_geom.is<mapnik::geometry::polygon<std::int64_t>>() );
         auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);
         for (auto const& pt : poly.exterior_ring)
         {
             INFO( pt.x )
             INFO( ClipperLib::hiRange )
-            REQUIRE(( (pt.x > ClipperLib::hiRange) ||
-                       (pt.y > ClipperLib::hiRange) ||
-                       (-pt.x < ClipperLib::hiRange) ||
-                       (-pt.y < ClipperLib::hiRange)
-                    ));
+            REQUIRE( (pt.x < ClipperLib::hiRange) );
+            REQUIRE( (pt.y < ClipperLib::hiRange) );
+            REQUIRE( (-pt.x < ClipperLib::hiRange) );
+            REQUIRE( (-pt.y < ClipperLib::hiRange) );
         }
     }
 }
 
 TEST_CASE( "vector_tile_strategy2", "invalid mercator coord in interior ring" ) {
     mapnik::geometry::geometry<double> geom = testing::read_geojson("./test/data/invalid-interior-ring.json");
-    mapnik::projection merc("+init=epsg:3857",true);
-    mapnik::proj_transform prj_trans(merc,merc); // no-op
+    mapnik::projection longlat("+init=epsg:4326",true);
+    mapnik::proj_transform prj_trans(longlat,longlat); // no-op
     unsigned tile_size = 256;
     mapnik::vector_tile_impl::spherical_mercator merc_tiler(tile_size);
     double minx,miny,maxx,maxy;
@@ -87,18 +88,31 @@ TEST_CASE( "vector_tile_strategy2", "invalid mercator coord in interior ring" ) 
     mapnik::box2d<double> z15_extent(minx,miny,maxx,maxy);
     mapnik::view_transform tr(tile_size,tile_size,z15_extent,0,0);
     mapnik::vector_tile_impl::vector_tile_strategy vs(prj_trans, tr, 16);
-    mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(geom, vs);
-    REQUIRE( new_geom.is<mapnik::geometry::geometry_empty>() );
+    CHECK_THROWS( mapnik::geometry::transform<std::int64_t>(geom, vs) );
+    mapnik::vector_tile_impl::transform_visitor skipping_transformer(vs);
+    mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(skipping_transformer,geom);
+    REQUIRE( new_geom.is<mapnik::geometry::polygon<std::int64_t>>() );
     auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);
     for (auto const& pt : poly.exterior_ring)
     {
         INFO( pt.x )
         INFO( ClipperLib::hiRange )
-        REQUIRE(( (pt.x > ClipperLib::hiRange) ||
-                   (pt.y > ClipperLib::hiRange) ||
-                   (-pt.x < ClipperLib::hiRange) ||
-                   (-pt.y < ClipperLib::hiRange)
-                ));
+        REQUIRE( (pt.x < ClipperLib::hiRange) );
+        REQUIRE( (pt.y < ClipperLib::hiRange) );
+        REQUIRE( (-pt.x < ClipperLib::hiRange) );
+        REQUIRE( (-pt.y < ClipperLib::hiRange) );
+    }
+    for (auto const& ring : poly.interior_rings)
+    {
+        for (auto const& pt : ring)
+        {
+            INFO( pt.x )
+            INFO( ClipperLib::hiRange )
+            REQUIRE( (pt.x < ClipperLib::hiRange) );
+            REQUIRE( (pt.y < ClipperLib::hiRange) );
+            REQUIRE( (-pt.x < ClipperLib::hiRange) );
+            REQUIRE( (-pt.y < ClipperLib::hiRange) );
+        }
     }
 }
 
