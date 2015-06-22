@@ -326,22 +326,16 @@ inline mapnik::geometry::geometry<double> decode_geometry(T & geoms, int32_t geo
         }
         else
         {
-            bool exterior_was_degenerate = false;
-            bool first_winding_order = true;
+            bool is_clockwise = true;
             for (; rings_itr != rings_end; ++rings_itr)
             {
-                bool degenerate_ring = (rings_itr->size() < 4);
+                if (rings_itr->size() < 4) continue; // skip degenerate rings
                 if (first)
                 {
-                    if (degenerate_ring)
-                    {
-                        exterior_was_degenerate = true;
-                        continue;
-                    }
-                    first_winding_order = mapnik::util::is_clockwise(*rings_itr);
+                    is_clockwise = mapnik::util::is_clockwise(*rings_itr);
                     // first ring always exterior and sets all future winding order
                     multi_poly.emplace_back();
-                    if (first_winding_order)
+                    if (is_clockwise)
                     {
                         // Going into mapnik we want the outer ring to be CCW
                         std::reverse(rings_itr->begin(), rings_itr->end());
@@ -349,12 +343,11 @@ inline mapnik::geometry::geometry<double> decode_geometry(T & geoms, int32_t geo
                     multi_poly.back().set_exterior_ring(std::move(*rings_itr));
                     first = false;
                 }
-                else if (first_winding_order == mapnik::util::is_clockwise(*rings_itr))
+                else if (is_clockwise == mapnik::util::is_clockwise(*rings_itr))
                 {
-                    if (degenerate_ring) continue;
                     // hit a new exterior ring, so start a new polygon
                     multi_poly.emplace_back(); // start new polygon
-                    if (first_winding_order)
+                    if (is_clockwise)
                     {
                         // Going into mapnik we want the outer ring to be CCW,
                         // since first winding order was CW, we need to reverse
@@ -362,15 +355,13 @@ inline mapnik::geometry::geometry<double> decode_geometry(T & geoms, int32_t geo
                         std::reverse(rings_itr->begin(), rings_itr->end());
                     }
                     multi_poly.back().set_exterior_ring(std::move(*rings_itr));
-                    exterior_was_degenerate = false;
                 }
                 else
                 {
-                    if (exterior_was_degenerate || degenerate_ring) continue;
-                    if (first_winding_order)
+                    if (is_clockwise)
                     {
                         // Going into mapnik we want the inner ring to be CW,
-                        // since first winding order of the outer ring CW, we 
+                        // since first winding order of the outer ring CW, we
                         // need to reverse these rings as they are CCW.
                         std::reverse(rings_itr->begin(), rings_itr->end());
                     }
