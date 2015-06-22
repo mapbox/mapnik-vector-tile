@@ -75,6 +75,22 @@ std::shared_ptr<mapnik::memory_datasource> build_geojson_ds(std::string const& g
     return ds;
 }
 
+mapnik::geometry::geometry<double> read_geojson(std::string const& geojson_file) {
+    mapnik::util::file input(geojson_file);
+    if (!input.open())
+    {
+        throw std::runtime_error("failed to open geojson");
+    }
+    mapnik::geometry::geometry<double> geom;
+    std::string json_string(input.data().get(), input.size());
+    if (!mapnik::json::from_geojson(json_string, geom))
+    {
+        throw std::runtime_error("failed to parse geojson");
+    }
+    mapnik::geometry::correct(geom);
+    return geom;
+}
+
 unsigned compare_images(mapnik::image_rgba8 const& src1,
                         std::string const& filepath,
                         int threshold,

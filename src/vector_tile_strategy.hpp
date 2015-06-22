@@ -7,6 +7,8 @@
 #include <mapnik/proj_transform.hpp>
 #include <mapnik/view_transform.hpp>
 
+#include "clipper.hpp"
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wunused-local-typedef"
@@ -19,6 +21,9 @@
 namespace mapnik {
 
 namespace vector_tile_impl {
+
+static constexpr double coord_max = static_cast<double>(ClipperLib::hiRange);
+static constexpr double coord_min = -1 * static_cast<double>(ClipperLib::hiRange);
 
 struct vector_tile_strategy
 {
@@ -39,8 +44,12 @@ struct vector_tile_strategy
         double z = 0.0;
         if (not_equal_ && !prj_trans_.backward(x, y, z)) return false;
         tr_.forward(&x,&y);
-        boost::geometry::set<0>(p2, static_cast<p2_type>(std::round(x * scaling_)));
-        boost::geometry::set<1>(p2, static_cast<p2_type>(std::round(y * scaling_)));
+        x = std::round(x * scaling_);
+        y = std::round(y * scaling_);
+        if (x <= coord_min || x >= coord_max ||
+            y <= coord_min || y >= coord_max) return false;
+        boost::geometry::set<0>(p2, static_cast<p2_type>(x));
+        boost::geometry::set<1>(p2, static_cast<p2_type>(y));
         return true;
     }
     
