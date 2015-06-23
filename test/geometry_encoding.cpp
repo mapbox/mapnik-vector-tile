@@ -284,6 +284,38 @@ TEST_CASE( "polygon with valid exterior ring but one degenerate interior ring of
     CHECK( holes.size() == 1 );
 }
 
+TEST_CASE( "Polygon with de-generate ring(s)", "should skip invalid ring(s)" )
+{
+    // create invalid (exterior) polygon
+    mapnik::geometry::polygon<std::int64_t> p0;
+    p0.exterior_ring.add_coord(10,10);
+    p0.exterior_ring.add_coord(10,10);
+    p0.exterior_ring.add_coord(10,10);
+    p0.exterior_ring.add_coord(10,10);
+    mapnik::geometry::linear_ring<std::int64_t> hole;
+    hole.add_coord(-7,7);
+    hole.add_coord(-3,7);
+    hole.add_coord(-3,3);
+    hole.add_coord(-7,3);
+    hole.add_coord(-7,7);
+    p0.add_hole(std::move(hole));
+
+    std::string wkt0;
+    CHECK( mapnik::util::to_wkt(wkt0,mapnik::geometry::geometry<std::int64_t>(p0) ) );
+    std::string expected_wkt0("POLYGON((10 10,10 10,10 10,10 10),(-7 7,-3 7,-3 3,-7 3,-7 7))");
+    std::string expected_wkt1("POLYGON((-7 7,-7 3,-3 3,-3 7,-7 7))");
+    CHECK( wkt0 == expected_wkt0);
+
+    vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(p0);
+    mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
+    auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
+    CHECK( p1.is<mapnik::geometry::polygon<double> >() );
+    wkt0.clear();
+    CHECK( mapnik::util::to_wkt(wkt0,p1) );
+    CHECK( wkt0 == expected_wkt1);
+}
+
+
 TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     // NOTE: this polygon should have correct winding order:
     // CCW for exterior, CW for interior
@@ -323,96 +355,6 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     wkt0.clear();
     CHECK( mapnik::util::to_wkt(wkt0,p1) );
     CHECK( wkt0 == expected_wkt0);
-
-    // now test back compatibility mode where we decode all rings into exterior rings
-    // for polygons rings that were encoded correctly in vtiles (CCW exterior, CW interior)
-    // then this should be unneeded, but for rings with incorrect order then this style of
-    // decoding should allow them still to be queried correctly using the current mapnik hit_test algos
-    // Note, we need a new Geometry here, the old object can't be rewound.
-    mapnik::vector_tile_impl::Geometry geoms2(feature,0.0,0.0,1.0,1.0);
-    auto _p1 = mapnik::vector_tile_impl::decode_geometry(geoms2, feature.type(), true);
-    wkt0.clear();
-    CHECK( mapnik::util::to_wkt(wkt0,_p1) );
-    CHECK( _p1.is<mapnik::geometry::multi_polygon<double> >() );
-    std::string expected_wkt2("MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
-    CHECK( wkt0 ==  expected_wkt2 );
-    mapnik::geometry::correct(_p1);
-    wkt0.clear();
-    CHECK( mapnik::util::to_wkt(wkt0,_p1) );
-    CHECK( wkt0 ==  expected_wkt2 );
-
-    std::string expected_p0(
-    "move_to(0,0)\n"
-    "line_to(0,10)\n"
-    "line_to(-10,10)\n"
-    "line_to(-10,0)\n"
-    "close_path(0,0)\n"
-    "move_to(-7,7)\n"
-    "line_to(-3,7)\n"
-    "line_to(-3,3)\n"
-    "line_to(-7,3)\n"
-    "close_path(0,0)\n"
-    );
-
-    CHECK(decode_to_path_string(p1) == expected_p0);
-
-    std::string expected_p1(
-    "move_to(0,0)\n"
-    "line_to(0,10)\n"
-    "line_to(-10,10)\n"
-    "line_to(-10,0)\n"
-    "close_path(0,0)\n"
-    "move_to(-7,7)\n"
-    "line_to(-7,3)\n"
-    "line_to(-3,3)\n"
-    "line_to(-3,7)\n"
-    "close_path(0,0)\n"
-    );
-
-    CHECK(decode_to_path_string(_p1) == expected_p1);
-
-    // make into multi_polygon
-    mapnik::geometry::multi_polygon<std::int64_t> multi_poly;
-    multi_poly.push_back(std::move(p0));
-    mapnik::geometry::polygon<std::int64_t> p2;
-    p2.exterior_ring.add_coord(-6,4);
-    p2.exterior_ring.add_coord(-4,4);
-    p2.exterior_ring.add_coord(-4,6);
-    p2.exterior_ring.add_coord(-6,6);
-    p2.exterior_ring.add_coord(-6,4);
-    multi_poly.push_back(std::move(p2));
-
-    mapnik::box2d<double> multi_extent = mapnik::geometry::envelope(multi_poly);
-
-    vector_tile::Tile_Feature feature1 = geometry_to_feature<std::int64_t>(multi_poly);
-    mapnik::vector_tile_impl::Geometry geoms1(feature1,0.0,0.0,1.0,1.0);
-    auto mp = mapnik::vector_tile_impl::decode_geometry(geoms1, feature1.type());
-    CHECK( mp.is<mapnik::geometry::multi_polygon<double> >() );
-
-    CHECK( multi_extent == mapnik::geometry::envelope(mp) );
-
-    wkt0.clear();
-    CHECK( mapnik::util::to_wkt(wkt0,mp) );
-    std::string expected_wkt3("MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)),((-6 4,-4 4,-4 6,-6 6,-6 4)))");
-    CHECK( wkt0 == expected_wkt3);
-    // ensure correcting geometry has no effect
-    // as a way of confirming the original was correct
-    mapnik::geometry::correct(mp);
-    wkt0.clear();
-    CHECK( mapnik::util::to_wkt(wkt0,mp) );
-    CHECK( wkt0 == expected_wkt3);
-
-    std::string expected_multi = expected_p0 += std::string(
-    "move_to(-6,4)\n"
-    "line_to(-4,4)\n"
-    "line_to(-4,6)\n"
-    "line_to(-6,6)\n"
-    "close_path(0,0)\n"
-    );
-
-    CHECK(decode_to_path_string(mp) == expected_multi);
-    CHECK(mapnik::geometry::is_valid(mp));
-    CHECK(mapnik::geometry::is_simple(mp));
 
 }
 
