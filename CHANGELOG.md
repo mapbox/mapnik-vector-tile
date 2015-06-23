@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.4
+
+ - Fixed decoding of degenerate polygons - we need to gracefully support these as they
+   are commonly in the wild based on that AGG clipper used in v0.7.1 and earlier (#123)
+
 ## 0.8.3
 
  - Minor optimization in attribute encoding by using `emplace` instead of `insert`
