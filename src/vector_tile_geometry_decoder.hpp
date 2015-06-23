@@ -367,8 +367,7 @@ void decode_polygons(mapnik::geometry::geometry<double> & geom, T && rings)
 } // ns detail
 
 template <typename T>
-inline mapnik::geometry::geometry<double> decode_geometry(T & paths, int32_t geom_type,
-                                                          bool treat_all_rings_as_exterior = false)
+inline mapnik::geometry::geometry<double> decode_geometry(T & paths, int32_t geom_type)
 {
     mapnik::geometry::geometry<double> geom; // output geometry
     switch (geom_type)
