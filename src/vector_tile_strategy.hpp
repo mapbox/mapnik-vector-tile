@@ -27,7 +27,42 @@ static constexpr double coord_min = -1 * static_cast<double>(ClipperLib::hiRange
 
 struct vector_tile_strategy
 {
-    vector_tile_strategy(proj_transform const& prj_trans,
+    vector_tile_strategy(view_transform const& tr,
+                          double scaling)
+        : tr_(tr),
+          scaling_(scaling) {}
+
+    template <typename P1, typename P2>
+    inline bool apply(P1 const& p1, P2 & p2) const
+    {
+        using p2_type = typename boost::geometry::coordinate_type<P2>::type;
+        double x = boost::geometry::get<0>(p1);
+        double y = boost::geometry::get<1>(p1);
+        tr_.forward(&x,&y);
+        x = std::round(x * scaling_);
+        y = std::round(y * scaling_);
+        if (x <= coord_min || x >= coord_max ||
+            y <= coord_min || y >= coord_max) return false;
+        boost::geometry::set<0>(p2, static_cast<p2_type>(x));
+        boost::geometry::set<1>(p2, static_cast<p2_type>(y));
+        return true;
+    }
+
+    template <typename P1, typename P2>
+    inline P2 execute(P1 const& p1, bool & status) const
+    {
+        P2 p2;
+        status = apply(p1, p2);
+        return p2;
+    }
+
+    view_transform const& tr_;
+    double const scaling_;
+};
+
+struct vector_tile_strategy_proj
+{
+    vector_tile_strategy_proj(proj_transform const& prj_trans,
                          view_transform const& tr,
                          double scaling)
         : prj_trans_(prj_trans),
@@ -68,9 +103,10 @@ struct vector_tile_strategy
 };
 
 // TODO - avoid creating degenerate polygons when first/last point of ring is skipped
+template <typename TransformType>
 struct transform_visitor {
 
-    transform_visitor(vector_tile_strategy const& tr) :
+    transform_visitor(TransformType const& tr) :
       tr_(tr) {}
 
     inline mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::point<double> const& geom)
@@ -210,7 +246,7 @@ struct transform_visitor {
     {
         return geom;
     }
-    vector_tile_strategy const& tr_;
+    TransformType const& tr_;
 };
 
 }

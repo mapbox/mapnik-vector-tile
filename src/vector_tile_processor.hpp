@@ -63,6 +63,11 @@ public:
         return simplify_distance_;
     }
 
+    inline mapnik::view_transform const& get_transform()
+    {
+        return t_;
+    }
+
     MAPNIK_VECTOR_INLINE void apply(double scale_denom=0.0);
 
     MAPNIK_VECTOR_INLINE bool painted() const;
@@ -76,9 +81,10 @@ public:
                         box2d<double> const& extent,
                         int buffer_size);
 
-    MAPNIK_VECTOR_INLINE unsigned handle_geometry(mapnik::feature_impl const& feature,
+    template <typename T2>
+    MAPNIK_VECTOR_INLINE unsigned handle_geometry(T2 const& vs,
+                                                  mapnik::feature_impl const& feature,
                                                   mapnik::geometry::geometry<double> const& geom,
-                                                  mapnik::proj_transform const& prj_trans,
                                                   mapnik::box2d<double> const& buffered_query_ext);
 };
 

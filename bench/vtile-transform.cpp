@@ -46,8 +46,9 @@ int main() {
 
     unsigned count = 0;
     unsigned count2 = 0;
+    unsigned count3 = 0;
     {
-        mapnik::vector_tile_impl::vector_tile_strategy vs(prj_trans, tr, 16);
+        mapnik::vector_tile_impl::vector_tile_strategy vs(tr, 16);
         mapnik::progress_timer __stats__(std::clog, "boost::geometry::transform");
         for (unsigned i=0;i<10000;++i)
         {
@@ -57,9 +58,9 @@ int main() {
         }
     }
     {
-        mapnik::vector_tile_impl::vector_tile_strategy vs(prj_trans, tr, 16);
-        mapnik::progress_timer __stats__(std::clog, "transform_visitor with reserve");
-        mapnik::vector_tile_impl::transform_visitor transit(vs);
+        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans,tr, 16);
+        mapnik::progress_timer __stats__(std::clog, "transform_visitor with reserve with proj no-op");
+        mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj> transit(vs);
         for (unsigned i=0;i<10000;++i)
         {
             mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(transit,geom);        
@@ -67,6 +68,22 @@ int main() {
             count2 += poly.size();
         }
         if (count != count2)
+        {
+            std::clog << "tests did not run as expected!\n";
+            return -1;
+        }
+    }
+    {
+        mapnik::vector_tile_impl::vector_tile_strategy vs(tr, 16);
+        mapnik::progress_timer __stats__(std::clog, "transform_visitor with reserve with no proj function call overhead");
+        mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy> transit(vs);
+        for (unsigned i=0;i<10000;++i)
+        {
+            mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(transit,geom);
+            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(new_geom);
+            count3 += poly.size();
+        }
+        if (count != count3)
         {
             std::clog << "tests did not run as expected!\n";
             return -1;

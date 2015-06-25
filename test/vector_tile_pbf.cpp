@@ -144,10 +144,10 @@ TEST_CASE( "pbf vector tile datasource", "should filter features outside extent"
     std::string key("");
     CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
-    CHECK(1 == tile.layers_size());
+    REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
-    CHECK(1 == layer.features_size());
+    REQUIRE(1 == layer.features_size());
     vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
     CHECK(3 == f.geometry_size());
@@ -261,9 +261,9 @@ TEST_CASE( "pbf encoding multi line as one path", "should maintain second move_t
     std::string key("");
     CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
-    CHECK(1 == tile.layers_size());
+    REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
-    CHECK(1 == layer.features_size());
+    REQUIRE(1 == layer.features_size());
     vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(12 == f.geometry_size());
     CHECK(9 == f.geometry(0)); // 1 move_to
@@ -343,10 +343,10 @@ TEST_CASE( "pbf decoding some truncated buffers", "should throw exception" ) {
     std::string key("");
     CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
-    CHECK(1 == tile.layers_size());
+    REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
-    CHECK(1 == layer.features_size());
+    REQUIRE(1 == layer.features_size());
     vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
     CHECK(3 == f.geometry_size());
@@ -397,10 +397,10 @@ TEST_CASE( "pbf vector tile from simplified geojson", "should create vector tile
     renderer_type ren(backend,map,m_req);
     ren.apply();
     CHECK( ren.painted() == true );
-    CHECK(1 == tile.layers_size());
+    REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
-    CHECK(1 == layer.features_size());
+    REQUIRE(1 == layer.features_size());
     vector_tile::Tile_Feature const& f = layer.features(0);
     unsigned z = 0;
     unsigned x = 0;
@@ -478,10 +478,10 @@ TEST_CASE( "pbf raster tile output", "should be able to overzoom raster" ) {
         ren.apply();
     }
     // Done creating test data, now test created tile
-    CHECK(1 == tile.layers_size());
+    REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
-    CHECK(1 == layer.features_size());
+    REQUIRE(1 == layer.features_size());
     vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
     CHECK(0 == f.geometry_size());
