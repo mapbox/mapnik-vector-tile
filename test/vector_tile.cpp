@@ -607,8 +607,14 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     mapnik::projection merc("+init=epsg:4326",true);
     mapnik::proj_transform prj_trans(merc,wgs84);
     ren.set_simplify_distance(simplify_distance);
-    mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans,ren.get_transform(),backend.get_path_multiplier());
-    ren.handle_geometry(vs,*feature,geom,bbox);
+    mapnik::vector_tile_impl::vector_tile_strategy_proj vs2(prj_trans,ren.get_transform(),backend.get_path_multiplier());
+    mapnik::vector_tile_impl::vector_tile_strategy vs(ren.get_transform(),backend.get_path_multiplier());
+    mapnik::geometry::point<double> p1_min(bbox.minx(), bbox.miny());
+    mapnik::geometry::point<double> p1_max(bbox.maxx(), bbox.maxy());
+    mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
+    mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
+    mapnik::box2d<int> clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
+    ren.handle_geometry(vs2,*feature,geom,clipping_extent);
     backend.stop_tile_layer();
     if (tile.layers_size() != 1)
     {
@@ -1008,8 +1014,14 @@ mapnik::geometry::geometry<double> round_trip2(mapnik::geometry::geometry<double
     {
         throw std::runtime_error("simplify_distance setter did not work");
     }
-    mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans,ren.get_transform(),backend.get_path_multiplier());
-    ren.handle_geometry(vs,*feature,geom,bbox);
+    mapnik::vector_tile_impl::vector_tile_strategy_proj vs2(prj_trans,ren.get_transform(),backend.get_path_multiplier());
+    mapnik::vector_tile_impl::vector_tile_strategy vs(ren.get_transform(),backend.get_path_multiplier());
+    mapnik::geometry::point<double> p1_min(bbox.minx(), bbox.miny());
+    mapnik::geometry::point<double> p1_max(bbox.maxx(), bbox.maxy());
+    mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
+    mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
+    mapnik::box2d<int> clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
+    ren.handle_geometry(vs2,*feature,geom,clipping_extent);
     backend.stop_tile_layer();
     if (tile.layers_size() != 1)
     {

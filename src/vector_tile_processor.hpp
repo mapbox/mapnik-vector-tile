@@ -85,7 +85,7 @@ public:
     MAPNIK_VECTOR_INLINE unsigned handle_geometry(T2 const& vs,
                                                   mapnik::feature_impl const& feature,
                                                   mapnik::geometry::geometry<double> const& geom,
-                                                  mapnik::box2d<double> const& buffered_query_ext);
+                                                  mapnik::box2d<int> const& clipping_extent);
 };
 
 }} // end ns

@@ -673,6 +673,8 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
     {
         buffered_query_ext.clip(*maximum_extent);
     }
+
+    auto buffered_query_ext_target(buffered_query_ext);
     mapnik::box2d<double> layer_ext = lay.envelope();
     bool fw_success = false;
     bool early_return = false;
@@ -787,6 +789,11 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
         if (prj_trans.equal())
         {
             mapnik::vector_tile_impl::vector_tile_strategy vs(t_,backend_.get_path_multiplier());
+            mapnik::geometry::point<double> p1_min(buffered_query_ext_target.minx(), buffered_query_ext_target.miny());
+            mapnik::geometry::point<double> p1_max(buffered_query_ext_target.maxx(), buffered_query_ext_target.maxy());
+            mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
+            mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
+            box2d<int> clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
             while (feature)
             {
                 mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
@@ -798,7 +805,7 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
                 if (handle_geometry(vs,
                                     *feature,
                                     geom,
-                                    buffered_query_ext) > 0)
+                                    clipping_extent) > 0)
                 {
                     painted_ = true;
                 }
@@ -807,7 +814,13 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
         }
         else
         {
-            mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans,t_,backend_.get_path_multiplier());
+            mapnik::vector_tile_impl::vector_tile_strategy vs(t_,backend_.get_path_multiplier());
+            mapnik::geometry::point<double> p1_min(buffered_query_ext_target.minx(), buffered_query_ext_target.miny());
+            mapnik::geometry::point<double> p1_max(buffered_query_ext_target.maxx(), buffered_query_ext_target.maxy());
+            mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
+            mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
+            box2d<int> clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
+            mapnik::vector_tile_impl::vector_tile_strategy_proj vs2(prj_trans,t_,backend_.get_path_multiplier());
             while (feature)
             {
                 mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
@@ -816,10 +829,10 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
                     feature = features->next();
                     continue;
                 }
-                if (handle_geometry(vs,
+                if (handle_geometry(vs2,
                                     *feature,
                                     geom,
-                                    buffered_query_ext) > 0)
+                                    clipping_extent) > 0)
                 {
                     painted_ = true;
                 }
@@ -1259,17 +1272,12 @@ template <typename T> template <typename T2>
 unsigned processor<T>::handle_geometry(T2 const& vs,
                                        mapnik::feature_impl const& feature,
                                        mapnik::geometry::geometry<double> const& geom,
-                                       mapnik::box2d<double> const& buffered_query_ext)
+                                       mapnik::box2d<int> const& clipping_extent)
 {
     using vector_tile_strategy_type = T2;
-    mapnik::geometry::point<double> p1_min(buffered_query_ext.minx(), buffered_query_ext.miny());
-    mapnik::geometry::point<double> p1_max(buffered_query_ext.maxx(), buffered_query_ext.maxy());
-    mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
-    mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
-    box2d<int> bbox(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
     mapnik::vector_tile_impl::transform_visitor<vector_tile_strategy_type> skipping_transformer(vs);
     mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(skipping_transformer,geom);
-    encoder_visitor<T> encoder(backend_,feature,bbox, area_threshold_);
+    encoder_visitor<T> encoder(backend_, feature, clipping_extent, area_threshold_);
     if (simplify_distance_ > 0)
     {
         simplify_visitor<T> simplifier(simplify_distance_,encoder);
