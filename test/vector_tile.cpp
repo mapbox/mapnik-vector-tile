@@ -26,6 +26,7 @@
 // vector output api
 #include "vector_tile_compression.hpp"
 #include "vector_tile_processor.hpp"
+#include "vector_tile_strategy.hpp"
 #include "vector_tile_backend_pbf.hpp"
 #include "vector_tile_util.hpp"
 #include "vector_tile_projection.hpp"
@@ -606,7 +607,8 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     mapnik::projection merc("+init=epsg:4326",true);
     mapnik::proj_transform prj_trans(merc,wgs84);
     ren.set_simplify_distance(simplify_distance);
-    ren.handle_geometry(*feature,geom,prj_trans,bbox);
+    mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans,ren.get_transform(),backend.get_path_multiplier());
+    ren.handle_geometry(vs,*feature,geom,bbox);
     backend.stop_tile_layer();
     if (tile.layers_size() != 1)
     {
@@ -1006,7 +1008,8 @@ mapnik::geometry::geometry<double> round_trip2(mapnik::geometry::geometry<double
     {
         throw std::runtime_error("simplify_distance setter did not work");
     }
-    ren.handle_geometry(*feature,geom,prj_trans,bbox);
+    mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans,ren.get_transform(),backend.get_path_multiplier());
+    ren.handle_geometry(vs,*feature,geom,bbox);
     backend.stop_tile_layer();
     if (tile.layers_size() != 1)
     {

@@ -21,7 +21,7 @@ TEST_CASE( "vector_tile_strategy", "should not overflow" ) {
     mapnik::box2d<double> z15_extent(minx,miny,maxx,maxy);
     mapnik::view_transform tr(tile_size,tile_size,z15_extent,0,0);
     {
-        mapnik::vector_tile_impl::vector_tile_strategy vs(prj_trans, tr, 16);
+        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans, tr, 16);
         // even an invalid point is not expected to result in values beyond hirange
         mapnik::geometry::point<double> g(-20037508.342789*2.0,-20037508.342789*2.0);
         mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(g, vs);
@@ -42,7 +42,7 @@ TEST_CASE( "vector_tile_strategy", "should not overflow" ) {
     {
         // absurdly large but still should not result in values beyond hirange
         double path_multiplier = 100000000000.0;
-        mapnik::vector_tile_impl::vector_tile_strategy vs(prj_trans, tr, path_multiplier);
+        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans, tr, path_multiplier);
         mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(g, vs);
         REQUIRE( new_geom.is<mapnik::geometry::polygon<std::int64_t>>() );
         auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);
@@ -59,9 +59,9 @@ TEST_CASE( "vector_tile_strategy", "should not overflow" ) {
     {
         // expected to trigger values above hirange
         double path_multiplier = 1000000000000.0;
-        mapnik::vector_tile_impl::vector_tile_strategy vs(prj_trans, tr, path_multiplier);
+        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans, tr, path_multiplier);
         CHECK_THROWS( mapnik::geometry::transform<std::int64_t>(g, vs) );
-        mapnik::vector_tile_impl::transform_visitor skipping_transformer(vs);
+        mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj> skipping_transformer(vs);
         mapnik::geometry::geometry<std::int64_t> new_geom = skipping_transformer(g);
         REQUIRE( new_geom.is<mapnik::geometry::polygon<std::int64_t>>() );
         auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);
@@ -87,9 +87,9 @@ TEST_CASE( "vector_tile_strategy2", "invalid mercator coord in interior ring" ) 
     merc_tiler.xyz(9664,20435,15,minx,miny,maxx,maxy);
     mapnik::box2d<double> z15_extent(minx,miny,maxx,maxy);
     mapnik::view_transform tr(tile_size,tile_size,z15_extent,0,0);
-    mapnik::vector_tile_impl::vector_tile_strategy vs(prj_trans, tr, 16);
+    mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans, tr, 16);
     CHECK_THROWS( mapnik::geometry::transform<std::int64_t>(geom, vs) );
-    mapnik::vector_tile_impl::transform_visitor skipping_transformer(vs);
+    mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj> skipping_transformer(vs);
     mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(skipping_transformer,geom);
     REQUIRE( new_geom.is<mapnik::geometry::polygon<std::int64_t>>() );
     auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);

@@ -784,22 +784,47 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
             return;
         }
         // vector pathway
-        while (feature)
+        if (prj_trans.equal())
         {
-            mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
-            if (mapnik::geometry::is_empty(geom))
+            mapnik::vector_tile_impl::vector_tile_strategy vs(t_,backend_.get_path_multiplier());
+            while (feature)
             {
+                mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
+                if (mapnik::geometry::is_empty(geom))
+                {
+                    feature = features->next();
+                    continue;
+                }
+                if (handle_geometry(vs,
+                                    *feature,
+                                    geom,
+                                    buffered_query_ext) > 0)
+                {
+                    painted_ = true;
+                }
                 feature = features->next();
-                continue;
             }
-            if (handle_geometry(*feature,
-                                geom,
-                                prj_trans,
-                                buffered_query_ext) > 0)
+        }
+        else
+        {
+            mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans,t_,backend_.get_path_multiplier());
+            while (feature)
             {
-                painted_ = true;
+                mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
+                if (mapnik::geometry::is_empty(geom))
+                {
+                    feature = features->next();
+                    continue;
+                }
+                if (handle_geometry(vs,
+                                    *feature,
+                                    geom,
+                                    buffered_query_ext) > 0)
+                {
+                    painted_ = true;
+                }
+                feature = features->next();
             }
-            feature = features->next();
         }
         backend_.stop_tile_layer();
     }
@@ -1230,19 +1255,19 @@ struct simplify_visitor {
 };
 
 
-template <typename T>
-unsigned processor<T>::handle_geometry(mapnik::feature_impl const& feature,
+template <typename T> template <typename T2>
+unsigned processor<T>::handle_geometry(T2 const& vs,
+                                       mapnik::feature_impl const& feature,
                                        mapnik::geometry::geometry<double> const& geom,
-                                       mapnik::proj_transform const& prj_trans,
                                        mapnik::box2d<double> const& buffered_query_ext)
 {
-    vector_tile_strategy vs(prj_trans, t_, backend_.get_path_multiplier());
+    using vector_tile_strategy_type = T2;
     mapnik::geometry::point<double> p1_min(buffered_query_ext.minx(), buffered_query_ext.miny());
     mapnik::geometry::point<double> p1_max(buffered_query_ext.maxx(), buffered_query_ext.maxy());
     mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
     mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
     box2d<int> bbox(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
-    mapnik::vector_tile_impl::transform_visitor skipping_transformer(vs);
+    mapnik::vector_tile_impl::transform_visitor<vector_tile_strategy_type> skipping_transformer(vs);
     mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(skipping_transformer,geom);
     encoder_visitor<T> encoder(backend_,feature,bbox, area_threshold_);
     if (simplify_distance_ > 0)
