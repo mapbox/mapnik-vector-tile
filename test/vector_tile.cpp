@@ -956,7 +956,7 @@ TEST_CASE( "vector tile from simplified geojson", "should create vector tile wit
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
-    CHECK(1 == layer.features_size());
+    REQUIRE(1 == layer.features_size());
     vector_tile::Tile_Feature const& f = layer.features(0);
     unsigned z = 0;
     unsigned x = 0;
