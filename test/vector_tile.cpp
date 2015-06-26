@@ -607,8 +607,14 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     mapnik::projection merc("+init=epsg:4326",true);
     mapnik::proj_transform prj_trans(merc,wgs84);
     ren.set_simplify_distance(simplify_distance);
-    mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans,ren.get_transform(),backend.get_path_multiplier());
-    ren.handle_geometry(vs,*feature,geom,bbox);
+    mapnik::vector_tile_impl::vector_tile_strategy_proj vs2(prj_trans,ren.get_transform(),backend.get_path_multiplier());
+    mapnik::vector_tile_impl::vector_tile_strategy vs(ren.get_transform(),backend.get_path_multiplier());
+    mapnik::geometry::point<double> p1_min(bbox.minx(), bbox.miny());
+    mapnik::geometry::point<double> p1_max(bbox.maxx(), bbox.maxy());
+    mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
+    mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
+    mapnik::box2d<int> clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
+    ren.handle_geometry(vs2,*feature,geom,clipping_extent);
     backend.stop_tile_layer();
     if (tile.layers_size() != 1)
     {
@@ -1008,8 +1014,14 @@ mapnik::geometry::geometry<double> round_trip2(mapnik::geometry::geometry<double
     {
         throw std::runtime_error("simplify_distance setter did not work");
     }
-    mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans,ren.get_transform(),backend.get_path_multiplier());
-    ren.handle_geometry(vs,*feature,geom,bbox);
+    mapnik::vector_tile_impl::vector_tile_strategy_proj vs2(prj_trans,ren.get_transform(),backend.get_path_multiplier());
+    mapnik::vector_tile_impl::vector_tile_strategy vs(ren.get_transform(),backend.get_path_multiplier());
+    mapnik::geometry::point<double> p1_min(bbox.minx(), bbox.miny());
+    mapnik::geometry::point<double> p1_max(bbox.maxx(), bbox.maxy());
+    mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
+    mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
+    mapnik::box2d<int> clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
+    ren.handle_geometry(vs2,*feature,geom,clipping_extent);
     backend.stop_tile_layer();
     if (tile.layers_size() != 1)
     {
@@ -1057,11 +1069,11 @@ TEST_CASE( "vector tile line_string is verify direction", "should line string wi
     mapnik::geometry::geometry<double> xgeom = mapnik::geometry::transform<double>(new_geom, proj_strat);
     std::string wkt;
     mapnik::util::to_wkt(wkt, xgeom);
-    CHECK( wkt == "MULTILINESTRING((0 1.99992945603165,2.00006103515625 1.99992945603165,2.00006103515625 0),(7.99996948242188 0,7.99996948242188 1.99992945603165,59.9999084472656 1.99992945603165,59.9999084472656 7.99994115658818,7.99996948242188 7.99994115658818,7.99996948242188 59.9999474398107,2.00006103515625 59.9999474398107,2.00006103515625 7.99994115658818,0.0000000000000005 7.99994115658818))" );
+    CHECK( wkt == "MULTILINESTRING((0 1.99992945603165,2.00006103515625 1.99992945603165,2.00006103515625 0),(7.99996948242188 0,7.99996948242188 1.99992945603165,11.25 1.99992945603165),(11.25 7.99994115658818,7.99996948242188 7.99994115658818,7.99996948242188 11.1784018737118),(2.00006103515625 11.1784018737118,2.00006103515625 7.99994115658818,0.0000000000000005 7.99994115658818))" );
     REQUIRE( !mapnik::geometry::is_empty(xgeom) );
     REQUIRE( new_geom.is<mapnik::geometry::multi_line_string<double> >() );
     auto const& line2 = mapnik::util::get<mapnik::geometry::multi_line_string<double> >(new_geom);
-    CHECK( line2.size() == 2 );
+    CHECK( line2.size() == 4 );
 }
 
 TEST_CASE( "vector tile transform", "should not throw on coords outside merc range" ) {
@@ -1137,5 +1149,82 @@ TEST_CASE( "vector tile transform", "should not throw on coords outside merc ran
     CHECK(0 == diff);
     if (diff > 0) {
         mapnik::save_to_file(im,"test/fixtures/transform-actual-1.png","png32");
+    }
+}
+
+TEST_CASE( "vector tile transform2", "should not throw reprojected data from local NZ projection" ) {
+    typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+    typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+    typedef vector_tile::Tile tile_type;
+    tile_type tile;
+    backend_type backend(tile,64);
+    unsigned tile_size = 256;
+    mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
+    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    // Note: 4269 is key. 4326 will trigger custom mapnik reprojection code
+    // that does not hit proj4 and clamps values
+    mapnik::layer lyr("layer","+proj=nzmg +lat_0=-41 +lon_0=173 +x_0=2510000 +y_0=6023150 +ellps=intl +units=m +no_defs");
+    mapnik::parameters params;
+    params["type"] = "shape";
+    params["file"] = "./test/data/NZ_Coastline_NZMG.shp";
+    std::shared_ptr<mapnik::datasource> ds =
+        mapnik::datasource_cache::instance().create(params);
+    lyr.set_datasource(ds);
+    map.add_layer(lyr);
+    map.zoom_to_box(bbox);
+    mapnik::request m_req(tile_size,tile_size,bbox);
+    renderer_type ren(backend,map,m_req);
+    // should no longer throw after https://github.com/mapbox/mapnik-vector-tile/pull/128
+    ren.apply();
+
+    // serialize to message
+    std::string buffer;
+    CHECK(tile.SerializeToString(&buffer));
+    CHECK(231 == buffer.size());
+    // now create new objects
+    mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
+    tile_type tile2;
+    CHECK(tile2.ParseFromString(buffer));
+    std::string key("");
+    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
+    CHECK("" == key);
+    CHECK(1 == tile2.layers_size());
+    vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
+    CHECK(std::string("layer") == layer2.name());
+    CHECK(2 == layer2.features_size());
+
+    mapnik::layer lyr2("layer",map.srs());
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds2 = std::make_shared<
+                                    mapnik::vector_tile_impl::tile_datasource>(
+                                        layer2,0,0,0,map2.width());
+    ds2->set_envelope(bbox);
+    CHECK( ds2->type() == mapnik::datasource::Vector );
+    CHECK( ds2->get_geometry_type() == mapnik::datasource_geometry_t::Collection );
+    mapnik::layer_descriptor lay_desc = ds2->get_descriptor();
+    std::vector<std::string> expected_names;
+    expected_names.push_back("featurecla");
+    expected_names.push_back("scalerank");
+    std::vector<std::string> names;
+    for (auto const& desc : lay_desc.get_descriptors())
+    {
+        names.push_back(desc.get_name());
+    }
+    CHECK(names == expected_names);
+    lyr2.set_datasource(ds2);
+    lyr2.add_style("style");
+    map2.add_layer(lyr2);
+    mapnik::load_map(map2,"test/data/polygon-style.xml");
+    //std::clog << mapnik::save_map_to_string(map2) << "\n";
+    map2.zoom_to_box(bbox);
+    mapnik::image_rgba8 im(map2.width(),map2.height());
+    mapnik::agg_renderer<mapnik::image_rgba8> ren2(map2,im);
+    ren2.apply();
+    if (!mapnik::util::exists("test/fixtures/transform-expected-2.png")) {
+        mapnik::save_to_file(im,"test/fixtures/transform-expected-2.png","png32");
+    }
+    unsigned diff = testing::compare_images(im,"test/fixtures/transform-expected-2.png");
+    CHECK(0 == diff);
+    if (diff > 0) {
+        mapnik::save_to_file(im,"test/fixtures/transform-actual-2.png","png32");
     }
 }
