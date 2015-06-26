@@ -2,11 +2,14 @@
 
 ## 0.8.4
 
+ - Started to skip coordinates that are out of range (#121)
+ - Fix clipping box used when reprojecting data on the fly (#128)
  - Fixed decoding of degenerate polygons - we need to gracefully support these as they
    are commonly in the wild based on that AGG clipper used in v0.7.1 and earlier (#123)
 
 ## 0.8.3
 
+ - Started to skip coordinates that cannot be reprojected (#117)
  - Minor optimization in attribute encoding by using `emplace` instead of `insert`
  - Now depends on `pbf_writer.hpp` for zigzag implementation (no change in behavior)
  - Minor code cleanup to avoid unnecessary compiler warnings
