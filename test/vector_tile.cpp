@@ -1069,11 +1069,11 @@ TEST_CASE( "vector tile line_string is verify direction", "should line string wi
     mapnik::geometry::geometry<double> xgeom = mapnik::geometry::transform<double>(new_geom, proj_strat);
     std::string wkt;
     mapnik::util::to_wkt(wkt, xgeom);
-    CHECK( wkt == "MULTILINESTRING((0 1.99992945603165,2.00006103515625 1.99992945603165,2.00006103515625 0),(7.99996948242188 0,7.99996948242188 1.99992945603165,59.9999084472656 1.99992945603165,59.9999084472656 7.99994115658818,7.99996948242188 7.99994115658818,7.99996948242188 59.9999474398107,2.00006103515625 59.9999474398107,2.00006103515625 7.99994115658818,0.0000000000000005 7.99994115658818))" );
+    CHECK( wkt == "MULTILINESTRING((0 1.99992945603165,2.00006103515625 1.99992945603165,2.00006103515625 0),(7.99996948242188 0,7.99996948242188 1.99992945603165,11.25 1.99992945603165),(11.25 7.99994115658818,7.99996948242188 7.99994115658818,7.99996948242188 11.1784018737118),(2.00006103515625 11.1784018737118,2.00006103515625 7.99994115658818,0.0000000000000005 7.99994115658818))" );
     REQUIRE( !mapnik::geometry::is_empty(xgeom) );
     REQUIRE( new_geom.is<mapnik::geometry::multi_line_string<double> >() );
     auto const& line2 = mapnik::util::get<mapnik::geometry::multi_line_string<double> >(new_geom);
-    CHECK( line2.size() == 2 );
+    CHECK( line2.size() == 4 );
 }
 
 TEST_CASE( "vector tile transform", "should not throw on coords outside merc range" ) {
