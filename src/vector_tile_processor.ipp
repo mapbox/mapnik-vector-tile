@@ -711,28 +711,6 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
         return;
     }
 
-    // if we've got this far, now prepare the unbuffered extent
-    // which is used as a bbox for clipping geometries
-    if (maximum_extent)
-    {
-        query_ext.clip(*maximum_extent);
-    }
-    mapnik::box2d<double> layer_ext2 = lay.envelope();
-    if (fw_success)
-    {
-        if (prj_trans.forward(query_ext, PROJ_ENVELOPE_POINTS))
-        {
-            layer_ext2.clip(query_ext);
-        }
-    }
-    else
-    {
-        if (prj_trans.backward(layer_ext2, PROJ_ENVELOPE_POINTS))
-        {
-            layer_ext2.clip(query_ext);
-            prj_trans.forward(layer_ext2, PROJ_ENVELOPE_POINTS);
-        }
-    }
     double qw = query_ext.width()>0 ? query_ext.width() : 1;
     double qh = query_ext.height()>0 ? query_ext.height() : 1;
     mapnik::query::resolution_type res(width/qw,
