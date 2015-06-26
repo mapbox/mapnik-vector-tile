@@ -640,7 +640,7 @@ bool processor<T>::painted() const
 
 template <typename T>
 void processor<T>::apply_to_layer(mapnik::layer const& lay,
-                    mapnik::projection const& proj0,
+                    mapnik::projection const& target_proj,
                     double scale,
                     double scale_denom,
                     unsigned width,
@@ -651,10 +651,21 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
     mapnik::datasource_ptr ds = lay.datasource();
     if (!ds) return;
 
-    mapnik::projection proj1(lay.srs(),true);
-    mapnik::proj_transform prj_trans(proj0,proj1);
-    box2d<double> query_ext = extent; // unbuffered
-    box2d<double> buffered_query_ext(query_ext);  // buffered
+    mapnik::projection source_proj(lay.srs(),true);
+
+    // set up a transform from target to source
+    // target == final map (aka tile) projection, usually epsg:3857
+    // source == projection of the data being queried
+    mapnik::proj_transform prj_trans(target_proj,source_proj);
+
+    // working version of unbuffered extent
+    box2d<double> query_ext(extent);
+
+    // working version of buffered extent
+    box2d<double> buffered_query_ext(query_ext);
+
+    // transform the user-driven buffer size into the right
+    // size buffer into the target projection
     double buffer_padding = 2.0 * scale;
     boost::optional<int> layer_buffer_size = lay.buffer_size();
     if (layer_buffer_size) // if layer overrides buffer size, use this value to compute buffered extent
@@ -667,21 +678,29 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
     }
     buffered_query_ext.width(query_ext.width() + buffer_padding);
     buffered_query_ext.height(query_ext.height() + buffer_padding);
+
+    // ^^ now `buffered_query_ext` is actually buffered out.
+
     // clip buffered extent by maximum extent, if supplied
-    boost::optional<box2d<double> > const& maximum_extent = m_.maximum_extent();
+    // Note: Carto.js used to set this by default but no longer does after:
+    // https://github.com/mapbox/carto/pull/342
+    boost::optional<box2d<double>> const& maximum_extent = m_.maximum_extent();
     if (maximum_extent)
     {
         buffered_query_ext.clip(*maximum_extent);
     }
 
-    auto buffered_query_ext_target(buffered_query_ext);
+    // buffered_query_ext is transformed below
+    // into the coordinate system of the source data
+    // so grab a pristine copy of it to use later
+    box2d<double> target_clipping_extent(buffered_query_ext);
+
     mapnik::box2d<double> layer_ext = lay.envelope();
-    bool fw_success = false;
     bool early_return = false;
     // first, try intersection of map extent forward projected into layer srs
     if (prj_trans.forward(buffered_query_ext, PROJ_ENVELOPE_POINTS) && buffered_query_ext.intersects(layer_ext))
     {
-        fw_success = true;
+        // this modifies the layer_ext by clipping to the buffered_query_ext
         layer_ext.clip(buffered_query_ext);
     }
     // if no intersection and projections are also equal, early return
@@ -767,11 +786,11 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
         if (prj_trans.equal())
         {
             mapnik::vector_tile_impl::vector_tile_strategy vs(t_,backend_.get_path_multiplier());
-            mapnik::geometry::point<double> p1_min(buffered_query_ext_target.minx(), buffered_query_ext_target.miny());
-            mapnik::geometry::point<double> p1_max(buffered_query_ext_target.maxx(), buffered_query_ext_target.maxy());
+            mapnik::geometry::point<double> p1_min(target_clipping_extent.minx(), target_clipping_extent.miny());
+            mapnik::geometry::point<double> p1_max(target_clipping_extent.maxx(), target_clipping_extent.maxy());
             mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
             mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
-            box2d<int> clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
+            box2d<int> tile_clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
             while (feature)
             {
                 mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
@@ -783,7 +802,7 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
                 if (handle_geometry(vs,
                                     *feature,
                                     geom,
-                                    clipping_extent) > 0)
+                                    tile_clipping_extent) > 0)
                 {
                     painted_ = true;
                 }
@@ -793,11 +812,11 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
         else
         {
             mapnik::vector_tile_impl::vector_tile_strategy vs(t_,backend_.get_path_multiplier());
-            mapnik::geometry::point<double> p1_min(buffered_query_ext_target.minx(), buffered_query_ext_target.miny());
-            mapnik::geometry::point<double> p1_max(buffered_query_ext_target.maxx(), buffered_query_ext_target.maxy());
+            mapnik::geometry::point<double> p1_min(target_clipping_extent.minx(), target_clipping_extent.miny());
+            mapnik::geometry::point<double> p1_max(target_clipping_extent.maxx(), target_clipping_extent.maxy());
             mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
             mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
-            box2d<int> clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
+            box2d<int> tile_clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
             mapnik::vector_tile_impl::vector_tile_strategy_proj vs2(prj_trans,t_,backend_.get_path_multiplier());
             while (feature)
             {
@@ -810,7 +829,7 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
                 if (handle_geometry(vs2,
                                     *feature,
                                     geom,
-                                    clipping_extent) > 0)
+                                    tile_clipping_extent) > 0)
                 {
                     painted_ = true;
                 }
@@ -868,11 +887,11 @@ struct encoder_visitor {
     typedef T backend_type;
     encoder_visitor(backend_type & backend,
                     mapnik::feature_impl const& feature,
-                    mapnik::box2d<int> const& buffered_query_ext,
+                    mapnik::box2d<int> const& tile_clipping_extent,
                     double area_threshold) :
       backend_(backend),
       feature_(feature),
-      buffered_query_ext_(buffered_query_ext),
+      tile_clipping_extent_(tile_clipping_extent),
       area_threshold_(area_threshold) {}
 
     unsigned operator() (mapnik::geometry::geometry_empty const&)
@@ -893,7 +912,7 @@ struct encoder_visitor {
     unsigned operator() (mapnik::geometry::point<std::int64_t> const& geom)
     {
         unsigned path_count = 0;
-        if (buffered_query_ext_.intersects(geom.x,geom.y))
+        if (tile_clipping_extent_.intersects(geom.x,geom.y))
         {
             backend_.start_tile_feature(feature_);
             backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
@@ -909,7 +928,7 @@ struct encoder_visitor {
         bool first = true;
         for (auto const& pt : geom)
         {
-            if (buffered_query_ext_.intersects(pt.x,pt.y))
+            if (tile_clipping_extent_.intersects(pt.x,pt.y))
             {
                 if (first)
                 {
@@ -933,11 +952,11 @@ struct encoder_visitor {
         if (geom.size() < 2) return 0;
         std::deque<mapnik::geometry::line_string<int64_t>> result;
         mapnik::geometry::linear_ring<std::int64_t> clip_box;
-        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
-        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.miny());
-        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.maxy());
-        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.maxy());
-        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
+        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
+        clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
+        clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.maxy());
+        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.maxy());
+        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
         boost::geometry::intersection(clip_box,geom,result);
         if (!result.empty())
         {
@@ -956,11 +975,11 @@ struct encoder_visitor {
     {
         unsigned path_count = 0;
         mapnik::geometry::linear_ring<std::int64_t> clip_box;
-        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
-        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.miny());
-        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.maxy());
-        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.maxy());
-        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
+        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
+        clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
+        clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.maxy());
+        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.maxy());
+        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
         bool first = true;
         for (auto const& line : geom)
         {
@@ -996,12 +1015,12 @@ struct encoder_visitor {
         unsigned path_count = 0;
         if (geom.exterior_ring.size() < 3) return 0;
         double clean_distance = 1.415;
-        mapnik::geometry::line_string<std::int64_t> clip_box;
-        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
-        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.miny());
-        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.maxy());
-        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.maxy());
-        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
+        mapnik::geometry::linear_ring<std::int64_t> clip_box;
+        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
+        clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
+        clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.maxy());
+        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.maxy());
+        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
         ClipperLib::Clipper clipper;
         ClipperLib::CleanPolygon(geom.exterior_ring, clean_distance);
         double outer_area = ClipperLib::Area(geom.exterior_ring);
@@ -1086,12 +1105,12 @@ struct encoder_visitor {
         if (geom.empty()) return 0;
             
         double clean_distance = 1.415;
-        mapnik::geometry::line_string<std::int64_t> clip_box;
-        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
-        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.miny());
-        clip_box.emplace_back(buffered_query_ext_.maxx(),buffered_query_ext_.maxy());
-        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.maxy());
-        clip_box.emplace_back(buffered_query_ext_.minx(),buffered_query_ext_.miny());
+        mapnik::geometry::linear_ring<std::int64_t> clip_box;
+        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
+        clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
+        clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.maxy());
+        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.maxy());
+        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
         ClipperLib::Clipper clipper;
         for (auto & poly : geom)
         {
@@ -1176,7 +1195,7 @@ struct encoder_visitor {
 
     backend_type & backend_;
     mapnik::feature_impl const& feature_;
-    mapnik::box2d<int> const& buffered_query_ext_;
+    mapnik::box2d<int> const& tile_clipping_extent_;
     double area_threshold_;
 };
 
@@ -1250,12 +1269,15 @@ template <typename T> template <typename T2>
 unsigned processor<T>::handle_geometry(T2 const& vs,
                                        mapnik::feature_impl const& feature,
                                        mapnik::geometry::geometry<double> const& geom,
-                                       mapnik::box2d<int> const& clipping_extent)
+                                       mapnik::box2d<int> const& tile_clipping_extent)
 {
+    // TODO
+    // - no need to create a new skipping_transformer per geometry
+    // - write a non-skipping / zero copy transformer to be used when no projection is needed
     using vector_tile_strategy_type = T2;
     mapnik::vector_tile_impl::transform_visitor<vector_tile_strategy_type> skipping_transformer(vs);
     mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(skipping_transformer,geom);
-    encoder_visitor<T> encoder(backend_, feature, clipping_extent, area_threshold_);
+    encoder_visitor<T> encoder(backend_, feature, tile_clipping_extent, area_threshold_);
     if (simplify_distance_ > 0)
     {
         simplify_visitor<T> simplifier(simplify_distance_,encoder);
