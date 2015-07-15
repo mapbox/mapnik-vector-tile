@@ -60,7 +60,11 @@ int main() {
     {
         mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans,tr, 16);
         mapnik::progress_timer __stats__(std::clog, "transform_visitor with reserve with proj no-op");
-        mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj> transit(vs);
+        mapnik::box2d<int> clip_extent(std::numeric_limits<int>::min(),
+                                       std::numeric_limits<int>::min(),
+                                       std::numeric_limits<int>::max(),
+                                       std::numeric_limits<int>::max());
+        mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj> transit(vs, clip_extent);
         for (unsigned i=0;i<10000;++i)
         {
             mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(transit,geom);        
@@ -76,7 +80,11 @@ int main() {
     {
         mapnik::vector_tile_impl::vector_tile_strategy vs(tr, 16);
         mapnik::progress_timer __stats__(std::clog, "transform_visitor with reserve with no proj function call overhead");
-        mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy> transit(vs);
+        mapnik::box2d<int> clip_extent(std::numeric_limits<int>::min(),
+                                       std::numeric_limits<int>::min(),
+                                       std::numeric_limits<int>::max(),
+                                       std::numeric_limits<int>::max());
+        mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy> transit(vs, clip_extent);
         for (unsigned i=0;i<10000;++i)
         {
             mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(transit,geom);

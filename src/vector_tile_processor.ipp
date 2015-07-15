@@ -1275,7 +1275,7 @@ unsigned processor<T>::handle_geometry(T2 const& vs,
     // - no need to create a new skipping_transformer per geometry
     // - write a non-skipping / zero copy transformer to be used when no projection is needed
     using vector_tile_strategy_type = T2;
-    mapnik::vector_tile_impl::transform_visitor<vector_tile_strategy_type> skipping_transformer(vs);
+    mapnik::vector_tile_impl::transform_visitor<vector_tile_strategy_type> skipping_transformer(vs, tile_clipping_extent);
     mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(skipping_transformer,geom);
     encoder_visitor<T> encoder(backend_, feature, tile_clipping_extent, area_threshold_);
     if (simplify_distance_ > 0)
