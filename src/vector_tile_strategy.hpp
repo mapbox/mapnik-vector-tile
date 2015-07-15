@@ -17,8 +17,6 @@
 #include <boost/numeric/conversion/cast.hpp>
 #pragma GCC diagnostic pop
 
-#include "vector_tile_envelope.hpp"
-
 namespace mapnik {
 
 namespace vector_tile_impl {
@@ -140,6 +138,8 @@ struct transform_visitor {
     {
         mapnik::geometry::line_string<std::int64_t> new_geom;
         new_geom.reserve(geom.size());
+        mapnik::box2d<int> geom_bbox;
+        bool first = true;
         for (auto const& pt : geom)
         {
             mapnik::geometry::point<std::int64_t> pt2;
@@ -147,8 +147,17 @@ struct transform_visitor {
             {
                 new_geom.push_back(std::move(pt2));
             }
+            if (first) 
+            {
+                geom_bbox.init(pt2.x, pt2.y, pt2.x, pt2.y);
+                first = false;
+            }
+            else 
+            {
+                geom_bbox.expand_to_include(pt2.x, pt2.y);
+            }
+
         }
-        mapnik::box2d<int> geom_bbox = mapnik::vector_tile_impl::envelope(new_geom);
         if (!tile_clipping_extent_.intersects(geom_bbox)) return mapnik::geometry::geometry_empty();
         return new_geom;
     }
@@ -161,6 +170,8 @@ struct transform_visitor {
         {
             mapnik::geometry::line_string<std::int64_t> new_line;
             new_line.reserve(line.size());
+            mapnik::box2d<int> line_bbox;
+            bool first = true;
             for (auto const& pt : line)
             {
                 mapnik::geometry::point<std::int64_t> pt2;
@@ -168,8 +179,16 @@ struct transform_visitor {
                 {
                     new_line.push_back(std::move(pt2));
                 }
+                if (first) 
+                {
+                    line_bbox.init(pt2.x, pt2.y, pt2.x, pt2.y);
+                    first = false;
+                }
+                else 
+                {
+                    line_bbox.expand_to_include(pt2.x, pt2.y);
+                }
             }
-            mapnik::box2d<int> line_bbox = mapnik::vector_tile_impl::envelope(new_line);
             if (tile_clipping_extent_.intersects(line_bbox))
             {
                 new_geom.push_back(std::move(new_line));
@@ -184,6 +203,8 @@ struct transform_visitor {
     {
         mapnik::geometry::polygon<std::int64_t> new_geom;
         new_geom.exterior_ring.reserve(geom.exterior_ring.size());
+        bool first = true;
+        mapnik::box2d<int> ext_bbox;
         for (auto const& pt : geom.exterior_ring)
         {
             mapnik::geometry::point<std::int64_t> pt2;
@@ -191,16 +212,26 @@ struct transform_visitor {
             {
                 new_geom.exterior_ring.push_back(std::move(pt2));
             }
+            if (first) 
+            {
+                ext_bbox.init(pt2.x, pt2.y, pt2.x, pt2.y);
+                first = false;
+            }
+            else 
+            {
+                ext_bbox.expand_to_include(pt2.x, pt2.y);
+            }
         }
-        mapnik::box2d<int> ext_bbox = mapnik::vector_tile_impl::envelope(new_geom.exterior_ring);
         if (!tile_clipping_extent_.intersects(ext_bbox))
         {
             return mapnik::geometry::geometry_empty();
         }
         for (auto const& ring : geom.interior_rings)
         {
+            first = true;
             mapnik::geometry::linear_ring<std::int64_t> new_ring;
             new_ring.reserve(ring.size());
+            mapnik::box2d<int> ring_bbox;
             for (auto const& pt : ring)
             {
                 mapnik::geometry::point<std::int64_t> pt2;
@@ -208,8 +239,16 @@ struct transform_visitor {
                 {
                     new_ring.push_back(std::move(pt2));
                 }
+                if (first) 
+                {
+                    ring_bbox.init(pt2.x, pt2.y, pt2.x, pt2.y);
+                    first = false;
+                }
+                else 
+                {
+                    ring_bbox.expand_to_include(pt2.x, pt2.y);
+                }
             }
-            mapnik::box2d<int> ring_bbox = mapnik::vector_tile_impl::envelope(new_ring);
             if (tile_clipping_extent_.intersects(ring_bbox))
             {
                 new_geom.interior_rings.push_back(std::move(new_ring));
@@ -224,8 +263,10 @@ struct transform_visitor {
         new_geom.reserve(geom.size());
         for (auto const& poly : geom)
         {
+            bool first = true;
             mapnik::geometry::polygon<std::int64_t> new_poly;
             new_poly.exterior_ring.reserve(poly.exterior_ring.size());
+            mapnik::box2d<int> ext_bbox;
             for (auto const& pt : poly.exterior_ring)
             {
                 mapnik::geometry::point<std::int64_t> pt2;
@@ -233,16 +274,26 @@ struct transform_visitor {
                 {
                     new_poly.exterior_ring.push_back(std::move(pt2));
                 }
+                if (first) 
+                {
+                    ext_bbox.init(pt2.x, pt2.y, pt2.x, pt2.y);
+                    first = false;
+                }
+                else 
+                {
+                    ext_bbox.expand_to_include(pt2.x, pt2.y);
+                }
             }
-            mapnik::box2d<int> ext_bbox = mapnik::vector_tile_impl::envelope(new_poly.exterior_ring);
             if (!tile_clipping_extent_.intersects(ext_bbox))
             {
                 continue;
             }
             for (auto const& ring : poly.interior_rings)
             {
+                first = true;
                 mapnik::geometry::linear_ring<std::int64_t> new_ring;
                 new_ring.reserve(ring.size());
+                mapnik::box2d<int> ring_bbox;
                 for (auto const& pt : ring)
                 {
                     mapnik::geometry::point<std::int64_t> pt2;
@@ -250,8 +301,16 @@ struct transform_visitor {
                     {
                         new_ring.push_back(std::move(pt2));
                     }
+                    if (first) 
+                    {
+                        ring_bbox.init(pt2.x, pt2.y, pt2.x, pt2.y);
+                        first = false;
+                    }
+                    else 
+                    {
+                        ring_bbox.expand_to_include(pt2.x, pt2.y);
+                    }
                 }
-                mapnik::box2d<int> ring_bbox = mapnik::vector_tile_impl::envelope(new_ring);
                 if (tile_clipping_extent_.intersects(ring_bbox))
                 {
                     new_poly.interior_rings.push_back(std::move(new_ring));

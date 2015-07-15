@@ -912,13 +912,10 @@ struct encoder_visitor {
     unsigned operator() (mapnik::geometry::point<std::int64_t> const& geom)
     {
         unsigned path_count = 0;
-        if (tile_clipping_extent_.intersects(geom.x,geom.y))
-        {
-            backend_.start_tile_feature(feature_);
-            backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
-            path_count = backend_.add_path(geom);
-            backend_.stop_tile_feature();
-        }
+        backend_.start_tile_feature(feature_);
+        backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
+        path_count = backend_.add_path(geom);
+        backend_.stop_tile_feature();
         return path_count;
     }
 
@@ -928,16 +925,13 @@ struct encoder_visitor {
         bool first = true;
         for (auto const& pt : geom)
         {
-            if (tile_clipping_extent_.intersects(pt.x,pt.y))
+            if (first)
             {
-                if (first)
-                {
-                    first = false;
-                    backend_.start_tile_feature(feature_);
-                    backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
-                }
-                path_count += backend_.add_path(pt);
+                first = false;
+                backend_.start_tile_feature(feature_);
+                backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
             }
+            path_count += backend_.add_path(pt);
         }
         if (!first)
         {
