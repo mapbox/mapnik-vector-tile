@@ -559,3 +559,64 @@ TEST_CASE("Check that we throw on various valid-but-we-don't-handle PBF encoded 
    }
 
 }
+
+TEST_CASE( "pbf vector tile from linestring geojson", "should create vector tile with data" ) {
+    typedef mapnik::vector_tile_impl::backend_pbf backend_type;
+    typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
+    typedef vector_tile::Tile tile_type;
+    tile_type tile;
+    backend_type backend(tile,1000);
+    unsigned tile_size = 256;
+    mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
+    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::layer lyr("layer","+init=epsg:4326");
+    auto ds = testing::build_geojson_fs_ds("./test/data/linestrings_and_point.geojson");
+    lyr.set_datasource(ds);
+    map.add_layer(lyr);
+    map.zoom_to_box(bbox);
+    mapnik::request m_req(tile_size,tile_size,bbox);
+    renderer_type ren(backend,map,m_req);
+    ren.apply();
+    CHECK( ren.painted() == true );
+    REQUIRE(1 == tile.layers_size());
+    vector_tile::Tile_Layer const& layer = tile.layers(0);
+    CHECK(std::string("layer") == layer.name());
+    REQUIRE(3 == layer.features_size());
+    std::string buffer;
+    tile.SerializeToString(&buffer);
+    mapbox::util::pbf pbf_tile(buffer.c_str(), buffer.size());
+    pbf_tile.next();
+    mapbox::util::pbf layer3 = pbf_tile.get_message();
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds2 = std::make_shared<
+                                    mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                        layer3,0,0,0,256);
+    CHECK(ds2->get_name() == "layer");
+    mapnik::query q(bbox);
+    // note: https://github.com/mapbox/mapnik-vector-tile/issues/132 does not occur
+    // if we uncomment these lines
+    //q.add_property_name("x");
+    //q.add_property_name("y");
+    std::size_t expected_num_attr_returned = q.property_names().size();
+    auto fs = ds2->features(q);
+    auto f_ptr = fs->next();
+    CHECK(f_ptr != mapnik::feature_ptr());
+    // no attributes
+    CHECK(f_ptr->context()->size() == expected_num_attr_returned);
+    CHECK(f_ptr->get_geometry().is<mapnik::geometry::line_string<double> >());
+    // second feature
+    f_ptr = fs->next();
+    CHECK(f_ptr != mapnik::feature_ptr());
+    CHECK(f_ptr->context()->size() == expected_num_attr_returned);
+    CHECK(f_ptr->get_geometry().is<mapnik::geometry::line_string<double> >());
+
+    // third feature
+    f_ptr = fs->next();
+    CHECK(f_ptr != mapnik::feature_ptr());
+    CHECK(f_ptr->context()->size() == expected_num_attr_returned);
+    CHECK(f_ptr->get_geometry().is<mapnik::geometry::point<double> >());
+
+    // only three features
+    f_ptr = fs->next();
+    CHECK(f_ptr == mapnik::feature_ptr());
+
+}

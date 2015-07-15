@@ -110,10 +110,10 @@ namespace mapnik { namespace vector_tile_impl {
                                     else
                                     {
                                         val_idx = *_i;
-                                        val = layer_values_.at(val_idx);
                                         std::string name = layer_keys_.at(key_idx);
                                         if (feature->has_key(name))
                                         {
+                                            val = layer_values_.at(val_idx);
                                             if (val.is<std::string>())
                                             {
                                                 feature->put(name, tr_.transcode(val.get<std::string>().data(), val.get<std::string>().length()));
