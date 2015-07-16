@@ -614,7 +614,7 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
     mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
     mapnik::box2d<int> clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
-    ren.handle_geometry(vs2,*feature,geom,clipping_extent);
+    ren.handle_geometry(vs2,*feature,geom,clipping_extent, bbox);
     backend.stop_tile_layer();
     if (tile.layers_size() != 1)
     {
@@ -1021,7 +1021,7 @@ mapnik::geometry::geometry<double> round_trip2(mapnik::geometry::geometry<double
     mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
     mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
     mapnik::box2d<int> clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
-    ren.handle_geometry(vs2,*feature,geom,clipping_extent);
+    ren.handle_geometry(vs2,*feature,geom,clipping_extent, bbox);
     backend.stop_tile_layer();
     if (tile.layers_size() != 1)
     {
