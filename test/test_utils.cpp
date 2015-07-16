@@ -12,6 +12,7 @@
 #include <mapnik/datasource.hpp>
 #include <mapnik/load_map.hpp>
 #include <mapnik/memory_datasource.hpp>
+#include <mapnik/datasource_cache.hpp>
 #include <mapnik/image.hpp>
 #include <mapnik/image_reader.hpp>
 #include <mapnik/util/file_io.hpp>
@@ -73,6 +74,14 @@ std::shared_ptr<mapnik::memory_datasource> build_geojson_ds(std::string const& g
     feature->set_geometry(std::move(geom));
     ds->push(feature);
     return ds;
+}
+
+std::shared_ptr<mapnik::datasource> build_geojson_fs_ds(std::string const& geojson_file) {
+    mapnik::parameters params;
+    params["type"] = "geojson";
+    params["file"] = geojson_file;
+    params["cache_features"] = "false";
+    return mapnik::datasource_cache::instance().create(params);
 }
 
 mapnik::geometry::geometry<double> read_geojson(std::string const& geojson_file) {
