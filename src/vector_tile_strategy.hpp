@@ -131,7 +131,6 @@ struct transform_visitor {
             }
         }
         if (new_geom.empty()) return mapnik::geometry::geometry_empty();
-        new_geom.shrink_to_fit();
         return new_geom;
     }
 
@@ -176,7 +175,6 @@ struct transform_visitor {
             new_geom.push_back(std::move(new_line));
         }
         if (new_geom.empty()) return mapnik::geometry::geometry_empty();
-        new_geom.shrink_to_fit();
         return new_geom;
     }
 
@@ -262,7 +260,6 @@ struct transform_visitor {
             new_geom.push_back(std::move(new_poly));
         }
         if (new_geom.empty()) return mapnik::geometry::geometry_empty();
-        new_geom.shrink_to_fit();
         return new_geom;
     }
 
