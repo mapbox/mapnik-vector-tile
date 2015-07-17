@@ -77,7 +77,6 @@ message Tile {
                 // number encoded in this message and choose the correct
                 // implementation for this version number before proceeding to
                 // decode other parts of this message.
-                required uint32 version = 15 [ default = 1 ];
 
                 required string name = 1;
 

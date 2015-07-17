@@ -88,7 +88,7 @@ int main(int argc, char** argv)
             {
                 vector_tile::Tile_Layer const& layer = tile.layers(i);
                 std::cout << layer.name() << ":\n";
-                std::cout << "  version: " << layer.version() << "\n";
+                //std::cout << "  version: " << layer.version() << "\n";
                 std::cout << "  extent: " << layer.extent() << "\n";
                 std::cout << "  features: " << static_cast<std::size_t>(layer.features_size()) << "\n";
                 std::cout << "  keys: " << static_cast<std::size_t>(layer.keys_size()) << "\n";
@@ -162,7 +162,7 @@ int main(int argc, char** argv)
             {
                 vector_tile::Tile_Layer const& layer = tile.layers(j);
                 std::cout << "layer: " << layer.name() << "\n";
-                std::cout << "  version: " << layer.version() << "\n";
+                //std::cout << "  version: " << layer.version() << "\n";
                 std::cout << "  extent: " << layer.extent() << "\n";
                 std::cout << "  keys: ";
                 for (std::size_t k=0;k<static_cast<std::size_t>(layer.keys_size());++k)

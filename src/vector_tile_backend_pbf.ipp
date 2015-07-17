@@ -147,7 +147,7 @@ void backend_pbf::start_tile_layer(std::string const& name)
 
     current_layer_ = tile_.add_layers();
     current_layer_->set_name(name);
-    current_layer_->set_version(1);
+    //current_layer_->set_version(1);
 
     // We currently use path_multiplier as a factor to scale the coordinates.
     // Eventually, we should replace this with the extent specifying the
