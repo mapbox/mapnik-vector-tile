@@ -6,6 +6,7 @@
 #include <mapnik/util/noncopyable.hpp>
 #include <mapnik/proj_transform.hpp>
 #include <mapnik/view_transform.hpp>
+#include <mapnik/geometry_envelope.hpp>
 
 #include "clipper.hpp"
 
@@ -16,7 +17,6 @@
 #include <boost/geometry/core/access.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 #pragma GCC diagnostic pop
-
 
 namespace mapnik {
 
@@ -106,11 +106,13 @@ struct vector_tile_strategy_proj
 template <typename TransformType>
 struct transform_visitor {
 
-    transform_visitor(TransformType const& tr) :
-      tr_(tr) {}
+    transform_visitor(TransformType const& tr, box2d<double> const& target_clipping_extent) :
+      tr_(tr),
+      target_clipping_extent_(target_clipping_extent) {}
 
     inline mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::point<double> const& geom)
     {
+        if (!target_clipping_extent_.intersects(geom.x,geom.y)) return mapnik::geometry::geometry_empty(); 
         mapnik::geometry::point<std::int64_t> new_geom;
         if (!tr_.apply(geom,new_geom)) return mapnik::geometry::geometry_empty();
         return new_geom;
@@ -123,16 +125,22 @@ struct transform_visitor {
         for (auto const& pt : geom)
         {
             mapnik::geometry::point<std::int64_t> pt2;
-            if (tr_.apply(pt,pt2))
+            if (target_clipping_extent_.intersects(pt.x, pt.y) && tr_.apply(pt,pt2))
             {
                 new_geom.push_back(std::move(pt2));
             }
         }
+        if (new_geom.empty()) return mapnik::geometry::geometry_empty();
         return new_geom;
     }
 
     inline mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::line_string<double> const& geom)
     {
+        mapnik::box2d<double> geom_bbox = mapnik::geometry::envelope(geom);
+        if (!target_clipping_extent_.intersects(geom_bbox)) 
+        {
+            return mapnik::geometry::geometry_empty();
+        }
         mapnik::geometry::line_string<std::int64_t> new_geom;
         new_geom.reserve(geom.size());
         for (auto const& pt : geom)
@@ -152,6 +160,8 @@ struct transform_visitor {
         new_geom.reserve(geom.size());
         for (auto const& line : geom)
         {
+            mapnik::box2d<double> line_bbox = mapnik::geometry::envelope(line);
+            if (!target_clipping_extent_.intersects(line_bbox)) continue;
             mapnik::geometry::line_string<std::int64_t> new_line;
             new_line.reserve(line.size());
             for (auto const& pt : line)
@@ -164,11 +174,17 @@ struct transform_visitor {
             }
             new_geom.push_back(std::move(new_line));
         }
+        if (new_geom.empty()) return mapnik::geometry::geometry_empty();
         return new_geom;
     }
 
     inline mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::polygon<double> const& geom)
     {
+        mapnik::box2d<double> ext_bbox = mapnik::geometry::envelope(geom);
+        if (!target_clipping_extent_.intersects(ext_bbox))
+        {
+            return mapnik::geometry::geometry_empty();
+        }
         mapnik::geometry::polygon<std::int64_t> new_geom;
         new_geom.exterior_ring.reserve(geom.exterior_ring.size());
         for (auto const& pt : geom.exterior_ring)
@@ -181,6 +197,11 @@ struct transform_visitor {
         }
         for (auto const& ring : geom.interior_rings)
         {
+            mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(static_cast<mapnik::geometry::line_string<double> const&>(ring));
+            if (!target_clipping_extent_.intersects(ring_bbox)) 
+            {
+                continue;
+            }
             mapnik::geometry::linear_ring<std::int64_t> new_ring;
             new_ring.reserve(ring.size());
             for (auto const& pt : ring)
@@ -202,6 +223,11 @@ struct transform_visitor {
         new_geom.reserve(geom.size());
         for (auto const& poly : geom)
         {
+            mapnik::box2d<double> ext_bbox = mapnik::geometry::envelope(poly);
+            if (!target_clipping_extent_.intersects(ext_bbox)) 
+            {
+                continue;
+            }
             mapnik::geometry::polygon<std::int64_t> new_poly;
             new_poly.exterior_ring.reserve(poly.exterior_ring.size());
             for (auto const& pt : poly.exterior_ring)
@@ -214,6 +240,11 @@ struct transform_visitor {
             }
             for (auto const& ring : poly.interior_rings)
             {
+                mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(static_cast<mapnik::geometry::line_string<double> const&>(ring));
+                if (!target_clipping_extent_.intersects(ring_bbox))
+                {
+                    continue;
+                }
                 mapnik::geometry::linear_ring<std::int64_t> new_ring;
                 new_ring.reserve(ring.size());
                 for (auto const& pt : ring)
@@ -228,6 +259,7 @@ struct transform_visitor {
             }
             new_geom.push_back(std::move(new_poly));
         }
+        if (new_geom.empty()) return mapnik::geometry::geometry_empty();
         return new_geom;
     }
 
@@ -247,6 +279,7 @@ struct transform_visitor {
         return geom;
     }
     TransformType const& tr_;
+    box2d<double> const& target_clipping_extent_;
 };
 
 }

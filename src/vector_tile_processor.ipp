@@ -24,7 +24,6 @@
 #include <mapnik/util/noncopyable.hpp>
 #include <mapnik/transform_path_adapter.hpp>
 #include <mapnik/geometry_is_empty.hpp>
-#include <mapnik/geometry_envelope.hpp>
 #include <mapnik/geometry_adapters.hpp>
 #include <mapnik/geometry_transform.hpp>
 
@@ -802,7 +801,8 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
                 if (handle_geometry(vs,
                                     *feature,
                                     geom,
-                                    tile_clipping_extent) > 0)
+                                    tile_clipping_extent,
+                                    target_clipping_extent) > 0)
                 {
                     painted_ = true;
                 }
@@ -818,6 +818,7 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
             mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
             box2d<int> tile_clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
             mapnik::vector_tile_impl::vector_tile_strategy_proj vs2(prj_trans,t_,backend_.get_path_multiplier());
+            prj_trans.forward(target_clipping_extent, PROJ_ENVELOPE_POINTS);
             while (feature)
             {
                 mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
@@ -829,7 +830,8 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
                 if (handle_geometry(vs2,
                                     *feature,
                                     geom,
-                                    tile_clipping_extent) > 0)
+                                    tile_clipping_extent,
+                                    target_clipping_extent) > 0)
                 {
                     painted_ = true;
                 }
@@ -912,13 +914,10 @@ struct encoder_visitor {
     unsigned operator() (mapnik::geometry::point<std::int64_t> const& geom)
     {
         unsigned path_count = 0;
-        if (tile_clipping_extent_.intersects(geom.x,geom.y))
-        {
-            backend_.start_tile_feature(feature_);
-            backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
-            path_count = backend_.add_path(geom);
-            backend_.stop_tile_feature();
-        }
+        backend_.start_tile_feature(feature_);
+        backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
+        path_count = backend_.add_path(geom);
+        backend_.stop_tile_feature();
         return path_count;
     }
 
@@ -928,16 +927,13 @@ struct encoder_visitor {
         bool first = true;
         for (auto const& pt : geom)
         {
-            if (tile_clipping_extent_.intersects(pt.x,pt.y))
+            if (first)
             {
-                if (first)
-                {
-                    first = false;
-                    backend_.start_tile_feature(feature_);
-                    backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
-                }
-                path_count += backend_.add_path(pt);
+                first = false;
+                backend_.start_tile_feature(feature_);
+                backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
             }
+            path_count += backend_.add_path(pt);
         }
         if (!first)
         {
@@ -1269,13 +1265,14 @@ template <typename T> template <typename T2>
 unsigned processor<T>::handle_geometry(T2 const& vs,
                                        mapnik::feature_impl const& feature,
                                        mapnik::geometry::geometry<double> const& geom,
-                                       mapnik::box2d<int> const& tile_clipping_extent)
+                                       mapnik::box2d<int> const& tile_clipping_extent,
+                                       mapnik::box2d<double> const& target_clipping_extent)
 {
     // TODO
     // - no need to create a new skipping_transformer per geometry
     // - write a non-skipping / zero copy transformer to be used when no projection is needed
     using vector_tile_strategy_type = T2;
-    mapnik::vector_tile_impl::transform_visitor<vector_tile_strategy_type> skipping_transformer(vs);
+    mapnik::vector_tile_impl::transform_visitor<vector_tile_strategy_type> skipping_transformer(vs, target_clipping_extent);
     mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(skipping_transformer,geom);
     encoder_visitor<T> encoder(backend_, feature, tile_clipping_extent, area_threshold_);
     if (simplify_distance_ > 0)
