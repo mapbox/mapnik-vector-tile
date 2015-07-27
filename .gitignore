@@ -14,3 +14,5 @@ test/run-raster-test
 archive
 TODO.md
 examples/c++/tileinfo
+.mason
+mason_packages

@@ -25,6 +25,12 @@ libvtile: build/Makefile Makefile
 test: libvtile
 	./build/$(BUILDTYPE)/tests
 
+testpack:
+	rm -f ./*tgz
+	npm pack
+	tar -ztvf *tgz
+	rm -f ./*tgz
+
 clean:
 	rm -rf ./build
 

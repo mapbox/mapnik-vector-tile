@@ -9,3 +9,5 @@ test/run-test
 *pyc
 archive
 TODO.md
+.mason
+mason_packages
