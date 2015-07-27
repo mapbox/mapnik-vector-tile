@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.5
+
+ - Remove geometries from clipping that never intersect with the bounding box of the tile (#135)
+ - Fix indexing error in tile_datasource_pbf (#132)
+
 ## 0.8.4
 
  - Started to skip coordinates that are out of range (#121)
