@@ -11,3 +11,12 @@ archive
 TODO.md
 .mason
 mason_packages
+deps
+build
+.travis.yml
+scripts
+gyp
+test
+CONTRIBUTING.md
+bootstrap.sh
+bench
