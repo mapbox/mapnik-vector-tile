@@ -72,6 +72,8 @@ TEST_CASE( "pbf vector tile input", "should be able to parse message and render 
     std::string key("");
     CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
     CHECK("" == key);
+    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    CHECK("" == key);
     CHECK(1 == tile2.layers_size());
     vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
     CHECK(std::string("layer") == layer2.name());
@@ -144,6 +146,10 @@ TEST_CASE( "pbf vector tile datasource", "should filter features outside extent"
     std::string key("");
     CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
+    std::string buffer;
+    tile.SerializeToString(&buffer);
+    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    CHECK("" == key);
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -155,8 +161,6 @@ TEST_CASE( "pbf vector tile datasource", "should filter features outside extent"
     CHECK(4096 == f.geometry(1));
     CHECK(4096 == f.geometry(2));
     
-    std::string buffer;
-    tile.SerializeToString(&buffer);
     protozero::pbf_reader pbf_tile(buffer.c_str(), buffer.size());
     pbf_tile.next();
     protozero::pbf_reader layer2 = pbf_tile.get_message();
@@ -261,6 +265,10 @@ TEST_CASE( "pbf encoding multi line as one path", "should maintain second move_t
     std::string key("");
     CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
+    std::string buffer;
+    tile.SerializeToString(&buffer);
+    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    CHECK("" == key);
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     REQUIRE(1 == layer.features_size());
@@ -282,9 +290,6 @@ TEST_CASE( "pbf encoding multi line as one path", "should maintain second move_t
     mapnik::featureset_ptr fs;
     mapnik::feature_ptr f_ptr;
     
-    
-    std::string buffer;
-    tile.SerializeToString(&buffer);
     protozero::pbf_reader pbf_tile(buffer.c_str(), buffer.size());
     pbf_tile.next();
     protozero::pbf_reader layer2 = pbf_tile.get_message();
@@ -343,6 +348,10 @@ TEST_CASE( "pbf decoding some truncated buffers", "should throw exception" ) {
     std::string key("");
     CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
     CHECK("" == key);
+    std::string buffer;
+    tile.SerializeToString(&buffer);
+    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    CHECK("" == key);
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -358,8 +367,6 @@ TEST_CASE( "pbf decoding some truncated buffers", "should throw exception" ) {
     // We will test truncating the generated protobuf at every increment.
     //  Most cases should fail, except for the lucky bites where we chop
     // it off at a point that would be valid anyway.
-    std::string buffer;
-    tile.SerializeToString(&buffer);
     for (std::size_t i=1; i< buffer.size(); ++i)
     {
       CHECK_THROWS({

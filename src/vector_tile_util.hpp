@@ -12,6 +12,7 @@ namespace vector_tile {
 namespace mapnik { namespace vector_tile_impl {
 
     MAPNIK_VECTOR_INLINE bool is_solid_extent(vector_tile::Tile const& tile, std::string & key);
+    MAPNIK_VECTOR_INLINE bool is_solid_extent(std::string const& tile, std::string & key);
 
 }}
 
