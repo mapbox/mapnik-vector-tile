@@ -27,6 +27,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <protozero/pbf_reader.hpp>
+
 #include <boost/optional.hpp>
 #include <unicode/unistr.h>
 
@@ -40,7 +42,7 @@ namespace mapnik { namespace vector_tile_impl {
                         mapnik::box2d<double> const& tile_extent,
                         mapnik::box2d<double> const& unbuffered_query,
                         std::set<std::string> const& attribute_names,
-                        std::vector<mapbox::util::pbf> const& features,
+                        std::vector<protozero::pbf_reader> const& features,
                         double tile_x,
                         double tile_y,
                         double scale,
@@ -82,7 +84,7 @@ namespace mapnik { namespace vector_tile_impl {
         {
             while ( itr_ < features_.size() )
             {
-                mapbox::util::pbf f = features_.at(itr_);
+                protozero::pbf_reader f = features_.at(itr_);
                 // TODO: auto-increment feature id counter here
                 mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,itr_);
 
@@ -97,7 +99,7 @@ namespace mapnik { namespace vector_tile_impl {
                             break;
                         case 2:
                             {
-                                auto tag_iterator = f.packed_uint32();
+                                auto tag_iterator = f.get_packed_uint32();
                                 for (auto _i = tag_iterator.first; _i != tag_iterator.second;)
                                 {
                                     std::size_t key_name = *(_i++);
@@ -206,7 +208,7 @@ namespace mapnik { namespace vector_tile_impl {
                             break;
                         case 4:
                             {
-                                auto geom_itr = f.packed_uint32();
+                                auto geom_itr = f.get_packed_uint32();
                                 mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr, tile_x_,tile_y_,scale_,-1*scale_);
                                 mapnik::geometry::geometry<double> geom = decode_geometry(geoms, geometry_type);
                                 if (geom.is<mapnik::geometry::geometry_empty>())
@@ -241,7 +243,7 @@ namespace mapnik { namespace vector_tile_impl {
         Filter filter_;
         mapnik::box2d<double> tile_extent_;
         mapnik::box2d<double> unbuffered_query_;
-        std::vector<mapbox::util::pbf> const& features_;
+        std::vector<protozero::pbf_reader> const& features_;
         std::vector<std::string> const& layer_keys_;
         layer_pbf_attr_type const& layer_values_;
         std::size_t num_keys_;
@@ -257,7 +259,7 @@ namespace mapnik { namespace vector_tile_impl {
     };
 
     // tile_datasource impl
-    tile_datasource_pbf::tile_datasource_pbf(mapbox::util::pbf const& layer,
+    tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
                                      unsigned x,
                                      unsigned y,
                                      unsigned z,
@@ -280,7 +282,7 @@ namespace mapnik { namespace vector_tile_impl {
         tile_x_ = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x_ * resolution;
         tile_y_ =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y_ * resolution;
 
-        mapbox::util::pbf val_msg;
+        protozero::pbf_reader val_msg;
 
         while (layer_.next())
         {

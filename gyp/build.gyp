@@ -42,7 +42,7 @@
       ],
       'include_dirs': [
         '<(SHARED_INTERMEDIATE_DIR)/',
-        '../deps/pbf'
+        '../deps/protozero/include'
       ],
       'cflags_cc' : [
           '-D_THREAD_SAFE',
@@ -61,7 +61,7 @@
       'direct_dependent_settings': {
         'include_dirs': [
           '<(SHARED_INTERMEDIATE_DIR)/',
-          '../deps/pbf'
+          '../deps/protozero/include'
         ],
         'libraries':[
           '-lprotobuf-lite'
@@ -92,7 +92,7 @@
           '<!@(mapnik-config --cflags)'
       ],
       'include_dirs': [
-        '../deps/pbf',
+        '../deps/protozero/include',
         '../deps/clipper/cpp'
       ],
       'xcode_settings': {
@@ -103,7 +103,7 @@
       'direct_dependent_settings': {
         'include_dirs': [
           '<(SHARED_INTERMEDIATE_DIR)/',
-          '../deps/pbf',
+          '../deps/protozero/include',
           '../deps/clipper/cpp'
         ],
         'defines' : [
@@ -141,7 +141,7 @@
       ],
       "include_dirs": [
         "../src",
-        '../deps/pbf'
+        '../deps/protozero/include'
       ]
     },
     {
@@ -157,7 +157,7 @@
       ],
       "include_dirs": [
         "../src",
-        '../deps/pbf'
+        '../deps/protozero/include'
       ]
     },
     {

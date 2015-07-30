@@ -2,7 +2,7 @@ MAPNIK_PLUGINDIR := $(shell mapnik-config --input-plugins)
 BUILDTYPE ?= Release
 
 CLIPPER_REVISION=e0973e0802
-PBF_REVISION=1df6453
+PROTOZERO_REVISION=v1.0.0
 GYP_REVISION=3464008
 
 all: libvtile
@@ -10,13 +10,13 @@ all: libvtile
 ./deps/gyp:
 	git clone https://chromium.googlesource.com/external/gyp.git ./deps/gyp && cd ./deps/gyp && git checkout $(GYP_REVISION)
 
-./deps/pbf:
-	git clone https://github.com/mapbox/pbf.hpp.git ./deps/pbf && cd ./deps/pbf && git checkout $(PBF_REVISION)
+./deps/protozero:
+	git clone https://github.com/mapbox/protozero.git ./deps/protozero && cd ./deps/protozero && git checkout $(PROTOZERO_REVISION)
 
 ./deps/clipper:
 	git clone https://github.com/mapnik/clipper.git -b r493-mapnik ./deps/clipper && cd ./deps/clipper && git checkout $(CLIPPER_REVISION) && ./cpp/fix_members.sh
 
-build/Makefile: ./deps/gyp ./deps/clipper ./deps/pbf gyp/build.gyp test/*cpp
+build/Makefile: ./deps/gyp ./deps/clipper ./deps/protozero gyp/build.gyp test/*cpp
 	deps/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(MAPNIK_PLUGINDIR)\" -Goutput_dir=. --generator-output=./build -f make
 
 libvtile: build/Makefile Makefile

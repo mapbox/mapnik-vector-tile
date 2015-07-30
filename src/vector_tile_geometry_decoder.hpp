@@ -7,7 +7,7 @@
 #include "vector_tile.pb.h"
 #pragma GCC diagnostic pop
 
-#include "pbf_reader.hpp"
+#include <protozero/pbf_reader.hpp>
 
 #include <mapnik/util/is_clockwise.hpp>
 //std
@@ -50,7 +50,7 @@ private:
 class GeometryPBF {
 
 public:
-    inline explicit GeometryPBF(std::pair< mapbox::util::pbf::const_uint32_iterator, mapbox::util::pbf::const_uint32_iterator > const& geo_iterator,
+    inline explicit GeometryPBF(std::pair< protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > const& geo_iterator,
                              double tile_x, double tile_y,
                              double scale_x, double scale_y);
 
@@ -65,7 +65,7 @@ public:
     inline command next(double& rx, double& ry);
 
 private:
-    std::pair< mapbox::util::pbf::const_uint32_iterator, mapbox::util::pbf::const_uint32_iterator > geo_iterator_;
+    std::pair< protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > geo_iterator_;
     double scale_x_;
     double scale_y_;
     uint8_t cmd;
@@ -134,7 +134,7 @@ Geometry::command Geometry::next(double& rx, double& ry)
     }
 }
 
-GeometryPBF::GeometryPBF(std::pair<mapbox::util::pbf::const_uint32_iterator, mapbox::util::pbf::const_uint32_iterator > const& geo_iterator,
+GeometryPBF::GeometryPBF(std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > const& geo_iterator,
                    double tile_x, double tile_y,
                    double scale_x, double scale_y)
     : geo_iterator_(geo_iterator),

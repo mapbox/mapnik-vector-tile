@@ -3,7 +3,7 @@
 
 #include <mapnik/datasource.hpp>
 #include <mapnik/box2d.hpp>
-#include "pbf_reader.hpp"
+#include <protozero/pbf_reader.hpp>
 
 namespace mapnik { namespace vector_tile_impl {
 
@@ -14,7 +14,7 @@ namespace mapnik { namespace vector_tile_impl {
     class tile_datasource_pbf : public datasource
     {
     public:
-        tile_datasource_pbf(mapbox::util::pbf const& layer,
+        tile_datasource_pbf(protozero::pbf_reader const& layer,
                         unsigned x,
                         unsigned y,
                         unsigned z,
@@ -32,7 +32,7 @@ namespace mapnik { namespace vector_tile_impl {
     private:
         mutable mapnik::layer_descriptor desc_;
         mutable bool attributes_added_;
-        mapbox::util::pbf layer_;
+        protozero::pbf_reader layer_;
         unsigned x_;
         unsigned y_;
         unsigned z_;
@@ -45,7 +45,7 @@ namespace mapnik { namespace vector_tile_impl {
         uint32_t layer_extent_;
 
         std::string name_;
-        std::vector<mapbox::util::pbf> features_;
+        std::vector<protozero::pbf_reader> features_;
         std::vector<std::string> layer_keys_;
         layer_pbf_attr_type layer_values_;
     };
