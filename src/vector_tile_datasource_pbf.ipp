@@ -52,6 +52,8 @@ namespace mapnik { namespace vector_tile_impl {
               features_(features),
               layer_keys_(layer_keys),
               layer_values_(layer_values),
+              num_keys_(layer_keys_.size()),
+              num_values_(layer_values_.size()),
               tile_x_(tile_x),
               tile_y_(tile_y),
               scale_(scale),
@@ -83,11 +85,8 @@ namespace mapnik { namespace vector_tile_impl {
                 mapbox::util::pbf f = features_.at(itr_);
                 // TODO: auto-increment feature id counter here
                 mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,itr_);
-                pbf_attr_value_type val;
 
                 ++itr_;
-                int tagcount=0;
-                uint32_t key_idx, val_idx;
                 int32_t geometry_type = 0; // vector_tile::Tile_GeomType_UNKNOWN
                 while (f.next())
                 {
@@ -99,21 +98,17 @@ namespace mapnik { namespace vector_tile_impl {
                         case 2:
                             {
                                 auto tag_iterator = f.packed_uint32();
-
-                                for (auto _i = tag_iterator.first; _i != tag_iterator.second; ++_i)
+                                for (auto _i = tag_iterator.first; _i != tag_iterator.second;)
                                 {
-                                    if (tagcount % 2 == 0)
+                                    std::size_t key_name = *(_i++);
+                                    std::size_t key_value = *(_i++);
+                                    if (key_name < num_keys_
+                                        && key_value < num_values_)
                                     {
-                                        key_idx = *_i;
-                                        ++tagcount;
-                                    }
-                                    else
-                                    {
-                                        val_idx = *_i;
-                                        std::string name = layer_keys_.at(key_idx);
+                                        std::string const& name = layer_keys_.at(key_name);
                                         if (feature->has_key(name))
                                         {
-                                            val = layer_values_.at(val_idx);
+                                            pbf_attr_value_type val = layer_values_.at(key_value);
                                             if (val.is<std::string>())
                                             {
                                                 feature->put(name, tr_.transcode(val.get<std::string>().data(), val.get<std::string>().length()));
@@ -137,10 +132,11 @@ namespace mapnik { namespace vector_tile_impl {
                                             else if (val.is<float>())
                                             {
                                                 feature->put(name, static_cast<mapnik::value_double>(val.get<float>()));
-                                            } else {
+                                            }
+                                            else
+                                            {
                                                 throw std::runtime_error("unknown attribute type while reading feature");
                                             }
-                                            ++tagcount;
                                         }
                                     }
                                 }
@@ -248,6 +244,8 @@ namespace mapnik { namespace vector_tile_impl {
         std::vector<mapbox::util::pbf> const& features_;
         std::vector<std::string> const& layer_keys_;
         layer_pbf_attr_type const& layer_values_;
+        std::size_t num_keys_;
+        std::size_t num_values_;
 
         double tile_x_;
         double tile_y_;
