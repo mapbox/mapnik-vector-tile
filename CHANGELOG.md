@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.0
+
+ - Upgraded to protozero v1.0.0
+ - Fixed attribute handling bug in tile_datasource_pbf
+
 ## 0.8.5
 
  - Remove geometries from clipping that never intersect with the bounding box of the tile (#135)
