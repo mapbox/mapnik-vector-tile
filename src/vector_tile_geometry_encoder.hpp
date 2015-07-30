@@ -10,7 +10,7 @@
 
 #include <mapnik/geometry.hpp>
 #include "vector_tile_config.hpp"
-#include "pbf_writer.hpp"
+#include <protozero/pbf_writer.hpp>
 
 #include <cstdlib>
 #include <cmath>
@@ -28,8 +28,8 @@ inline unsigned encode_geometry(mapnik::geometry::point<std::int64_t> const& pt,
     int32_t dx = pt.x - start_x;
     int32_t dy = pt.y - start_y;
     // Manual zigzag encoding.
-    current_feature.add_geometry(mapbox::util::pbf_writer::encode_zigzag32(dx));
-    current_feature.add_geometry(mapbox::util::pbf_writer::encode_zigzag32(dy));
+    current_feature.add_geometry(protozero::encode_zigzag32(dx));
+    current_feature.add_geometry(protozero::encode_zigzag32(dy));
     start_x = pt.x;
     start_y = pt.y;
     return 1;
@@ -73,8 +73,8 @@ inline unsigned encode_geometry(mapnik::geometry::line_string<std::int64_t> cons
         int32_t dx = pt.x - start_x;
         int32_t dy = pt.y - start_y;
         // Manual zigzag encoding.
-        current_feature.add_geometry(mapbox::util::pbf_writer::encode_zigzag32(dx));
-        current_feature.add_geometry(mapbox::util::pbf_writer::encode_zigzag32(dy));
+        current_feature.add_geometry(protozero::encode_zigzag32(dx));
+        current_feature.add_geometry(protozero::encode_zigzag32(dy));
         start_x = pt.x;
         start_y = pt.y;
     }
@@ -128,8 +128,8 @@ inline unsigned encode_geometry(mapnik::geometry::linear_ring<std::int64_t> cons
         int32_t dx = pt.x - start_x;
         int32_t dy = pt.y - start_y;
         // Manual zigzag encoding.
-        current_feature.add_geometry(mapbox::util::pbf_writer::encode_zigzag32(dx));
-        current_feature.add_geometry(mapbox::util::pbf_writer::encode_zigzag32(dy));
+        current_feature.add_geometry(protozero::encode_zigzag32(dx));
+        current_feature.add_geometry(protozero::encode_zigzag32(dy));
         start_x = pt.x;
         start_y = pt.y;
         ++count;
