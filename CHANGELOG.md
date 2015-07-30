@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1
+
+ - Added `is_solid_extent` implementation based on protozero decoder
+
 ## 0.9.0
 
  - Upgraded to protozero v1.0.0
