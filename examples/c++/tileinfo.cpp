@@ -1,5 +1,5 @@
-#include "vector_tile.pb.h"
-#include "vector_tile_compression.hpp"
+#include "../../build/Release/obj/gen/vector_tile.pb.h"
+#include "../../src/vector_tile_compression.hpp"
 #include <vector>
 #include <iostream>
 #include <fstream>
