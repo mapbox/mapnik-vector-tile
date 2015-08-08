@@ -924,19 +924,11 @@ struct encoder_visitor {
     unsigned operator() (mapnik::geometry::multi_point<std::int64_t> const& geom)
     {
         unsigned path_count = 0;
-        bool first = true;
-        for (auto const& pt : geom)
+        if (!geom.empty())
         {
-            if (first)
-            {
-                first = false;
-                backend_.start_tile_feature(feature_);
-                backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
-            }
-            path_count += backend_.add_path(pt);
-        }
-        if (!first)
-        {
+            backend_.start_tile_feature(feature_);
+            backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
+            path_count = backend_.add_path(geom);
             backend_.stop_tile_feature();
         }
         return path_count;
