@@ -20,7 +20,7 @@ TEST_CASE( "point", "should round trip without changes" ) {
     std::string expected(
     "move_to(0,0)\n"
     );
-    CHECK(compare<std::int64_t>(g) == expected);
+    CHECK(compare(g) == expected);
 }
 
 TEST_CASE( "multi_point", "should round trip without changes" ) {
@@ -33,7 +33,7 @@ TEST_CASE( "multi_point", "should round trip without changes" ) {
     "move_to(1,1)\n"
     "move_to(2,2)\n"
     );
-    CHECK(compare<std::int64_t>(g) == expected);
+    CHECK(compare(g) == expected);
 }
 
 TEST_CASE( "line_string", "should round trip without changes" ) {
@@ -46,7 +46,7 @@ TEST_CASE( "line_string", "should round trip without changes" ) {
     "line_to(1,1)\n"
     "line_to(100,100)\n"
     );
-    CHECK(compare<std::int64_t>(g) == expected);
+    CHECK(compare(g) == expected);
 }
 
 TEST_CASE( "multi_line_string", "should round trip without changes" ) {
@@ -73,7 +73,7 @@ TEST_CASE( "multi_line_string", "should round trip without changes" ) {
     "line_to(-20,-20)\n"
     "line_to(-100,-100)\n"
     );
-    CHECK(compare<std::int64_t>(g) == expected);
+    CHECK(compare(g) == expected);
 }
 
 /*TEST_CASE( "degenerate line_string", "should be culled" ) {
@@ -86,7 +86,7 @@ TEST_CASE( "multi_line_string", "should round trip without changes" ) {
     std::string expected_wkt0("LINESTRING(10 10)");
     CHECK( wkt0 == expected_wkt0);
 
-    vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(line);
+    vector_tile::Tile_Feature feature = geometry_to_feature(line);
     CHECK( feature.geometry_size() == 0 );
     auto geom = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
     CHECK( geom.is<mapnik::geometry::geometry_empty>() );
@@ -109,7 +109,7 @@ TEST_CASE( "multi_line_string with degenerate first part", "should be culled" ) 
     std::string expected_wkt0("MULTILINESTRING((0 0),(2 2,3 3))");
     CHECK( wkt0 == expected_wkt0);
 
-    vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(g);
+    vector_tile::Tile_Feature feature = geometry_to_feature(g);
     CHECK( feature.geometry_size() == 6 );
     auto geom = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
 
@@ -140,7 +140,7 @@ TEST_CASE( "multi_line_string with degenerate first part", "should be culled" ) 
     std::string expected_wkt0("MULTILINESTRING((0 0,1 1,100 100),(-10 -10))");
     CHECK( wkt0 == expected_wkt0);
 
-    vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(g);
+    vector_tile::Tile_Feature feature = geometry_to_feature(g);
     CHECK( feature.type() == vector_tile::Tile_GeomType_LINESTRING );
     CHECK( feature.geometry_size() == 8 );
     auto geom = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
@@ -163,7 +163,7 @@ TEST_CASE( "polygon", "should round trip without changes" ) {
     "line_to(100,100)\n"
     "close_path(0,0)\n"
     );
-    CHECK(compare<std::int64_t>(g) == expected);
+    CHECK(compare(g) == expected);
 }
 
 TEST_CASE( "polygon with degenerate exterior ring ", "should be culled" ) {
@@ -178,7 +178,7 @@ TEST_CASE( "polygon with degenerate exterior ring ", "should be culled" ) {
     std::string expected_wkt0("POLYGON((0 0,0 10))");
     CHECK( wkt0 == expected_wkt0);
 
-    vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(p0);
+    vector_tile::Tile_Feature feature = geometry_to_feature(p0);
     // since first ring is degenerate the whole polygon should be culled
     mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
     auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
@@ -205,7 +205,7 @@ TEST_CASE( "polygon with degenerate exterior ring ", "should be culled" ) {
     std::string expected_wkt0("POLYGON((0 0,0 10),(-7 7,-3 7,-3 3,-7 3,-7 7))");
     CHECK( wkt0 == expected_wkt0);
 
-    vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(p0);
+    vector_tile::Tile_Feature feature = geometry_to_feature(p0);
     // since first ring is degenerate the whole polygon should be culled
     mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
     auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
@@ -231,7 +231,7 @@ TEST_CASE( "polygon with valid exterior ring but degenerate interior ring", "sho
     std::string expected_wkt0("POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7))");
     CHECK( wkt0 == expected_wkt0);
 
-    vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(p0);
+    vector_tile::Tile_Feature feature = geometry_to_feature(p0);
     mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
     auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::polygon<double> >() );
@@ -272,7 +272,7 @@ TEST_CASE( "polygon with valid exterior ring but one degenerate interior ring of
     std::string expected_wkt0("POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7),(-6 4,-6 6,-4 6,-4 4,-6 4))");
     CHECK( wkt0 == expected_wkt0);
 
-    vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(p0);
+    vector_tile::Tile_Feature feature = geometry_to_feature(p0);
     mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
     auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::polygon<double> >() );
@@ -306,7 +306,7 @@ TEST_CASE( "Polygon with de-generate ring(s)", "should skip invalid ring(s)" )
     std::string expected_wkt1("POLYGON((-7 7,-7 3,-3 3,-3 7,-7 7))");
     CHECK( wkt0 == expected_wkt0);
 
-    vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(p0);
+    vector_tile::Tile_Feature feature = geometry_to_feature(p0);
     mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
     auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::polygon<double> >() );
@@ -346,7 +346,7 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     CHECK( mapnik::util::to_wkt(wkt0,mapnik::geometry::geometry<std::int64_t>(p0)) );
     CHECK( wkt0 == expected_wkt0);
 
-    vector_tile::Tile_Feature feature = geometry_to_feature<std::int64_t>(p0);
+    vector_tile::Tile_Feature feature = geometry_to_feature(p0);
     mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
     auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::polygon<double> >() );
@@ -373,7 +373,7 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     "line_to(3,3)\n"
     "line_to(4,4)\n"
     );
-    CHECK( compare<std::int64_t>(g) == expected);
+    CHECK( compare(g) == expected);
 }*/
 
 /*
@@ -387,7 +387,7 @@ TEST_CASE( "test 2b", "should drop vertices" ) {
     "line_to(0,0)\n" // TODO - should we try to drop this?
     "line_to(1,1)\n"
     );
-    CHECK(compare<std::int64_t>(g) == expected);
+    CHECK(compare(g) == expected);
 }*/
 
 TEST_CASE( "test 3", "should not drop first move_to or last vertex in line" ) {
@@ -407,7 +407,7 @@ TEST_CASE( "test 3", "should not drop first move_to or last vertex in line" ) {
     "move_to(2,2)\n"
     "line_to(3,3)\n"
     );
-    CHECK(compare<std::int64_t>(g) == expected);
+    CHECK(compare(g) == expected);
 }
 
 /*
