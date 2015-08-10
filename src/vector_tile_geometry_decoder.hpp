@@ -246,13 +246,38 @@ void decode_linestring(mapnik::geometry::geometry<double> & geom, T & paths)
     mapnik::geometry::multi_line_string<double> multi_line;
     multi_line.emplace_back();
     bool first = true;
+    bool first_line_to = true;
     std::uint32_t len;
+    #if defined(DEBUG)
+    std::uint32_t pre_len;
+    #endif
     while ((cmd = paths.next(x1, y1, len)) != T::end)
     {
         if (cmd == T::move_to)
         {
-            if (first) first = false;
-            else multi_line.emplace_back();
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                #if defined(DEBUG)
+                if (pre_len != multi_line.back().size())
+                {
+                    MAPNIK_LOG_ERROR(decode_linestring) << "warning: encountered incorrectly encoded line with " << multi_line.back().size() << " points but only " << pre_len << " repeated commands";
+                }
+                #endif
+                first_line_to = true;
+                multi_line.emplace_back();
+            }
+        }
+        else if (first_line_to && cmd == T::line_to)
+        {
+            first_line_to = false;
+            multi_line.back().reserve(len+1);
+            #if defined(DEBUG)
+            pre_len = len+1;
+            #endif
         }
         multi_line.back().add_coord(x1,y1);
     }
@@ -280,15 +305,40 @@ std::vector<mapnik::geometry::linear_ring<double>> read_rings(T & paths)
     rings.emplace_back();
     double x2,y2;
     bool first = true;
+    bool first_line_to = true;
     std::uint32_t len;
+    #if defined(DEBUG)
+    std::uint32_t pre_len;
+    #endif
     while ((cmd = paths.next(x1, y1, len)) != T::end)
     {
         if (cmd == T::move_to)
         {
             x2 = x1;
             y2 = y1;
-            if (first) first = false;
-            else rings.emplace_back();
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                #if defined(DEBUG)
+                if (pre_len != rings.back().size())
+                {
+                    MAPNIK_LOG_ERROR(read_rings) << "warning: encountered incorrectly encoded ring with " << rings.back().size() << " points but " << pre_len << " repeated commands";
+                }
+                #endif
+                first_line_to = true;
+                rings.emplace_back();
+            }
+        }
+        else if (first_line_to && cmd == T::line_to)
+        {
+            first_line_to = false;
+            rings.back().reserve(len+2);
+            #if defined(DEBUG)
+            pre_len = len+2;
+            #endif
         }
         else if (cmd == T::close)
         {
