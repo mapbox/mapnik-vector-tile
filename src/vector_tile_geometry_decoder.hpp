@@ -323,7 +323,8 @@ std::vector<mapnik::geometry::linear_ring<double>> read_rings(T & paths)
             else
             {
                 #if defined(DEBUG)
-                if (pre_len != rings.back().size())
+                // off by one is expected/okay in rare cases
+                if (rings.back().size() > pre_len || std::fabs(pre_len - rings.back().size()) > 1)
                 {
                     MAPNIK_LOG_ERROR(read_rings) << "warning: encountered incorrectly encoded ring with " << rings.back().size() << " points but " << pre_len << " repeated commands";
                 }
