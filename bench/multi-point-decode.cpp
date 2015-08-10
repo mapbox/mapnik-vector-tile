@@ -2,6 +2,7 @@
 #include <mapnik/util/file_io.hpp>
 #include "vector_tile_datasource_pbf.hpp"
 #include "vector_tile_datasource.hpp"
+#include "vector_tile_compression.hpp"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -13,86 +14,114 @@
 
 #include <protozero/pbf_reader.hpp>
 
-void decode_geometry(protozero::pbf_reader tile)
+int main(int argc, char** argv)
 {
-    tile.next();
-    protozero::pbf_reader layer = tile.get_message();
-    while (layer.next())
+    try
     {
-        switch(layer.tag())
+
+        if (argc < 4)
         {
-            case 2:
-                {
-                    protozero::pbf_reader feature = layer.get_message();
-                    // TODO
-                }
-                break;
-            default:
-                {
-                    layer.skip();
-                }
-                break;
+            std::clog << "usage: vtile-decode /path/to/tile.vector.pbf z x y [iterations]\n";
+            return -1;
         }
-    }
-}
-
-
-int main() {
-    std::string vtile("./bench/enf.t5yd5cdi_14_13089_8506.vector.pbf");
-    mapnik::util::file input(vtile);
-    if (!input.open())
-    {
-        throw std::runtime_error("failed to open vtile");
-    }
-    std::size_t iterations = 100;
-
-    /*
-    {
-        mapnik::progress_timer __stats__(std::clog, std::string("decode: ") + vtile);
-        for (std::size_t i=0;i<iterations;++i)
+        std::string vtile(argv[1]);
+        mapnik::util::file input(vtile);
+        if (!input.open())
         {
-            protozero::pbf_reader tile(input.data().get(), input.size());
-            decode_geometry(tile);
+            std::clog << std::string("failed to open ") + vtile << "\n";
+            return -1;
         }
-    }
-    */
-    std::size_t count = 0;
-    {
-        mapnik::progress_timer __stats__(std::clog, std::string("decode as datasource_pbf: ") + vtile);
-        for (std::size_t i=0;i<iterations;++i)
+
+        int z = std::stoi(argv[2]);
+        int x = std::stoi(argv[3]);
+        int y = std::stoi(argv[4]);
+
+        std::size_t iterations = 100;
+        if (argc > 5)
         {
-            protozero::pbf_reader tile(input.data().get(), input.size());
-            tile.next();
-            protozero::pbf_reader layer = tile.get_message();
-            auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(layer,13089,8506,14,256);
-            mapnik::query q(ds->get_tile_extent());
-            auto fs = ds->features(q);
-            while (fs->next()) { 
-                ++count;
+            iterations = std::stoi(argv[5]);
+        }
+
+        std::clog << "z:" << z << " x:" << x << " y:" << y <<  " iterations:" << iterations << "\n";
+
+        std::string message(input.data().get(), input.size());
+        bool is_zlib = mapnik::vector_tile_impl::is_zlib_compressed(message);
+        bool is_gzip = mapnik::vector_tile_impl::is_gzip_compressed(message);
+        if (is_zlib || is_gzip)
+        {
+            if (is_zlib)
+            {
+                std::cout << "message: zlib compressed\n";
+            }
+            else if (is_gzip)
+            {
+                std::cout << "message: gzip compressed\n";
+            }
+            std::string uncompressed;
+            mapnik::vector_tile_impl::zlib_decompress(message,uncompressed);
+            message = uncompressed;
+        }
+
+        std::size_t feature_count = 0;
+        std::size_t layer_count = 0;
+        {
+            mapnik::progress_timer __stats__(std::clog, std::string("decode as datasource_pbf: ") + vtile);
+            for (std::size_t i=0;i<iterations;++i)
+            {
+                protozero::pbf_reader tile(message);
+                while (tile.next()) {
+                    if (tile.tag() == 3) {
+                        ++layer_count;
+                        protozero::pbf_reader layer = tile.get_message();
+                        auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(layer,x,y,z,256);
+                        mapnik::query q(ds->get_tile_extent());
+                        auto fs = ds->features(q);
+                        while (fs->next()) {
+                            ++feature_count;
+                        }
+                    } else {
+                        tile.skip();
+                    }
+                }
             }
         }
-    }
-    std::size_t count2 = 0;
-    {
-        mapnik::progress_timer __stats__(std::clog, std::string("decode as datasource: ") + vtile);
-        std::string buffer(input.data().get(), input.size());
-        vector_tile::Tile tiledata;
-        tiledata.ParseFromString(buffer);
-        for (std::size_t i=0;i<iterations;++i)
+
+
+        std::size_t feature_count2 = 0;
+        std::size_t layer_count2 = 0;
         {
-            protozero::pbf_reader tile(input.data().get(), input.size());
-            tile.next();
-            protozero::pbf_reader layer = tile.get_message();
-            auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource>(tiledata.layers(0),13089,8506,14,256);
-            mapnik::query q(ds->get_tile_extent());
-            auto fs = ds->features(q);
-            while (fs->next()) { 
-                ++count2;
+            mapnik::progress_timer __stats__(std::clog, std::string("decode as datasource: ") + vtile);
+            vector_tile::Tile tiledata;
+            tiledata.ParseFromString(message);
+            for (std::size_t i=0;i<iterations;++i)
+            {
+                for (int j=0;j<tiledata.layers_size(); ++j)
+                {
+                    ++layer_count2;
+                    auto const& layer = tiledata.layers(j);
+                    auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource>(layer,x,y,z,256);
+                    mapnik::query q(ds->get_tile_extent());
+                    auto fs = ds->features(q);
+                    while (fs->next()) {
+                        ++feature_count2;
+                    }                    
+                }
             }
         }
+        if (feature_count!= feature_count2) {
+            std::clog << "error: tile datasource impl did not return same # of features " << feature_count << " vs " << feature_count2 << "\n";
+            return -1;
+        } else if (feature_count == 0) {
+            std::clog << "error: no features processed\n";
+            return -1;
+        } else {
+            std::clog << "processed " << feature_count << " features\n";
+        }
     }
-    if (count != count2) {
-        std::clog << "error: tile datasource impl did not return same # of features " << count  << " vs " << count2 << "\n";
+    catch (std::exception const& ex)
+    {
+        std::clog << "error: " << ex.what() << "\n";
+        return -1;
     }
     return 0;
 }
