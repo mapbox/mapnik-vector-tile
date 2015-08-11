@@ -161,7 +161,7 @@
       ]
     },
     {
-      "target_name": "multi-point-decode",
+      "target_name": "vtile-decode",
       'dependencies': [ 'mapnik_vector_tile_impl' ],
       "type": "executable",
       "defines": [
@@ -169,7 +169,7 @@
         "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
       ],
       "sources": [
-        "../bench/multi-point-decode.cpp"
+        "../bench/vtile-decode.cpp"
       ],
       "include_dirs": [
         "../src",
