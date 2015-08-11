@@ -204,7 +204,7 @@ GeometryPBF::command GeometryPBF::next(double& rx, double& ry, std::uint32_t & l
 namespace detail {
 
 template <typename T>
-void decode_point(mapnik::geometry::geometry<double> & geom, T & paths)
+void decode_point(mapnik::geometry::geometry<double> & geom, T & paths, mapnik::box2d<double> const& bbox)
 {
     typename T::command cmd;
     double x1, y1;
@@ -218,16 +218,24 @@ void decode_point(mapnik::geometry::geometry<double> & geom, T & paths)
             first = false;
             mp.reserve(len);
         }
-        mp.emplace_back(mapnik::geometry::point<double>(x1,y1));
+        if (!bbox.intersects(x1,y1))
+        {
+            continue;
+        }
+        mp.emplace_back(x1,y1);
     }
     std::size_t num_points = mp.size();
     #if defined(DEBUG)
-    if (len != num_points) {
+    if (num_points > 0 && len != num_points) {
         // BUG: https://github.com/mapbox/mapnik-vector-tile/issues/144
         MAPNIK_LOG_ERROR(decode_point) << "warning: encountered incorrectly encoded multipoint with " << num_points << " points but only " << len << " repeated commands";
     }
     #endif
-    if (num_points == 1)
+    if (num_points == 0)
+    {
+        geom = mapnik::geometry::geometry_empty();
+    }
+    else if (num_points == 1)
     {
         geom = std::move(mp[0]);
     }
@@ -239,7 +247,7 @@ void decode_point(mapnik::geometry::geometry<double> & geom, T & paths)
 }
 
 template <typename T>
-void decode_linestring(mapnik::geometry::geometry<double> & geom, T & paths)
+void decode_linestring(mapnik::geometry::geometry<double> & geom, T & paths, mapnik::box2d<double> const& bbox)
 {
     typename T::command cmd;
     double x1, y1;
@@ -251,6 +259,7 @@ void decode_linestring(mapnik::geometry::geometry<double> & geom, T & paths)
     #if defined(DEBUG)
     std::uint32_t pre_len;
     #endif
+    mapnik::box2d<double> part_env;
     while ((cmd = paths.next(x1, y1, len)) != T::end)
     {
         if (cmd == T::move_to)
@@ -262,14 +271,21 @@ void decode_linestring(mapnik::geometry::geometry<double> & geom, T & paths)
             else
             {
                 #if defined(DEBUG)
-                if (pre_len != multi_line.back().size())
+                if (multi_line.back().size() > 0 && pre_len != multi_line.back().size())
                 {
                     MAPNIK_LOG_ERROR(decode_linestring) << "warning: encountered incorrectly encoded line with " << multi_line.back().size() << " points but only " << pre_len << " repeated commands";
                 }
                 #endif
                 first_line_to = true;
+                if (!bbox.intersects(part_env))
+                {
+                    // remove last line
+                    multi_line.pop_back();
+                }
+                // add fresh line to start adding to
                 multi_line.emplace_back();
             }
+            part_env.init(x1,y1,x1,y1);
         }
         else if (first_line_to && cmd == T::line_to)
         {
@@ -279,10 +295,23 @@ void decode_linestring(mapnik::geometry::geometry<double> & geom, T & paths)
             pre_len = len+1;
             #endif
         }
+        if (!first)
+        {
+            part_env.expand_to_include(x1,y1);
+        }
         multi_line.back().add_coord(x1,y1);
     }
+    if (!bbox.intersects(part_env))
+    {
+        // remove last line
+        multi_line.pop_back();
+    }
     std::size_t num_lines = multi_line.size();
-    if (num_lines == 1)
+    if (num_lines == 0)
+    {
+        geom = mapnik::geometry::geometry_empty();
+    }
+    else if (num_lines == 1)
     {
         auto itr = std::make_move_iterator(multi_line.begin());
         if (itr->size() > 1)
@@ -297,11 +326,11 @@ void decode_linestring(mapnik::geometry::geometry<double> & geom, T & paths)
 }
 
 template <typename T>
-std::vector<mapnik::geometry::linear_ring<double>> read_rings(T & paths)
+void read_rings(std::vector<mapnik::geometry::linear_ring<double>> & rings,
+                T & paths, mapnik::box2d<double> const& bbox)
 {
     typename T::command cmd;
     double x1, y1;
-    std::vector<mapnik::geometry::linear_ring<double>> rings;
     rings.emplace_back();
     double x2,y2;
     bool first = true;
@@ -310,6 +339,7 @@ std::vector<mapnik::geometry::linear_ring<double>> read_rings(T & paths)
     #if defined(DEBUG)
     std::uint32_t pre_len;
     #endif
+    mapnik::box2d<double> part_env;
     while ((cmd = paths.next(x1, y1, len)) != T::end)
     {
         if (cmd == T::move_to)
@@ -324,14 +354,20 @@ std::vector<mapnik::geometry::linear_ring<double>> read_rings(T & paths)
             {
                 #if defined(DEBUG)
                 // off by one is expected/okay in rare cases
-                if (rings.back().size() > pre_len || std::fabs(pre_len - rings.back().size()) > 1)
+                if (rings.back().size() > 0 && (rings.back().size() > pre_len || std::fabs(pre_len - rings.back().size()) > 1))
                 {
                     MAPNIK_LOG_ERROR(read_rings) << "warning: encountered incorrectly encoded ring with " << rings.back().size() << " points but " << pre_len << " repeated commands";
                 }
                 #endif
                 first_line_to = true;
+                if (!bbox.intersects(part_env))
+                {
+                    // remove last ring
+                    rings.pop_back();
+                }
                 rings.emplace_back();
             }
+            part_env.init(x1,y1,x1,y1);
         }
         else if (first_line_to && cmd == T::line_to)
         {
@@ -350,9 +386,17 @@ std::vector<mapnik::geometry::linear_ring<double>> read_rings(T & paths)
             }
             continue;
         }
+        if (!first)
+        {
+            part_env.expand_to_include(x1,y1);
+        }
         rings.back().add_coord(x1,y1);
     }
-    return rings;
+    if (!bbox.intersects(part_env))
+    {
+        // remove last ring
+        rings.pop_back();
+    }
 }
 
 template <typename T>
@@ -361,7 +405,11 @@ void decode_polygons(mapnik::geometry::geometry<double> & geom, T && rings)
     auto rings_itr = std::make_move_iterator(rings.begin());
     auto rings_end = std::make_move_iterator(rings.end());
     std::size_t num_rings = rings.size();
-    if (num_rings == 1)
+    if (num_rings == 0)
+    {
+        geom = mapnik::geometry::geometry_empty();
+    }
+    else if (num_rings == 1)
     {
         if (rings_itr->size() < 4) return;
         if (mapnik::util::is_clockwise(*rings_itr))
@@ -437,25 +485,33 @@ void decode_polygons(mapnik::geometry::geometry<double> & geom, T && rings)
 } // ns detail
 
 template <typename T>
-inline mapnik::geometry::geometry<double> decode_geometry(T & paths, int32_t geom_type)
+inline mapnik::geometry::geometry<double> decode_geometry(T & paths, int32_t geom_type, mapnik::box2d<double> const& bbox)
 {
     mapnik::geometry::geometry<double> geom; // output geometry
     switch (geom_type)
     {
     case vector_tile::Tile_GeomType_POINT:
     {
-        detail::decode_point(geom, paths);
+        detail::decode_point(geom, paths, bbox);
         break;
     }
     case vector_tile::Tile_GeomType_LINESTRING:
     {
-        detail::decode_linestring(geom, paths);
+        detail::decode_linestring(geom, paths, bbox);
         break;
     }
     case vector_tile::Tile_GeomType_POLYGON:
     {
-        auto rings = detail::read_rings(paths);
-        detail::decode_polygons(geom, rings);
+        std::vector<mapnik::geometry::linear_ring<double>> rings;
+        detail::read_rings(rings, paths, bbox);
+        if (rings.empty())
+        {
+            geom = mapnik::geometry::geometry_empty();
+        }
+        else
+        {
+            detail::decode_polygons(geom, rings);
+        }
         break;
     }
     case vector_tile::Tile_GeomType_UNKNOWN:
@@ -466,6 +522,19 @@ inline mapnik::geometry::geometry<double> decode_geometry(T & paths, int32_t geo
     }
     }
     return geom;
+}
+
+// For back compatibility in tests / for cases where performance is not critical
+// TODO: consider removing and always requiring bbox arg
+template <typename T>
+inline mapnik::geometry::geometry<double> decode_geometry(T & paths, int32_t geom_type)
+{
+
+    mapnik::box2d<double> bbox(-std::numeric_limits<double>::max(),
+                               -std::numeric_limits<double>::max(),
+                               std::numeric_limits<double>::max(),
+                               std::numeric_limits<double>::max());
+    return decode_geometry(paths,geom_type,bbox);
 }
 
 }} // end ns

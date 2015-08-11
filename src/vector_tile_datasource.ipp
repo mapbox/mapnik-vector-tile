@@ -35,6 +35,10 @@
 #include <boost/optional.hpp>
 #include <unicode/unistr.h>
 
+#if defined(DEBUG)
+#include <mapnik/debug.hpp>
+#endif
+
 namespace mapnik { namespace vector_tile_impl {
 
     void add_attributes(mapnik::feature_ptr feature,
@@ -196,16 +200,19 @@ namespace mapnik { namespace vector_tile_impl {
                     continue;
                 }
                 mapnik::vector_tile_impl::Geometry geoms(f,tile_x_, tile_y_, scale_, -1*scale_);
-                mapnik::geometry::geometry<double> geom = decode_geometry(geoms, f.type());
+                mapnik::geometry::geometry<double> geom = decode_geometry(geoms, f.type(), filter_.box_);
                 if (geom.is<mapnik::geometry::geometry_empty>())
                 {
                     continue;
                 }
+                #if defined(DEBUG)
                 mapnik::box2d<double> envelope = mapnik::geometry::envelope(geom);
                 if (!filter_.pass(envelope))
                 {
+                    MAPNIK_LOG_ERROR(tile_datasource_pbf) << "tile_datasource: filter:pass should not get here";
                     continue;
                 }
+                #endif
                 mapnik::feature_ptr feature = mapnik::feature_factory::create(ctx_,feature_id);
                 feature->set_geometry(std::move(geom));
                 add_attributes(feature,f,layer_,tr_);
