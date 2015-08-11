@@ -213,6 +213,11 @@ void decode_point(mapnik::geometry::geometry<double> & geom, T & paths, mapnik::
     std::uint32_t len;
     while ((cmd = paths.next(x1, y1, len)) != T::end)
     {
+        // TODO: consider profiling and trying to optimize this further
+        // when all points are within the bbox filter then the `mp.reserve` should be
+        // perfect, but when some points are thrown out we will allocate more than needed
+        // the "all points intersect" case I think is going to be more common/important
+        // however worth a future look to see if the "some or few points intersect" can be optimized
         if (first)
         {
             first = false;
