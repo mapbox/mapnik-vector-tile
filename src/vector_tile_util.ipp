@@ -207,7 +207,8 @@ namespace mapnik { namespace vector_tile_impl {
                             double x0, y0, x1, y1;
                             mapnik::box2d<int> box;
                             bool first = true;
-                            while ((cmd = paths.next(x1, y1)) != mapnik::vector_tile_impl::GeometryPBF::end)
+                            std::uint32_t len;
+                            while ((cmd = paths.next(x1, y1, len)) != mapnik::vector_tile_impl::GeometryPBF::end)
                             {
                                 if (cmd == mapnik::vector_tile_impl::GeometryPBF::move_to || cmd == mapnik::vector_tile_impl::GeometryPBF::line_to)
                                 {

@@ -15,8 +15,10 @@ if [[ ${COVERAGE} == true ]]; then
     ./mason_packages/.link/bin/cpp-coveralls \
         --build-root build \
         --gcov-options '\-lp' \
-        --exclude test/catch.hpp \
         --exclude examples \
+        --exclude deps \
+        --exclude test \
+        --exclude bench \
         --exclude build/Debug/obj/gen/ \
         --exclude mason_packages \
         --exclude scripts > /dev/null

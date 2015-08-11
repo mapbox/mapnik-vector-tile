@@ -13,6 +13,10 @@
 //std
 #include <algorithm>
 
+#if defined(DEBUG)
+#include <mapnik/debug.hpp>
+#endif
+
 namespace mapnik { namespace vector_tile_impl {
 
 // NOTE: this object is for one-time use.  Once you've progressed to the end
@@ -31,7 +35,7 @@ public:
             close = 7
             };
 
-    inline command next(double& rx, double& ry);
+    inline command next(double& rx, double& ry, std::uint32_t & len);
 
 private:
     vector_tile::Tile_Feature const& f_;
@@ -62,14 +66,14 @@ public:
         close = 7
     };
 
-    inline command next(double& rx, double& ry);
+    inline command next(double& rx, double& ry, std::uint32_t & len);
 
 private:
     std::pair< protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > geo_iterator_;
     double scale_x_;
     double scale_y_;
     uint8_t cmd;
-    uint32_t length;
+    std::uint32_t length;
     double x, y;
     double ox, oy;
 };
@@ -87,7 +91,7 @@ Geometry::Geometry(vector_tile::Tile_Feature const& f,
       x(tile_x), y(tile_y),
       ox(0), oy(0) {}
 
-Geometry::command Geometry::next(double& rx, double& ry)
+Geometry::command Geometry::next(double& rx, double& ry, std::uint32_t & len)
 {
     if (k < geoms_)
     {
@@ -95,7 +99,7 @@ Geometry::command Geometry::next(double& rx, double& ry)
         {
             uint32_t cmd_length = static_cast<uint32_t>(f_.geometry(k++));
             cmd = cmd_length & 0x7;
-            length = cmd_length >> 3;
+            len = length = cmd_length >> 3;
         }
 
         --length;
@@ -145,7 +149,7 @@ GeometryPBF::GeometryPBF(std::pair<protozero::pbf_reader::const_uint32_iterator,
       x(tile_x), y(tile_y),
       ox(0), oy(0) {}
 
-GeometryPBF::command GeometryPBF::next(double& rx, double& ry)
+GeometryPBF::command GeometryPBF::next(double& rx, double& ry, std::uint32_t & len)
 {
     if (geo_iterator_.first != geo_iterator_.second)
     {
@@ -153,7 +157,7 @@ GeometryPBF::command GeometryPBF::next(double& rx, double& ry)
         {
             uint32_t cmd_length = static_cast<uint32_t>(*geo_iterator_.first++);
             cmd = cmd_length & 0x7;
-            length = cmd_length >> 3;
+            len = length = cmd_length >> 3;
         }
 
         --length;
@@ -205,11 +209,24 @@ void decode_point(mapnik::geometry::geometry<double> & geom, T & paths)
     typename T::command cmd;
     double x1, y1;
     mapnik::geometry::multi_point<double> mp;
-    while ((cmd = paths.next(x1, y1)) != T::end)
+    bool first = true;
+    std::uint32_t len;
+    while ((cmd = paths.next(x1, y1, len)) != T::end)
     {
+        if (first)
+        {
+            first = false;
+            mp.reserve(len);
+        }
         mp.emplace_back(mapnik::geometry::point<double>(x1,y1));
     }
     std::size_t num_points = mp.size();
+    #if defined(DEBUG)
+    if (len != num_points) {
+        // BUG: https://github.com/mapbox/mapnik-vector-tile/issues/144
+        MAPNIK_LOG_ERROR(decode_point) << "warning: encountered incorrectly encoded multipoint with " << num_points << " points but only " << len << " repeated commands";
+    }
+    #endif
     if (num_points == 1)
     {
         geom = std::move(mp[0]);
@@ -229,12 +246,38 @@ void decode_linestring(mapnik::geometry::geometry<double> & geom, T & paths)
     mapnik::geometry::multi_line_string<double> multi_line;
     multi_line.emplace_back();
     bool first = true;
-    while ((cmd = paths.next(x1, y1)) != T::end)
+    bool first_line_to = true;
+    std::uint32_t len;
+    #if defined(DEBUG)
+    std::uint32_t pre_len;
+    #endif
+    while ((cmd = paths.next(x1, y1, len)) != T::end)
     {
         if (cmd == T::move_to)
         {
-            if (first) first = false;
-            else multi_line.emplace_back();
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                #if defined(DEBUG)
+                if (pre_len != multi_line.back().size())
+                {
+                    MAPNIK_LOG_ERROR(decode_linestring) << "warning: encountered incorrectly encoded line with " << multi_line.back().size() << " points but only " << pre_len << " repeated commands";
+                }
+                #endif
+                first_line_to = true;
+                multi_line.emplace_back();
+            }
+        }
+        else if (first_line_to && cmd == T::line_to)
+        {
+            first_line_to = false;
+            multi_line.back().reserve(len+1);
+            #if defined(DEBUG)
+            pre_len = len+1;
+            #endif
         }
         multi_line.back().add_coord(x1,y1);
     }
@@ -262,14 +305,41 @@ std::vector<mapnik::geometry::linear_ring<double>> read_rings(T & paths)
     rings.emplace_back();
     double x2,y2;
     bool first = true;
-    while ((cmd = paths.next(x1, y1)) != T::end)
+    bool first_line_to = true;
+    std::uint32_t len;
+    #if defined(DEBUG)
+    std::uint32_t pre_len;
+    #endif
+    while ((cmd = paths.next(x1, y1, len)) != T::end)
     {
         if (cmd == T::move_to)
         {
             x2 = x1;
             y2 = y1;
-            if (first) first = false;
-            else rings.emplace_back();
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                #if defined(DEBUG)
+                // off by one is expected/okay in rare cases
+                if (rings.back().size() > pre_len || std::fabs(pre_len - rings.back().size()) > 1)
+                {
+                    MAPNIK_LOG_ERROR(read_rings) << "warning: encountered incorrectly encoded ring with " << rings.back().size() << " points but " << pre_len << " repeated commands";
+                }
+                #endif
+                first_line_to = true;
+                rings.emplace_back();
+            }
+        }
+        else if (first_line_to && cmd == T::line_to)
+        {
+            first_line_to = false;
+            rings.back().reserve(len+2);
+            #if defined(DEBUG)
+            pre_len = len+2;
+            #endif
         }
         else if (cmd == T::close)
         {

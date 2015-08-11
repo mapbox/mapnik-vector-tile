@@ -29,59 +29,6 @@ struct print
 
 }
 
-struct encode_geometry
-{
-    vector_tile::Tile_Feature & feature_;
-    int32_t x_;
-    int32_t y_;
-    encode_geometry(vector_tile::Tile_Feature & feature) :
-      feature_(feature),
-      x_(0),
-      y_(0) { }
-
-    void operator() (geometry_empty const&)
-    {
-    }
-    
-    template <typename T>
-    void operator()(T const& path)
-    {
-        mapnik::vector_tile_impl::encode_geometry(path,feature_,x_,y_);
-    }
-    
-    void operator()(mapnik::geometry::multi_point<std::int64_t> const & path)
-    {
-        for (auto const& pt : path)
-        {
-            mapnik::vector_tile_impl::encode_geometry(pt,feature_,x_,y_);
-        }
-    }
-
-    void operator()(mapnik::geometry::multi_line_string<std::int64_t> const & path)
-    {
-        for (auto const& ls : path)
-        {
-            mapnik::vector_tile_impl::encode_geometry(ls,feature_,x_,y_);
-        }
-    }
-    
-    void operator()(mapnik::geometry::multi_polygon<std::int64_t> const& path)
-    {
-        for (auto const& p : path)
-        {
-            mapnik::vector_tile_impl::encode_geometry(p,feature_,x_,y_);
-        }
-    }
-    
-    void operator()(mapnik::geometry::geometry_collection<std::int64_t> const& path)
-    {
-        for (auto const& p : path)
-        {
-            mapnik::util::apply_visitor((*this), p);
-        }
-    }
-};
-
 struct show_path
 {
     std::string & str_;
@@ -111,20 +58,47 @@ struct show_path
     }
 };
 
-template <typename T>
-vector_tile::Tile_Feature geometry_to_feature(mapnik::geometry::geometry<T> const& g)
+struct encoder_visitor
+{
+    vector_tile::Tile_Feature & feature_;
+    int32_t x_;
+    int32_t y_;
+    encoder_visitor(vector_tile::Tile_Feature & feature) :
+      feature_(feature),
+      x_(0),
+      y_(0) { }
+
+    void operator() (geometry_empty const&)
+    {
+    }
+
+    void operator()(mapnik::geometry::geometry_collection<std::int64_t> const& path)
+    {
+        for (auto const& p : path)
+        {
+            mapnik::util::apply_visitor((*this), p);
+        }
+    }
+
+    template <typename T>
+    void operator()(T const& geom)
+    {
+        mapnik::vector_tile_impl::encode_geometry(geom,feature_,x_,y_);
+    }
+};
+
+vector_tile::Tile_Feature geometry_to_feature(mapnik::geometry::geometry<std::int64_t> const& g)
 {
     vector_tile::Tile_Feature feature;
-    encode_geometry ap(feature);
-    if (g.template is<mapnik::geometry::point<T> >() || g.template is<mapnik::geometry::multi_point<T> >())
+    if (g.template is<mapnik::geometry::point<std::int64_t>>() || g.template is<mapnik::geometry::multi_point<std::int64_t>>())
     {
         feature.set_type(vector_tile::Tile_GeomType_POINT);
     }
-    else if (g.template is<mapnik::geometry::line_string<T> >() || g.template is<mapnik::geometry::multi_line_string<T> >())
+    else if (g.template is<mapnik::geometry::line_string<std::int64_t>>() || g.template is<mapnik::geometry::multi_line_string<std::int64_t>>())
     {
         feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
     }
-    else if (g.template is<mapnik::geometry::polygon<T> >() || g.template is<mapnik::geometry::multi_polygon<T> >())
+    else if (g.template is<mapnik::geometry::polygon<std::int64_t>>() || g.template is<mapnik::geometry::multi_polygon<std::int64_t>>())
     {
         feature.set_type(vector_tile::Tile_GeomType_POLYGON);
     }
@@ -132,6 +106,7 @@ vector_tile::Tile_Feature geometry_to_feature(mapnik::geometry::geometry<T> cons
     {
         throw std::runtime_error("could not detect valid geometry type");
     }
+    encoder_visitor ap(feature);
     mapnik::util::apply_visitor(ap,g);
     return feature;
 }
@@ -147,8 +122,7 @@ std::string decode_to_path_string(mapnik::geometry::geometry<T> const& g)
     return out;
 }
 
-template <typename T>
-std::string compare(mapnik::geometry::geometry<T> const& g)
+std::string compare(mapnik::geometry::geometry<std::int64_t> const& g)
 {
     vector_tile::Tile_Feature feature = geometry_to_feature(g);
     mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);

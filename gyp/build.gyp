@@ -161,6 +161,22 @@
       ]
     },
     {
+      "target_name": "vtile-decode",
+      'dependencies': [ 'mapnik_vector_tile_impl' ],
+      "type": "executable",
+      "defines": [
+        "<@(common_defines)",
+        "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
+      ],
+      "sources": [
+        "../bench/vtile-decode.cpp"
+      ],
+      "include_dirs": [
+        "../src",
+        '../deps/protozero/include'
+      ]
+    },
+    {
       "target_name": "tileinfo",
       'dependencies': [ 'vector_tile' ],
       "type": "executable",
