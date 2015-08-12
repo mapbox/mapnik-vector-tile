@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.2
+
+ - Fixed multipoint encoding (#144)
+ - Optimized decoding by filtering geometry parts not within bbox (#146)
+ - Optimized decoding by calling `vector.reserve` before `vector.emplace_back` (#119)
+
 ## 0.9.1
 
  - Added `is_solid_extent` implementation based on protozero decoder
