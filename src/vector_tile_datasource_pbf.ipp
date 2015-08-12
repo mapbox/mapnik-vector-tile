@@ -32,6 +32,10 @@
 #include <boost/optional.hpp>
 #include <unicode/unistr.h>
 
+#if defined(DEBUG)
+#include <mapnik/debug.hpp>
+#endif
+
 namespace mapnik { namespace vector_tile_impl {
 
     template <typename Filter>
@@ -210,16 +214,19 @@ namespace mapnik { namespace vector_tile_impl {
                             {
                                 auto geom_itr = f.get_packed_uint32();
                                 mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr, tile_x_,tile_y_,scale_,-1*scale_);
-                                mapnik::geometry::geometry<double> geom = decode_geometry(geoms, geometry_type);
+                                mapnik::geometry::geometry<double> geom = decode_geometry(geoms, geometry_type, filter_.box_);
                                 if (geom.is<mapnik::geometry::geometry_empty>())
                                 {
                                     continue;
                                 }
+                                #if defined(DEBUG)
                                 mapnik::box2d<double> envelope = mapnik::geometry::envelope(geom);
                                 if (!filter_.pass(envelope))
                                 {
+                                    MAPNIK_LOG_ERROR(tile_datasource_pbf) << "tile_datasource_pbf: filter:pass should not get here";
                                     continue;
                                 }
+                                #endif
                                 feature->set_geometry(std::move(geom));
                                 return feature;
                             }
