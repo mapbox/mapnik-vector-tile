@@ -6,9 +6,19 @@
 
 namespace mapnik { namespace vector_tile_impl {
 
+inline bool is_zlib_compressed(const char * data, std::size_t size)
+{
+    return size > 2 && static_cast<uint8_t>(data[0]) == 0x78 && static_cast<uint8_t>(data[1]) == 0x9C;
+}
+
 inline bool is_zlib_compressed(std::string const& data)
 {
     return data.size() > 2 && static_cast<uint8_t>(data[0]) == 0x78 && static_cast<uint8_t>(data[1]) == 0x9C;
+}
+
+inline bool is_gzip_compressed(const char * data, std::size_t size)
+{
+    return size > 2 && static_cast<uint8_t>(data[0]) == 0x1F && static_cast<uint8_t>(data[1]) == 0x8B;
 }
 
 inline bool is_gzip_compressed(std::string const& data)
