@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.3
+
+ - Improvements to zlib compression API
+
 ## 0.9.2
 
  - Fixed multipoint encoding (#144)
