@@ -37,7 +37,7 @@ void zlib_decompress(std::string const& input, std::string & output)
     zlib_decompress(input.data(),input.size(),output);
 }
 
-void zlib_compress(const char * data, std::size_t size, std::string & output, bool gzip)
+void zlib_compress(const char * data, std::size_t size, std::string & output, bool gzip, int level, int strategy)
 {
     z_stream deflate_s;
     deflate_s.zalloc = Z_NULL;
@@ -50,7 +50,7 @@ void zlib_compress(const char * data, std::size_t size, std::string & output, bo
     {
         windowsBits = windowsBits | 16;
     }
-    if (deflateInit2(&deflate_s, Z_BEST_COMPRESSION, Z_DEFLATED, windowsBits, 8, Z_DEFAULT_STRATEGY) != Z_OK)
+    if (deflateInit2(&deflate_s, level, Z_DEFLATED, windowsBits, 8, strategy) != Z_OK)
     {
         throw std::runtime_error("deflate failed");
     }
@@ -72,9 +72,9 @@ void zlib_compress(const char * data, std::size_t size, std::string & output, bo
     output.resize(length);
 }
 
-void zlib_compress(std::string const& input, std::string & output, bool gzip)
+void zlib_compress(std::string const& input, std::string & output, bool gzip, int level, int strategy)
 {
-    zlib_compress(input.data(),input.size(),output,gzip);
+    zlib_compress(input.data(),input.size(),output,gzip,level,strategy);
 }
 
 }}

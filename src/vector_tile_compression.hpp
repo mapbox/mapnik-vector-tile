@@ -3,6 +3,7 @@
 
 #include <string>
 #include "vector_tile_config.hpp"
+#include <zlib.h>
 
 namespace mapnik { namespace vector_tile_impl {
 
@@ -29,7 +30,9 @@ inline bool is_gzip_compressed(std::string const& data)
 // decodes both zlib and gzip
 // http://stackoverflow.com/a/1838702/2333354
 MAPNIK_VECTOR_INLINE void zlib_decompress(std::string const& input, std::string & output);
-MAPNIK_VECTOR_INLINE void zlib_compress(std::string const& input, std::string & output, bool gzip=true);
+MAPNIK_VECTOR_INLINE void zlib_compress(std::string const& input, std::string & output, bool gzip=true, int level=Z_DEFAULT_COMPRESSION, int strategy=Z_DEFAULT_STRATEGY);
+MAPNIK_VECTOR_INLINE void zlib_decompress(const char * data, std::size_t size, std::string & output);
+MAPNIK_VECTOR_INLINE void zlib_compress(const char * data, std::size_t size, std::string & output, bool gzip=true, int level=Z_DEFAULT_COMPRESSION, int strategy=Z_DEFAULT_STRATEGY);
 
 }} // end ns
 
