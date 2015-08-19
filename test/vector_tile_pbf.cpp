@@ -80,11 +80,11 @@ TEST_CASE( "pbf vector tile input", "should be able to parse message and render 
     CHECK(1 == layer2.features_size());
 
     mapnik::layer lyr2("layer",map.srs());
-    
+
     protozero::pbf_reader pbf_tile(buffer.c_str(), buffer.size());
     pbf_tile.next();
     protozero::pbf_reader layer3 = pbf_tile.get_message();
-    
+
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource_pbf>(
                                         layer3,0,0,0,map2.width());
@@ -106,7 +106,7 @@ TEST_CASE( "pbf vector tile input", "should be able to parse message and render 
     {
         names.push_back(desc.get_name());
     }
-    
+
     CHECK(names == expected_names);
     lyr2.set_datasource(ds);
     lyr2.add_style("style");
@@ -160,11 +160,11 @@ TEST_CASE( "pbf vector tile datasource", "should filter features outside extent"
     CHECK(9 == f.geometry(0));
     CHECK(4096 == f.geometry(1));
     CHECK(4096 == f.geometry(2));
-    
+
     protozero::pbf_reader pbf_tile(buffer.c_str(), buffer.size());
     pbf_tile.next();
     protozero::pbf_reader layer2 = pbf_tile.get_message();
-    
+
     // now actually start the meat of the test
     mapnik::vector_tile_impl::tile_datasource_pbf ds(layer2,0,0,0,tile_size);
     mapnik::featureset_ptr fs;
@@ -289,11 +289,11 @@ TEST_CASE( "pbf encoding multi line as one path", "should maintain second move_t
 
     mapnik::featureset_ptr fs;
     mapnik::feature_ptr f_ptr;
-    
+
     protozero::pbf_reader pbf_tile(buffer.c_str(), buffer.size());
     pbf_tile.next();
     protozero::pbf_reader layer2 = pbf_tile.get_message();
-    
+
 
     mapnik::vector_tile_impl::tile_datasource_pbf ds(layer2,0,0,0,tile_size);
     fs = ds.features(mapnik::query(bbox));
@@ -330,7 +330,7 @@ TEST_CASE( "pbf decoding garbage buffer", "should throw exception" ) {
 
 
 TEST_CASE( "pbf decoding some truncated buffers", "should throw exception" ) {
-  
+
     typedef mapnik::vector_tile_impl::backend_pbf backend_type;
     typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
     typedef vector_tile::Tile tile_type;
@@ -362,7 +362,7 @@ TEST_CASE( "pbf decoding some truncated buffers", "should throw exception" ) {
     CHECK(9 == f.geometry(0));
     CHECK(4096 == f.geometry(1));
     CHECK(4096 == f.geometry(2));
-  
+
 
     // We will test truncating the generated protobuf at every increment.
     //  Most cases should fail, except for the lucky bites where we chop
