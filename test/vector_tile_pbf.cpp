@@ -1,9 +1,5 @@
 #include "catch.hpp"
 
-// override pbf_assert to disable assertions and allow
-// all tests below to check exceptions even in Debug mode
-#define pbf_assert(x)
-
 // test utils
 #include "test_utils.hpp"
 #include <mapnik/memory_datasource.hpp>
