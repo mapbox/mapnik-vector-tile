@@ -163,8 +163,8 @@ namespace mapnik { namespace vector_tile_impl {
                             break;
                         case 5:
                             {
-                            std::string const& image_buffer = f.get_bytes();
-                            std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(image_buffer.data(),image_buffer.size()));
+                            auto image_buffer = f.get_data();
+                            std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(image_buffer.first, image_buffer.second));
                             if (reader.get())
                             {
                                 int image_width = reader->width();
