@@ -107,6 +107,7 @@ namespace mapnik { namespace vector_tile_impl {
                                 for (auto _i = tag_iterator.first; _i != tag_iterator.second;)
                                 {
                                     std::size_t key_name = *(_i++);
+                                    assert(_i != tag_iterator.second);
                                     std::size_t key_value = *(_i++);
                                     if (key_name < num_keys_
                                         && key_value < num_values_)
