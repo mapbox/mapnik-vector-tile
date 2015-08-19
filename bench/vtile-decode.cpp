@@ -69,18 +69,14 @@ int main(int argc, char** argv)
             for (std::size_t i=0;i<iterations;++i)
             {
                 protozero::pbf_reader tile(message);
-                while (tile.next()) {
-                    if (tile.tag() == 3) {
-                        ++layer_count;
-                        protozero::pbf_reader layer = tile.get_message();
-                        auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(layer,x,y,z,256);
-                        mapnik::query q(ds->get_tile_extent());
-                        auto fs = ds->features(q);
-                        while (fs->next()) {
-                            ++feature_count;
-                        }
-                    } else {
-                        tile.skip();
+                while (tile.next(3)) {
+                    ++layer_count;
+                    protozero::pbf_reader layer = tile.get_message();
+                    auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(layer,x,y,z,256);
+                    mapnik::query q(ds->get_tile_extent());
+                    auto fs = ds->features(q);
+                    while (fs->next()) {
+                        ++feature_count;
                     }
                 }
             }
