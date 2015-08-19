@@ -10,7 +10,7 @@
 
 #include <mapnik/geometry.hpp>
 #include "vector_tile_config.hpp"
-#include <protozero/pbf_writer.hpp>
+#include <protozero/varint.hpp>
 
 #include <cstdlib>
 #include <cmath>
