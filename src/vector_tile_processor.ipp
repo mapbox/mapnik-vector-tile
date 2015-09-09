@@ -802,7 +802,7 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
                                     *feature,
                                     geom,
                                     tile_clipping_extent,
-                                    target_clipping_extent) > 0)
+                                    target_clipping_extent))
                 {
                     painted_ = true;
                 }
@@ -896,48 +896,54 @@ struct encoder_visitor {
       tile_clipping_extent_(tile_clipping_extent),
       area_threshold_(area_threshold) {}
 
-    unsigned operator() (mapnik::geometry::geometry_empty const&)
+    bool operator() (mapnik::geometry::geometry_empty const&)
     {
-        return 0;
+        return false;
     }
 
-    unsigned operator() (mapnik::geometry::geometry_collection<std::int64_t> & geom)
+    bool operator() (mapnik::geometry::geometry_collection<std::int64_t> & geom)
     {
-        unsigned count = 0;
+        bool painted = false;
         for (auto & g : geom)
         {
-            count += mapnik::util::apply_visitor((*this), g);
+            if (mapnik::util::apply_visitor((*this), g))
+            {
+                painted = true;
+            }
         }
-        return count;
+        return painted;
     }
 
-    unsigned operator() (mapnik::geometry::point<std::int64_t> const& geom)
+    bool operator() (mapnik::geometry::point<std::int64_t> const& geom)
     {
-        unsigned path_count = 0;
         backend_.start_tile_feature(feature_);
         backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
-        path_count = backend_.add_path(geom);
+        bool painted = backend_.add_path(geom);
         backend_.stop_tile_feature();
-        return path_count;
+        return painted;
     }
 
-    unsigned operator() (mapnik::geometry::multi_point<std::int64_t> const& geom)
+    bool operator() (mapnik::geometry::multi_point<std::int64_t> const& geom)
     {
-        unsigned path_count = 0;
+        bool painted = false;
         if (!geom.empty())
         {
             backend_.start_tile_feature(feature_);
             backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
-            path_count = backend_.add_path(geom);
+            painted = backend_.add_path(geom);
             backend_.stop_tile_feature();
         }
-        return path_count;
+        return painted;
     }
 
-    unsigned operator() (mapnik::geometry::line_string<std::int64_t> & geom)
+    bool operator() (mapnik::geometry::line_string<std::int64_t> & geom)
     {
-        unsigned path_count = 0;
-        if (geom.size() < 2) return 0;
+        bool painted = false;
+        if (geom.size() < 2)
+        {
+            // This is false because it means the original data was invalid
+            return false;
+        }
         std::deque<mapnik::geometry::line_string<int64_t>> result;
         mapnik::geometry::linear_ring<std::int64_t> clip_box;
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
@@ -948,20 +954,23 @@ struct encoder_visitor {
         boost::geometry::intersection(clip_box,geom,result);
         if (!result.empty())
         {
+            // Found some data in tile so painted is now true
+            painted = true;
+            // Add the data to the tile
             backend_.start_tile_feature(feature_);
             backend_.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
             for (auto const& ls : result)
             {
-                path_count += backend_.add_path(ls);
+                backend_.add_path(ls);
             }
             backend_.stop_tile_feature();
         }
-        return path_count;
+        return painted;
     }
 
-    unsigned operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom)
+    bool operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom)
     {
-        unsigned path_count = 0;
+        bool painted = false;
         mapnik::geometry::linear_ring<std::int64_t> clip_box;
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
         clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
@@ -975,19 +984,21 @@ struct encoder_visitor {
             {
                continue;
             }
+            // If any line reaches here painted is now true because
             std::deque<mapnik::geometry::line_string<int64_t>> result;
             boost::geometry::intersection(clip_box,line,result);
             if (!result.empty())
             {
                 if (first)
                 {
+                    painted = true;
                     first = false;
                     backend_.start_tile_feature(feature_);
                     backend_.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
                 }
                 for (auto const& ls : result)
                 {
-                    path_count += backend_.add_path(ls);
+                    backend_.add_path(ls);
                 }
             }
         }
@@ -995,13 +1006,20 @@ struct encoder_visitor {
         {
             backend_.stop_tile_feature();
         }
-        return path_count;
+        return painted;
     }
 
-    unsigned operator() (mapnik::geometry::polygon<std::int64_t> & geom)
+    bool operator() (mapnik::geometry::polygon<std::int64_t> & geom)
     {
-        unsigned path_count = 0;
-        if (geom.exterior_ring.size() < 3) return 0;
+        bool painted = false;
+        if (geom.exterior_ring.size() < 3)
+        {
+            // Invalid geometry so will be false
+            return false;
+        }
+        // Because of geometry cleaning and other methods
+        // we automatically call this tile painted even if there is no intersections.
+        painted = true;
         double clean_distance = 1.415;
         mapnik::geometry::linear_ring<std::int64_t> clip_box;
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
@@ -1014,7 +1032,7 @@ struct encoder_visitor {
         double outer_area = ClipperLib::Area(geom.exterior_ring);
         if (std::abs(outer_area) < area_threshold_)
         {
-            return 0;
+            return painted;
         }
         // The view transform inverts the y axis so this should be positive still despite now
         // being clockwise for the exterior ring. If it is not lets invert it.
@@ -1026,11 +1044,14 @@ struct encoder_visitor {
         //poly_clipper.StrictlySimple(true);
         if (!poly_clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true))
         {
-            return 0;
+            return painted;
         }
         for (auto & ring : geom.interior_rings)
         {
-            if (ring.size() < 3) continue;
+            if (ring.size() < 3) 
+            {
+                continue;
+            }
             ClipperLib::CleanPolygon(ring, clean_distance);
             double inner_area = ClipperLib::Area(ring);
             if (std::abs(inner_area) < area_threshold_) continue;
@@ -1047,7 +1068,7 @@ struct encoder_visitor {
         }
         if (!poly_clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
         {
-            return 0;
+            return painted;
         }
         mapnik::geometry::multi_line_string<std::int64_t> output_paths;
         poly_clipper.Execute(ClipperLib::ctIntersection, output_paths, ClipperLib::pftNonZero);
@@ -1055,7 +1076,7 @@ struct encoder_visitor {
         ClipperLib::CleanPolygons(output_paths, clean_distance);
         if (!clipper.AddPaths(output_paths, ClipperLib::ptSubject, true))
         {
-            return 0;
+            return painted;
         }
         
         ClipperLib::PolyTree polygons;
@@ -1072,7 +1093,7 @@ struct encoder_visitor {
 
         if (mp.empty())
         {
-            return 0;
+            return painted;
         }
 
         backend_.start_tile_feature(feature_);
@@ -1080,18 +1101,23 @@ struct encoder_visitor {
         
         for (auto const& poly : mp)
         {
-            path_count += backend_.add_path(poly);
+            backend_.add_path(poly);
         }
         backend_.stop_tile_feature();
-        return path_count;
+        return painted;
     }
 
-    unsigned operator() (mapnik::geometry::multi_polygon<std::int64_t> & geom)
+    bool operator() (mapnik::geometry::multi_polygon<std::int64_t> & geom)
     {
-        unsigned path_count = 0;
+        bool painted = false;
         //mapnik::box2d<std::int64_t> bbox = mapnik::geometry::envelope(geom);
-        if (geom.empty()) return 0;
-            
+        if (geom.empty())
+        {
+            return painted;
+        }
+        // From this point on due to polygon cleaning etc, we just assume that the tile has some sort
+        // of intersection and is painted.
+        painted = true;   
         double clean_distance = 1.415;
         mapnik::geometry::linear_ring<std::int64_t> clip_box;
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
@@ -1140,7 +1166,7 @@ struct encoder_visitor {
             }
             if (!poly_clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
             {
-                return 0;
+                return painted;
             }
             mapnik::geometry::multi_line_string<std::int64_t> output_paths;
             poly_clipper.Execute(ClipperLib::ctIntersection, output_paths);//, ClipperLib::pftNonZero);
@@ -1167,7 +1193,7 @@ struct encoder_visitor {
         
         if (mp.empty())
         {
-            return 0;
+            return painted;
         }
 
         backend_.start_tile_feature(feature_);
@@ -1175,10 +1201,10 @@ struct encoder_visitor {
         
         for (auto const& poly : mp)
         {
-            path_count += backend_.add_path(poly);
+            backend_.add_path(poly);
         }
         backend_.stop_tile_feature();
-        return path_count;
+        return painted;
     }
 
     backend_type & backend_;
@@ -1195,57 +1221,60 @@ struct simplify_visitor {
       encoder_(encoder),
       simplify_distance_(simplify_distance) {}
 
-    unsigned operator() (mapnik::geometry::point<std::int64_t> const& geom)
+    bool operator() (mapnik::geometry::point<std::int64_t> const& geom)
     {
         return encoder_(geom);
     }
 
-    unsigned operator() (mapnik::geometry::multi_point<std::int64_t> const& geom)
+    bool operator() (mapnik::geometry::multi_point<std::int64_t> const& geom)
     {
         return encoder_(geom);
     }
 
-    unsigned operator() (mapnik::geometry::line_string<std::int64_t> const& geom)
+    bool operator() (mapnik::geometry::line_string<std::int64_t> const& geom)
     {
         mapnik::geometry::line_string<std::int64_t> simplified;
         boost::geometry::simplify(geom,simplified,simplify_distance_);
         return encoder_(simplified);
     }
 
-    unsigned operator() (mapnik::geometry::multi_line_string<std::int64_t> const& geom)
+    bool operator() (mapnik::geometry::multi_line_string<std::int64_t> const& geom)
     {
         mapnik::geometry::multi_line_string<std::int64_t> simplified;
         boost::geometry::simplify(geom,simplified,simplify_distance_);
         return encoder_(simplified);
     }
 
-    unsigned operator() (mapnik::geometry::polygon<std::int64_t> const& geom)
+    bool operator() (mapnik::geometry::polygon<std::int64_t> const& geom)
     {
         mapnik::geometry::polygon<std::int64_t> simplified;
         boost::geometry::simplify(geom,simplified,simplify_distance_);
         return encoder_(simplified);
     }
 
-    unsigned operator() (mapnik::geometry::multi_polygon<std::int64_t> const& geom)
+    bool operator() (mapnik::geometry::multi_polygon<std::int64_t> const& geom)
     {
         mapnik::geometry::multi_polygon<std::int64_t> simplified;
         boost::geometry::simplify(geom,simplified,simplify_distance_);
         return encoder_(simplified);
     }
 
-    unsigned operator() (mapnik::geometry::geometry_collection<std::int64_t> const& geom)
+    bool operator() (mapnik::geometry::geometry_collection<std::int64_t> const& geom)
     {
-        unsigned count = 0;
+        bool painted = false;
         for (auto const& g : geom)
         {
-            count += mapnik::util::apply_visitor((*this), g);
+            if (mapnik::util::apply_visitor((*this), g))
+            {
+                painted = true;
+            }
         }
-        return count;
+        return painted;
     }
 
-    unsigned operator() (mapnik::geometry::geometry_empty const&)
+    bool operator() (mapnik::geometry::geometry_empty const&)
     {
-        return 0;
+        return false;
     }
 
     encoder_visitor<backend_type> & encoder_;
@@ -1254,11 +1283,11 @@ struct simplify_visitor {
 
 
 template <typename T> template <typename T2>
-unsigned processor<T>::handle_geometry(T2 const& vs,
-                                       mapnik::feature_impl const& feature,
-                                       mapnik::geometry::geometry<double> const& geom,
-                                       mapnik::box2d<int> const& tile_clipping_extent,
-                                       mapnik::box2d<double> const& target_clipping_extent)
+bool processor<T>::handle_geometry(T2 const& vs,
+                                   mapnik::feature_impl const& feature,
+                                   mapnik::geometry::geometry<double> const& geom,
+                                   mapnik::box2d<int> const& tile_clipping_extent,
+                                   mapnik::box2d<double> const& target_clipping_extent)
 {
     // TODO
     // - no need to create a new skipping_transformer per geometry

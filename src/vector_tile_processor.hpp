@@ -82,11 +82,11 @@ public:
                         int buffer_size);
 
     template <typename T2>
-    MAPNIK_VECTOR_INLINE unsigned handle_geometry(T2 const& vs,
-                                                  mapnik::feature_impl const& feature,
-                                                  mapnik::geometry::geometry<double> const& geom,
-                                                  mapnik::box2d<int> const& tile_clipping_extent,
-                                                  mapnik::box2d<double> const& target_clipping_extent);
+    MAPNIK_VECTOR_INLINE bool handle_geometry(T2 const& vs,
+                                              mapnik::feature_impl const& feature,
+                                              mapnik::geometry::geometry<double> const& geom,
+                                              mapnik::box2d<int> const& tile_clipping_extent,
+                                              mapnik::box2d<double> const& target_clipping_extent);
 };
 
 }} // end ns

@@ -48,7 +48,7 @@ namespace mapnik { namespace vector_tile_impl {
         inline void stop_tile_layer() {}
 
         template <typename T>
-        inline unsigned add_path(T const& path)
+        inline bool add_path(T const& path)
         {
             if (current_feature_)
             {
@@ -57,7 +57,8 @@ namespace mapnik { namespace vector_tile_impl {
                                        x_,
                                        y_);
             }
-            return 0;
+            // no path was added return false
+            return false;
         }
     };
 

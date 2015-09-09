@@ -19,7 +19,7 @@
 
 namespace mapnik { namespace vector_tile_impl {
 
-inline unsigned encode_geometry(mapnik::geometry::point<std::int64_t> const& pt,
+inline bool encode_geometry(mapnik::geometry::point<std::int64_t> const& pt,
                         vector_tile::Tile_Feature & current_feature,
                         int32_t & start_x,
                         int32_t & start_y)
@@ -32,7 +32,7 @@ inline unsigned encode_geometry(mapnik::geometry::point<std::int64_t> const& pt,
     current_feature.add_geometry(protozero::encode_zigzag32(dy));
     start_x = pt.x;
     start_y = pt.y;
-    return 1;
+    return true;
 }
 
 inline unsigned encode_length(unsigned len)
@@ -40,7 +40,7 @@ inline unsigned encode_length(unsigned len)
     return (len << 3u) | 2u;
 }
 
-inline unsigned encode_geometry(mapnik::geometry::line_string<std::int64_t> const& line,
+inline bool encode_geometry(mapnik::geometry::line_string<std::int64_t> const& line,
                         vector_tile::Tile_Feature & current_feature,
                         int32_t & start_x,
                         int32_t & start_y)
@@ -48,7 +48,7 @@ inline unsigned encode_geometry(mapnik::geometry::line_string<std::int64_t> cons
     std::size_t line_size = line.size();
     if (line_size <= 0)
     {
-        return 0;
+        return false;
     }
     unsigned line_to_length = static_cast<unsigned>(line_size) - 1;
 
@@ -78,10 +78,10 @@ inline unsigned encode_geometry(mapnik::geometry::line_string<std::int64_t> cons
         start_x = pt.x;
         start_y = pt.y;
     }
-    return line.size();
+    return true;
 }
 
-inline unsigned encode_geometry(mapnik::geometry::linear_ring<std::int64_t> const& ring,
+inline bool encode_geometry(mapnik::geometry::linear_ring<std::int64_t> const& ring,
                         vector_tile::Tile_Feature & current_feature,
                         int32_t & start_x,
                         int32_t & start_y)
@@ -89,7 +89,7 @@ inline unsigned encode_geometry(mapnik::geometry::linear_ring<std::int64_t> cons
     std::size_t ring_size = ring.size();
     if (ring_size < 3)
     {
-        return 0;
+        return false;
     }
     unsigned line_to_length = static_cast<unsigned>(ring_size) - 1;
     unsigned count = 0;
@@ -105,7 +105,7 @@ inline unsigned encode_geometry(mapnik::geometry::linear_ring<std::int64_t> cons
         line_to_length -= 1;
         if (line_to_length < 2)
         {
-            return 0;
+            return false;
         }
     }
 
@@ -135,36 +135,34 @@ inline unsigned encode_geometry(mapnik::geometry::linear_ring<std::int64_t> cons
         ++count;
     }
     current_feature.add_geometry(15); // close_path
-    return line_to_length;
+    return true;
 }
 
-inline unsigned encode_geometry(mapnik::geometry::polygon<std::int64_t> const& poly,
-                                vector_tile::Tile_Feature & current_feature,
-                                int32_t & start_x,
-                                int32_t & start_y)
+inline bool encode_geometry(mapnik::geometry::polygon<std::int64_t> const& poly,
+                            vector_tile::Tile_Feature & current_feature,
+                            int32_t & start_x,
+                            int32_t & start_y)
 {
-    unsigned count = 0;
-    count += encode_geometry(poly.exterior_ring, current_feature, start_x, start_y);
-    if (count == 0)
+    if (!encode_geometry(poly.exterior_ring, current_feature, start_x, start_y))
     {
-        return count;
+        return false;
     }
     for (auto const& ring : poly.interior_rings)
     {
-        count += encode_geometry(ring, current_feature, start_x, start_y);
+        encode_geometry(ring, current_feature, start_x, start_y);
     }
-    return count;
+    return true;
 }
 
-inline unsigned encode_geometry(mapnik::geometry::multi_point<std::int64_t> const& geom,
-                                vector_tile::Tile_Feature & current_feature,
-                                int32_t & start_x,
-                                int32_t & start_y)
+inline bool encode_geometry(mapnik::geometry::multi_point<std::int64_t> const& geom,
+                            vector_tile::Tile_Feature & current_feature,
+                            int32_t & start_x,
+                            int32_t & start_y)
 {
     std::size_t geom_size = geom.size();
     if (geom_size <= 0)
     {
-        return 0;
+        return false;
     }
     current_feature.add_geometry(1u | (geom_size << 3)); // move_to | (len << 3)
     for (auto const& pt : geom)
@@ -177,33 +175,39 @@ inline unsigned encode_geometry(mapnik::geometry::multi_point<std::int64_t> cons
         start_x = pt.x;
         start_y = pt.y;
     }
-    return geom_size;
+    return true;
 }
 
-inline unsigned encode_geometry(mapnik::geometry::multi_line_string<std::int64_t> const& geom,
-                                vector_tile::Tile_Feature & current_feature,
-                                int32_t & start_x,
-                                int32_t & start_y)
+inline bool encode_geometry(mapnik::geometry::multi_line_string<std::int64_t> const& geom,
+                            vector_tile::Tile_Feature & current_feature,
+                            int32_t & start_x,
+                            int32_t & start_y)
 {
-    unsigned count = 0;
+    bool success = false;
     for (auto const& poly : geom)
     {
-        count += encode_geometry(poly, current_feature, start_x, start_y);
+        if (encode_geometry(poly, current_feature, start_x, start_y))
+        {
+            success = true;
+        }
     }
-    return count;
+    return success;
 }
 
-inline unsigned encode_geometry(mapnik::geometry::multi_polygon<std::int64_t> const& geom,
-                                vector_tile::Tile_Feature & current_feature,
-                                int32_t & start_x,
-                                int32_t & start_y)
+inline bool encode_geometry(mapnik::geometry::multi_polygon<std::int64_t> const& geom,
+                            vector_tile::Tile_Feature & current_feature,
+                            int32_t & start_x,
+                            int32_t & start_y)
 {
-    unsigned count = 0;
+    bool success = false;
     for (auto const& poly : geom)
     {
-        count += encode_geometry(poly, current_feature, start_x, start_y);
+        if (encode_geometry(poly, current_feature, start_x, start_y))
+        {
+            success = true;
+        }
     }
-    return count;
+    return success;
 }
 
 }} // end ns
