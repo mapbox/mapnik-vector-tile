@@ -186,7 +186,10 @@ inline bool encode_geometry(mapnik::geometry::multi_line_string<std::int64_t> co
     bool success = false;
     for (auto const& poly : geom)
     {
-        success = success | encode_geometry(poly, current_feature, start_x, start_y);
+        if (encode_geometry(poly, current_feature, start_x, start_y))
+        {
+            success = true;
+        }
     }
     return success;
 }
@@ -199,7 +202,10 @@ inline bool encode_geometry(mapnik::geometry::multi_polygon<std::int64_t> const&
     bool success = false;
     for (auto const& poly : geom)
     {
-        success = success | encode_geometry(poly, current_feature, start_x, start_y);
+        if (encode_geometry(poly, current_feature, start_x, start_y))
+        {
+            success = true;
+        }
     }
     return success;
 }

@@ -906,7 +906,10 @@ struct encoder_visitor {
         bool painted = false;
         for (auto & g : geom)
         {
-            painted = painted | mapnik::util::apply_visitor((*this), g);
+            if (mapnik::util::apply_visitor((*this), g))
+            {
+                painted = true;
+            }
         }
         return painted;
     }
@@ -1261,7 +1264,10 @@ struct simplify_visitor {
         bool painted = false;
         for (auto const& g : geom)
         {
-            painted = painted | mapnik::util::apply_visitor((*this), g);
+            if (mapnik::util::apply_visitor((*this), g))
+            {
+                painted = true;
+            }
         }
         return painted;
     }
