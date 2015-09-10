@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.0
+
+ - Changed the way painted is determined. Painted could not be marked as true but a vector tile would still be empty.
+
 ## 0.9.3
 
  - Improvements to zlib compression API
