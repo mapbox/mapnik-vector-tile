@@ -16,3 +16,11 @@ TODO.md
 examples/c++/tileinfo
 .mason
 mason_packages
+
+gyp/Release
+gyp/Debug
+*.suo
+*.user
+*.sln
+*.sdf
+*.vcxproj*

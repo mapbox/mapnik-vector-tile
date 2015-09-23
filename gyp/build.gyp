@@ -19,6 +19,7 @@
       'hard_dependency': 1,
       'actions': [
         {
+          'msvs_cygwin_shell': 0, #don't know why, but I alaways get cygwin style commands without this
           'action_name': 'run_protoc',
           'inputs': [
             '../proto/vector_tile.proto'
@@ -42,7 +43,8 @@
       ],
       'include_dirs': [
         '<(SHARED_INTERMEDIATE_DIR)/',
-        '../deps/protozero/include'
+        '../deps/protozero/include',
+        'c:/mb/NET-Mapnik/lib/x64/mapnik-sdk/include'
       ],
       'cflags_cc' : [
           '-D_THREAD_SAFE',
@@ -93,7 +95,9 @@
       ],
       'include_dirs': [
         '../deps/protozero/include',
-        '../deps/clipper/cpp'
+        '../deps/clipper/cpp',
+        'c:/mb/NET-Mapnik/lib/x64/mapnik-sdk/include',
+        'C:/mb/NET-Mapnik/lib/x64/mapnik-sdk/include/mapnik/agg'
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS':[
@@ -201,7 +205,7 @@
            '<!@(mapnik-config --cflags)' # assume protobuf headers are here
         ],
       }
-    }    
+    }
 
   ]
 }
