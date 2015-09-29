@@ -476,7 +476,7 @@ TEST_CASE( "pbf raster tile output", "should be able to overzoom raster" ) {
         map.add_layer(lyr);
         mapnik::request m_req(256,256,bbox);
         m_req.set_buffer_size(map.buffer_size());
-        renderer_type ren(backend,map,m_req,1.0,0,0,1,"jpeg",mapnik::SCALING_BILINEAR);
+        renderer_type ren(backend,map,m_req,1.0,0,0,1,false,"jpeg",mapnik::SCALING_BILINEAR);
         ren.apply();
     }
     // Done creating test data, now test created tile

@@ -592,6 +592,7 @@ processor<T>::processor(T & backend,
               unsigned offset_x,
               unsigned offset_y,
               double area_threshold,
+              bool strictly_simple,
               std::string const& image_format,
               scaling_method_e scaling_method)
     : backend_(backend),
@@ -600,6 +601,7 @@ processor<T>::processor(T & backend,
       scale_factor_(scale_factor),
       t_(m_req.width(),m_req.height(),m_req.extent(),offset_x,offset_y),
       area_threshold_(area_threshold),
+      strictly_simple_(strictly_simple),
       image_format_(image_format),
       scaling_method_(scaling_method),
       painted_(false),
@@ -890,11 +892,13 @@ struct encoder_visitor {
     encoder_visitor(backend_type & backend,
                     mapnik::feature_impl const& feature,
                     mapnik::box2d<int> const& tile_clipping_extent,
-                    double area_threshold) :
+                    double area_threshold,
+                    bool strictly_simple) :
       backend_(backend),
       feature_(feature),
       tile_clipping_extent_(tile_clipping_extent),
-      area_threshold_(area_threshold) {}
+      area_threshold_(area_threshold),
+      strictly_simple_(strictly_simple) {}
 
     bool operator() (mapnik::geometry::geometry_empty const&)
     {
@@ -1041,7 +1045,10 @@ struct encoder_visitor {
             std::reverse(geom.exterior_ring.begin(), geom.exterior_ring.end());
         }
         ClipperLib::Clipper poly_clipper;
-        //poly_clipper.StrictlySimple(true);
+        /*if (strictly_simple_) 
+        {
+            poly_clipper.StrictlySimple(true);
+        }*/
         if (!poly_clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true))
         {
             return painted;
@@ -1080,7 +1087,10 @@ struct encoder_visitor {
         }
         
         ClipperLib::PolyTree polygons;
-        //clipper.StrictlySimple(true);
+        if (strictly_simple_)
+        {
+            clipper.StrictlySimple(true);
+        }
         clipper.Execute(ClipperLib::ctUnion, polygons); //, ClipperLib::pftNonZero);
         clipper.Clear();
         
@@ -1142,7 +1152,10 @@ struct encoder_visitor {
                 std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
             }
             ClipperLib::Clipper poly_clipper;
-            //poly_clipper.StrictlySimple(true);
+            /*if (strictly_simple_)
+            {
+                poly_clipper.StrictlySimple(true);
+            }*/
             if (!poly_clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true))
             {
                 continue;
@@ -1180,7 +1193,10 @@ struct encoder_visitor {
         }
         
         ClipperLib::PolyTree polygons;
-        //clipper.StrictlySimple(true);
+        if (strictly_simple_) 
+        {
+            clipper.StrictlySimple(true);
+        }
         clipper.Execute(ClipperLib::ctUnion, polygons); //, ClipperLib::pftNonZero);
         clipper.Clear();
         
@@ -1211,6 +1227,7 @@ struct encoder_visitor {
     mapnik::feature_impl const& feature_;
     mapnik::box2d<int> const& tile_clipping_extent_;
     double area_threshold_;
+    bool strictly_simple_;
 };
 
 template <typename T>
@@ -1295,7 +1312,7 @@ bool processor<T>::handle_geometry(T2 const& vs,
     using vector_tile_strategy_type = T2;
     mapnik::vector_tile_impl::transform_visitor<vector_tile_strategy_type> skipping_transformer(vs, target_clipping_extent);
     mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(skipping_transformer,geom);
-    encoder_visitor<T> encoder(backend_, feature, tile_clipping_extent, area_threshold_);
+    encoder_visitor<T> encoder(backend_, feature, tile_clipping_extent, area_threshold_, strictly_simple_);
     if (simplify_distance_ > 0)
     {
         simplify_visitor<T> simplifier(simplify_distance_,encoder);

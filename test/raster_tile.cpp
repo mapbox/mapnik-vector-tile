@@ -48,7 +48,7 @@ TEST_CASE( "raster tile output 1", "should create raster tile with one raster la
     map.add_layer(lyr);
     mapnik::request m_req(tile_size,tile_size,bbox);
     m_req.set_buffer_size(map.buffer_size());
-    renderer_type ren(backend,map,m_req,1.0,0,0,1,"jpeg",mapnik::SCALING_BILINEAR);
+    renderer_type ren(backend,map,m_req,1.0,0,0,1,false,"jpeg",mapnik::SCALING_BILINEAR);
     ren.apply();
     std::string key("");
     CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
@@ -167,7 +167,7 @@ TEST_CASE( "raster tile output 2", "should be able to overzoom raster" ) {
         map.add_layer(lyr);
         mapnik::request m_req(256,256,bbox);
         m_req.set_buffer_size(map.buffer_size());
-        renderer_type ren(backend,map,m_req,1.0,0,0,1,"jpeg",mapnik::SCALING_BILINEAR);
+        renderer_type ren(backend,map,m_req,1.0,0,0,1,false,"jpeg",mapnik::SCALING_BILINEAR);
         ren.apply();
     }
     // Done creating test data, now test created tile

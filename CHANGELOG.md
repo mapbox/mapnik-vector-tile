@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.0
+
+ - Changed processor so that it now can optionally turn on and off strict enforcing of simple geometries from the clipper
+ - Updated angus clipper library built by defaul
+
 ## 0.10.0
 
  - Changed the way painted is determined. Painted could not be marked as true but a vector tile would still be empty.
