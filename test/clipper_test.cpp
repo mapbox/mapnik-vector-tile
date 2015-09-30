@@ -189,3 +189,58 @@ TEST_CASE( "clipper AddPath 2", "should throw on out of range coords" ) {
     }        
 }
 
+TEST_CASE( "clipper polytree error" ) {
+
+    // http://sourceforge.net/p/polyclipping/bugs/132/
+    ClipperLib::Clipper clipper;
+    ClipperLib::Paths polygons;
+    ClipperLib::Path shape1;
+    ClipperLib::Path shape2;
+    ClipperLib::Path shape3;
+    ClipperLib::Path shape4;
+    // shape 1
+    shape1.emplace_back(280000, 240000),
+    shape1.emplace_back(180000, 240000),
+    shape1.emplace_back(180000, 200000),
+    shape1.emplace_back(240000, 200000),
+    shape1.emplace_back(240000, 90000),
+    shape1.emplace_back(180000, 90000),
+    shape1.emplace_back(180000, 50000),
+    shape1.emplace_back(280000, 50000),
+    // shape 2
+    shape2.emplace_back(230000, 120000),
+    shape2.emplace_back(230000, 160000),
+    shape2.emplace_back(180000, 160000),
+    shape2.emplace_back(180000, 120000),
+    // shape 3
+    shape3.emplace_back(180000, 50000),
+    shape3.emplace_back(180000, 90000),
+    shape3.emplace_back(100000, 90001), // Problematic point
+    //shape3.emplace_back(100000, 90000), // This point is okay
+    shape3.emplace_back(100000, 200000),
+    shape3.emplace_back(180000, 200000),
+    shape3.emplace_back(180000, 240000),
+    shape3.emplace_back(60000, 240000),
+    shape3.emplace_back(60000, 50000),
+    // shape 4
+    shape4.emplace_back(180000, 120000),
+    shape4.emplace_back(180000, 160000),
+    shape4.emplace_back(120000, 160000),
+    shape4.emplace_back(120000, 120000),
+    polygons.emplace_back(shape1);
+    polygons.emplace_back(shape2);
+    polygons.emplace_back(shape3);
+    polygons.emplace_back(shape4);
+
+    clipper.AddPaths(polygons, ClipperLib::ptSubject, true);
+    ClipperLib::PolyTree solution;
+    clipper.Execute(ClipperLib::ctUnion, solution, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+
+    // Check that the polytree is correct
+    REQUIRE(solution.Childs.size() == 1);
+    REQUIRE(solution.Childs[0]->Childs.size() == 1);
+    REQUIRE(solution.Childs[0]->Childs[0]->Childs.size() == 1);
+    REQUIRE(solution.Childs[0]->Childs[0]->Childs[0]->Childs.size() == 0);
+
+}
+
