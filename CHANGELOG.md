@@ -3,7 +3,7 @@
 ## 0.11.0
 
  - Changed processor so that it now can optionally turn on and off strict enforcing of simple geometries from the clipper
- - Updated angus clipper library built by defaul
+ - Updated angus clipper library used in Makefile to 6.4.0 (https://github.com/mapnik/clipper/tree/r496-mapnik)
 
 ## 0.10.0
 
