@@ -22,7 +22,10 @@ build/Makefile: ./deps/gyp ./deps/clipper ./deps/protozero gyp/build.gyp test/*c
 libvtile: build/Makefile Makefile
 	@$(MAKE) -C build/ BUILDTYPE=$(BUILDTYPE) V=$(V)
 
-test: libvtile
+test/geometry-test-data:
+	git submodule update --init
+
+test: libvtile test/geometry-test-data
 	./build/$(BUILDTYPE)/tests
 
 testpack:
