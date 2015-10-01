@@ -107,6 +107,7 @@ namespace mapnik { namespace vector_tile_impl {
                                 for (auto _i = tag_iterator.first; _i != tag_iterator.second;)
                                 {
                                     std::size_t key_name = *(_i++);
+                                    assert(_i != tag_iterator.second);
                                     std::size_t key_value = *(_i++);
                                     if (key_name < num_keys_
                                         && key_value < num_values_)
@@ -162,8 +163,8 @@ namespace mapnik { namespace vector_tile_impl {
                             break;
                         case 5:
                             {
-                            std::string const& image_buffer = f.get_bytes();
-                            std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(image_buffer.data(),image_buffer.size()));
+                            auto image_buffer = f.get_data();
+                            std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(image_buffer.first, image_buffer.second));
                             if (reader.get())
                             {
                                 int image_width = reader->width();
