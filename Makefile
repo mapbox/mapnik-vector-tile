@@ -1,7 +1,7 @@
 MAPNIK_PLUGINDIR := $(shell mapnik-config --input-plugins)
 BUILDTYPE ?= Release
 
-CLIPPER_REVISION=b848b91877b6f0121356aaf813e8b9a45f929daa
+CLIPPER_REVISION=7484da1
 PROTOZERO_REVISION=v1.0.0
 GYP_REVISION=3464008
 
@@ -33,6 +33,8 @@ testpack:
 
 clean:
 	rm -rf ./build
+	rm -rf ./deps/protozero
+	rm -rf ./deps/clipper
 
 .PHONY: test
 
