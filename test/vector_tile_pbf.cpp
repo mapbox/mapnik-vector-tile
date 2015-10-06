@@ -1,9 +1,5 @@
 #include "catch.hpp"
 
-// override pbf_assert to disable assertions and allow
-// all tests below to check exceptions even in Debug mode
-#define pbf_assert(x)
-
 // test utils
 #include "test_utils.hpp"
 #include <mapnik/memory_datasource.hpp>
@@ -80,11 +76,11 @@ TEST_CASE( "pbf vector tile input", "should be able to parse message and render 
     CHECK(1 == layer2.features_size());
 
     mapnik::layer lyr2("layer",map.srs());
-    
-    protozero::pbf_reader pbf_tile(buffer.c_str(), buffer.size());
+
+    protozero::pbf_reader pbf_tile(buffer);
     pbf_tile.next();
     protozero::pbf_reader layer3 = pbf_tile.get_message();
-    
+
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource_pbf>(
                                         layer3,0,0,0,map2.width());
@@ -106,7 +102,7 @@ TEST_CASE( "pbf vector tile input", "should be able to parse message and render 
     {
         names.push_back(desc.get_name());
     }
-    
+
     CHECK(names == expected_names);
     lyr2.set_datasource(ds);
     lyr2.add_style("style");
@@ -160,11 +156,11 @@ TEST_CASE( "pbf vector tile datasource", "should filter features outside extent"
     CHECK(9 == f.geometry(0));
     CHECK(4096 == f.geometry(1));
     CHECK(4096 == f.geometry(2));
-    
-    protozero::pbf_reader pbf_tile(buffer.c_str(), buffer.size());
+
+    protozero::pbf_reader pbf_tile(buffer);
     pbf_tile.next();
     protozero::pbf_reader layer2 = pbf_tile.get_message();
-    
+
     // now actually start the meat of the test
     mapnik::vector_tile_impl::tile_datasource_pbf ds(layer2,0,0,0,tile_size);
     mapnik::featureset_ptr fs;
@@ -289,11 +285,11 @@ TEST_CASE( "pbf encoding multi line as one path", "should maintain second move_t
 
     mapnik::featureset_ptr fs;
     mapnik::feature_ptr f_ptr;
-    
-    protozero::pbf_reader pbf_tile(buffer.c_str(), buffer.size());
+
+    protozero::pbf_reader pbf_tile(buffer);
     pbf_tile.next();
     protozero::pbf_reader layer2 = pbf_tile.get_message();
-    
+
 
     mapnik::vector_tile_impl::tile_datasource_pbf ds(layer2,0,0,0,tile_size);
     fs = ds.features(mapnik::query(bbox));
@@ -314,7 +310,7 @@ TEST_CASE( "pbf encoding multi line as one path", "should maintain second move_t
 
 TEST_CASE( "pbf decoding empty buffer", "should throw exception" ) {
     std::string buffer;
-    protozero::pbf_reader pbf_tile(buffer.c_str(), buffer.size());
+    protozero::pbf_reader pbf_tile(buffer);
     pbf_tile.next();
     protozero::pbf_reader layer2;
     REQUIRE_THROWS(layer2 = pbf_tile.get_message());
@@ -322,7 +318,7 @@ TEST_CASE( "pbf decoding empty buffer", "should throw exception" ) {
 
 TEST_CASE( "pbf decoding garbage buffer", "should throw exception" ) {
     std::string buffer("daufyglwi3h7fseuhfas8w3h,dksufasdf");
-    protozero::pbf_reader pbf_tile(buffer.c_str(), buffer.size());
+    protozero::pbf_reader pbf_tile(buffer);
     pbf_tile.next();
     protozero::pbf_reader layer2;
     REQUIRE_THROWS(layer2 = pbf_tile.get_message());
@@ -330,7 +326,7 @@ TEST_CASE( "pbf decoding garbage buffer", "should throw exception" ) {
 
 
 TEST_CASE( "pbf decoding some truncated buffers", "should throw exception" ) {
-  
+
     typedef mapnik::vector_tile_impl::backend_pbf backend_type;
     typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
     typedef vector_tile::Tile tile_type;
@@ -362,7 +358,7 @@ TEST_CASE( "pbf decoding some truncated buffers", "should throw exception" ) {
     CHECK(9 == f.geometry(0));
     CHECK(4096 == f.geometry(1));
     CHECK(4096 == f.geometry(2));
-  
+
 
     // We will test truncating the generated protobuf at every increment.
     //  Most cases should fail, except for the lucky bites where we chop
@@ -419,7 +415,7 @@ TEST_CASE( "pbf vector tile from simplified geojson", "should create vector tile
 
     std::string buffer;
     tile.SerializeToString(&buffer);
-    protozero::pbf_reader pbf_tile(buffer.c_str(), buffer.size());
+    protozero::pbf_reader pbf_tile(buffer);
     pbf_tile.next();
     protozero::pbf_reader pbf_layer = pbf_tile.get_message();
     // Need to loop because they could be encoded in any order
@@ -495,7 +491,7 @@ TEST_CASE( "pbf raster tile output", "should be able to overzoom raster" ) {
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
 
-    protozero::pbf_reader pbf_tile(buffer.c_str(), buffer.size());
+    protozero::pbf_reader pbf_tile(buffer);
     pbf_tile.next();
     protozero::pbf_reader layer2 = pbf_tile.get_message();
 
@@ -546,7 +542,7 @@ TEST_CASE("Check that we throw on various valid-but-we-don't-handle PBF encoded 
 
         mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
         unsigned tile_size = 256;
-          protozero::pbf_reader pbf_tile(buffer.c_str(), buffer.size());
+          protozero::pbf_reader pbf_tile(buffer);
           pbf_tile.next();
           protozero::pbf_reader layer2 = pbf_tile.get_message();
           mapnik::vector_tile_impl::tile_datasource_pbf ds(layer2,0,0,0,tile_size);
@@ -586,7 +582,7 @@ TEST_CASE( "pbf vector tile from linestring geojson", "should create vector tile
     REQUIRE(3 == layer.features_size());
     std::string buffer;
     tile.SerializeToString(&buffer);
-    protozero::pbf_reader pbf_tile(buffer.c_str(), buffer.size());
+    protozero::pbf_reader pbf_tile(buffer);
     pbf_tile.next();
     protozero::pbf_reader layer3 = pbf_tile.get_message();
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds2 = std::make_shared<

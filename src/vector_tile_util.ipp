@@ -169,94 +169,86 @@ namespace mapnik { namespace vector_tile_impl {
 
     bool is_solid_extent(std::string const& tile, std::string & key)
     {
-        protozero::pbf_reader item(tile.data(),tile.size());
+        protozero::pbf_reader item(tile);
         unsigned i = 0;
-        while (item.next()) {
-            if (item.tag() == 3) {
-                protozero::pbf_reader layer_msg = item.get_message();
-                unsigned extent = 0;
-                std::string name;
-                std::vector<protozero::pbf_reader> feature_collection;
-                while (layer_msg.next())
+        while (item.next(3)) {
+            protozero::pbf_reader layer_msg = item.get_message();
+            unsigned extent = 0;
+            std::string name;
+            std::vector<protozero::pbf_reader> feature_collection;
+            while (layer_msg.next())
+            {
+                switch(layer_msg.tag())
                 {
-                    switch(layer_msg.tag())
-                    {
-                        case 1:
-                            name = layer_msg.get_string();
-                            break;
-                        case 2:
-                            feature_collection.push_back(layer_msg.get_message());
-                            break;
-                        case 5:
-                            extent = layer_msg.get_uint32();
-                            break;
-                        default:
-                            layer_msg.skip();
-                            break;
-                    }
+                    case 1:
+                        name = layer_msg.get_string();
+                        break;
+                    case 2:
+                        feature_collection.push_back(layer_msg.get_message());
+                        break;
+                    case 5:
+                        extent = layer_msg.get_uint32();
+                        break;
+                    default:
+                        layer_msg.skip();
+                        break;
                 }
-                unsigned side = extent - 1;
-                mapnik::box2d<int> container(2, 2, extent-2, extent-2);
-                double extent_area = side * side;
-                for (auto & features : feature_collection)
-                {
-                    while (features.next()) {
-                        if (features.tag() == 4) {
-                            mapnik::vector_tile_impl::GeometryPBF paths(features.get_packed_uint32(), 0, 0, 1, 1);
-                            mapnik::vector_tile_impl::GeometryPBF::command cmd;
-                            double x0, y0, x1, y1;
-                            mapnik::box2d<int> box;
-                            bool first = true;
-                            std::uint32_t len;
-                            while ((cmd = paths.next(x1, y1, len)) != mapnik::vector_tile_impl::GeometryPBF::end)
+            }
+            unsigned side = extent - 1;
+            mapnik::box2d<int> container(2, 2, extent-2, extent-2);
+            double extent_area = side * side;
+            for (auto & features : feature_collection)
+            {
+                while (features.next(4)) {
+                    mapnik::vector_tile_impl::GeometryPBF paths(features.get_packed_uint32(), 0, 0, 1, 1);
+                    mapnik::vector_tile_impl::GeometryPBF::command cmd;
+                    double x0, y0, x1, y1;
+                    mapnik::box2d<int> box;
+                    bool first = true;
+                    std::uint32_t len;
+                    while ((cmd = paths.next(x1, y1, len)) != mapnik::vector_tile_impl::GeometryPBF::end)
+                    {
+                        if (cmd == mapnik::vector_tile_impl::GeometryPBF::move_to || cmd == mapnik::vector_tile_impl::GeometryPBF::line_to)
+                        {
+                            if ((x1 > 0 && x1 < static_cast<int>(side)) && (y1 > 0 && y1 < static_cast<int>(side)))
                             {
-                                if (cmd == mapnik::vector_tile_impl::GeometryPBF::move_to || cmd == mapnik::vector_tile_impl::GeometryPBF::line_to)
-                                {
-                                    if ((x1 > 0 && x1 < static_cast<int>(side)) && (y1 > 0 && y1 < static_cast<int>(side)))
-                                    {
-                                        // We can abort early if this feature has a vertex that is
-                                        // inside the bbox.
-                                        return false;
-                                    }
-                                    else if (!first && line_intersects_box(x0,y0,x1,y1,container))
-                                    {
-                                        // or if the last line segment intersects with the expected bounding rectangle
-                                        return false;
-                                    }
-                                    x0 = x1;
-                                    y0 = y1;
-                                    if (first)
-                                    {
-                                        box.init(x1,y1,x1,y1);
-                                        first = false;
-                                    }
-                                    else
-                                    {
-                                        box.expand_to_include(x1,y1);
-                                    }
-                                }
-                            }
-                            // Once we have only one clipped result polygon, we can compare the
-                            // areas and return early if they don't match.
-                            int geom_area = box.width() * box.height();
-                            if (geom_area < (extent_area - 32) )
-                            {
+                                // We can abort early if this feature has a vertex that is
+                                // inside the bbox.
                                 return false;
                             }
-                            if (i == 0) {
-                                key = name;
-                            } else if (i > 0) {
-                                key += std::string("-") + name;
+                            else if (!first && line_intersects_box(x0,y0,x1,y1,container))
+                            {
+                                // or if the last line segment intersects with the expected bounding rectangle
+                                return false;
                             }
-                        } else {
-                            features.skip();
+                            x0 = x1;
+                            y0 = y1;
+                            if (first)
+                            {
+                                box.init(x1,y1,x1,y1);
+                                first = false;
+                            }
+                            else
+                            {
+                                box.expand_to_include(x1,y1);
+                            }
                         }
                     }
+                    // Once we have only one clipped result polygon, we can compare the
+                    // areas and return early if they don't match.
+                    int geom_area = box.width() * box.height();
+                    if (geom_area < (extent_area - 32) )
+                    {
+                        return false;
+                    }
+                    if (i == 0) {
+                        key = name;
+                    } else if (i > 0) {
+                        key += std::string("-") + name;
+                    }
                 }
-                ++i;
-            } else {
-                item.skip();
             }
+            ++i;
         }
         return true;
     }
