@@ -21,28 +21,30 @@ function install() {
     fi
 }
 
+ICU_VERSION="55.1"
+
 function install_mason_deps() {
     install mapnik latest
     install protobuf 2.6.1
-    install freetype 2.5.5
+    install freetype 2.6
     install harfbuzz 0.9.40
     install jpeg_turbo 1.4.0
     install libxml2 2.9.2
     install libpng 1.6.17
     install webp 0.4.2
-    install icu 54.1
+    install icu ${ICU_VERSION}
     install proj 4.8.0
     install libtiff 4.0.4beta
     install boost 1.59.0
     install boost_liball 1.59.0
     install pixman 0.32.6
-    install cairo 1.12.18
+    install cairo 1.14.2
 }
 
 function setup_runtime_settings() {
     local MASON_LINKED_ABS=$(pwd)/mason_packages/.link
     export PROJ_LIB=${MASON_LINKED_ABS}/share/proj
-    export ICU_DATA=${MASON_LINKED_ABS}/share/icu/54.1
+    export ICU_DATA=${MASON_LINKED_ABS}/share/icu/${ICU_VERSION}
     export GDAL_DATA=${MASON_LINKED_ABS}/share/gdal
     if [[ $(uname -s) == 'Darwin' ]]; then
         export DYLD_LIBRARY_PATH=$(pwd)/mason_packages/.link/lib:${DYLD_LIBRARY_PATH}
