@@ -33,13 +33,8 @@ function install_mason_deps() {
     install icu 54.1
     install proj 4.8.0
     install libtiff 4.0.4beta
-    install boost 1.57.0
-    install boost_libsystem 1.57.0
-    install boost_libthread 1.57.0
-    install boost_libfilesystem 1.57.0
-    install boost_libprogram_options 1.57.0
-    install boost_libregex 1.57.0
-    install boost_libpython 1.57.0
+    install boost 1.59.0
+    install boost_liball 1.59.0
     install pixman 0.32.6
     install cairo 1.12.18
 }

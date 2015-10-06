@@ -767,7 +767,7 @@ TEST_CASE( "vector tile multi_line_string encoding of actual multi_line_string",
     mapnik::geometry::geometry<double> new_geom = round_trip(geom);
     std::string wkt;
     CHECK( mapnik::util::to_wkt(wkt, new_geom) );
-    CHECK( wkt == "MULTILINESTRING((128 -128,192 0),(120.889 -128,63.288 -256))" );
+    CHECK( wkt == "MULTILINESTRING((128 -128,192 0),(120.889 -128,63.289 -256))" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::multi_line_string<double> >() );
 }
@@ -968,7 +968,7 @@ TEST_CASE( "vector tile line_string is simplified when outside bounds", "should 
     std::string wkt;
     CHECK( mapnik::util::to_wkt(wkt, new_geom) );
     // yep this test is weird - more of a fuzz than anything
-    CHECK( wkt == "LINESTRING(-7369.526 -128,-7113.526 -128)" );
+    CHECK( wkt == "LINESTRING(0 -128,256 -128)" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::line_string<double> >() );
     auto const& line2 = mapnik::util::get<mapnik::geometry::line_string<double> >(new_geom);
