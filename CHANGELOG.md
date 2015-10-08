@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.1
+
+ - Removed repeated points of linestrings prior to them being encoded.
+
 ## 0.12.0
 
  - Reversed the winding order of the geometries that comes out of the angus clipper so they are not reversed again prior to encoding

@@ -944,6 +944,7 @@ struct encoder_visitor {
     bool operator() (mapnik::geometry::line_string<std::int64_t> & geom)
     {
         bool painted = false;
+        boost::geometry::unique(geom);
         if (geom.size() < 2)
         {
             // This is false because it means the original data was invalid
@@ -983,6 +984,7 @@ struct encoder_visitor {
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.maxy());
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
         bool first = true;
+        boost::geometry::unique(geom);
         for (auto const& line : geom)
         {
             if (line.size() < 2)
