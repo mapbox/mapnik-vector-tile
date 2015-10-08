@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.12.0
+
+ - Reversed the winding order of the geometries that comes out of the angus clipper so they are not reversed again prior to encoding
+ - Fixed an issue with nonZero fill not being applied on multipolygons
+ - Removed unrequired unioning clipping operations as union of different paths occurs during the intersection operation.
+
 ## 0.11.0
 
  - Changed processor so that it now can optionally turn on and off strict enforcing of simple geometries from the clipper
