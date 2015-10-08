@@ -27,14 +27,6 @@
 #include <mapnik/geometry_adapters.hpp>
 #include <mapnik/geometry_transform.hpp>
 
-// Debugging
-#include <mapnik/geometry_is_valid.hpp>
-#include <mapnik/util/geometry_to_geojson.hpp>
-#include <mapnik/util/geometry_to_wkt.hpp>
-#include <mapnik/geometry_strategy.hpp>
-#include <mapnik/proj_strategy.hpp>
-#include <mapnik/view_strategy.hpp>
-
 // http://www.angusj.com/delphi/clipper.php
 #include "clipper.hpp"
 
