@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.13.0
+
+ - Updated the geometry decoder so that it now supports a variety of geometry formats with the ability to return mapnik 
+   geometries in value types other then doubles.
+
 ## 0.12.1
 
  - Removed repeated points of linestrings prior to them being encoded.
