@@ -88,7 +88,7 @@ TEST_CASE( "multi_line_string", "should round trip without changes" ) {
 
     vector_tile::Tile_Feature feature = geometry_to_feature(line);
     CHECK( feature.geometry_size() == 0 );
-    auto geom = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    auto geom = mapnik::vector_tile_impl::decode_geometry<double>(feature,0.0,0.0,1.0,1.0);
     CHECK( geom.is<mapnik::geometry::geometry_empty>() );
 }*/
 
@@ -111,7 +111,7 @@ TEST_CASE( "multi_line_string with degenerate first part", "should be culled" ) 
 
     vector_tile::Tile_Feature feature = geometry_to_feature(g);
     CHECK( feature.geometry_size() == 6 );
-    auto geom = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    auto geom = mapnik::vector_tile_impl::decode_geometry<double>(feature,0.0,0.0,1.0,1.0);
 
     wkt0.clear();
     CHECK( mapnik::util::to_wkt(wkt0,geom) );
@@ -143,7 +143,7 @@ TEST_CASE( "multi_line_string with degenerate first part", "should be culled" ) 
     vector_tile::Tile_Feature feature = geometry_to_feature(g);
     CHECK( feature.type() == vector_tile::Tile_GeomType_LINESTRING );
     CHECK( feature.geometry_size() == 8 );
-    auto geom = mapnik::vector_tile_impl::decode_geometry(feature,0.0,0.0,1.0,1.0);
+    auto geom = mapnik::vector_tile_impl::decode_geometry<double>(feature,0.0,0.0,1.0,1.0);
 
     wkt0.clear();
     CHECK( mapnik::util::to_wkt(wkt0,geom) );
@@ -180,8 +180,8 @@ TEST_CASE( "polygon with degenerate exterior ring ", "should be culled" ) {
 
     vector_tile::Tile_Feature feature = geometry_to_feature(p0);
     // since first ring is degenerate the whole polygon should be culled
-    mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
+    mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::geometry_empty>() );
 }
 
@@ -208,7 +208,7 @@ TEST_CASE( "polygon with degenerate exterior ring ", "should be culled" ) {
     vector_tile::Tile_Feature feature = geometry_to_feature(p0);
     // since first ring is degenerate the whole polygon should be culled
     mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
+    auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::geometry_empty>() );
 }*/
 
@@ -232,8 +232,8 @@ TEST_CASE( "polygon with valid exterior ring but degenerate interior ring", "sho
     CHECK( wkt0 == expected_wkt0);
 
     vector_tile::Tile_Feature feature = geometry_to_feature(p0);
-    mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
+    mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::polygon<double> >() );
     auto const& poly = mapnik::util::get<mapnik::geometry::polygon<double> >(p1);
     // since interior ring is degenerate it should have been culled when decoded
@@ -273,8 +273,8 @@ TEST_CASE( "polygon with valid exterior ring but one degenerate interior ring of
     CHECK( wkt0 == expected_wkt0);
 
     vector_tile::Tile_Feature feature = geometry_to_feature(p0);
-    mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
+    mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::polygon<double> >() );
     auto const& poly = mapnik::util::get<mapnik::geometry::polygon<double> >(p1);
     // since first interior ring is degenerate it should have been culled when decoded
@@ -307,8 +307,8 @@ TEST_CASE( "Polygon with de-generate ring(s)", "should skip invalid ring(s)" )
     CHECK( wkt0 == expected_wkt0);
 
     vector_tile::Tile_Feature feature = geometry_to_feature(p0);
-    mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
+    mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::polygon<double> >() );
     wkt0.clear();
     CHECK( mapnik::util::to_wkt(wkt0,p1) );
@@ -347,8 +347,8 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     CHECK( wkt0 == expected_wkt0);
 
     vector_tile::Tile_Feature feature = geometry_to_feature(p0);
-    mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type());
+    mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type());
     CHECK( p1.is<mapnik::geometry::polygon<double> >() );
     CHECK( extent == mapnik::geometry::envelope(p1) );
 
@@ -627,7 +627,7 @@ TEST_CASE( "test 11", "should correctly encode multiple paths" ) {
     mapnik::geometry_type g2(mapnik::geometry_type::types::Polygon);
     double x0 = 0;
     double y0 = 0;
-    decode_geometry(feature0,g2,x0,y0,path_multiplier);
+    decode_geometry<double>(feature0,g2,x0,y0,path_multiplier);
     mapnik::vertex_adapter va2(g2);
     std::string actual = show_path(va2);
     std::string expected(
@@ -669,7 +669,7 @@ TEST_CASE( "test 12", "should correctly encode multiple paths" ) {
     mapnik::geometry_type g2(mapnik::geometry_type::types::Polygon);
     double x0 = 0;
     double y0 = 0;
-    decode_geometry(feature0,g2,x0,y0,path_multiplier);
+    decode_geometry<double>(feature0,g2,x0,y0,path_multiplier);
     mapnik::vertex_adapter va2(g2);
     std::string actual = show_path(va2);
     std::string expected(

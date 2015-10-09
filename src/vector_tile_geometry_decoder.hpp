@@ -21,21 +21,22 @@ namespace mapnik { namespace vector_tile_impl {
 
 // NOTE: this object is for one-time use.  Once you've progressed to the end
 //       by calling next(), to re-iterate, you must construct a new object
+template <typename ValueType>
 class Geometry {
 
 public:
     inline explicit Geometry(vector_tile::Tile_Feature const& f,
-                             double tile_x, double tile_y,
+                             ValueType tile_x, ValueType tile_y,
                              double scale_x, double scale_y);
 
     enum command : uint8_t {
         end = 0,
-            move_to = 1,
-            line_to = 2,
-            close = 7
-            };
+        move_to = 1,
+        line_to = 2,
+        close = 7
+    };
 
-    inline command next(double& rx, double& ry, std::uint32_t & len);
+    inline command next(ValueType & rx, ValueType & ry, std::uint32_t & len);
 
 private:
     vector_tile::Tile_Feature const& f_;
@@ -45,17 +46,18 @@ private:
     uint32_t geoms_;
     uint8_t cmd;
     uint32_t length;
-    double x, y;
-    double ox, oy;
+    ValueType x, y;
+    ValueType ox, oy;
 };
 
 // NOTE: this object is for one-time use.  Once you've progressed to the end
 //       by calling next(), to re-iterate, you must construct a new object
+template <typename ValueType>
 class GeometryPBF {
 
 public:
     inline explicit GeometryPBF(std::pair< protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > const& geo_iterator,
-                             double tile_x, double tile_y,
+                             ValueType tile_x, ValueType tile_y,
                              double scale_x, double scale_y);
 
     enum command : uint8_t
@@ -66,7 +68,7 @@ public:
         close = 7
     };
 
-    inline command next(double& rx, double& ry, std::uint32_t & len);
+    inline command next(ValueType & rx, ValueType & ry, std::uint32_t & len);
 
 private:
     std::pair< protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > geo_iterator_;
@@ -74,12 +76,14 @@ private:
     double scale_y_;
     uint8_t cmd;
     std::uint32_t length;
-    double x, y;
-    double ox, oy;
+    ValueType x, y;
+    ValueType ox, oy;
 };
 
-Geometry::Geometry(vector_tile::Tile_Feature const& f,
-                   double tile_x, double tile_y,
+
+template <typename ValueType>
+Geometry<ValueType>::Geometry(vector_tile::Tile_Feature const& f,
+                   ValueType tile_x, ValueType tile_y,
                    double scale_x, double scale_y)
     : f_(f),
       scale_x_(scale_x),
@@ -91,7 +95,8 @@ Geometry::Geometry(vector_tile::Tile_Feature const& f,
       x(tile_x), y(tile_y),
       ox(0), oy(0) {}
 
-Geometry::command Geometry::next(double& rx, double& ry, std::uint32_t & len)
+template <typename ValueType>
+typename Geometry<ValueType>::command Geometry<ValueType>::next(ValueType & rx, ValueType & ry, std::uint32_t & len)
 {
     if (k < geoms_)
     {
@@ -110,8 +115,8 @@ Geometry::command Geometry::next(double& rx, double& ry, std::uint32_t & len)
             int32_t dy = f_.geometry(k++);
             dx = ((dx >> 1) ^ (-(dx & 1)));
             dy = ((dy >> 1) ^ (-(dy & 1)));
-            x += (static_cast<double>(dx) / scale_x_);
-            y += (static_cast<double>(dy) / scale_y_);
+            x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
+            y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
             rx = x;
             ry = y;
             if (cmd == move_to) {
@@ -138,8 +143,9 @@ Geometry::command Geometry::next(double& rx, double& ry, std::uint32_t & len)
     }
 }
 
-GeometryPBF::GeometryPBF(std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > const& geo_iterator,
-                   double tile_x, double tile_y,
+template <typename ValueType>
+GeometryPBF<ValueType>::GeometryPBF(std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > const& geo_iterator,
+                   ValueType tile_x, ValueType tile_y,
                    double scale_x, double scale_y)
     : geo_iterator_(geo_iterator),
       scale_x_(scale_x),
@@ -149,7 +155,8 @@ GeometryPBF::GeometryPBF(std::pair<protozero::pbf_reader::const_uint32_iterator,
       x(tile_x), y(tile_y),
       ox(0), oy(0) {}
 
-GeometryPBF::command GeometryPBF::next(double& rx, double& ry, std::uint32_t & len)
+template <typename ValueType>
+typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::next(ValueType & rx, ValueType & ry, std::uint32_t & len)
 {
     if (geo_iterator_.first != geo_iterator_.second)
     {
@@ -168,8 +175,8 @@ GeometryPBF::command GeometryPBF::next(double& rx, double& ry, std::uint32_t & l
             int32_t dy = *geo_iterator_.first++;
             dx = ((dx >> 1) ^ (-(dx & 1)));
             dy = ((dy >> 1) ^ (-(dy & 1)));
-            x += (static_cast<double>(dx) / scale_x_);
-            y += (static_cast<double>(dy) / scale_y_);
+            x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
+            y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
             rx = x;
             ry = y;
             if (cmd == move_to)
@@ -203,12 +210,12 @@ GeometryPBF::command GeometryPBF::next(double& rx, double& ry, std::uint32_t & l
 
 namespace detail {
 
-template <typename T>
-void decode_point(mapnik::geometry::geometry<double> & geom, T & paths, mapnik::box2d<double> const& bbox)
+template <typename ValueType, typename T>
+void decode_point(mapnik::geometry::geometry<ValueType> & geom, T & paths, mapnik::box2d<double> const& bbox)
 {
     typename T::command cmd;
-    double x1, y1;
-    mapnik::geometry::multi_point<double> mp;
+    ValueType x1, y1;
+    mapnik::geometry::multi_point<ValueType> mp;
     bool first = true;
     std::uint32_t len;
     while ((cmd = paths.next(x1, y1, len)) != T::end)
@@ -251,12 +258,12 @@ void decode_point(mapnik::geometry::geometry<double> & geom, T & paths, mapnik::
     }
 }
 
-template <typename T>
-void decode_linestring(mapnik::geometry::geometry<double> & geom, T & paths, mapnik::box2d<double> const& bbox)
+template <typename ValueType, typename T>
+void decode_linestring(mapnik::geometry::geometry<ValueType> & geom, T & paths, mapnik::box2d<double> const& bbox)
 {
     typename T::command cmd;
-    double x1, y1;
-    mapnik::geometry::multi_line_string<double> multi_line;
+    ValueType x1, y1;
+    mapnik::geometry::multi_line_string<ValueType> multi_line;
     multi_line.emplace_back();
     bool first = true;
     bool first_line_to = true;
@@ -330,14 +337,14 @@ void decode_linestring(mapnik::geometry::geometry<double> & geom, T & paths, map
     }
 }
 
-template <typename T>
-void read_rings(std::vector<mapnik::geometry::linear_ring<double>> & rings,
+template <typename ValueType, typename T>
+void read_rings(std::vector<mapnik::geometry::linear_ring<ValueType> > & rings,
                 T & paths, mapnik::box2d<double> const& bbox)
 {
     typename T::command cmd;
-    double x1, y1;
+    ValueType x1, y1;
     rings.emplace_back();
-    double x2,y2;
+    ValueType x2, y2;
     bool first = true;
     bool first_line_to = true;
     std::uint32_t len;
@@ -404,8 +411,8 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<double>> & rings,
     }
 }
 
-template <typename T>
-void decode_polygons(mapnik::geometry::geometry<double> & geom, T && rings)
+template <typename ValueType, typename T>
+void decode_polygons(mapnik::geometry::geometry<ValueType> & geom, T && rings)
 {
     auto rings_itr = std::make_move_iterator(rings.begin());
     auto rings_end = std::make_move_iterator(rings.end());
@@ -423,13 +430,13 @@ void decode_polygons(mapnik::geometry::geometry<double> & geom, T && rings)
             std::reverse(rings_itr->begin(), rings_itr->end());
         }
         // return the single polygon without interior rings
-        mapnik::geometry::polygon<double> poly;
+        mapnik::geometry::polygon<ValueType> poly;
         poly.set_exterior_ring(std::move(*rings_itr));
         geom = std::move(poly);
     }
     else
     {
-        mapnik::geometry::multi_polygon<double> multi_poly;
+        mapnik::geometry::multi_polygon<ValueType> multi_poly;
         bool first = true;
         bool is_clockwise = true;
         for (; rings_itr != rings_end; ++rings_itr)
@@ -478,7 +485,7 @@ void decode_polygons(mapnik::geometry::geometry<double> & geom, T && rings)
         if (num_poly == 1)
         {
             auto itr = std::make_move_iterator(multi_poly.begin());
-            geom = mapnik::geometry::polygon<double>(std::move(*itr));
+            geom = mapnik::geometry::polygon<ValueType>(std::move(*itr));
         }
         else
         {
@@ -489,26 +496,26 @@ void decode_polygons(mapnik::geometry::geometry<double> & geom, T && rings)
 
 } // ns detail
 
-template <typename T>
-inline mapnik::geometry::geometry<double> decode_geometry(T & paths, int32_t geom_type, mapnik::box2d<double> const& bbox)
+template <typename ValueType, typename T>
+inline mapnik::geometry::geometry<ValueType> decode_geometry(T & paths, int32_t geom_type, mapnik::box2d<double> const& bbox)
 {
-    mapnik::geometry::geometry<double> geom; // output geometry
+    mapnik::geometry::geometry<ValueType> geom; // output geometry
     switch (geom_type)
     {
     case vector_tile::Tile_GeomType_POINT:
     {
-        detail::decode_point(geom, paths, bbox);
+        detail::decode_point<ValueType, T>(geom, paths, bbox);
         break;
     }
     case vector_tile::Tile_GeomType_LINESTRING:
     {
-        detail::decode_linestring(geom, paths, bbox);
+        detail::decode_linestring<ValueType, T>(geom, paths, bbox);
         break;
     }
     case vector_tile::Tile_GeomType_POLYGON:
     {
-        std::vector<mapnik::geometry::linear_ring<double>> rings;
-        detail::read_rings(rings, paths, bbox);
+        std::vector<mapnik::geometry::linear_ring<ValueType> > rings;
+        detail::read_rings<ValueType, T>(rings, paths, bbox);
         if (rings.empty())
         {
             geom = mapnik::geometry::geometry_empty();
@@ -531,15 +538,15 @@ inline mapnik::geometry::geometry<double> decode_geometry(T & paths, int32_t geo
 
 // For back compatibility in tests / for cases where performance is not critical
 // TODO: consider removing and always requiring bbox arg
-template <typename T>
-inline mapnik::geometry::geometry<double> decode_geometry(T & paths, int32_t geom_type)
+template <typename ValueType, typename T>
+inline mapnik::geometry::geometry<ValueType> decode_geometry(T & paths, int32_t geom_type)
 {
 
-    mapnik::box2d<double> bbox(-std::numeric_limits<double>::max(),
-                               -std::numeric_limits<double>::max(),
+    mapnik::box2d<double> bbox(std::numeric_limits<double>::lowest(),
+                               std::numeric_limits<double>::lowest(),
                                std::numeric_limits<double>::max(),
                                std::numeric_limits<double>::max());
-    return decode_geometry(paths,geom_type,bbox);
+    return decode_geometry<ValueType>(paths,geom_type,bbox);
 }
 
 }} // end ns

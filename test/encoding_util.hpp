@@ -125,7 +125,7 @@ std::string decode_to_path_string(mapnik::geometry::geometry<T> const& g)
 std::string compare(mapnik::geometry::geometry<std::int64_t> const& g)
 {
     vector_tile::Tile_Feature feature = geometry_to_feature(g);
-    mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
-    auto g2 = mapnik::vector_tile_impl::decode_geometry(geoms,feature.type());
+    mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    auto g2 = mapnik::vector_tile_impl::decode_geometry<double>(geoms,feature.type());
     return decode_to_path_string(g2);
 }

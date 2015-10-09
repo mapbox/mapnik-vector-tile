@@ -214,8 +214,8 @@ namespace mapnik { namespace vector_tile_impl {
                         case 4:
                             {
                                 auto geom_itr = f.get_packed_uint32();
-                                mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr, tile_x_,tile_y_,scale_,-1*scale_);
-                                mapnik::geometry::geometry<double> geom = decode_geometry(geoms, geometry_type, filter_.box_);
+                                mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, tile_x_,tile_y_,scale_,-1*scale_);
+                                mapnik::geometry::geometry<double> geom = decode_geometry<double>(geoms, geometry_type, filter_.box_);
                                 if (geom.is<mapnik::geometry::geometry_empty>())
                                 {
                                     continue;

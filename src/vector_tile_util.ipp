@@ -200,15 +200,15 @@ namespace mapnik { namespace vector_tile_impl {
             for (auto & features : feature_collection)
             {
                 while (features.next(4)) {
-                    mapnik::vector_tile_impl::GeometryPBF paths(features.get_packed_uint32(), 0, 0, 1, 1);
-                    mapnik::vector_tile_impl::GeometryPBF::command cmd;
+                    mapnik::vector_tile_impl::GeometryPBF<double> paths(features.get_packed_uint32(), 0, 0, 1, 1);
+                    mapnik::vector_tile_impl::GeometryPBF<double>::command cmd;
                     double x0, y0, x1, y1;
                     mapnik::box2d<int> box;
                     bool first = true;
                     std::uint32_t len;
-                    while ((cmd = paths.next(x1, y1, len)) != mapnik::vector_tile_impl::GeometryPBF::end)
+                    while ((cmd = paths.next(x1, y1, len)) != mapnik::vector_tile_impl::GeometryPBF<double>::end)
                     {
-                        if (cmd == mapnik::vector_tile_impl::GeometryPBF::move_to || cmd == mapnik::vector_tile_impl::GeometryPBF::line_to)
+                        if (cmd == mapnik::vector_tile_impl::GeometryPBF<double>::move_to || cmd == mapnik::vector_tile_impl::GeometryPBF<double>::line_to)
                         {
                             if ((x1 > 0 && x1 < static_cast<int>(side)) && (y1 > 0 && y1 < static_cast<int>(side)))
                             {
