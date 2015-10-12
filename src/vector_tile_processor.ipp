@@ -1127,13 +1127,15 @@ struct encoder_visitor {
         clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.maxy());
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.maxy());
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
-        ClipperLib::Clipper clipper;
-        if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
-        {
-            return painted;
-        }
+        mapnik::geometry::multi_polygon<std::int64_t> mp;
+        
         for (auto & poly : geom)
         {
+            ClipperLib::Clipper clipper;
+            if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+            {
+                return painted;
+            }
             if (poly.exterior_ring.size() < 3)
             {
                 continue;
@@ -1168,22 +1170,19 @@ struct encoder_visitor {
                     continue;
                 }
             }
-        }
-        
-        ClipperLib::PolyTree polygons;
-        if (strictly_simple_) 
-        {
-            clipper.StrictlySimple(true);
-        }
-        clipper.ReverseSolution(true);
-        clipper.Execute(ClipperLib::ctIntersection, polygons, ClipperLib::pftNonZero);
-        clipper.Clear();
-        
-        mapnik::geometry::multi_polygon<std::int64_t> mp;
-        
-        for (auto * polynode : polygons.Childs)
-        {
-            process_polynode_branch(polynode, mp, area_threshold_); 
+            ClipperLib::PolyTree polygons;
+            if (strictly_simple_) 
+            {
+                clipper.StrictlySimple(true);
+            }
+            clipper.ReverseSolution(true);
+            clipper.Execute(ClipperLib::ctIntersection, polygons, ClipperLib::pftNonZero);
+            clipper.Clear();
+            
+            for (auto * polynode : polygons.Childs)
+            {
+                process_polynode_branch(polynode, mp, area_threshold_); 
+            }
         }
 
         if (mp.empty())

@@ -843,6 +843,44 @@ TEST_CASE( "vector tile multi_polygon encoding of actual multi_polygon", "should
     CHECK( new_geom.is<mapnik::geometry::multi_polygon<double> >() );
 }
 
+TEST_CASE( "vector tile multi_polygon encoding overlapping multipolygons", "should create vector tile with data a multi polygon" ) {
+    mapnik::geometry::multi_polygon<double> geom;
+    mapnik::geometry::polygon<double> poly;
+    poly.exterior_ring.add_coord(0,0);
+    poly.exterior_ring.add_coord(0,10);
+    poly.exterior_ring.add_coord(-10,10);
+    poly.exterior_ring.add_coord(-10,0);
+    poly.exterior_ring.add_coord(0,0);
+    /*
+    // This is an interior ring that touches nothing.
+    poly.interior_rings.emplace_back();
+    poly.interior_rings.back().add_coord(-1,1);
+    poly.interior_rings.back().add_coord(-1,2);
+    poly.interior_rings.back().add_coord(-2,2);
+    poly.interior_rings.back().add_coord(-2,1);
+    poly.interior_rings.back().add_coord(-1,1);
+    // This is an interior ring that touches exterior edge.
+    poly.interior_rings.emplace_back();
+    poly.interior_rings.back().add_coord(-10,7);
+    poly.interior_rings.back().add_coord(-10,5);
+    poly.interior_rings.back().add_coord(-8,5);
+    poly.interior_rings.back().add_coord(-8,7);
+    poly.interior_rings.back().add_coord(-10,7);
+    */
+    geom.emplace_back(std::move(poly));
+    mapnik::geometry::polygon<double> poly2;
+    poly2.exterior_ring.add_coord(-5,5);
+    poly2.exterior_ring.add_coord(-5,15);
+    poly2.exterior_ring.add_coord(-15,15);
+    poly2.exterior_ring.add_coord(-15,5);
+    poly2.exterior_ring.add_coord(-5,5);
+    geom.emplace_back(std::move(poly2));
+    mapnik::geometry::geometry<double> new_geom = round_trip(geom);
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    CHECK( new_geom.is<mapnik::geometry::multi_polygon<double> >() );
+}
+
+
 // simplification
 
 TEST_CASE( "vector tile point correctly passed through simplification code path", "should create vector tile with data" ) {
