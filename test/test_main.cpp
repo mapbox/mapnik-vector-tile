@@ -1,4 +1,4 @@
-// https://github.com/philsquared/Catch/wiki/Supplying-your-own-main()
+// https://github.com/philsquared/Catch/blob/master/docs/own-main.md
 #define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
 
