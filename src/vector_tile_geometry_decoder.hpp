@@ -423,7 +423,10 @@ void decode_polygons(mapnik::geometry::geometry<ValueType> & geom, T && rings)
     }
     else if (num_rings == 1)
     {
-        if (rings_itr->size() < 4) return;
+        if (rings_itr->size() < 4)
+        {
+            return;
+        }
         if (mapnik::util::is_clockwise(*rings_itr))
         {
             // Its clockwise, so lets reverse it.
@@ -441,7 +444,10 @@ void decode_polygons(mapnik::geometry::geometry<ValueType> & geom, T && rings)
         bool is_clockwise = true;
         for (; rings_itr != rings_end; ++rings_itr)
         {
-            if (rings_itr->size() < 4) continue; // skip degenerate rings
+            if (rings_itr->size() < 4)
+            {
+                continue; // skip degenerate rings
+            }
             if (first)
             {
                 is_clockwise = mapnik::util::is_clockwise(*rings_itr);
