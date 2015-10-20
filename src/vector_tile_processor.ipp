@@ -865,9 +865,15 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
             // children of exterior ring are always interior rings
             for (auto * ring : polynode->Childs)
             {
-                if (ring->Contour.size() < 3) continue; // Throw out invalid holes
+                if (ring->Contour.size() < 3)
+                {
+                    continue; // Throw out invalid holes
+                }
                 double inner_area = ClipperLib::Area(ring->Contour);
-                if (std::abs(inner_area) < area_threshold) continue;
+                if (std::abs(inner_area) < area_threshold)
+                {
+                    continue;
+                }
                 
                 if (inner_area < 0)
                 {
@@ -1065,7 +1071,10 @@ struct encoder_visitor {
             }
             ClipperLib::CleanPolygon(ring, clean_distance);
             double inner_area = ClipperLib::Area(ring);
-            if (std::abs(inner_area) < area_threshold_) continue;
+            if (std::abs(inner_area) < area_threshold_)
+            {
+                continue;
+            }
             // This should be a negative area, the y axis is down, so the ring will be "CCW" rather
             // then "CW" after the view transform, but if it is not lets reverse it
             if (inner_area < 0)
@@ -1142,7 +1151,10 @@ struct encoder_visitor {
             }
             ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
             double outer_area = ClipperLib::Area(poly.exterior_ring);
-            if (std::abs(outer_area) < area_threshold_) continue;
+            if (std::abs(outer_area) < area_threshold_)
+            {
+                continue;
+            }
             // The view transform inverts the y axis so this should be positive still despite now
             // being clockwise for the exterior ring. If it is not lets invert it.
             if (outer_area > 0)
@@ -1155,10 +1167,16 @@ struct encoder_visitor {
             }
             for (auto & ring : poly.interior_rings)
             {
-                if (ring.size() < 3) continue;
+                if (ring.size() < 3)
+                {
+                    continue;
+                }
                 ClipperLib::CleanPolygon(ring, clean_distance);
                 double inner_area = ClipperLib::Area(ring);
-                if (std::abs(inner_area) < area_threshold_) continue;
+                if (std::abs(inner_area) < area_threshold_)
+                {
+                    continue;
+                }
                 // This should be a negative area, the y axis is down, so the ring will be "CCW" rather
                 // then "CW" after the view transform, but if it is not lets reverse it
                 if (inner_area < 0)
