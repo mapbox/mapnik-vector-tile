@@ -1151,19 +1151,27 @@ struct encoder_visitor {
             }
             ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
             double outer_area = ClipperLib::Area(poly.exterior_ring);
-            if (std::abs(outer_area) < area_threshold_)
+            // if this polygon has a reasonable area we assume it is a valid
+            // exterior ring, but if not we continue and add the interior rings
+            // as paths instead of skipping them. This is because we want to
+            // gracefully handle the rare multipolygon that has an undefined ring
+            // such that the first ring is not actually the exterior ring.
+            // Note: we only do this for multipolygons because they are the likely
+            // "type" when this mis-decoding happens with old geometries encoded by AGG clipper
+            // TODO: in this case we should likely use `ClipperLib::pftEvenOdd` but so far in
+            // testing it makes no difference, so we need a test to actually capture that it matters
+            if (std::abs(outer_area) >= area_threshold_)
             {
-                continue;
-            }
-            // The view transform inverts the y axis so this should be positive still despite now
-            // being clockwise for the exterior ring. If it is not lets invert it.
-            if (outer_area > 0)
-            {   
-                std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
-            }
-            if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true))
-            {
-                continue;
+                // The view transform inverts the y axis so this should be positive still despite now
+                // being clockwise for the exterior ring. If it is not lets invert it.
+                if (outer_area > 0)
+                {
+                    std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
+                }
+                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true))
+                {
+                    continue;
+                }
             }
             for (auto & ring : poly.interior_rings)
             {
