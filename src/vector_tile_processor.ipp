@@ -605,7 +605,8 @@ processor<T>::processor(T & backend,
       image_format_(image_format),
       scaling_method_(scaling_method),
       painted_(false),
-      simplify_distance_(0.0) {}
+      simplify_distance_(0.0),
+      fill_type_(ClipperLib::pftNonZero) {}
 
 template <typename T>
 void processor<T>::apply(double scale_denom)
@@ -636,6 +637,26 @@ template <typename T>
 bool processor<T>::painted() const
 {
     return painted_;
+}
+   
+template <typename T> 
+void processor<T>::set_fill_type(polygon_fill_type type)
+{
+    switch (type) 
+    {
+    case even_odd_fill:
+        fill_type_ = ClipperLib::pftEvenOdd;
+        break; 
+    case non_zero_fill: 
+        fill_type_ = ClipperLib::pftNonZero;
+        break;
+    case positive_fill:
+        fill_type_ = ClipperLib::pftPositive;
+        break; 
+    case negative_fill:
+        fill_type_ = ClipperLib::pftNegative;
+        break;
+    }
 }
 
 
@@ -894,18 +915,21 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
 }
 
 template <typename T>
-struct encoder_visitor {
+struct encoder_visitor 
+{
     typedef T backend_type;
     encoder_visitor(backend_type & backend,
                     mapnik::feature_impl const& feature,
                     mapnik::box2d<int> const& tile_clipping_extent,
                     double area_threshold,
-                    bool strictly_simple) :
+                    bool strictly_simple,
+                    ClipperLib::PolyFillType fill_type) :
       backend_(backend),
       feature_(feature),
       tile_clipping_extent_(tile_clipping_extent),
       area_threshold_(area_threshold),
-      strictly_simple_(strictly_simple) {}
+      strictly_simple_(strictly_simple),
+      fill_type_(fill_type) {}
 
     bool operator() (mapnik::geometry::geometry_empty const&)
     {
@@ -1092,7 +1116,7 @@ struct encoder_visitor {
         }
         ClipperLib::PolyTree polygons;
         poly_clipper.ReverseSolution(true);
-        poly_clipper.Execute(ClipperLib::ctIntersection, polygons, ClipperLib::pftNonZero);
+        poly_clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_);
         poly_clipper.Clear();
         
         mapnik::geometry::multi_polygon<std::int64_t> mp;
@@ -1194,7 +1218,7 @@ struct encoder_visitor {
                 clipper.StrictlySimple(true);
             }
             clipper.ReverseSolution(true);
-            clipper.Execute(ClipperLib::ctIntersection, polygons, ClipperLib::pftNonZero);
+            clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_);
             clipper.Clear();
             
             for (auto * polynode : polygons.Childs)
@@ -1224,6 +1248,7 @@ struct encoder_visitor {
     mapnik::box2d<int> const& tile_clipping_extent_;
     double area_threshold_;
     bool strictly_simple_;
+    ClipperLib::PolyFillType fill_type_;
 };
 
 template <typename T>
@@ -1308,7 +1333,7 @@ bool processor<T>::handle_geometry(T2 const& vs,
     using vector_tile_strategy_type = T2;
     mapnik::vector_tile_impl::transform_visitor<vector_tile_strategy_type> skipping_transformer(vs, target_clipping_extent);
     mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(skipping_transformer,geom);
-    encoder_visitor<T> encoder(backend_, feature, tile_clipping_extent, area_threshold_, strictly_simple_);
+    encoder_visitor<T> encoder(backend_, feature, tile_clipping_extent, area_threshold_, strictly_simple_, fill_type_);
     if (simplify_distance_ > 0)
     {
         simplify_visitor<T> simplifier(simplify_distance_,encoder);
