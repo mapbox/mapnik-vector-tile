@@ -10,11 +10,18 @@
 #include <mapnik/image_scaling.hpp>
 #include <mapnik/image_compositing.hpp>
 #include <mapnik/geometry.hpp>
+#include "clipper.hpp"
 
 #include "vector_tile_config.hpp"
 
 namespace mapnik { namespace vector_tile_impl {
 
+enum polygon_fill_type : std::uint8_t {
+    even_odd_fill = 0, 
+    non_zero_fill, 
+    positive_fill, 
+    negative_fill
+};
 
 /*
   This processor combines concepts from mapnik's
@@ -42,6 +49,7 @@ private:
     scaling_method_e scaling_method_;
     bool painted_;
     double simplify_distance_;
+    ClipperLib::PolyFillType fill_type_;
 public:
     MAPNIK_VECTOR_INLINE processor(T & backend,
               mapnik::Map const& map,
@@ -60,6 +68,7 @@ public:
         simplify_distance_ = dist;
     }
 
+
     inline double get_simplify_distance() const
     {
         return simplify_distance_;
@@ -69,6 +78,8 @@ public:
     {
         return t_;
     }
+    
+    MAPNIK_VECTOR_INLINE void set_fill_type(polygon_fill_type type);
 
     MAPNIK_VECTOR_INLINE void apply(double scale_denom=0.0);
 
