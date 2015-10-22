@@ -879,7 +879,7 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
         {
             // The view transform inverts the y axis so this should be positive still despite now
             // being clockwise for the exterior ring. If it is not lets invert it.
-            if (outer_area > 0)
+            if (outer_area < 0)
             {   
                 std::reverse(polygon.exterior_ring.begin(), polygon.exterior_ring.end());
             }
@@ -897,7 +897,7 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
                     continue;
                 }
                 
-                if (inner_area < 0)
+                if (inner_area > 0)
                 {
                     std::reverse(ring->Contour.begin(), ring->Contour.end());
                 }
@@ -1118,7 +1118,6 @@ struct encoder_visitor
             return painted;
         }
         ClipperLib::PolyTree polygons;
-        poly_clipper.ReverseSolution(true);
         poly_clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_);
         poly_clipper.Clear();
         
@@ -1224,7 +1223,6 @@ struct encoder_visitor
             {
                 clipper.StrictlySimple(true);
             }
-            clipper.ReverseSolution(true);
             clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_);
             clipper.Clear();
             
