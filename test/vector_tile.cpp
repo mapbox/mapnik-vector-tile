@@ -591,7 +591,8 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
 
 mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double> const& geom,
                                       double simplify_distance=0.0,
-                                      mapnik::vector_tile_impl::polygon_fill_type fill_type = mapnik::vector_tile_impl::non_zero_fill)
+                                      mapnik::vector_tile_impl::polygon_fill_type fill_type = mapnik::vector_tile_impl::non_zero_fill,
+                                      bool mpu = false)
 {
     typedef mapnik::vector_tile_impl::backend_pbf backend_type;
     typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
@@ -613,6 +614,7 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     mapnik::proj_transform prj_trans(merc,wgs84);
     ren.set_simplify_distance(simplify_distance);
     ren.set_fill_type(fill_type);
+    ren.set_multi_polygon_union(mpu);
     mapnik::vector_tile_impl::vector_tile_strategy_proj vs2(prj_trans,ren.get_transform(),backend.get_path_multiplier());
     mapnik::vector_tile_impl::vector_tile_strategy vs(ren.get_transform(),backend.get_path_multiplier());
     mapnik::geometry::point<double> p1_min(bbox.minx(), bbox.miny());
@@ -761,7 +763,6 @@ TEST_CASE( "vector tile polygon encoding", "should create vector tile with data"
     CHECK( wkt == "POLYGON((120.889 -113.778,120.889 -128,128 -128,128 -113.778,120.889 -113.778))" );
 }
 
-
 TEST_CASE( "vector tile multi_polygon encoding of single polygon", "should create vector tile with data" ) {
     mapnik::geometry::polygon<double> poly;
     poly.exterior_ring.add_coord(0,0);
@@ -777,6 +778,54 @@ TEST_CASE( "vector tile multi_polygon encoding of single polygon", "should creat
     CHECK( wkt == "POLYGON((120.889 -113.778,120.889 -128,128 -128,128 -113.778,120.889 -113.778))" );
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::polygon<double> >() );
+}
+
+TEST_CASE( "vector tile multi_polygon with multipolygon union", "should create vector tile with data" ) {
+    mapnik::geometry::polygon<double> poly;
+    poly.exterior_ring.add_coord(0,0);
+    poly.exterior_ring.add_coord(0,10);
+    poly.exterior_ring.add_coord(-10,10);
+    poly.exterior_ring.add_coord(-10,0);
+    poly.exterior_ring.add_coord(0,0);
+    mapnik::geometry::polygon<double> poly2;
+    poly2.exterior_ring.add_coord(0,0);
+    poly2.exterior_ring.add_coord(0,10);
+    poly2.exterior_ring.add_coord(-10,10);
+    poly2.exterior_ring.add_coord(-10,0);
+    poly2.exterior_ring.add_coord(0,0);
+    mapnik::geometry::multi_polygon<double> geom;
+    geom.emplace_back(std::move(poly));
+    geom.emplace_back(std::move(poly2));
+    mapnik::geometry::geometry<double> new_geom = round_trip(geom, 0, mapnik::vector_tile_impl::non_zero_fill, true);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "POLYGON((120.889 -113.778,120.889 -128,128 -128,128 -113.778,120.889 -113.778))" );
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    CHECK( new_geom.is<mapnik::geometry::polygon<double> >() );
+}
+
+TEST_CASE( "vector tile multi_polygon with out multipolygon union", "should create vector tile with data" ) {
+    mapnik::geometry::polygon<double> poly;
+    poly.exterior_ring.add_coord(0,0);
+    poly.exterior_ring.add_coord(0,10);
+    poly.exterior_ring.add_coord(-10,10);
+    poly.exterior_ring.add_coord(-10,0);
+    poly.exterior_ring.add_coord(0,0);
+    mapnik::geometry::polygon<double> poly2;
+    poly2.exterior_ring.add_coord(0,0);
+    poly2.exterior_ring.add_coord(0,10);
+    poly2.exterior_ring.add_coord(-10,10);
+    poly2.exterior_ring.add_coord(-10,0);
+    poly2.exterior_ring.add_coord(0,0);
+    mapnik::geometry::multi_polygon<double> geom;
+    geom.emplace_back(std::move(poly));
+    geom.emplace_back(std::move(poly2));
+    mapnik::geometry::geometry<double> new_geom = round_trip(geom, 0, mapnik::vector_tile_impl::non_zero_fill, false);
+    std::string wkt;
+    CHECK( mapnik::util::to_wkt(wkt, new_geom) );
+    CHECK( wkt == "MULTIPOLYGON(((120.889 -113.778,120.889 -128,128 -128,128 -113.778,120.889 -113.778)),((120.889 -113.778,120.889 -128,128 -128,128 -113.778,120.889 -113.778)))" );
+    CHECK( !mapnik::geometry::is_empty(new_geom) );
+    CHECK( new_geom.is<mapnik::geometry::multi_polygon<double> >() );
 }
 
 TEST_CASE( "vector tile multi_polygon encoding of actual multi_polygon", "should create vector tile with data a multi polygon" ) {

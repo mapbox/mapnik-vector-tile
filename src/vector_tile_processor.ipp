@@ -606,6 +606,7 @@ processor<T>::processor(T & backend,
       scaling_method_(scaling_method),
       painted_(false),
       simplify_distance_(0.0),
+      multi_polygon_union_(false),
       fill_type_(ClipperLib::pftNonZero) {}
 
 template <typename T>
@@ -923,12 +924,14 @@ struct encoder_visitor
                     mapnik::box2d<int> const& tile_clipping_extent,
                     double area_threshold,
                     bool strictly_simple,
+                    bool multi_polygon_union,
                     ClipperLib::PolyFillType fill_type) :
       backend_(backend),
       feature_(feature),
       tile_clipping_extent_(tile_clipping_extent),
       area_threshold_(area_threshold),
       strictly_simple_(strictly_simple),
+      multi_polygon_union_(multi_polygon_union),
       fill_type_(fill_type) {}
 
     bool operator() (mapnik::geometry::geometry_empty const&)
@@ -1162,9 +1165,9 @@ struct encoder_visitor
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
         mapnik::geometry::multi_polygon<std::int64_t> mp;
         
+        ClipperLib::Clipper clipper;
         for (auto & poly : geom)
         {
-            ClipperLib::Clipper clipper;
             if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
             {
                 return painted;
@@ -1212,6 +1215,27 @@ struct encoder_visitor
                     continue;
                 }
             }
+            if (multi_polygon_union_)
+            {
+                continue;
+            }
+            ClipperLib::PolyTree polygons;
+            if (strictly_simple_) 
+            {
+                clipper.StrictlySimple(true);
+            }
+            clipper.ReverseSolution(true);
+            clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_);
+            clipper.Clear();
+            
+            for (auto * polynode : polygons.Childs)
+            {
+                process_polynode_branch(polynode, mp, area_threshold_); 
+            }
+        }
+
+        if (multi_polygon_union_)
+        {
             ClipperLib::PolyTree polygons;
             if (strictly_simple_) 
             {
@@ -1248,11 +1272,13 @@ struct encoder_visitor
     mapnik::box2d<int> const& tile_clipping_extent_;
     double area_threshold_;
     bool strictly_simple_;
+    bool multi_polygon_union_;
     ClipperLib::PolyFillType fill_type_;
 };
 
 template <typename T>
-struct simplify_visitor {
+struct simplify_visitor 
+{
     typedef T backend_type;
     simplify_visitor(double simplify_distance,
                      encoder_visitor<backend_type> & encoder) :
@@ -1333,7 +1359,13 @@ bool processor<T>::handle_geometry(T2 const& vs,
     using vector_tile_strategy_type = T2;
     mapnik::vector_tile_impl::transform_visitor<vector_tile_strategy_type> skipping_transformer(vs, target_clipping_extent);
     mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(skipping_transformer,geom);
-    encoder_visitor<T> encoder(backend_, feature, tile_clipping_extent, area_threshold_, strictly_simple_, fill_type_);
+    encoder_visitor<T> encoder(backend_, 
+                               feature, 
+                               tile_clipping_extent, 
+                               area_threshold_, 
+                               strictly_simple_, 
+                               multi_polygon_union_, 
+                               fill_type_);
     if (simplify_distance_ > 0)
     {
         simplify_visitor<T> simplifier(simplify_distance_,encoder);

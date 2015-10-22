@@ -49,6 +49,7 @@ private:
     scaling_method_e scaling_method_;
     bool painted_;
     double simplify_distance_;
+    bool multi_polygon_union_;
     ClipperLib::PolyFillType fill_type_;
 public:
     MAPNIK_VECTOR_INLINE processor(T & backend,
@@ -68,6 +69,10 @@ public:
         simplify_distance_ = dist;
     }
 
+    inline void set_multi_polygon_union(bool value)
+    {
+        multi_polygon_union_ = value;
+    }
 
     inline double get_simplify_distance() const
     {
