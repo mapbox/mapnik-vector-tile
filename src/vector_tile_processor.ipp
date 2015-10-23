@@ -646,6 +646,7 @@ void processor<T>::set_fill_type(polygon_fill_type type)
 {
     switch (type) 
     {
+    case polygon_fill_type_max:
     case even_odd_fill:
         fill_type_ = ClipperLib::pftEvenOdd;
         break; 
