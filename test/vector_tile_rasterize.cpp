@@ -114,6 +114,7 @@ TEST_CASE( "vector tile rasterize", "should try to decode windfail tile" ) {
             map.add_layer(lyr);
         }
         renderer_type ren(backend,map,m_req);
+        ren.set_process_all_mp_rings(true);
         ren.apply();
     }
     // now `tile` should contain all the data

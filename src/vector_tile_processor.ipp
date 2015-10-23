@@ -607,7 +607,8 @@ processor<T>::processor(T & backend,
       painted_(false),
       simplify_distance_(0.0),
       multi_polygon_union_(false),
-      fill_type_(ClipperLib::pftNonZero) {}
+      fill_type_(ClipperLib::pftNonZero),
+      process_all_mp_rings_(false) {}
 
 template <typename T>
 void processor<T>::apply(double scale_denom)
@@ -925,14 +926,16 @@ struct encoder_visitor
                     double area_threshold,
                     bool strictly_simple,
                     bool multi_polygon_union,
-                    ClipperLib::PolyFillType fill_type) :
+                    ClipperLib::PolyFillType fill_type,
+                    bool process_all_mp_rings) :
       backend_(backend),
       feature_(feature),
       tile_clipping_extent_(tile_clipping_extent),
       area_threshold_(area_threshold),
       strictly_simple_(strictly_simple),
       multi_polygon_union_(multi_polygon_union),
-      fill_type_(fill_type) {}
+      fill_type_(fill_type),
+      process_all_mp_rings_(process_all_mp_rings) {}
 
     bool operator() (mapnik::geometry::geometry_empty const&)
     {
@@ -1172,33 +1175,30 @@ struct encoder_visitor
             {
                 return painted;
             }
-            if (poly.exterior_ring.size() < 3)
+            // Below we attempt to skip processing of all interior rings if the exterior
+            // ring fails a variety of sanity checks for size and validity for AddPath
+            // When `process_all_mp_rings_=true` this optimization is disabled. This is needed when
+            // the ring order of input polygons is potentially incorrect and where the
+            // "exterior_ring" might actually be an incorrectly classified exterior ring.
+            if (poly.exterior_ring.size() < 3 && !process_all_mp_rings_)
             {
                 continue;
             }
             ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
             double outer_area = ClipperLib::Area(poly.exterior_ring);
-            // if this polygon has a reasonable area we assume it is a valid
-            // exterior ring, but if not we continue and add the interior rings
-            // as paths instead of skipping them. This is because we want to
-            // gracefully handle the rare multipolygon that has an undefined ring
-            // such that the first ring is not actually the exterior ring.
-            // Note: we only do this for multipolygons because they are the likely
-            // "type" when this mis-decoding happens with old geometries encoded by AGG clipper
-            // TODO: in this case we should likely use `ClipperLib::pftEvenOdd` but so far in
-            // testing it makes no difference, so we need a test to actually capture that it matters
-            if (std::abs(outer_area) >= area_threshold_)
+            if ((std::abs(outer_area) < area_threshold_) && !process_all_mp_rings_)
             {
-                // The view transform inverts the y axis so this should be positive still despite now
-                // being clockwise for the exterior ring. If it is not lets invert it.
-                if (outer_area > 0)
-                {
-                    std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
-                }
-                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true))
-                {
-                    continue;
-                }
+                continue;
+            }
+            // The view transform inverts the y axis so this should be positive still despite now
+            // being clockwise for the exterior ring. If it is not lets invert it.
+            if (outer_area > 0)
+            {
+                std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
+            }
+            if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_mp_rings_)
+            {
+                continue;
             }
             for (auto & ring : poly.interior_rings)
             {
@@ -1282,6 +1282,7 @@ struct encoder_visitor
     bool strictly_simple_;
     bool multi_polygon_union_;
     ClipperLib::PolyFillType fill_type_;
+    bool process_all_mp_rings_;
 };
 
 template <typename T>
@@ -1373,7 +1374,8 @@ bool processor<T>::handle_geometry(T2 const& vs,
                                area_threshold_, 
                                strictly_simple_, 
                                multi_polygon_union_, 
-                               fill_type_);
+                               fill_type_,
+                               process_all_mp_rings_);
     if (simplify_distance_ > 0)
     {
         simplify_visitor<T> simplifier(simplify_distance_,encoder);
