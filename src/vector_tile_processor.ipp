@@ -1056,7 +1056,7 @@ struct encoder_visitor
     bool operator() (mapnik::geometry::polygon<std::int64_t> & geom)
     {
         bool painted = false;
-        if (geom.exterior_ring.size() < 3)
+        if ((geom.exterior_ring.size() < 3) && !process_all_mp_rings_)
         {
             // Invalid geometry so will be false
             return false;
@@ -1074,7 +1074,7 @@ struct encoder_visitor
         ClipperLib::Clipper clipper;
         ClipperLib::CleanPolygon(geom.exterior_ring, clean_distance);
         double outer_area = ClipperLib::Area(geom.exterior_ring);
-        if (std::abs(outer_area) < area_threshold_)
+        if ((std::abs(outer_area) < area_threshold_)  && !process_all_mp_rings_)
         {
             return painted;
         }
@@ -1090,7 +1090,7 @@ struct encoder_visitor
         {
             poly_clipper.StrictlySimple(true);
         }
-        if (!poly_clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true))
+        if (!poly_clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true) && !process_all_mp_rings_)
         {
             return painted;
         }
