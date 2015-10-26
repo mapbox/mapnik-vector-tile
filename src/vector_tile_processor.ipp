@@ -1170,59 +1170,55 @@ struct encoder_visitor
         mapnik::geometry::multi_polygon<std::int64_t> mp;
         
         ClipperLib::Clipper clipper;
-        for (auto & poly : geom)
+        if (multi_polygon_union_)
         {
-            // Below we attempt to skip processing of all interior rings if the exterior
-            // ring fails a variety of sanity checks for size and validity for AddPath
-            // When `process_all_mp_rings_=true` this optimization is disabled. This is needed when
-            // the ring order of input polygons is potentially incorrect and where the
-            // "exterior_ring" might actually be an incorrectly classified exterior ring.
-            if (poly.exterior_ring.size() < 3 && !process_all_mp_rings_)
+            for (auto & poly : geom)
             {
-                continue;
-            }
-            ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
-            double outer_area = ClipperLib::Area(poly.exterior_ring);
-            if ((std::abs(outer_area) < area_threshold_) && !process_all_mp_rings_)
-            {
-                continue;
-            }
-            // The view transform inverts the y axis so this should be positive still despite now
-            // being clockwise for the exterior ring. If it is not lets invert it.
-            if (outer_area > 0)
-            {
-                std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
-            }
-            if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_mp_rings_)
-            {
-                continue;
-            }
-            for (auto & ring : poly.interior_rings)
-            {
-                if (ring.size() < 3)
+                // Below we attempt to skip processing of all interior rings if the exterior
+                // ring fails a variety of sanity checks for size and validity for AddPath
+                // When `process_all_mp_rings_=true` this optimization is disabled. This is needed when
+                // the ring order of input polygons is potentially incorrect and where the
+                // "exterior_ring" might actually be an incorrectly classified exterior ring.
+                if (poly.exterior_ring.size() < 3 && !process_all_mp_rings_)
                 {
                     continue;
                 }
-                ClipperLib::CleanPolygon(ring, clean_distance);
-                double inner_area = ClipperLib::Area(ring);
-                if (std::abs(inner_area) < area_threshold_)
+                ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
+                double outer_area = ClipperLib::Area(poly.exterior_ring);
+                if ((std::abs(outer_area) < area_threshold_) && !process_all_mp_rings_)
                 {
                     continue;
                 }
-                // This should be a negative area, the y axis is down, so the ring will be "CCW" rather
-                // then "CW" after the view transform, but if it is not lets reverse it
-                if (inner_area < 0)
+                // The view transform inverts the y axis so this should be positive still despite now
+                // being clockwise for the exterior ring. If it is not lets invert it.
+                if (outer_area > 0)
                 {
-                    std::reverse(ring.begin(), ring.end());
+                    std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
                 }
-                if (!clipper.AddPath(ring, ClipperLib::ptSubject, true))
+                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_mp_rings_)
                 {
                     continue;
                 }
-            }
-            if (multi_polygon_union_)
-            {
-                continue;
+                for (auto & ring : poly.interior_rings)
+                {
+                    if (ring.size() < 3)
+                    {
+                        continue;
+                    }
+                    ClipperLib::CleanPolygon(ring, clean_distance);
+                    double inner_area = ClipperLib::Area(ring);
+                    if (std::abs(inner_area) < area_threshold_)
+                    {
+                        continue;
+                    }
+                    // This should be a negative area, the y axis is down, so the ring will be "CCW" rather
+                    // then "CW" after the view transform, but if it is not lets reverse it
+                    if (inner_area < 0)
+                    {
+                        std::reverse(ring.begin(), ring.end());
+                    }
+                    clipper.AddPath(ring, ClipperLib::ptSubject, true);
+                }
             }
             if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
             {
@@ -1242,25 +1238,75 @@ struct encoder_visitor
                 process_polynode_branch(polynode, mp, area_threshold_); 
             }
         }
-
-        if (multi_polygon_union_)
+        else
         {
-            if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+            for (auto & poly : geom)
             {
-                return painted;
-            }
-            ClipperLib::PolyTree polygons;
-            if (strictly_simple_) 
-            {
-                clipper.StrictlySimple(true);
-            }
-            clipper.ReverseSolution(true);
-            clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_, fill_type_);
-            clipper.Clear();
-            
-            for (auto * polynode : polygons.Childs)
-            {
-                process_polynode_branch(polynode, mp, area_threshold_); 
+                // Below we attempt to skip processing of all interior rings if the exterior
+                // ring fails a variety of sanity checks for size and validity for AddPath
+                // When `process_all_mp_rings_=true` this optimization is disabled. This is needed when
+                // the ring order of input polygons is potentially incorrect and where the
+                // "exterior_ring" might actually be an incorrectly classified exterior ring.
+                if (poly.exterior_ring.size() < 3 && !process_all_mp_rings_)
+                {
+                    continue;
+                }
+                ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
+                double outer_area = ClipperLib::Area(poly.exterior_ring);
+                if ((std::abs(outer_area) < area_threshold_) && !process_all_mp_rings_)
+                {
+                    continue;
+                }
+                // The view transform inverts the y axis so this should be positive still despite now
+                // being clockwise for the exterior ring. If it is not lets invert it.
+                if (outer_area > 0)
+                {
+                    std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
+                }
+                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_mp_rings_)
+                {
+                    continue;
+                }
+                for (auto & ring : poly.interior_rings)
+                {
+                    if (ring.size() < 3)
+                    {
+                        continue;
+                    }
+                    ClipperLib::CleanPolygon(ring, clean_distance);
+                    double inner_area = ClipperLib::Area(ring);
+                    if (std::abs(inner_area) < area_threshold_)
+                    {
+                        continue;
+                    }
+                    // This should be a negative area, the y axis is down, so the ring will be "CCW" rather
+                    // then "CW" after the view transform, but if it is not lets reverse it
+                    if (inner_area < 0)
+                    {
+                        std::reverse(ring.begin(), ring.end());
+                    }
+                    if (!clipper.AddPath(ring, ClipperLib::ptSubject, true))
+                    {
+                        continue;
+                    }
+                }
+                if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+                {
+                    return painted;
+                }
+                ClipperLib::PolyTree polygons;
+                if (strictly_simple_) 
+                {
+                    clipper.StrictlySimple(true);
+                }
+                clipper.ReverseSolution(true);
+                clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_, fill_type_);
+                clipper.Clear();
+                
+                for (auto * polynode : polygons.Childs)
+                {
+                    process_polynode_branch(polynode, mp, area_threshold_); 
+                }
             }
         }
 
