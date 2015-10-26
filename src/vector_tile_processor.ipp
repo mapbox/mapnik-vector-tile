@@ -1123,7 +1123,7 @@ struct encoder_visitor
         }
         ClipperLib::PolyTree polygons;
         poly_clipper.ReverseSolution(true);
-        poly_clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_);
+        poly_clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_, fill_type_);
         poly_clipper.Clear();
         
         mapnik::geometry::multi_polygon<std::int64_t> mp;
@@ -1172,10 +1172,6 @@ struct encoder_visitor
         ClipperLib::Clipper clipper;
         for (auto & poly : geom)
         {
-            if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
-            {
-                return painted;
-            }
             // Below we attempt to skip processing of all interior rings if the exterior
             // ring fails a variety of sanity checks for size and validity for AddPath
             // When `process_all_mp_rings_=true` this optimization is disabled. This is needed when
@@ -1228,13 +1224,17 @@ struct encoder_visitor
             {
                 continue;
             }
+            if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+            {
+                return painted;
+            }
             ClipperLib::PolyTree polygons;
             if (strictly_simple_) 
             {
                 clipper.StrictlySimple(true);
             }
             clipper.ReverseSolution(true);
-            clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_);
+            clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_, fill_type_);
             clipper.Clear();
             
             for (auto * polynode : polygons.Childs)
@@ -1245,13 +1245,17 @@ struct encoder_visitor
 
         if (multi_polygon_union_)
         {
+            if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+            {
+                return painted;
+            }
             ClipperLib::PolyTree polygons;
             if (strictly_simple_) 
             {
                 clipper.StrictlySimple(true);
             }
             clipper.ReverseSolution(true);
-            clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_);
+            clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_, fill_type_);
             clipper.Clear();
             
             for (auto * polynode : polygons.Childs)
