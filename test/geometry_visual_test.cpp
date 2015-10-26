@@ -30,7 +30,9 @@ void clip_geometry(std::string const& file,
                    mapnik::box2d<double> const& bbox,
                    int simplify_distance,
                    bool strictly_simple,
-                   mapnik::vector_tile_impl::polygon_fill_type fill_type)
+                   mapnik::vector_tile_impl::polygon_fill_type fill_type,
+                   bool mpu,
+                   bool process_all)
 {
     typedef mapnik::vector_tile_impl::backend_pbf backend_type;
     typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
@@ -59,8 +61,8 @@ void clip_geometry(std::string const& file,
     ren.set_simplify_distance(simplify_distance);
     ren.set_fill_type(fill_type);
     // TODO - test these booleans https://github.com/mapbox/mapnik-vector-tile/issues/165
-    ren.set_process_all_mp_rings(false);
-    ren.set_multi_polygon_union(false);
+    ren.set_process_all_mp_rings(process_all);
+    ren.set_multi_polygon_union(mpu);
     ren.apply();
     std::string buffer;
     tile.SerializeToString(&buffer);
@@ -121,7 +123,9 @@ void clip_geometry(std::string const& file,
         << bbox.maxy() << ","
         << "simplify_distance=" << simplify_distance << ","
         << "strictly_simple=" << strictly_simple << ","
-        << "fill_type=" << fill_type << ".geojson";
+        << "fill_type=" << fill_type << ","
+        << "mpu=" << mpu << ","
+        << "par=" << process_all << ".geojson";
     std::string file_path = file_stream.str();
     if (!mapnik::util::exists(file_path) || (std::getenv("UPDATE") != nullptr))
     {
@@ -137,7 +141,7 @@ void clip_geometry(std::string const& file,
         }
         mapnik::geometry::geometry<double> geom;
         std::string expected_string(input.data().get(), input.size());
-        REQUIRE(expected_string == geojson_string);
+        CHECK(expected_string == geojson_string);
     }
 }
 
@@ -239,17 +243,23 @@ TEST_CASE( "geometries", "should reproject, clip, and simplify")
                 std::vector<mapnik::vector_tile_impl::polygon_fill_type> types;
                 types.emplace_back(mapnik::vector_tile_impl::even_odd_fill); 
                 types.emplace_back(mapnik::vector_tile_impl::non_zero_fill);
-                //types.emplace_back(mapnik::vector_tile_impl::positive_fill); 
-                //types.emplace_back(mapnik::vector_tile_impl::negative_fill);
+                types.emplace_back(mapnik::vector_tile_impl::positive_fill); 
+                types.emplace_back(mapnik::vector_tile_impl::negative_fill);
                 for (auto type : types)
                 {
-                    clip_geometry(file, bbox, simplification_distance, strictly_simple, type);
-                    clip_geometry(file, middle_fifty(bbox), simplification_distance, strictly_simple, type);
-                    clip_geometry(file, top_left(bbox), simplification_distance, strictly_simple, type);
-                    clip_geometry(file, top_right(bbox), simplification_distance, strictly_simple, type);
-                    clip_geometry(file, bottom_left(bbox), simplification_distance, strictly_simple, type);
-                    clip_geometry(file, bottom_right(bbox), simplification_distance, strictly_simple, type);
-                    clip_geometry(file, zoomed_out(bbox), simplification_distance, strictly_simple, type);
+                    for (bool mpu : std::vector<bool>({false, true}))
+                    {
+                        for (bool process_all : std::vector<bool>({false, true}))
+                        {
+                            clip_geometry(file, bbox, simplification_distance, strictly_simple, type, mpu, process_all);
+                            clip_geometry(file, middle_fifty(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
+                            clip_geometry(file, top_left(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
+                            clip_geometry(file, top_right(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
+                            clip_geometry(file, bottom_left(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
+                            clip_geometry(file, bottom_right(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
+                            clip_geometry(file, zoomed_out(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
+                        }
+                    }
                 }
             }
         }
