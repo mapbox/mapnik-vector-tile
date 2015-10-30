@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.14.0
+
+ - Added the ability for the processor to ignore invalid rings and simply process them, this is exposed via the option `process_all_rings`.
+ - Exposed the ability for different fill types to be used
+ - Added the ability for multipolygons to be union or not selectively, exposed as option `multipoly_polyon_union`
+ - Added new test suite for geometries
+
 ## 0.13.0
 
  - Updated the geometry decoder so that it now supports a variety of geometry formats with the ability to return mapnik 
