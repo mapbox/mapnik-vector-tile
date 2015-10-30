@@ -52,7 +52,7 @@ private:
     double simplify_distance_;
     bool multi_polygon_union_;
     ClipperLib::PolyFillType fill_type_;
-    bool process_all_mp_rings_;
+    bool process_all_rings_;
 public:
     MAPNIK_VECTOR_INLINE processor(T & backend,
               mapnik::Map const& map,
@@ -71,9 +71,9 @@ public:
         simplify_distance_ = dist;
     }
 
-    inline void set_process_all_mp_rings(bool value)
+    inline void set_process_all_rings(bool value)
     {
-        process_all_mp_rings_ = value;
+        process_all_rings_ = value;
     }
 
     inline void set_multi_polygon_union(bool value)

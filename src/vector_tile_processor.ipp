@@ -608,7 +608,7 @@ processor<T>::processor(T & backend,
       simplify_distance_(0.0),
       multi_polygon_union_(false),
       fill_type_(ClipperLib::pftNonZero),
-      process_all_mp_rings_(false) {}
+      process_all_rings_(false) {}
 
 template <typename T>
 void processor<T>::apply(double scale_denom)
@@ -928,7 +928,7 @@ struct encoder_visitor
                     bool strictly_simple,
                     bool multi_polygon_union,
                     ClipperLib::PolyFillType fill_type,
-                    bool process_all_mp_rings) :
+                    bool process_all_rings) :
       backend_(backend),
       feature_(feature),
       tile_clipping_extent_(tile_clipping_extent),
@@ -936,7 +936,7 @@ struct encoder_visitor
       strictly_simple_(strictly_simple),
       multi_polygon_union_(multi_polygon_union),
       fill_type_(fill_type),
-      process_all_mp_rings_(process_all_mp_rings) {}
+      process_all_rings_(process_all_rings) {}
 
     bool operator() (mapnik::geometry::geometry_empty const&)
     {
@@ -1056,7 +1056,7 @@ struct encoder_visitor
     bool operator() (mapnik::geometry::polygon<std::int64_t> & geom)
     {
         bool painted = false;
-        if ((geom.exterior_ring.size() < 3) && !process_all_mp_rings_)
+        if ((geom.exterior_ring.size() < 3) && !process_all_rings_)
         {
             // Invalid geometry so will be false
             return false;
@@ -1074,7 +1074,7 @@ struct encoder_visitor
         ClipperLib::Clipper clipper;
         ClipperLib::CleanPolygon(geom.exterior_ring, clean_distance);
         double outer_area = ClipperLib::Area(geom.exterior_ring);
-        if ((std::abs(outer_area) < area_threshold_)  && !process_all_mp_rings_)
+        if ((std::abs(outer_area) < area_threshold_)  && !process_all_rings_)
         {
             return painted;
         }
@@ -1090,7 +1090,7 @@ struct encoder_visitor
         {
             poly_clipper.StrictlySimple(true);
         }
-        if (!poly_clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true) && !process_all_mp_rings_)
+        if (!poly_clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
         {
             return painted;
         }
@@ -1176,16 +1176,16 @@ struct encoder_visitor
             {
                 // Below we attempt to skip processing of all interior rings if the exterior
                 // ring fails a variety of sanity checks for size and validity for AddPath
-                // When `process_all_mp_rings_=true` this optimization is disabled. This is needed when
+                // When `process_all_rings_=true` this optimization is disabled. This is needed when
                 // the ring order of input polygons is potentially incorrect and where the
                 // "exterior_ring" might actually be an incorrectly classified exterior ring.
-                if (poly.exterior_ring.size() < 3 && !process_all_mp_rings_)
+                if (poly.exterior_ring.size() < 3 && !process_all_rings_)
                 {
                     continue;
                 }
                 ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
                 double outer_area = ClipperLib::Area(poly.exterior_ring);
-                if ((std::abs(outer_area) < area_threshold_) && !process_all_mp_rings_)
+                if ((std::abs(outer_area) < area_threshold_) && !process_all_rings_)
                 {
                     continue;
                 }
@@ -1195,7 +1195,7 @@ struct encoder_visitor
                 {
                     std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
                 }
-                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_mp_rings_)
+                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
                 {
                     continue;
                 }
@@ -1244,16 +1244,16 @@ struct encoder_visitor
             {
                 // Below we attempt to skip processing of all interior rings if the exterior
                 // ring fails a variety of sanity checks for size and validity for AddPath
-                // When `process_all_mp_rings_=true` this optimization is disabled. This is needed when
+                // When `process_all_rings_=true` this optimization is disabled. This is needed when
                 // the ring order of input polygons is potentially incorrect and where the
                 // "exterior_ring" might actually be an incorrectly classified exterior ring.
-                if (poly.exterior_ring.size() < 3 && !process_all_mp_rings_)
+                if (poly.exterior_ring.size() < 3 && !process_all_rings_)
                 {
                     continue;
                 }
                 ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
                 double outer_area = ClipperLib::Area(poly.exterior_ring);
-                if ((std::abs(outer_area) < area_threshold_) && !process_all_mp_rings_)
+                if ((std::abs(outer_area) < area_threshold_) && !process_all_rings_)
                 {
                     continue;
                 }
@@ -1263,7 +1263,7 @@ struct encoder_visitor
                 {
                     std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
                 }
-                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_mp_rings_)
+                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
                 {
                     continue;
                 }
@@ -1333,7 +1333,7 @@ struct encoder_visitor
     bool strictly_simple_;
     bool multi_polygon_union_;
     ClipperLib::PolyFillType fill_type_;
-    bool process_all_mp_rings_;
+    bool process_all_rings_;
 };
 
 template <typename T>
@@ -1426,7 +1426,7 @@ bool processor<T>::handle_geometry(T2 const& vs,
                                strictly_simple_, 
                                multi_polygon_union_, 
                                fill_type_,
-                               process_all_mp_rings_);
+                               process_all_rings_);
     if (simplify_distance_ > 0)
     {
         simplify_visitor<T> simplifier(simplify_distance_,encoder);

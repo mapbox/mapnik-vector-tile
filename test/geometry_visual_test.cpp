@@ -61,7 +61,7 @@ void clip_geometry(std::string const& file,
     ren.set_simplify_distance(simplify_distance);
     ren.set_fill_type(fill_type);
     // TODO - test these booleans https://github.com/mapbox/mapnik-vector-tile/issues/165
-    ren.set_process_all_mp_rings(process_all);
+    ren.set_process_all_rings(process_all);
     ren.set_multi_polygon_union(mpu);
     ren.apply();
     std::string buffer;
