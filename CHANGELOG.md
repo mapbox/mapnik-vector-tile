@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.1
+
+- Had error in publish, republishing.
+
 ## 0.14.0
 
  - Added the ability for the processor to ignore invalid rings and simply process them, this is exposed via the option `process_all_rings`.
