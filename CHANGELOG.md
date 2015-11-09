@@ -6,10 +6,10 @@
 
 ## 0.14.0
 
- - Added the ability for the processor to ignore invalid rings and simply process them, this is exposed via the option `process_all_rings`.
- - Exposed the ability for different fill types to be used
- - Added the ability for multipolygons to be union or not selectively, exposed as option `multipoly_polyon_union`
- - Added new test suite for geometries
+ - Added the ability for the processor to continue processing invalid rings rather than throwing them out. This is exposed via the option `process_all_rings`. (default is `false` meaning that all interior rings will be skipped if an invalid exterior ring is encountered)
+ - Exposed the ability for different fill types to be used (default is `NonZero` meaning that winding order of input polygons is expected to be reversed for interior rings vs exterior rings)
+ - Added the ability for multipolygons to be unioned or not, exposed as option `multipoly_polyon_union` (default is `true` meaning that overlapping polygons in a multipolygon will be unioned)
+ - Added new test suite for geometries to increase code coverage
 
 ## 0.13.0
 
