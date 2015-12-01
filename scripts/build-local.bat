@@ -3,7 +3,13 @@ SETLOCAL
 SET EL=0
 
 ECHO =========== %~f0 ===========
+SET START_DIR=%CD%
 
+SET APPVEYOR_REPO_COMMIT_MESSAGE=LOCAL BUILD
+
+SET MAPNIK_GIT=v3.0.9-rc2-37-g1b6ca8b
+SET CLIPPER_REVISION=7484da1
+SET PROTOZERO_REVISION=v1.0.0
 SET msvs_toolset=14
 SET platform=x64
 SET configuration=Release
@@ -21,5 +27,5 @@ SET EL=%ERRORLEVEL%
 
 :DONE
 ECHO =========== DONE %~f0 ===========
-
+CD %START_DIR%
 EXIT /b %EL%

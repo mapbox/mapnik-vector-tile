@@ -1,6 +1,9 @@
 os: Visual Studio 2015
 
 environment:
+  MAPNIK_GIT: v3.0.9-rc2-37-g1b6ca8b
+  CLIPPER_REVISION: 7484da1
+  PROTOZERO_REVISION: v1.0.0
   msvs_toolset: 14
   matrix:
     - platform: x64
