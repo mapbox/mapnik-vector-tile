@@ -24,7 +24,7 @@ inline bool encode_geometry(mapnik::geometry::point<std::int64_t> const& pt,
                         int32_t & start_x,
                         int32_t & start_y)
 {
-    current_feature.add_geometry(9); // 1 | (move_to << 3)
+    current_feature.add_geometry(9); // move_to | (1 << 3)
     int32_t dx = pt.x - start_x;
     int32_t dy = pt.y - start_y;
     // Manual zigzag encoding.
@@ -63,7 +63,7 @@ inline bool encode_geometry(mapnik::geometry::line_string<std::int64_t> const& l
         if (status == move_to)
         {
             status = line_to;
-            current_feature.add_geometry(9); // 1 | (move_to << 3)
+            current_feature.add_geometry(9); // move_to | (1 << 3)
         }
         else if (status == line_to)
         {
@@ -114,7 +114,7 @@ inline bool encode_geometry(mapnik::geometry::linear_ring<std::int64_t> const& r
         if (status == move_to)
         {
             status = line_to;
-            current_feature.add_geometry(9); // 1 | (move_to << 3)
+            current_feature.add_geometry(9); // move_to | (1 << 3)
         }
         else if (status == line_to)
         {
