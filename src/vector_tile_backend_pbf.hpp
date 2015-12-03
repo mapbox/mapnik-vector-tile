@@ -13,6 +13,7 @@
 #include <mapnik/value.hpp>
 #include <mapnik/geometry.hpp>
 #include <unordered_map>
+#include <set>
 
 namespace mapnik
 {
@@ -23,12 +24,14 @@ namespace mapnik { namespace vector_tile_impl {
 
     struct backend_pbf
     {
+        typedef std::set<std::string> layers_set;
         typedef std::map<std::string, unsigned> keys_container;
         typedef std::unordered_map<mapnik::value, unsigned> values_container;
     private:
         vector_tile::Tile & tile_;
         unsigned path_multiplier_;
         mutable vector_tile::Tile_Layer * current_layer_;
+        layers_set layer_names_;
         keys_container keys_;
         values_container values_;
         int32_t x_, y_;
@@ -40,7 +43,7 @@ namespace mapnik { namespace vector_tile_impl {
         MAPNIK_VECTOR_INLINE void add_tile_feature_raster(std::string const& image_buffer);
         MAPNIK_VECTOR_INLINE void stop_tile_feature();
         MAPNIK_VECTOR_INLINE void start_tile_feature(mapnik::feature_impl const& feature);
-        MAPNIK_VECTOR_INLINE void start_tile_layer(std::string const& name);
+        MAPNIK_VECTOR_INLINE bool start_tile_layer(std::string const& name);
         MAPNIK_VECTOR_INLINE unsigned get_path_multiplier()
         {
             return path_multiplier_;

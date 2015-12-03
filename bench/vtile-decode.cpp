@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 
         if (argc < 4)
         {
-            std::clog << "usage: vtile-decode /path/to/tile.vector.pbf z x y [iterations]\n";
+            std::clog << "usage: vtile-decode /path/to/tile.vector.mvt z x y [iterations]\n";
             return -1;
         }
         std::string vtile(argv[1]);

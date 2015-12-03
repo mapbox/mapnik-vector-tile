@@ -27,7 +27,7 @@
 
 TEST_CASE( "vector tile rasterize", "should try to decode windfail tile" ) {
     // open vtile
-    std::ifstream stream("./test/data/0.0.0.vector.pbf",std::ios_base::in|std::ios_base::binary);
+    std::ifstream stream("./test/data/0.0.0.vector.mvt",std::ios_base::in|std::ios_base::binary);
     REQUIRE(stream.is_open());
     std::string buffer(std::istreambuf_iterator<char>(stream.rdbuf()),(std::istreambuf_iterator<char>()));
     REQUIRE(buffer.size() == 3812);
@@ -120,9 +120,9 @@ TEST_CASE( "vector tile rasterize", "should try to decode windfail tile" ) {
     // now `tile` should contain all the data
     std::string buffer2;
     CHECK(tile.SerializeToString(&buffer2));
-    CHECK(2774 == buffer2.size());
+    CHECK(2771 == buffer2.size());
 
-    std::ofstream stream_out("./test/data/0.0.0.vector-b.pbf",std::ios_base::out|std::ios_base::binary);
+    std::ofstream stream_out("./test/data/0.0.0.vector-b.mvt",std::ios_base::out|std::ios_base::binary);
     stream_out << buffer2;
     stream_out.close();
 

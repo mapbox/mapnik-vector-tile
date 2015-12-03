@@ -64,6 +64,11 @@ backend_pbf::backend_pbf(vector_tile::Tile & _tile,
       y_(0),
       current_feature_(NULL)
 {
+    for (int i=0; i < tile_.layers_size(); ++i)
+    {
+        vector_tile::Tile_Layer const& layer = tile_.layers(i);
+        layer_names_.insert(layer.name());
+    }
 }
 
 void backend_pbf::add_tile_feature_raster(std::string const& image_buffer)
@@ -94,8 +99,15 @@ void backend_pbf::start_tile_feature(mapnik::feature_impl const& feature)
 
         // TODO - encode as sint64: (n << 1) ^ ( n >> 63)
         // test current behavior with negative numbers
+        // Feature id should be unique from mapnik so we should comply with
+        // the following wording of the specification:
+        // "the value of the (feature) id SHOULD be unique among the features of the parent layer."
         current_feature_->set_id(feature.id());
 
+        // Mapnik features can not have more then one value for
+        // and single key. Therefore, we do not have to check if
+        // key already exists in the feature as we insert each
+        // key value pair into the feature. 
         feature_kv_iterator itr = feature.begin();
         feature_kv_iterator end = feature.end();
         for ( ;itr!=end; ++itr)
@@ -139,15 +151,22 @@ void backend_pbf::start_tile_feature(mapnik::feature_impl const& feature)
     }
 }
 
-void backend_pbf::start_tile_layer(std::string const& name)
+bool backend_pbf::start_tile_layer(std::string const& name)
 {
+    if (layer_names_.count(name) != 0)
+    {
+        return false;
+    }
+
     // Key/value dictionary is per-layer.
     keys_.clear();
     values_.clear();
 
     current_layer_ = tile_.add_layers();
     current_layer_->set_name(name);
-    current_layer_->set_version(1);
+    current_layer_->set_version(2);
+    
+    layer_names_.insert(name);
 
     // We currently use path_multiplier as a factor to scale the coordinates.
     // Eventually, we should replace this with the extent specifying the
@@ -155,6 +174,7 @@ void backend_pbf::start_tile_layer(std::string const& name)
     // the coordinates encoded in this tile should be visible in the range
     // from 0..4095.
     current_layer_->set_extent(256 * path_multiplier_);
+    return true;
 }
 
 }} // end ns

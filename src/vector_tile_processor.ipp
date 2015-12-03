@@ -772,7 +772,10 @@ void processor<T>::apply_to_layer(mapnik::layer const& lay,
     mapnik::feature_ptr feature = features->next();
     if (feature)
     {
-        backend_.start_tile_layer(lay.name());
+        if (!backend_.start_tile_layer(lay.name()))
+        {
+            return;
+        }
         raster_ptr const& source = feature->get_raster();
         if (source)
         {

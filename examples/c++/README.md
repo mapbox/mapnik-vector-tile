@@ -25,4 +25,4 @@ Install these dependencies on OS X:
 
 ## Usage
 
-    tileinfo ../data/14_8716_8015.vector.pbf
+    tileinfo ../data/14_8716_8015.vector.mvt
