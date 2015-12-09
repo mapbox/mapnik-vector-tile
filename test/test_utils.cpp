@@ -21,7 +21,6 @@
 #include <memory>
 
 namespace testing {
-
 std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool second) {
     mapnik::parameters params;
     params["type"] = "memory";
@@ -120,6 +119,5 @@ unsigned compare_images(mapnik::image_rgba8 const& src1,
     mapnik::image_rgba8 const& src2 = mapnik::util::get<mapnik::image_rgba8>(image_2);
     return mapnik::compare(src1,src2,threshold,alpha);
 }
-
 
 } // end ns

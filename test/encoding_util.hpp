@@ -5,13 +5,8 @@
 #include "vector_tile_geometry_decoder.hpp"
 #include "vector_tile_geometry_encoder.hpp"
 
-namespace {
-
 using namespace mapnik::geometry;
 
-struct print;
-
-}
 
 struct show_path;
 
@@ -22,4 +17,11 @@ vector_tile::Tile_Feature geometry_to_feature(mapnik::geometry::geometry<std::in
 template <typename T>
 std::string decode_to_path_string(mapnik::geometry::geometry<T> const& g);
 
-std::string compare(mapnik::geometry::geometry<std::int64_t> const& g);
+std::string compare(mapnik::geometry::geometry<std::int64_t> const& g, unsigned version);
+
+std::string compare_pbf(mapnik::geometry::geometry<std::int64_t> const& g, unsigned version);
+
+template <typename T>
+mapnik::vector_tile_impl::GeometryPBF<T> feature_to_pbf_geometry(std::string const& feature_string);
+
+

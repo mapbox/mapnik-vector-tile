@@ -50,9 +50,9 @@ TEST_CASE( "raster tile output 1", "should create raster tile with one raster la
     m_req.set_buffer_size(map.buffer_size());
     renderer_type ren(backend,map,m_req,1.0,0,0,1,false,"jpeg",mapnik::SCALING_BILINEAR);
     ren.apply();
-    std::string key("");
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
+    //CHECK("" == key);
     CHECK(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -102,9 +102,9 @@ TEST_CASE( "raster tile output 1", "should create raster tile with one raster la
     map2.set_buffer_size(256);
     tile_type tile2;
     CHECK(tile2.ParseFromString(buffer));
-    std::string key2("");
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key2));
-    CHECK("" == key2);
+    //std::string key2("");
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key2));
+    //CHECK("" == key2);
     CHECK(1 == tile2.layers_size());
     vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
     CHECK(std::string("layer") == layer2.name());

@@ -87,9 +87,9 @@ TEST_CASE( "vector tile output 1", "should create vector tile with two points" )
     renderer_type ren(backend,map,m_req);
     ren.apply();
     CHECK( ren.painted() == true );
-    std::string key("");
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
+    //CHECK("" == key);
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -104,8 +104,8 @@ TEST_CASE( "vector tile output 1", "should create vector tile with two points" )
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
     CHECK(194 == buffer.size());
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
 }
 
 TEST_CASE( "vector tile output 2", "adding empty layers should result in empty tile" ) {
@@ -123,14 +123,14 @@ TEST_CASE( "vector tile output 2", "adding empty layers should result in empty t
     renderer_type ren(backend,map,m_req);
     ren.apply();
     CHECK( ren.painted() == false );
-    std::string key("");
-    CHECK(true == mapnik::vector_tile_impl::is_solid_extent(tile,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(true == mapnik::vector_tile_impl::is_solid_extent(tile,key));
+    //CHECK("" == key);
     CHECK(0 == tile.layers_size());
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(true == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //CHECK(true == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
 }
 
 TEST_CASE( "vector tile output 3", "adding layers with geometries outside rendering extent should not add layer" ) {
@@ -160,14 +160,14 @@ TEST_CASE( "vector tile output 3", "adding layers with geometries outside render
     mapnik::request m_req(tile_size,tile_size,custom_bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
-    std::string key("");
-    CHECK(true == mapnik::vector_tile_impl::is_solid_extent(tile,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(true == mapnik::vector_tile_impl::is_solid_extent(tile,key));
+    //CHECK("" == key);
     CHECK(0 == tile.layers_size());
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(true == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //CHECK(true == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
 }
 
 TEST_CASE( "vector tile output 4", "adding layers with degenerate geometries should not add layer" ) {
@@ -191,14 +191,14 @@ TEST_CASE( "vector tile output 4", "adding layers with degenerate geometries sho
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
-    std::string key("");
-    CHECK(true == mapnik::vector_tile_impl::is_solid_extent(tile,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(true == mapnik::vector_tile_impl::is_solid_extent(tile,key));
+    //CHECK("" == key);
     CHECK(0 == tile.layers_size());
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(true == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //CHECK(true == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
 }
 
 TEST_CASE( "vector tile input", "should be able to parse message and render point" ) {
@@ -225,11 +225,11 @@ TEST_CASE( "vector tile input", "should be able to parse message and render poin
     mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
     tile_type tile2;
     CHECK(tile2.ParseFromString(buffer));
-    std::string key("");
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
-    CHECK("" == key);
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
+    //CHECK("" == key);
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
 
     CHECK(1 == tile2.layers_size());
     vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
@@ -293,13 +293,13 @@ TEST_CASE( "vector tile datasource", "should filter features outside extent" ) {
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
-    std::string key("");
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
+    //CHECK("" == key);
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -421,13 +421,13 @@ TEST_CASE( "encoding multi line as one path", "should maintain second move_to co
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     // done encoding single feature/geometry
-    std::string key("");
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
+    //CHECK("" == key);
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(1 == layer.features_size());
@@ -488,25 +488,25 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     geom.add_coord(2,2);
     geom.add_coord(1000,1000);
     geom.add_coord(1001,1001);
-    geom.add_coord(1001,1001);
+    geom.add_coord(1001,1001); // repeated position therefore will be culled during encoding!
     backend.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
     backend.add_path(geom);
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     // done encoding single feature/geometry
-    std::string key("");
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
+    //CHECK("" == key);
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(1 == layer.features_size());
     vector_tile::Tile_Feature const& f = layer.features(0);
-    // sequence of 10 geometries given tolerance of 2
-    CHECK(12 == f.geometry_size());
+    // Two Commands + 8 Parameters
+    CHECK(10 == f.geometry_size());
     // first geometry is 9, which packs both the command and how many verticies are encoded with that same command
     // It is 9 because it is a move_to (which is an enum of 1) and there is one command (length == 1)
     unsigned move_value = f.geometry(0);
@@ -521,14 +521,14 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     CHECK(0 == f.geometry(1));
     CHECK(0 == f.geometry(2));
     // 4th is the line_to (which is an enum of 2) and a number indicating how many line_to commands are repeated
-    // in this case there should be 2 because two were skipped
+    // in this case there should be 3 because one was skipped
     unsigned line_value = f.geometry(3);
-    // (2      << 3) | (2       & ((1 << 3) -1)) == 18
-    CHECK(34 == line_value);
+    // (3      << 3) | (2       & ((1 << 3) -1)) == 26
+    CHECK(26 == line_value);
     unsigned line_cmd = line_value & ((1 << 3) - 1);
     CHECK(2 == line_cmd);
     unsigned line_length = line_value >> 3;
-    CHECK(4 == line_length);
+    CHECK(3 == line_length);
     // 5th and 6th are the x,y of the first line_to command
     // due zigzag encoding the 2,2 should be 4,4
     // delta encoding has no impact since the previous coordinate was 0,0
@@ -537,8 +537,8 @@ TEST_CASE( "encoding single line 1", "should maintain start/end vertex" ) {
     CHECK(4 == f.geometry(4));
     CHECK(4 == f.geometry(5));
     // 7th and 8th are x,y of the second line_to command
-    // due to delta encoding 1001-2 becomes 999
-    // zigzag encoded 999 becomes 1998 == (999 << 1) ^ (999 >> 31)
+    // due to delta encoding 1000-2 becomes 998
+    // zigzag encoded 998 becomes 1996 == (998 << 1) ^ (998 >> 31)
     CHECK(1996 == f.geometry(6));
     CHECK(1996 == f.geometry(7));
 }
@@ -575,13 +575,13 @@ TEST_CASE( "encoding single line 2", "should maintain start/end vertex" ) {
     backend.add_path(poly);
     backend.stop_tile_feature();
     backend.stop_tile_layer();
-    std::string key("");
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
+    //CHECK("" == key);
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(1 == layer.features_size());
@@ -641,7 +641,7 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     double scale = (double)path_multiplier;
 
     mapnik::vector_tile_impl::Geometry<double> geoms(f,0,0,scale,-1*scale);
-    return mapnik::vector_tile_impl::decode_geometry<double>(geoms, f.type());
+    return mapnik::vector_tile_impl::decode_geometry<double>(geoms, f.type(), 2);
 }
 
 TEST_CASE( "vector tile point encoding", "should create vector tile with data" ) {
@@ -1121,7 +1121,7 @@ TEST_CASE( "vector tile from simplified geojson", "should create vector tile wit
     double tile_y =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
     double scale = (static_cast<double>(layer.extent()) / tile_size) * tile_size/resolution;
     mapnik::vector_tile_impl::Geometry<double> geoms(f,tile_x, tile_y,scale,-1*scale);
-    auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms,f.type());
+    auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms,f.type(),2);
 
     unsigned int n_err = 0;
     mapnik::projection wgs84("+init=epsg:4326",true);
@@ -1189,7 +1189,7 @@ mapnik::geometry::geometry<double> round_trip2(mapnik::geometry::geometry<double
     double tile_y =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
     double scale = (static_cast<double>(layer.extent()) / tile_size) * tile_size/resolution;
     mapnik::vector_tile_impl::Geometry<double> geoms(f,tile_x, tile_y,scale,-1*scale);
-    return mapnik::vector_tile_impl::decode_geometry<double>(geoms,f.type());
+    return mapnik::vector_tile_impl::decode_geometry<double>(geoms,f.type(),2);
 }
 
 TEST_CASE( "vector tile line_string is verify direction", "should line string with proper directions" ) {
@@ -1257,11 +1257,11 @@ TEST_CASE( "vector tile transform", "should not throw on coords outside merc ran
     mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
     tile_type tile2;
     CHECK(tile2.ParseFromString(buffer));
-    std::string key("");
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
-    CHECK("" == key);
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
+    //CHECK("" == key);
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
     CHECK(1 == tile2.layers_size());
     vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
     CHECK(std::string("layer") == layer2.name());
@@ -1335,11 +1335,11 @@ TEST_CASE( "vector tile transform2", "should not throw reprojected data from loc
     mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
     tile_type tile2;
     CHECK(tile2.ParseFromString(buffer));
-    std::string key("");
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
-    CHECK("" == key);
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
+    //CHECK("" == key);
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
     CHECK(1 == tile2.layers_size());
     vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
     CHECK(std::string("layer") == layer2.name());

@@ -2,6 +2,8 @@
 
 // test utils
 #include "test_utils.hpp"
+
+// mapnik
 #include <mapnik/memory_datasource.hpp>
 #include <mapnik/util/fs.hpp>
 #include <mapnik/agg_renderer.hpp>
@@ -21,6 +23,7 @@
 #include <mapnik/geometry.hpp>
 #include <mapnik/datasource_cache.hpp>
 
+// boost
 #include <boost/optional/optional_io.hpp>
 
 // vector output api
@@ -65,11 +68,11 @@ TEST_CASE( "pbf vector tile input", "should be able to parse message and render 
     mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
     tile_type tile2;
     CHECK(tile2.ParseFromString(buffer));
-    std::string key("");
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
-    CHECK("" == key);
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
+    //CHECK("" == key);
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
     CHECK(1 == tile2.layers_size());
     vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
     CHECK(std::string("layer") == layer2.name());
@@ -139,13 +142,13 @@ TEST_CASE( "pbf vector tile datasource", "should filter features outside extent"
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
-    std::string key("");
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
+    //CHECK("" == key);
     std::string buffer;
     tile.SerializeToString(&buffer);
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -258,13 +261,13 @@ TEST_CASE( "pbf encoding multi line as one path", "should maintain second move_t
     backend.stop_tile_feature();
     backend.stop_tile_layer();
     // done encoding single feature/geometry
-    std::string key("");
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
+    //CHECK("" == key);
     std::string buffer;
     tile.SerializeToString(&buffer);
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     REQUIRE(1 == layer.features_size());
@@ -341,13 +344,13 @@ TEST_CASE( "pbf decoding some truncated buffers", "should throw exception" ) {
     mapnik::request m_req(tile_size,tile_size,bbox);
     renderer_type ren(backend,map,m_req);
     ren.apply();
-    std::string key("");
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
-    CHECK("" == key);
+    //std::string key("");
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key));
+    //CHECK("" == key);
     std::string buffer;
     tile.SerializeToString(&buffer);
-    CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    CHECK("" == key);
+    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
+    //CHECK("" == key);
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -427,7 +430,7 @@ TEST_CASE( "pbf vector tile from simplified geojson", "should create vector tile
           found = true;
           std::pair< protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > geom_itr = pbf_feature.get_packed_uint32();
           mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, tile_x,tile_y,scale,-1*scale);
-          auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, f.type());
+          auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, f.type(),2);
               unsigned int n_err = 0;
           mapnik::projection wgs84("+init=epsg:4326",true);
           mapnik::projection merc("+init=epsg:3857",true);

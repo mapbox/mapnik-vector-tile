@@ -4,30 +4,9 @@
 #include <mapnik/vertex_processor.hpp>
 #include "vector_tile_geometry_decoder.hpp"
 #include "vector_tile_geometry_encoder.hpp"
-
-namespace {
+#include "encoding_util.hpp"
 
 using namespace mapnik::geometry;
-
-struct print
-{
-    void operator() (geometry_empty const&) const
-    {
-        std::cerr << "EMPTY" << std::endl;
-    }
-    template <typename T>
-    void operator() (geometry_collection<T> const&) const
-    {
-        std::cerr << "COLLECTION" << std::endl;
-    }
-    template <typename T>
-    void operator() (T const& geom) const
-    {
-        std::cerr << boost::geometry::wkt(geom) << std::endl;
-    }
-};
-
-}
 
 struct show_path
 {
@@ -114,7 +93,6 @@ vector_tile::Tile_Feature geometry_to_feature(mapnik::geometry::geometry<std::in
 template <typename T>
 std::string decode_to_path_string(mapnik::geometry::geometry<T> const& g)
 {
-    //mapnik::util::apply_visitor(print(), g2);
     using decode_path_type = mapnik::geometry::vertex_processor<show_path>;
     std::string out;
     show_path sp(out);
@@ -122,10 +100,29 @@ std::string decode_to_path_string(mapnik::geometry::geometry<T> const& g)
     return out;
 }
 
-std::string compare(mapnik::geometry::geometry<std::int64_t> const& g)
+std::string compare(mapnik::geometry::geometry<std::int64_t> const& g, unsigned version)
 {
     vector_tile::Tile_Feature feature = geometry_to_feature(g);
     mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    auto g2 = mapnik::vector_tile_impl::decode_geometry<double>(geoms,feature.type());
+    auto g2 = mapnik::vector_tile_impl::decode_geometry<double>(geoms,feature.type(),version);
     return decode_to_path_string(g2);
 }
+
+std::string compare_pbf(mapnik::geometry::geometry<std::int64_t> const& g, unsigned version)
+{
+    vector_tile::Tile_Feature feature = geometry_to_feature(g);
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+    auto g2 = mapnik::vector_tile_impl::decode_geometry<double>(geoms,feature.type(),version);
+    return decode_to_path_string(g2);
+}
+
+template <typename T>
+mapnik::vector_tile_impl::GeometryPBF<T> feature_to_pbf_geometry(std::string const& feature_string)
+{
+    protozero::pbf_reader feature_pbf(feature_string);
+    feature_pbf.next(4);
+    return mapnik::vector_tile_impl::GeometryPBF<T>(feature_pbf.get_packed_uint32(),0.0,0.0,1.0,1.0);
+}
+
+template mapnik::vector_tile_impl::GeometryPBF<double> feature_to_pbf_geometry<double>(std::string const& feature_string);

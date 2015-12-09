@@ -104,7 +104,8 @@ namespace mapnik { namespace vector_tile_impl {
                         vector_tile::Tile_Layer const& layer,
                         double tile_x,
                         double tile_y,
-                        double scale)
+                        double scale,
+                        unsigned version)
             : filter_(filter),
               tile_extent_(tile_extent),
               unbuffered_query_(unbuffered_query),
@@ -114,6 +115,7 @@ namespace mapnik { namespace vector_tile_impl {
               scale_(scale),
               itr_(0),
               end_(layer_.features_size()),
+              version_(version),
               tr_("utf-8"),
               ctx_(std::make_shared<mapnik::context_type>())
         {
@@ -194,13 +196,18 @@ namespace mapnik { namespace vector_tile_impl {
                             }
                         }
                     }
+                    throw std::runtime_error("Vector Tile contains an invalid or null sized image");
                 }
                 if (f.geometry_size() <= 0)
                 {
+                    if (version_ != 1)
+                    {
+                        throw std::runtime_error("Vector Tile does not have a geometry or raster");
+                    }
                     continue;
                 }
                 mapnik::vector_tile_impl::Geometry<double> geoms(f,tile_x_, tile_y_, scale_, -1*scale_);
-                mapnik::geometry::geometry<double> geom = decode_geometry<double>(geoms, f.type(), filter_.box_);
+                mapnik::geometry::geometry<double> geom = decode_geometry<double>(geoms, f.type(), filter_.box_, version_);
                 if (geom.is<mapnik::geometry::geometry_empty>())
                 {
                     continue;
@@ -231,6 +238,7 @@ namespace mapnik { namespace vector_tile_impl {
         double scale_;
         unsigned itr_;
         unsigned end_;
+        unsigned version_;
         mapnik::transcoder tr_;
         mapnik::context_ptr ctx_;
     };
@@ -249,7 +257,8 @@ namespace mapnik { namespace vector_tile_impl {
           y_(y),
           z_(z),
           tile_size_(tile_size),
-          extent_initialized_(false) {
+          extent_initialized_(false),
+          version_(layer_.version()) {
         double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z_);
         tile_x_ = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x_ * resolution;
         tile_y_ =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y_ * resolution;
@@ -267,7 +276,7 @@ namespace mapnik { namespace vector_tile_impl {
     {
         mapnik::filter_in_box filter(q.get_bbox());
         return std::make_shared<tile_featureset<mapnik::filter_in_box> >
-            (filter, get_tile_extent(), q.get_unbuffered_bbox(), q.property_names(), layer_, tile_x_, tile_y_, scale_);
+            (filter, get_tile_extent(), q.get_unbuffered_bbox(), q.property_names(), layer_, tile_x_, tile_y_, scale_, version_);
     }
 
     featureset_ptr tile_datasource::features_at_point(coord2d const& pt, double tol) const
@@ -279,7 +288,7 @@ namespace mapnik { namespace vector_tile_impl {
             names.insert(layer_.keys(i));
         }
         return std::make_shared<tile_featureset<filter_at_point> >
-            (filter, get_tile_extent(), get_tile_extent(), names, layer_, tile_x_, tile_y_, scale_);
+            (filter, get_tile_extent(), get_tile_extent(), names, layer_, tile_x_, tile_y_, scale_, version_);
     }
 
     void tile_datasource::set_envelope(box2d<double> const& bbox)

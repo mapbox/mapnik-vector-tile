@@ -35,6 +35,26 @@ inline bool encode_geometry(mapnik::geometry::point<std::int64_t> const& pt,
     return true;
 }
 
+template <typename Geometry>
+inline std::size_t repeated_point_count(Geometry const& geom)
+{
+    if (geom.size() < 2)
+    {
+        return 0;
+    }
+    std::size_t count = 0;
+    auto itr = geom.cbegin();
+
+    for (auto prev_itr = itr++; itr != geom.end(); ++prev_itr, ++itr)
+    {
+        if (itr->x == prev_itr->x && itr->y == prev_itr->y)
+        {
+            count++;
+        }
+    }
+    return count;
+}
+
 inline unsigned encode_length(unsigned len)
 {
     return (len << 3u) | 2u;
@@ -46,37 +66,34 @@ inline bool encode_geometry(mapnik::geometry::line_string<std::int64_t> const& l
                         int32_t & start_y)
 {
     std::size_t line_size = line.size();
-    if (line_size <= 0)
+    line_size -= repeated_point_count(line);
+
+    if (line_size < 2)
     {
         return false;
     }
+
     unsigned line_to_length = static_cast<unsigned>(line_size) - 1;
 
-    enum {
-        move_to = 1,
-        line_to = 2,
-        coords = 3
-    } status = move_to;
-
-    for (auto const& pt : line)
+    auto pt = line.begin();
+    current_feature.add_geometry(9); // move_to | (1 << 3)
+    current_feature.add_geometry(protozero::encode_zigzag32(pt->x - start_x));
+    current_feature.add_geometry(protozero::encode_zigzag32(pt->y - start_y));
+    start_x = pt->x;
+    start_y = pt->y;
+    current_feature.add_geometry(encode_length(line_to_length));
+    for (; pt != line.end(); ++pt)
     {
-        if (status == move_to)
+        int32_t dx = pt->x - start_x;
+        int32_t dy = pt->y - start_y;
+        if (dx == 0 && dy == 0)
         {
-            status = line_to;
-            current_feature.add_geometry(9); // move_to | (1 << 3)
+            continue;
         }
-        else if (status == line_to)
-        {
-            status = coords;
-            current_feature.add_geometry(encode_length(line_to_length));
-        }
-        int32_t dx = pt.x - start_x;
-        int32_t dy = pt.y - start_y;
-        // Manual zigzag encoding.
         current_feature.add_geometry(protozero::encode_zigzag32(dx));
         current_feature.add_geometry(protozero::encode_zigzag32(dy));
-        start_x = pt.x;
-        start_y = pt.y;
+        start_x = pt->x;
+        start_y = pt->y;
     }
     return true;
 }
@@ -87,52 +104,42 @@ inline bool encode_geometry(mapnik::geometry::linear_ring<std::int64_t> const& r
                         int32_t & start_y)
 {
     std::size_t ring_size = ring.size();
+    ring_size -= repeated_point_count(ring);
     if (ring_size < 3)
     {
         return false;
     }
-    unsigned line_to_length = static_cast<unsigned>(ring_size) - 1;
-    unsigned count = 0;
-    enum {
-        move_to = 1,
-        line_to = 2,
-        coords = 3
-    } status = move_to;
-    bool drop_last = false;
-    if (ring.size() > 2 && ring.front() == ring.back())
+    auto last_itr = ring.end();
+    if (ring.front() == ring.back())
     {
-        drop_last = true;
-        line_to_length -= 1;
-        if (line_to_length < 2)
+        --last_itr;
+        --ring_size;
+        if (ring_size < 3)
         {
             return false;
         }
     }
 
-    for (auto const& pt : ring)
+    unsigned line_to_length = static_cast<unsigned>(ring_size) - 1;
+    auto pt = ring.begin();
+    current_feature.add_geometry(9); // move_to | (1 << 3)
+    current_feature.add_geometry(protozero::encode_zigzag32(pt->x - start_x));
+    current_feature.add_geometry(protozero::encode_zigzag32(pt->y - start_y));
+    start_x = pt->x;
+    start_y = pt->y;
+    current_feature.add_geometry(encode_length(line_to_length));
+    for (; pt != last_itr; ++pt)
     {
-        if (status == move_to)
-        {
-            status = line_to;
-            current_feature.add_geometry(9); // move_to | (1 << 3)
-        }
-        else if (status == line_to)
-        {
-            status = coords;
-            current_feature.add_geometry(encode_length(line_to_length));
-        }
-        else if (drop_last && count == line_to_length + 1)
+        int32_t dx = pt->x - start_x;
+        int32_t dy = pt->y - start_y;
+        if (dx == 0 && dy == 0)
         {
             continue;
         }
-        int32_t dx = pt.x - start_x;
-        int32_t dy = pt.y - start_y;
-        // Manual zigzag encoding.
         current_feature.add_geometry(protozero::encode_zigzag32(dx));
         current_feature.add_geometry(protozero::encode_zigzag32(dy));
-        start_x = pt.x;
-        start_y = pt.y;
-        ++count;
+        start_x = pt->x;
+        start_y = pt->y;
     }
     current_feature.add_geometry(15); // close_path
     return true;

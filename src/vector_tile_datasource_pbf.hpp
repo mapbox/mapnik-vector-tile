@@ -43,6 +43,7 @@ namespace mapnik { namespace vector_tile_impl {
         double tile_y_;
         double scale_;
         uint32_t layer_extent_;
+        uint32_t version_;
 
         std::string name_;
         std::vector<protozero::pbf_reader> features_;

@@ -41,6 +41,7 @@ namespace mapnik { namespace vector_tile_impl {
         double tile_x_;
         double tile_y_;
         double scale_;
+        unsigned version_;
     };
 
 }} // end ns

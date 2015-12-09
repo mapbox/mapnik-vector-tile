@@ -47,11 +47,11 @@ TEST_CASE( "vector tile rasterize", "should try to decode windfail tile" ) {
         mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
         tile_type tile2;
         CHECK(tile2.ParseFromString(uncompressed));
-        std::string key("");
-        CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
-        CHECK("" == key);
-        CHECK(false == mapnik::vector_tile_impl::is_solid_extent(uncompressed,key));
-        CHECK("" == key);
+        //std::string key("");
+        //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
+        //CHECK("" == key);
+        //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(uncompressed,key));
+        //CHECK("" == key);
 
         CHECK(1 == tile2.layers_size());
         vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
@@ -131,11 +131,11 @@ TEST_CASE( "vector tile rasterize", "should try to decode windfail tile" ) {
         mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
         tile_type tile2;
         CHECK(tile2.ParseFromString(buffer2));
-        std::string key("");
-        CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
-        CHECK("" == key);
-        CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer2,key));
-        CHECK("" == key);
+        //std::string key("");
+        //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
+        //CHECK("" == key);
+        //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer2,key));
+        //CHECK("" == key);
 
         CHECK(1 == tile2.layers_size());
         vector_tile::Tile_Layer const& layer2 = tile2.layers(0);

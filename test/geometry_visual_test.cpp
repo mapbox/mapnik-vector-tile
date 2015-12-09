@@ -73,7 +73,7 @@ void clip_geometry(std::string const& file,
         {
             vector_tile::Tile_Feature const& f = layer.features(0);
             mapnik::vector_tile_impl::Geometry<double> geoms(f,0.0,0.0,32.0,32.0);
-            mapnik::geometry::geometry<double> geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms,f.type());
+            mapnik::geometry::geometry<double> geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms,f.type(), 2);
             mapnik::geometry::scale_strategy ss(1.0/32.0);
             mapnik::view_transform vt(256, 256, bbox);
             mapnik::unview_strategy uvs(vt);

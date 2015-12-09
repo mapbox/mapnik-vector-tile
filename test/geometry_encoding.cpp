@@ -9,21 +9,45 @@
 
 //#include <mapnik/geometry_unique.hpp>
 
-/*
+//
+// This is a series of test that use low level encoding and decoding that skips clipping
+// and reprojection
+//
 
-low level encoding and decoding that skips clipping
+//
+// Point Type Tests
+//
 
-*/
-
-TEST_CASE( "point", "should round trip without changes" ) {
+TEST_CASE("point_round_trip") 
+{
     mapnik::geometry::point<std::int64_t> g(0,0);
     std::string expected(
     "move_to(0,0)\n"
     );
-    CHECK(compare(g) == expected);
+
+    SECTION("libprotobuf decoder VT Spec v1") 
+    {
+        CHECK(compare(g,1) == expected);
+    }
+
+    SECTION("libprotobuf decoder VT Spec v2") 
+    {
+        CHECK(compare(g,2) == expected);
+    }
+    
+    SECTION("protozero decoder VT Spec v1") 
+    {
+        CHECK(compare_pbf(g,1) == expected);
+    }
+
+    SECTION("protozero decoder VT Spec v2") 
+    {
+        CHECK(compare_pbf(g,2) == expected);
+    }
 }
 
-TEST_CASE( "multi_point", "should round trip without changes" ) {
+TEST_CASE( "multi_point_round_trip" ) 
+{
     mapnik::geometry::multi_point<std::int64_t> g;
     g.add_coord(0,0);
     g.add_coord(1,1);
@@ -33,10 +57,191 @@ TEST_CASE( "multi_point", "should round trip without changes" ) {
     "move_to(1,1)\n"
     "move_to(2,2)\n"
     );
-    CHECK(compare(g) == expected);
+    
+    SECTION("libprotobuf decoder VT Spec v1") 
+    {
+        CHECK(compare(g,1) == expected);
+    }
+
+    SECTION("libprotobuf decoder VT Spec v2") 
+    {
+        CHECK(compare(g,2) == expected);
+    }
+    
+    SECTION("protozero decoder VT Spec v1") 
+    {
+        CHECK(compare_pbf(g,1) == expected);
+    }
+
+    SECTION("protozero decoder VT Spec v2") 
+    {
+        CHECK(compare_pbf(g,2) == expected);
+    }
 }
 
-TEST_CASE( "line_string", "should round trip without changes" ) {
+TEST_CASE("degenerate point with close command" )
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_POINT);
+    
+    // MoveTo(1,1)
+    feature.add_geometry(9); // move_to | (1 << 3)
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // Close Path
+    feature.add_geometry(15); // close_path
+
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    
+        SECTION("VT Spec v1") 
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+        }
+
+        SECTION("VT Spec v2") 
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+        }
+    }
+
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+        
+        SECTION("VT Spec v1") 
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+        }
+
+        SECTION("VT Spec v2") 
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+        }
+    }
+}
+
+TEST_CASE( "degenerate point with lineto command" )
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_POINT);
+    // MoveTo(1,1)
+    feature.add_geometry(9); // move_to | (1 << 3)
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // LineTo(1,1)
+    feature.add_geometry((1 << 3u) | 2u);
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+        
+        SECTION("VT Spec v1") 
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+        }
+
+        SECTION("VT Spec v2") 
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+        }
+    }
+
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+        
+        SECTION("VT Spec v1") 
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+        }
+
+        SECTION("VT Spec v2") 
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+        }
+    }
+}
+
+TEST_CASE( "multipoint with three movetos with command count 1" )
+{
+    // While this is not the proper way to encode two movetwos we want to make sure
+    // that it still works properly in the decoder.
+    vector_tile::Tile_Feature feature;
+    //feature.set_type(vector_tile::Tile_GeomType_POINT);
+    // MoveTo(1,1)
+    feature.add_geometry(9); // move_to | (1 << 3)
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // MoveTo(2,2)
+    feature.add_geometry(9); // move_to | (1 << 3)
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // MoveTo(3,3)
+    feature.add_geometry(9); // move_to | (1 << 3)
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    REQUIRE(feature.geometry_size() == 9);
+
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+        
+        SECTION("VT Spec v1") 
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
+            CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
+        }
+
+        SECTION("VT Spec v2") 
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
+            CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
+        }
+    }
+
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+
+        SECTION("VT Spec v2") 
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
+            CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
+        }
+
+        SECTION("VT Spec v1") 
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
+            CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
+        }
+    }
+}
+
+//
+// Linestring Type Tests
+//
+
+TEST_CASE( "line_string_round_trip", "should round trip without changes" )
+{
     mapnik::geometry::line_string<std::int64_t> g;
     g.add_coord(0,0);
     g.add_coord(1,1);
@@ -46,10 +251,30 @@ TEST_CASE( "line_string", "should round trip without changes" ) {
     "line_to(1,1)\n"
     "line_to(100,100)\n"
     );
-    CHECK(compare(g) == expected);
+
+    SECTION("libprotobuf decoder VT Spec v1") 
+    {
+        CHECK(compare(g,1) == expected);
+    }
+
+    SECTION("libprotobuf decoder VT Spec v2") 
+    {
+        CHECK(compare(g,2) == expected);
+    }
+    
+    SECTION("protozero decoder VT Spec v1") 
+    {
+        CHECK(compare_pbf(g,1) == expected);
+    }
+
+    SECTION("protozero decoder VT Spec v2") 
+    {
+        CHECK(compare_pbf(g,2) == expected);
+    }
 }
 
-TEST_CASE( "multi_line_string", "should round trip without changes" ) {
+TEST_CASE( "multi_line_string", "should round trip without changes" )
+{
     mapnik::geometry::multi_line_string<std::int64_t> g;
     {
         mapnik::geometry::line_string<std::int64_t> line;
@@ -73,27 +298,194 @@ TEST_CASE( "multi_line_string", "should round trip without changes" ) {
     "line_to(-20,-20)\n"
     "line_to(-100,-100)\n"
     );
-    CHECK(compare(g) == expected);
+
+    SECTION("libprotobuf decoder VT Spec v1") 
+    {
+        CHECK(compare(g,1) == expected);
+    }
+
+    SECTION("libprotobuf decoder VT Spec v2") 
+    {
+        CHECK(compare(g,2) == expected);
+    }
+    
+    SECTION("protozero decoder VT Spec v1") 
+    {
+        CHECK(compare_pbf(g,1) == expected);
+    }
+
+    SECTION("protozero decoder VT Spec v2") 
+    {
+        CHECK(compare_pbf(g,2) == expected);
+    }
 }
 
-/*TEST_CASE( "degenerate line_string", "should be culled" ) {
+TEST_CASE( "encode degenerate line_string")
+{
     mapnik::geometry::line_string<std::int64_t> line;
     line.add_coord(10,10);
-
-    std::string wkt0;
-    CHECK( mapnik::util::to_wkt(wkt0,line) );
-    // wkt writer copes with busted line_string
-    std::string expected_wkt0("LINESTRING(10 10)");
-    CHECK( wkt0 == expected_wkt0);
-
+    
+    // since the line is degenerate the whole line should be culled during encoding
     vector_tile::Tile_Feature feature = geometry_to_feature(line);
-    CHECK( feature.geometry_size() == 0 );
-    auto geom = mapnik::vector_tile_impl::decode_geometry<double>(feature,0.0,0.0,1.0,1.0);
-    CHECK( geom.is<mapnik::geometry::geometry_empty>() );
-}*/
+    CHECK( feature.geometry_size() == 0);
+}
 
-/*
-TEST_CASE( "multi_line_string with degenerate first part", "should be culled" ) {
+TEST_CASE( "degenerate line_string only moveto")
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
+    // MoveTo(1,1)
+    feature.add_geometry(9); // move_to | (1 << 3)
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+        
+        SECTION("VT Spec v1") 
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
+        }
+
+        SECTION("VT Spec v2") 
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2));
+        }
+    }
+
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+
+        SECTION("VT Spec v1") 
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
+        }
+
+        SECTION("VT Spec v2") 
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2));
+        }
+    }
+}
+
+TEST_CASE( "degenerate line_string lineto(0,0)")
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
+    // MoveTo(1,1)
+    feature.add_geometry(9); // move_to | (1 << 3)
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // LineTo(1,1)
+    feature.add_geometry((1 << 3u) | 2u);
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+        
+        SECTION("VT Spec v1") 
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
+        }
+
+        SECTION("VT Spec v2") 
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2));
+        }
+    }
+
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+
+        SECTION("VT Spec v1") 
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
+        }
+
+        SECTION("VT Spec v2") 
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2));
+        }
+    }
+}
+
+TEST_CASE( "decoder line_string with lineto(0,0) removed")
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
+    // MoveTo(1,1)
+    feature.add_geometry(9); // move_to | (1 << 3)
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // LineTo(2,2),LineTo(2,2)
+    feature.add_geometry((2 << 3u) | 2u);
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+        
+        SECTION("VT Spec v1") 
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "LINESTRING(1 1,2 2)");
+            CHECK( geom.is<mapnik::geometry::line_string<double> >() );
+        }
+
+        SECTION("VT Spec v2")
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "LINESTRING(1 1,2 2)");
+            CHECK( geom.is<mapnik::geometry::line_string<double> >() );
+        }
+    }
+
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+        
+        SECTION("VT Spec v1") 
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "LINESTRING(1 1,2 2)");
+            CHECK( geom.is<mapnik::geometry::line_string<double> >() );
+        }
+
+        SECTION("VT Spec v2")
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "LINESTRING(1 1,2 2)");
+            CHECK( geom.is<mapnik::geometry::line_string<double> >() );
+        }
+    }
+}
+
+
+TEST_CASE( "round trip multi_line_string with degenerate first part" ) 
+{
     mapnik::geometry::multi_line_string<std::int64_t> g;
     mapnik::geometry::line_string<std::int64_t> l1;
     l1.add_coord(0,0);
@@ -103,23 +495,59 @@ TEST_CASE( "multi_line_string with degenerate first part", "should be culled" ) 
     l2.add_coord(3,3);
     g.push_back(std::move(l2));
 
-    std::string wkt0;
-    CHECK( mapnik::util::to_wkt(wkt0,g) );
-    // wkt writer copes with busted line_string
-    std::string expected_wkt0("MULTILINESTRING((0 0),(2 2,3 3))");
-    CHECK( wkt0 == expected_wkt0);
-
+    // encoder should remove the first multi_line_string
     vector_tile::Tile_Feature feature = geometry_to_feature(g);
-    CHECK( feature.geometry_size() == 6 );
-    auto geom = mapnik::vector_tile_impl::decode_geometry<double>(feature,0.0,0.0,1.0,1.0);
+    
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    
+        SECTION("VT Spec v1") 
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "LINESTRING(2 2,3 3)");
+            CHECK( geom.is<mapnik::geometry::line_string<double> >() );
+        }
 
-    wkt0.clear();
-    CHECK( mapnik::util::to_wkt(wkt0,geom) );
-    CHECK( wkt0 == "LINESTRING(2 2,3 3)");
-    CHECK( geom.is<mapnik::geometry::line_string<std::int64_t> >() );
-}*/
+        SECTION("VT Spec v2")
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "LINESTRING(2 2,3 3)");
+            CHECK( geom.is<mapnik::geometry::line_string<double> >() );
+        }
+    }
+    
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+    
+        SECTION("VT Spec v1") 
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "LINESTRING(2 2,3 3)");
+            CHECK( geom.is<mapnik::geometry::line_string<double> >() );
+        }
 
-/*TEST_CASE( "multi_line_string with degenerate second part", "should be culled" ) {
+        SECTION("VT Spec v2")
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "LINESTRING(2 2,3 3)");
+            CHECK( geom.is<mapnik::geometry::line_string<double> >() );
+        }
+    }
+}
+
+TEST_CASE( "round trip multi_line_string with degenerate second part")
+{
     mapnik::geometry::multi_line_string<std::int64_t> g;
     {
         mapnik::geometry::line_string<std::int64_t> line;
@@ -133,25 +561,119 @@ TEST_CASE( "multi_line_string with degenerate first part", "should be culled" ) 
         line.add_coord(-10,-10);
         g.emplace_back(std::move(line));
     }
-
-    std::string wkt0;
-    CHECK( mapnik::util::to_wkt(wkt0,g) );
-    // wkt writer copes with busted line_string
-    std::string expected_wkt0("MULTILINESTRING((0 0,1 1,100 100),(-10 -10))");
-    CHECK( wkt0 == expected_wkt0);
-
+    // encoder should remove second linestring
     vector_tile::Tile_Feature feature = geometry_to_feature(g);
-    CHECK( feature.type() == vector_tile::Tile_GeomType_LINESTRING );
-    CHECK( feature.geometry_size() == 8 );
-    auto geom = mapnik::vector_tile_impl::decode_geometry<double>(feature,0.0,0.0,1.0,1.0);
+    // Geometry size should be 8
+    // moveto, command, command, lineto, command, command, command, command
+    CHECK(feature.geometry_size() == 8);
+    
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+        
+        SECTION("VT Spec v1") 
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "LINESTRING(0 0,1 1,100 100)");
+            CHECK( geom.is<mapnik::geometry::line_string<double> >() );
+        }
 
-    wkt0.clear();
-    CHECK( mapnik::util::to_wkt(wkt0,geom) );
-    CHECK( wkt0 == "LINESTRING(0 0,1 1,100 100)");
-    CHECK( geom.is<mapnik::geometry::line_string<std::int64_t> >() );
+        SECTION("VT Spec v2")
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "LINESTRING(0 0,1 1,100 100)");
+            CHECK( geom.is<mapnik::geometry::line_string<double> >() );
+        }
+    }
+    
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+    
+        SECTION("VT Spec v1") 
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "LINESTRING(0 0,1 1,100 100)");
+            CHECK( geom.is<mapnik::geometry::line_string<double> >() );
+        }
+
+        SECTION("VT Spec v2")
+        {
+            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            std::string wkt0;
+            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( wkt0 == "LINESTRING(0 0,1 1,100 100)");
+            CHECK( geom.is<mapnik::geometry::line_string<double> >() );
+        }
+    }
 }
-*/
-TEST_CASE( "polygon", "should round trip without changes" ) {
+
+TEST_CASE( "degenerate linestring with close command", "should throw" )
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
+    // MoveTo(1,1)
+    feature.add_geometry(9); // move_to | (1 << 3)
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // LineTo(2,2)
+    feature.add_geometry((1 << 3u) | 2u);
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // Close Path
+    feature.add_geometry(15); // close_path
+    
+    mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+    }
+
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+    }
+}
+
+TEST_CASE( "degenerate linestring with moveto command count greater then 1", "should throw" )
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
+    // MoveTo(1,1)
+    feature.add_geometry((2 << 3u) | 1u); // command count 2
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // MoveTo(2,2)
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    
+    mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+    }
+
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+    }
+}
+
+//
+// Polygon Type Tests
+//
+
+TEST_CASE( "polygon", "should round trip without changes" ) 
+{
     mapnik::geometry::polygon<std::int64_t> g;
     g.exterior_ring.add_coord(0,0);
     g.exterior_ring.add_coord(1,1);
@@ -163,34 +685,50 @@ TEST_CASE( "polygon", "should round trip without changes" ) {
     "line_to(100,100)\n"
     "close_path(0,0)\n"
     );
-    CHECK(compare(g) == expected);
+
+    SECTION("VT Spec v1")
+    {
+        CHECK(compare(g,1) == expected);
+    }
+
+    SECTION("VT Spec v2")
+    {
+        CHECK(compare(g,2) == expected);
+    }
 }
 
-TEST_CASE( "polygon with degenerate exterior ring ", "should be culled" ) {
+TEST_CASE( "round trip polygon with degenerate exterior ring" )
+{
     mapnik::geometry::polygon<std::int64_t> p0;
     // invalid exterior ring
     p0.exterior_ring.add_coord(0,0);
     p0.exterior_ring.add_coord(0,10);
 
-    std::string wkt0;
-    CHECK( mapnik::util::to_wkt(wkt0,mapnik::geometry::geometry<std::int64_t>(p0)) );
-    // wkt writer copes with busted polygon
-    std::string expected_wkt0("POLYGON((0 0,0 10))");
-    CHECK( wkt0 == expected_wkt0);
-
+    // since first ring is degenerate the whole polygon should be culled in
+    // the encoder.
     vector_tile::Tile_Feature feature = geometry_to_feature(p0);
-    // since first ring is degenerate the whole polygon should be culled
     mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type());
-    CHECK( p1.is<mapnik::geometry::geometry_empty>() );
+    
+    SECTION("VT Spec v1")
+    {
+        auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 1);
+        CHECK( p1.is<mapnik::geometry::geometry_empty>() );
+    }
+    
+    SECTION("VT Spec v2")
+    {
+        auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 2);
+        CHECK( p1.is<mapnik::geometry::geometry_empty>() );
+    }
 }
 
-/*TEST_CASE( "polygon with degenerate exterior ring will drop valid interior ring", "should be culled" ) {
+TEST_CASE( "round trip polygon with degenerate exterior ring and interior ring" )
+{
     mapnik::geometry::polygon<std::int64_t> p0;
     // invalid exterior ring
     p0.exterior_ring.add_coord(0,0);
     p0.exterior_ring.add_coord(0,10);
-    // valid interior ring
+    // invalid interior ring -- is counter clockwise
     mapnik::geometry::linear_ring<std::int64_t> hole;
     hole.add_coord(-7,7);
     hole.add_coord(-3,7);
@@ -199,20 +737,26 @@ TEST_CASE( "polygon with degenerate exterior ring ", "should be culled" ) {
     hole.add_coord(-7,7);
     p0.add_hole(std::move(hole));
 
-    std::string wkt0;
-    CHECK( mapnik::util::to_wkt(wkt0,p0) );
-    // wkt writer copes with busted polygon
-    std::string expected_wkt0("POLYGON((0 0,0 10),(-7 7,-3 7,-3 3,-7 3,-7 7))");
-    CHECK( wkt0 == expected_wkt0);
-
+    // encoder should cull the first invalid ring, which triggers
+    // the entire polygon to be culled.
     vector_tile::Tile_Feature feature = geometry_to_feature(p0);
-    // since first ring is degenerate the whole polygon should be culled
-    mapnik::vector_tile_impl::Geometry geoms(feature,0.0,0.0,1.0,1.0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type());
-    CHECK( p1.is<mapnik::geometry::geometry_empty>() );
-}*/
+    mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    
+    SECTION("VT Spec v1")
+    {
+        auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 1);
+        CHECK( p1.is<mapnik::geometry::geometry_empty>() );
+    }
+    
+    SECTION("VT Spec v2")
+    {
+        auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 2);
+        CHECK( p1.is<mapnik::geometry::geometry_empty>() );
+    }
+}
 
-TEST_CASE( "polygon with valid exterior ring but degenerate interior ring", "should be culled" ) {
+TEST_CASE( "round trip polygon with valid exterior ring but degenerate interior ring")
+{
     mapnik::geometry::polygon<std::int64_t> p0;
     p0.exterior_ring.add_coord(0,0);
     p0.exterior_ring.add_coord(0,10);
@@ -225,23 +769,31 @@ TEST_CASE( "polygon with valid exterior ring but degenerate interior ring", "sho
     hole.add_coord(-3,7);
     p0.add_hole(std::move(hole));
 
-    std::string wkt0;
-    CHECK( mapnik::util::to_wkt(wkt0,mapnik::geometry::geometry<std::int64_t>(p0)) );
-    // wkt writer copes with busted polygon
-    std::string expected_wkt0("POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7))");
-    CHECK( wkt0 == expected_wkt0);
-
+    // since interior ring is degenerate it should have been culled when encoding occured
     vector_tile::Tile_Feature feature = geometry_to_feature(p0);
     mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type());
-    CHECK( p1.is<mapnik::geometry::polygon<double> >() );
-    auto const& poly = mapnik::util::get<mapnik::geometry::polygon<double> >(p1);
-    // since interior ring is degenerate it should have been culled when decoded
-    auto const& holes = poly.interior_rings;
-    CHECK( holes.empty() == true );
+
+    SECTION("VT Spec v1")
+    {
+        auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 1);
+        CHECK( p1.is<mapnik::geometry::polygon<double> >() );
+        auto const& poly = mapnik::util::get<mapnik::geometry::polygon<double> >(p1);
+        auto const& holes = poly.interior_rings;
+        CHECK( holes.empty() == true );
+    }
+
+    SECTION("VT Spec v2")
+    {
+        auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 2);
+        CHECK( p1.is<mapnik::geometry::polygon<double> >() );
+        auto const& poly = mapnik::util::get<mapnik::geometry::polygon<double> >(p1);
+        auto const& holes = poly.interior_rings;
+        CHECK( holes.empty() == true );
+    }
 }
 
-TEST_CASE( "polygon with valid exterior ring but one degenerate interior ring of two", "should be culled" ) {
+TEST_CASE( "round trip polygon with valid exterior ring but one degenerate interior ring of two" )
+{
     mapnik::geometry::polygon<std::int64_t> p0;
     p0.exterior_ring.add_coord(0,0);
     p0.exterior_ring.add_coord(0,10);
@@ -266,25 +818,30 @@ TEST_CASE( "polygon with valid exterior ring but one degenerate interior ring of
         p0.add_hole(std::move(hole_in_hole));
     }
 
-    std::string wkt0;
-    CHECK( mapnik::util::to_wkt(wkt0,mapnik::geometry::geometry<std::int64_t>(p0)) );
-    // wkt writer copes with busted polygon
-    std::string expected_wkt0("POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7),(-6 4,-6 6,-4 6,-4 4,-6 4))");
-    CHECK( wkt0 == expected_wkt0);
-
+    // since first interior ring is degenerate it should have been culled when encoding occurs
     vector_tile::Tile_Feature feature = geometry_to_feature(p0);
     mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type());
-    CHECK( p1.is<mapnik::geometry::polygon<double> >() );
-    auto const& poly = mapnik::util::get<mapnik::geometry::polygon<double> >(p1);
-    // since first interior ring is degenerate it should have been culled when decoded
-    auto const& holes = poly.interior_rings;
-    // the second one is kept: somewhat dubious since it is actually a hole in a hole
-    // but this is probably the best we can do
-    CHECK( holes.size() == 1 );
+    
+    SECTION("VT Spec v1")
+    {
+        auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 1);
+        CHECK( p1.is<mapnik::geometry::polygon<double> >() );
+        auto const& poly = mapnik::util::get<mapnik::geometry::polygon<double> >(p1);
+        auto const& holes = poly.interior_rings;
+        CHECK( holes.size() == 1 );
+    }
+    
+    SECTION("VT Spec v2")
+    {
+        auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 2);
+        CHECK( p1.is<mapnik::geometry::polygon<double> >() );
+        auto const& poly = mapnik::util::get<mapnik::geometry::polygon<double> >(p1);
+        auto const& holes = poly.interior_rings;
+        CHECK( holes.size() == 1 );
+    }
 }
 
-TEST_CASE( "Polygon with de-generate ring(s)", "should skip invalid ring(s)" )
+TEST_CASE( "round trip polygon with degenerate exterior ring, full of repeated points" )
 {
     // create invalid (exterior) polygon
     mapnik::geometry::polygon<std::int64_t> p0;
@@ -300,23 +857,27 @@ TEST_CASE( "Polygon with de-generate ring(s)", "should skip invalid ring(s)" )
     hole.add_coord(-7,7);
     p0.add_hole(std::move(hole));
 
-    std::string wkt0;
-    CHECK( mapnik::util::to_wkt(wkt0,mapnik::geometry::geometry<std::int64_t>(p0) ) );
-    std::string expected_wkt0("POLYGON((10 10,10 10,10 10,10 10),(-7 7,-3 7,-3 3,-7 3,-7 7))");
-    std::string expected_wkt1("POLYGON((-7 7,-7 3,-3 3,-3 7,-7 7))");
-    CHECK( wkt0 == expected_wkt0);
-
+    // The encoder should remove repeated points, so the entire polygon should be
+    // thrown out
     vector_tile::Tile_Feature feature = geometry_to_feature(p0);
     mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type());
-    CHECK( p1.is<mapnik::geometry::polygon<double> >() );
-    wkt0.clear();
-    CHECK( mapnik::util::to_wkt(wkt0,p1) );
-    CHECK( wkt0 == expected_wkt1);
+
+    SECTION("VT Spec v1")
+    {
+        auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 1);
+        CHECK( p1.is<mapnik::geometry::geometry_empty>() );
+    }
+    
+    SECTION("VT Spec v2")
+    {
+        auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 2);
+        CHECK( p1.is<mapnik::geometry::geometry_empty>() );
+    }
 }
 
 
-TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
+TEST_CASE( "round trip multipolygon with hole" )
+{
     // NOTE: this polygon should have correct winding order:
     // CCW for exterior, CW for interior
     mapnik::geometry::polygon<std::int64_t> p0;
@@ -334,28 +895,29 @@ TEST_CASE( "(multi)polygon with hole", "should round trip without changes" ) {
     p0.add_hole(std::move(hole));
 
     mapnik::box2d<double> extent = mapnik::geometry::envelope(p0);
-
-    std::string wkt0;
-    CHECK( mapnik::util::to_wkt(wkt0,mapnik::geometry::geometry<std::int64_t>(p0) ) );
     std::string expected_wkt0("POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
-    CHECK( wkt0 == expected_wkt0);
-    // ensure correcting geometry has no effect
-    // as a way of confirming the original was correct
-    mapnik::geometry::correct(p0);
-    wkt0.clear();
-    CHECK( mapnik::util::to_wkt(wkt0,mapnik::geometry::geometry<std::int64_t>(p0)) );
-    CHECK( wkt0 == expected_wkt0);
+    std::string wkt0;
 
     vector_tile::Tile_Feature feature = geometry_to_feature(p0);
     mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type());
-    CHECK( p1.is<mapnik::geometry::polygon<double> >() );
-    CHECK( extent == mapnik::geometry::envelope(p1) );
+    
+    SECTION("VT Spec v1")
+    {
+        auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 1);
+        CHECK( p1.is<mapnik::geometry::polygon<double> >() );
+        CHECK( extent == mapnik::geometry::envelope(p1) );
+        CHECK( mapnik::util::to_wkt(wkt0,p1) );
+        CHECK( wkt0 == expected_wkt0);
+    }
 
-    wkt0.clear();
-    CHECK( mapnik::util::to_wkt(wkt0,p1) );
-    CHECK( wkt0 == expected_wkt0);
-
+    SECTION("VT Spec v2")
+    {
+        auto p1 = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 2);
+        CHECK( p1.is<mapnik::geometry::polygon<double> >() );
+        CHECK( extent == mapnik::geometry::envelope(p1) );
+        CHECK( mapnik::util::to_wkt(wkt0,p1) );
+        CHECK( wkt0 == expected_wkt0);
+    }
 }
 
 // We no longer drop coincidental points in the encoder it should be
@@ -389,7 +951,7 @@ TEST_CASE( "test 2b", "should drop vertices" ) {
     );
     CHECK(compare(g) == expected);
 }*/
-
+/*
 TEST_CASE( "test 3", "should not drop first move_to or last vertex in line" ) {
     mapnik::geometry::multi_line_string<std::int64_t> g;
     mapnik::geometry::line_string<std::int64_t> l1;
@@ -409,7 +971,7 @@ TEST_CASE( "test 3", "should not drop first move_to or last vertex in line" ) {
     );
     CHECK(compare(g) == expected);
 }
-
+*/
 /*
 
 TEST_CASE( "test 4", "should not drop first move_to or last vertex in polygon" ) {
