@@ -8,14 +8,18 @@
 #include "vector_tile.pb.h"
 #pragma GCC diagnostic pop
 
+// mapnik
 #include <mapnik/geometry.hpp>
+
+// mapnik-vector-tile
 #include "vector_tile_config.hpp"
+
+// protozero
 #include <protozero/varint.hpp>
 
+// std
 #include <cstdlib>
 #include <cmath>
-#include <sstream>
-#include <iostream>
 
 namespace mapnik { namespace vector_tile_impl {
 

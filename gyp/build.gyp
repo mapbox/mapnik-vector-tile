@@ -141,7 +141,9 @@
       ],
       "include_dirs": [
         "../src",
-        '../deps/protozero/include'
+        '../deps/protozero/include',
+        '../test',
+        '../test/utils'
       ]
     },
     {

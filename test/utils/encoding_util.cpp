@@ -1,10 +1,16 @@
+// mapnik vector tile
+#include "vector_tile_geometry_decoder.hpp"
+#include "vector_tile_geometry_encoder.hpp"
+
+// mapnik
 #include <mapnik/vertex.hpp>
 #include <mapnik/geometry.hpp>
 #include <mapnik/geometry_adapters.hpp>
 #include <mapnik/vertex_processor.hpp>
-#include "vector_tile_geometry_decoder.hpp"
-#include "vector_tile_geometry_encoder.hpp"
+
+// test utils
 #include "encoding_util.hpp"
+#include "decoding_util.hpp"
 
 using namespace mapnik::geometry;
 
@@ -116,13 +122,3 @@ std::string compare_pbf(mapnik::geometry::geometry<std::int64_t> const& g, unsig
     auto g2 = mapnik::vector_tile_impl::decode_geometry<double>(geoms,feature.type(),version);
     return decode_to_path_string(g2);
 }
-
-template <typename T>
-mapnik::vector_tile_impl::GeometryPBF<T> feature_to_pbf_geometry(std::string const& feature_string)
-{
-    protozero::pbf_reader feature_pbf(feature_string);
-    feature_pbf.next(4);
-    return mapnik::vector_tile_impl::GeometryPBF<T>(feature_pbf.get_packed_uint32(),0.0,0.0,1.0,1.0);
-}
-
-template mapnik::vector_tile_impl::GeometryPBF<double> feature_to_pbf_geometry<double>(std::string const& feature_string);

@@ -9,6 +9,8 @@
 
 #include <protozero/pbf_reader.hpp>
 
+#include <mapnik/box2d.hpp>
+#include <mapnik/geometry.hpp>
 #include <mapnik/util/is_clockwise.hpp>
 
 //std
@@ -152,10 +154,8 @@ typename Geometry<ValueType>::command Geometry<ValueType>::point_next(ValueType 
     }
 
     --length;
-    int32_t dx = f_.geometry(k++);
-    int32_t dy = f_.geometry(k++);
-    dx = ((dx >> 1) ^ (-(dx & 1)));
-    dy = ((dy >> 1) ^ (-(dy & 1)));
+    int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
+    int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
     x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
     y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
     rx = x;
@@ -181,10 +181,8 @@ typename Geometry<ValueType>::command Geometry<ValueType>::line_next(ValueType &
                     throw std::runtime_error("Vector Tile has LINESTRING with a MOVETO command that is given more then one pair of parameters or not enough parameters are provided");
                 }
                 --length;
-                int32_t dx = f_.geometry(k++);
-                int32_t dy = f_.geometry(k++);
-                dx = ((dx >> 1) ^ (-(dx & 1)));
-                dy = ((dy >> 1) ^ (-(dy & 1)));
+                int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
+                int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
                 x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
                 y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
                 rx = x;
@@ -217,10 +215,8 @@ typename Geometry<ValueType>::command Geometry<ValueType>::line_next(ValueType &
     }
 
     --length;
-    int32_t dx = f_.geometry(k++);
-    int32_t dy = f_.geometry(k++);
-    dx = ((dx >> 1) ^ (-(dx & 1)));
-    dy = ((dy >> 1) ^ (-(dy & 1)));
+    int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
+    int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
     if (dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call line_next again
@@ -251,10 +247,8 @@ typename Geometry<ValueType>::command Geometry<ValueType>::ring_next(ValueType &
                     throw std::runtime_error("Vector Tile has POLYGON with a MOVETO command that is given more then one pair of parameters or not enough parameters are provided");
                 }
                 --length;
-                int32_t dx = f_.geometry(k++);
-                int32_t dy = f_.geometry(k++);
-                dx = ((dx >> 1) ^ (-(dx & 1)));
-                dy = ((dy >> 1) ^ (-(dy & 1)));
+                int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
+                int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
                 x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
                 y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
                 rx = x;
@@ -292,10 +286,8 @@ typename Geometry<ValueType>::command Geometry<ValueType>::ring_next(ValueType &
     }
 
     --length;
-    int32_t dx = f_.geometry(k++);
-    int32_t dy = f_.geometry(k++);
-    dx = ((dx >> 1) ^ (-(dx & 1)));
-    dy = ((dy >> 1) ^ (-(dy & 1)));
+    int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
+    int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
     if (dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call ring_next again
@@ -365,10 +357,8 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::point_next(Valu
     // If an exception occurs it will likely be a end_of_buffer_exception with the text:
     // "end of buffer exception"
     // While this error message is not verbose a try catch here would slow down processing.
-    int32_t dx = *geo_iterator_.first++;
-    int32_t dy = *geo_iterator_.first++;
-    dx = ((dx >> 1) ^ (-(dx & 1)));
-    dy = ((dy >> 1) ^ (-(dy & 1)));
+    int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
+    int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
     x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
     y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
     rx = x;
@@ -398,10 +388,8 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::line_next(Value
                 // If an exception occurs it will likely be a end_of_buffer_exception with the text:
                 // "end of buffer exception"
                 // While this error message is not verbose a try catch here would slow down processing.
-                int32_t dx = *geo_iterator_.first++;
-                int32_t dy = *geo_iterator_.first++;
-                dx = ((dx >> 1) ^ (-(dx & 1)));
-                dy = ((dy >> 1) ^ (-(dy & 1)));
+                int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
+                int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
                 x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
                 y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
                 rx = x;
@@ -439,10 +427,8 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::line_next(Value
     // If an exception occurs it will likely be a end_of_buffer_exception with the text:
     // "end of buffer exception"
     // While this error message is not verbose a try catch here would slow down processing.
-    int32_t dx = *geo_iterator_.first++;
-    int32_t dy = *geo_iterator_.first++;
-    dx = ((dx >> 1) ^ (-(dx & 1)));
-    dy = ((dy >> 1) ^ (-(dy & 1)));
+    int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
+    int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
     if (dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call line_next again
@@ -477,10 +463,8 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::ring_next(Value
                 // If an exception occurs it will likely be a end_of_buffer_exception with the text:
                 // "end of buffer exception"
                 // While this error message is not verbose a try catch here would slow down processing.
-                int32_t dx = *geo_iterator_.first++;
-                int32_t dy = *geo_iterator_.first++;
-                dx = ((dx >> 1) ^ (-(dx & 1)));
-                dy = ((dy >> 1) ^ (-(dy & 1)));
+                int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
+                int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
                 x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
                 y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
                 rx = x;
@@ -523,10 +507,8 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::ring_next(Value
     // If an exception occurs it will likely be a end_of_buffer_exception with the text:
     // "end of buffer exception"
     // While this error message is not verbose a try catch here would slow down processing.
-    int32_t dx = *geo_iterator_.first++;
-    int32_t dy = *geo_iterator_.first++;
-    dx = ((dx >> 1) ^ (-(dx & 1)));
-    dy = ((dy >> 1) ^ (-(dy & 1)));
+    int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
+    int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
     if (dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call ring_next again

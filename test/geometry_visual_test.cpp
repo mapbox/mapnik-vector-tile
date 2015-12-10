@@ -77,9 +77,9 @@ void clip_geometry(std::string const& file,
             mapnik::geometry::scale_strategy ss(1.0/32.0);
             mapnik::view_transform vt(256, 256, bbox);
             mapnik::unview_strategy uvs(vt);
-            using sg_type = strategy_group_first<mapnik::geometry::scale_strategy, mapnik::unview_strategy >;
+            using sg_type = mapnik::geometry::strategy_group_first<mapnik::geometry::scale_strategy, mapnik::unview_strategy >;
             sg_type sg(ss, uvs);
-            mapnik::geometry::geometry<double> geom4326 = transform<double>(geom, sg);
+            mapnik::geometry::geometry<double> geom4326 = mapnik::geometry::transform<double>(geom, sg);
             std::string reason;
             std::string is_valid = "false";
             std::string is_simple = "false";
