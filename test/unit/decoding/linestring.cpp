@@ -17,7 +17,7 @@
 // Unit tests for geometry decoding of linestrings
 //
 
-TEST_CASE( "decode simple linestring" )
+TEST_CASE("decode simple linestring")
 {
     vector_tile::Tile_Feature feature;
     feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
@@ -332,6 +332,190 @@ TEST_CASE("decode degenerate linestring with moveto command count greater then 1
     }
 }
 
+TEST_CASE("decode degenerate linestring with moveto command count of zero")
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
+    // MoveTo(1,1)
+    feature.add_geometry((0 << 3u) | 1u); // command count 0
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // LineTo(3,3)
+    feature.add_geometry((1 << 3u) | 2u);
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    
+        SECTION("VT Spec v1")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+        }
+
+        SECTION("VT Spec v2")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+        }
+    }
+
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+        
+        SECTION("VT Spec v1")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+        }
+
+        SECTION("VT Spec v2")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+        }
+    }
+}
+
+TEST_CASE("decode degenerate linestring with lineto command count of zero")
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
+    // MoveTo(1,1)
+    feature.add_geometry((1 << 3u) | 1u);
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // LineTo command count 0
+    feature.add_geometry((0 << 3u) | 2u);
+    // LineTo(2,2)
+    feature.add_geometry((1 << 3u) | 2u);
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    
+        SECTION("VT Spec v1")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+        }
+
+        SECTION("VT Spec v2")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+        }
+    }
+
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+        
+        SECTION("VT Spec v1")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+        }
+
+        SECTION("VT Spec v2")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+        }
+    }
+}
+
+TEST_CASE("decode degenerate linestring that starts with unknown command")
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
+    feature.add_geometry((1 << 3u) | 5u); // invalid command
+    // MoveTo(1,1)
+    feature.add_geometry((1 << 3u) | 1u);
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // LineTo(2,2)
+    feature.add_geometry((1 << 3u) | 2u);
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    
+        SECTION("VT Spec v1")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+        }
+
+        SECTION("VT Spec v2")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+        }
+    }
+
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+        
+        SECTION("VT Spec v1")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+        }
+
+        SECTION("VT Spec v2")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+        }
+    }
+}
+
+TEST_CASE("decode degenerate linestring that ends with unknown command")
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
+    // MoveTo(1,1)
+    feature.add_geometry((1 << 3u) | 1u);
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // LineTo(2,2)
+    feature.add_geometry((1 << 3u) | 2u);
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry((1 << 3u) | 5u); // invalid command
+    
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    
+        SECTION("VT Spec v1")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+        }
+
+        SECTION("VT Spec v2")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+        }
+    }
+
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+        
+        SECTION("VT Spec v1")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+        }
+
+        SECTION("VT Spec v2")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+        }
+    }
+}
+
 TEST_CASE("decode degenerate linestring that begins with lineto")
 {
     vector_tile::Tile_Feature feature;
@@ -341,7 +525,7 @@ TEST_CASE("decode degenerate linestring that begins with lineto")
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
     // MoveTo(2,2)
-    feature.add_geometry((1 << 3u) | 1u); // command count 2
+    feature.add_geometry((1 << 3u) | 1u); 
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));

@@ -17,7 +17,7 @@
 // Unit tests for geometry decoding of polygons
 //
 
-TEST_CASE( "decode polygon with only one degenerate exterior ring" )
+TEST_CASE("decode polygon with only one degenerate exterior ring")
 {
     vector_tile::Tile_Feature feature;
     feature.set_type(vector_tile::Tile_GeomType_POLYGON);

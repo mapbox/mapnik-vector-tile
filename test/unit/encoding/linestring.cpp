@@ -20,7 +20,7 @@
 // Unit tests for geometry encoding of linestrings
 //
 
-TEST_CASE( "encode simple line_string")
+TEST_CASE("encode simple line_string")
 {
     mapnik::geometry::line_string<std::int64_t> line;
     line.add_coord(10,10);
@@ -32,21 +32,21 @@ TEST_CASE( "encode simple line_string")
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
     // Therefore 2 commands + 6 parameters = 8
-    REQUIRE( feature.geometry_size() == 8);
+    REQUIRE(feature.geometry_size() == 8);
     // MoveTo(10,10)
-    CHECK( feature.geometry(0) == ((1 << 3) | 1u)); // 9
-    CHECK( feature.geometry(1) == 20);
-    CHECK( feature.geometry(2) == 20);
+    CHECK(feature.geometry(0) == ((1 << 3) | 1u)); // 9
+    CHECK(feature.geometry(1) == 20);
+    CHECK(feature.geometry(2) == 20);
     // LineTo(20,20)
-    CHECK( feature.geometry(3) == ((2 << 3) | 2u)); 
-    CHECK( feature.geometry(4) == 20);
-    CHECK( feature.geometry(5) == 20);
+    CHECK(feature.geometry(3) == ((2 << 3) | 2u)); 
+    CHECK(feature.geometry(4) == 20);
+    CHECK(feature.geometry(5) == 20);
     // LineTo(30,30)
-    CHECK( feature.geometry(6) == 20);
-    CHECK( feature.geometry(7) == 20);
+    CHECK(feature.geometry(6) == 20);
+    CHECK(feature.geometry(7) == 20);
 }
 
-TEST_CASE( "encode overlapping line_string")
+TEST_CASE("encode overlapping line_string")
 {
     mapnik::geometry::line_string<std::int64_t> line;
     line.add_coord(10,10);
@@ -58,21 +58,21 @@ TEST_CASE( "encode overlapping line_string")
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
     // Therefore 2 commands + 6 parameters = 8
-    REQUIRE( feature.geometry_size() == 8);
+    REQUIRE(feature.geometry_size() == 8);
     // MoveTo(10,10)
-    CHECK( feature.geometry(0) == ((1 << 3) | 1u)); // 9
-    CHECK( feature.geometry(1) == 20);
-    CHECK( feature.geometry(2) == 20);
+    CHECK(feature.geometry(0) == ((1 << 3) | 1u)); // 9
+    CHECK(feature.geometry(1) == 20);
+    CHECK(feature.geometry(2) == 20);
     // LineTo(20,20)
-    CHECK( feature.geometry(3) == ((2 << 3) | 2u)); 
-    CHECK( feature.geometry(4) == 20);
-    CHECK( feature.geometry(5) == 20);
+    CHECK(feature.geometry(3) == ((2 << 3) | 2u)); 
+    CHECK(feature.geometry(4) == 20);
+    CHECK(feature.geometry(5) == 20);
     // LineTo(10,10)
-    CHECK( feature.geometry(6) == 19);
-    CHECK( feature.geometry(7) == 19);
+    CHECK(feature.geometry(6) == 19);
+    CHECK(feature.geometry(7) == 19);
 }
 
-TEST_CASE( "encode line_string with repeated points")
+TEST_CASE("encode line_string with repeated points")
 {
     mapnik::geometry::line_string<std::int64_t> line;
     line.add_coord(10,10);
@@ -91,31 +91,31 @@ TEST_CASE( "encode line_string with repeated points")
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
     // Therefore 2 commands + 6 parameters = 8
-    REQUIRE( feature.geometry_size() == 8);
+    REQUIRE(feature.geometry_size() == 8);
     // MoveTo(10,10)
-    CHECK( feature.geometry(0) == ((1 << 3) | 1u)); // 9
-    CHECK( feature.geometry(1) == 20);
-    CHECK( feature.geometry(2) == 20);
+    CHECK(feature.geometry(0) == ((1 << 3) | 1u)); // 9
+    CHECK(feature.geometry(1) == 20);
+    CHECK(feature.geometry(2) == 20);
     // LineTo(20,20)
-    CHECK( feature.geometry(3) == ((2 << 3) | 2u)); 
-    CHECK( feature.geometry(4) == 20);
-    CHECK( feature.geometry(5) == 20);
+    CHECK(feature.geometry(3) == ((2 << 3) | 2u)); 
+    CHECK(feature.geometry(4) == 20);
+    CHECK(feature.geometry(5) == 20);
     // LineTo(30,30)
-    CHECK( feature.geometry(6) == 20);
-    CHECK( feature.geometry(7) == 20);
+    CHECK(feature.geometry(6) == 20);
+    CHECK(feature.geometry(7) == 20);
 }
 
-TEST_CASE( "encode degenerate line_string")
+TEST_CASE("encode degenerate line_string")
 {
     mapnik::geometry::line_string<std::int64_t> line;
     line.add_coord(10,10);
     
     // since the line is degenerate the whole line should be culled during encoding
     vector_tile::Tile_Feature feature = geometry_to_feature(line);
-    CHECK( feature.geometry_size() == 0);
+    CHECK(feature.geometry_size() == 0);
 }
 
-TEST_CASE( "encode degenerate line_string all repeated points")
+TEST_CASE("encode degenerate line_string all repeated points")
 {
     mapnik::geometry::line_string<std::int64_t> line;
     line.add_coord(10,10);
@@ -125,10 +125,10 @@ TEST_CASE( "encode degenerate line_string all repeated points")
     
     // since the line is degenerate the whole line should be culled during encoding
     vector_tile::Tile_Feature feature = geometry_to_feature(line);
-    CHECK( feature.geometry_size() == 0);
+    CHECK(feature.geometry_size() == 0);
 }
 
-TEST_CASE( "encode incredibly large segments")
+TEST_CASE("encode incredibly large segments")
 {
     // This is a test case added that is known to completely break the logic
     // within the encoder. 
@@ -142,21 +142,21 @@ TEST_CASE( "encode incredibly large segments")
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
     // Therefore 2 commands + 6 parameters = 8
-    REQUIRE( feature.geometry_size() == 8);
+    REQUIRE(feature.geometry_size() == 8);
     // MoveTo(10,10)
-    CHECK( feature.geometry(0) == ((1 << 3) | 1u)); // 9
-    CHECK( feature.geometry(1) == 0);
-    CHECK( feature.geometry(2) == 0);
+    CHECK(feature.geometry(0) == ((1 << 3) | 1u)); // 9
+    CHECK(feature.geometry(1) == 0);
+    CHECK(feature.geometry(2) == 0);
     // LineTo(0,0)
-    CHECK( feature.geometry(3) == ((2 << 3) | 2u)); 
-    CHECK( feature.geometry(4) == 1);
-    CHECK( feature.geometry(5) == 1);
+    CHECK(feature.geometry(3) == ((2 << 3) | 2u)); 
+    CHECK(feature.geometry(4) == 1);
+    CHECK(feature.geometry(5) == 1);
     // LineTo(1,1)
-    CHECK( feature.geometry(6) == 2);
-    CHECK( feature.geometry(7) == 2);
+    CHECK(feature.geometry(6) == 2);
+    CHECK(feature.geometry(7) == 2);
 }
 
-TEST_CASE( "encode simple multi_line_string" )
+TEST_CASE("encode simple multi_line_string")
 {
     mapnik::geometry::multi_line_string<std::int64_t> g;
     mapnik::geometry::line_string<std::int64_t> l1;
@@ -176,29 +176,29 @@ TEST_CASE( "encode simple multi_line_string" )
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger
     // Therefore 4 commands + 10 parameters = 14
-    REQUIRE( feature.geometry_size() == 14);
+    REQUIRE(feature.geometry_size() == 14);
     // MoveTo(0,0)
-    CHECK( feature.geometry(0) == ((1 << 3) | 1u)); // 9
-    CHECK( feature.geometry(1) == 0);
-    CHECK( feature.geometry(2) == 0);
+    CHECK(feature.geometry(0) == ((1 << 3) | 1u)); // 9
+    CHECK(feature.geometry(1) == 0);
+    CHECK(feature.geometry(2) == 0);
     // LineTo(1,1)
-    CHECK( feature.geometry(3) == ((2 << 3) | 2u)); 
-    CHECK( feature.geometry(4) == 2);
-    CHECK( feature.geometry(5) == 2);
+    CHECK(feature.geometry(3) == ((2 << 3) | 2u)); 
+    CHECK(feature.geometry(4) == 2);
+    CHECK(feature.geometry(5) == 2);
     // LineTo(2,2)
-    CHECK( feature.geometry(6) == 2);
-    CHECK( feature.geometry(7) == 2);
+    CHECK(feature.geometry(6) == 2);
+    CHECK(feature.geometry(7) == 2);
     // MoveTo(5,5)
-    CHECK( feature.geometry(8) == ((1 << 3) | 1u)); // 9
-    CHECK( feature.geometry(9) == 6);
-    CHECK( feature.geometry(10) == 6);
+    CHECK(feature.geometry(8) == ((1 << 3) | 1u)); // 9
+    CHECK(feature.geometry(9) == 6);
+    CHECK(feature.geometry(10) == 6);
     // LineTo(0,0)
-    CHECK( feature.geometry(11) == ((1 << 3) | 2u)); 
-    CHECK( feature.geometry(12) == 9);
-    CHECK( feature.geometry(13) == 9);
+    CHECK(feature.geometry(11) == ((1 << 3) | 2u)); 
+    CHECK(feature.geometry(12) == 9);
+    CHECK(feature.geometry(13) == 9);
 }
 
-TEST_CASE( "encode multi_line_string with repeated points" )
+TEST_CASE("encode multi_line_string with repeated points")
 {
     mapnik::geometry::multi_line_string<std::int64_t> g;
     mapnik::geometry::line_string<std::int64_t> l1;
@@ -229,29 +229,29 @@ TEST_CASE( "encode multi_line_string with repeated points" )
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger
     // Therefore 4 commands + 10 parameters = 14
-    REQUIRE( feature.geometry_size() == 14);
+    REQUIRE(feature.geometry_size() == 14);
     // MoveTo(0,0)
-    CHECK( feature.geometry(0) == ((1 << 3) | 1u)); // 9
-    CHECK( feature.geometry(1) == 0);
-    CHECK( feature.geometry(2) == 0);
+    CHECK(feature.geometry(0) == ((1 << 3) | 1u)); // 9
+    CHECK(feature.geometry(1) == 0);
+    CHECK(feature.geometry(2) == 0);
     // LineTo(1,1)
-    CHECK( feature.geometry(3) == ((2 << 3) | 2u)); 
-    CHECK( feature.geometry(4) == 2);
-    CHECK( feature.geometry(5) == 2);
+    CHECK(feature.geometry(3) == ((2 << 3) | 2u)); 
+    CHECK(feature.geometry(4) == 2);
+    CHECK(feature.geometry(5) == 2);
     // LineTo(2,2)
-    CHECK( feature.geometry(6) == 2);
-    CHECK( feature.geometry(7) == 2);
+    CHECK(feature.geometry(6) == 2);
+    CHECK(feature.geometry(7) == 2);
     // MoveTo(5,5)
-    CHECK( feature.geometry(8) == ((1 << 3) | 1u)); // 9
-    CHECK( feature.geometry(9) == 6);
-    CHECK( feature.geometry(10) == 6);
+    CHECK(feature.geometry(8) == ((1 << 3) | 1u)); // 9
+    CHECK(feature.geometry(9) == 6);
+    CHECK(feature.geometry(10) == 6);
     // LineTo(0,0)
-    CHECK( feature.geometry(11) == ((1 << 3) | 2u)); 
-    CHECK( feature.geometry(12) == 9);
-    CHECK( feature.geometry(13) == 9);
+    CHECK(feature.geometry(11) == ((1 << 3) | 2u)); 
+    CHECK(feature.geometry(12) == 9);
+    CHECK(feature.geometry(13) == 9);
 }
 
-TEST_CASE( "encode multi_line_string with two degenerate linestrings" )
+TEST_CASE("encode multi_line_string with two degenerate linestrings")
 {
     mapnik::geometry::multi_line_string<std::int64_t> g;
     mapnik::geometry::line_string<std::int64_t> l1;
@@ -275,13 +275,13 @@ TEST_CASE( "encode multi_line_string with two degenerate linestrings" )
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger
     // Therefore 2 commands + 4 parameters = 6
-    REQUIRE( feature.geometry_size() == 6);
+    REQUIRE(feature.geometry_size() == 6);
     // MoveTo(5,5)
-    CHECK( feature.geometry(0) == ((1 << 3) | 1u)); // 9
-    CHECK( feature.geometry(1) == 10);
-    CHECK( feature.geometry(2) == 10);
+    CHECK(feature.geometry(0) == ((1 << 3) | 1u)); // 9
+    CHECK(feature.geometry(1) == 10);
+    CHECK(feature.geometry(2) == 10);
     // LineTo(0,0)
-    CHECK( feature.geometry(3) == ((1 << 3) | 2u)); 
-    CHECK( feature.geometry(4) == 9);
-    CHECK( feature.geometry(5) == 9);
+    CHECK(feature.geometry(3) == ((1 << 3) | 2u)); 
+    CHECK(feature.geometry(4) == 9);
+    CHECK(feature.geometry(5) == 9);
 }
