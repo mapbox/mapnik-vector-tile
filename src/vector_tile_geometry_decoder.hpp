@@ -1,27 +1,48 @@
 #ifndef __MAPNIK_VECTOR_TILE_GEOMETRY_DECODER_H__
 #define __MAPNIK_VECTOR_TILE_GEOMETRY_DECODER_H__
 
+//libprotobuf
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include "vector_tile.pb.h"
 #pragma GCC diagnostic pop
 
+//protozero
 #include <protozero/pbf_reader.hpp>
 
+//mapnik
 #include <mapnik/box2d.hpp>
 #include <mapnik/geometry.hpp>
 #include <mapnik/util/is_clockwise.hpp>
-
-//std
-#include <algorithm>
-#include <stdexcept>
-
 #if defined(DEBUG)
 #include <mapnik/debug.hpp>
 #endif
 
-namespace mapnik { namespace vector_tile_impl {
+//std
+#include <algorithm>
+#include <cmath>
+#include <stdexcept>
+
+namespace mapnik 
+{ 
+    
+namespace vector_tile_impl 
+{
+
+template <typename ValueType>
+inline void move_cursor(ValueType & x, ValueType & y, std::int32_t dx, std::int32_t dy, double scale_x_, double scale_y_)
+{
+    x += static_cast<ValueType>(std::round(static_cast<double>(dx) / scale_x_));
+    y += static_cast<ValueType>(std::round(static_cast<double>(dy) / scale_y_));
+}
+
+template <>
+inline void move_cursor<double>(double & x, double & y, std::int32_t dx, std::int32_t dy, double scale_x_, double scale_y_)
+{
+    x += static_cast<double>(dx) / scale_x_;
+    y += static_cast<double>(dy) / scale_y_;
+}
 
 // NOTE: this object is for one-time use.  Once you've progressed to the end
 //       by calling next(), to re-iterate, you must construct a new object
@@ -46,8 +67,8 @@ public:
     }
 
     command point_next(ValueType & rx, ValueType & ry, std::uint32_t & len);
-    command line_next(ValueType & rx, ValueType & ry, std::uint32_t & len);
-    command ring_next(ValueType & rx, ValueType & ry, std::uint32_t & len);
+    command line_next(ValueType & rx, ValueType & ry, std::uint32_t & len, bool skip_lineto_zero);
+    command ring_next(ValueType & rx, ValueType & ry, std::uint32_t & len, bool skip_lineto_zero);
 
 private:
     vector_tile::Tile_Feature const& f_;
@@ -86,8 +107,8 @@ public:
     }
 
     command point_next(ValueType & rx, ValueType & ry, std::uint32_t & len);
-    command line_next(ValueType & rx, ValueType & ry, std::uint32_t & len);
-    command ring_next(ValueType & rx, ValueType & ry, std::uint32_t & len);
+    command line_next(ValueType & rx, ValueType & ry, std::uint32_t & len, bool skip_lineto_zero);
+    command ring_next(ValueType & rx, ValueType & ry, std::uint32_t & len, bool skip_lineto_zero);
 
 private:
     std::pair< protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > geo_iterator_;
@@ -156,15 +177,17 @@ typename Geometry<ValueType>::command Geometry<ValueType>::point_next(ValueType 
     --length;
     int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
     int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
-    x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
-    y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
+    move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
     ry = y;
     return move_to;
 }
 
 template <typename ValueType>
-typename Geometry<ValueType>::command Geometry<ValueType>::line_next(ValueType & rx, ValueType & ry, std::uint32_t & len)
+typename Geometry<ValueType>::command Geometry<ValueType>::line_next(ValueType & rx, 
+                                                                     ValueType & ry, 
+                                                                     std::uint32_t & len, 
+                                                                     bool skip_lineto_zero)
 {
     if (length == 0)
     {
@@ -183,8 +206,7 @@ typename Geometry<ValueType>::command Geometry<ValueType>::line_next(ValueType &
                 --length;
                 int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
                 int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
-                x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
-                y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
+                move_cursor(x, y, dx, dy, scale_x_, scale_y_);
                 rx = x;
                 ry = y;
                 return move_to;
@@ -217,20 +239,22 @@ typename Geometry<ValueType>::command Geometry<ValueType>::line_next(ValueType &
     --length;
     int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
     int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
-    if (dx == 0 && dy == 0)
+    if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call line_next again
-        return line_next(rx,ry,len);
+        return line_next(rx,ry,len, true);
     }
-    x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
-    y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
+    move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
     ry = y;
     return line_to;
 }
 
 template <typename ValueType>
-typename Geometry<ValueType>::command Geometry<ValueType>::ring_next(ValueType & rx, ValueType & ry, std::uint32_t & len)
+typename Geometry<ValueType>::command Geometry<ValueType>::ring_next(ValueType & rx, 
+                                                                     ValueType & ry, 
+                                                                     std::uint32_t & len, 
+                                                                     bool skip_lineto_zero)
 {
     if (length == 0)
     {
@@ -249,8 +273,7 @@ typename Geometry<ValueType>::command Geometry<ValueType>::ring_next(ValueType &
                 --length;
                 int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
                 int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
-                x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
-                y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
+                move_cursor(x, y, dx, dy, scale_x_, scale_y_);
                 rx = x;
                 ry = y;
                 ox = x;
@@ -288,13 +311,12 @@ typename Geometry<ValueType>::command Geometry<ValueType>::ring_next(ValueType &
     --length;
     int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
     int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
-    if (dx == 0 && dy == 0)
+    if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call ring_next again
-        return ring_next(rx,ry,len);
+        return ring_next(rx,ry,len, true);
     }
-    x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
-    y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
+    move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
     ry = y;
     return line_to;
@@ -359,15 +381,17 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::point_next(Valu
     // While this error message is not verbose a try catch here would slow down processing.
     int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
     int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
-    x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
-    y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
+    move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
     ry = y;
     return move_to;
 }
 
 template <typename ValueType>
-typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::line_next(ValueType & rx, ValueType & ry, std::uint32_t & len)
+typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::line_next(ValueType & rx, 
+                                                                           ValueType & ry, 
+                                                                           std::uint32_t & len,
+                                                                           bool skip_lineto_zero)
 {
     if (length == 0)
     {
@@ -390,8 +414,7 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::line_next(Value
                 // While this error message is not verbose a try catch here would slow down processing.
                 int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
                 int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
-                x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
-                y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
+                move_cursor(x, y, dx, dy, scale_x_, scale_y_);
                 rx = x;
                 ry = y;
                 return move_to;
@@ -429,20 +452,22 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::line_next(Value
     // While this error message is not verbose a try catch here would slow down processing.
     int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
     int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
-    if (dx == 0 && dy == 0)
+    if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call line_next again
-        return line_next(rx,ry,len);
+        return line_next(rx,ry,len,true);
     }
-    x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
-    y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
+    move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
     ry = y;
     return line_to;
 }
 
 template <typename ValueType>
-typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::ring_next(ValueType & rx, ValueType & ry, std::uint32_t & len)
+typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::ring_next(ValueType & rx, 
+                                                                           ValueType & ry, 
+                                                                           std::uint32_t & len,
+                                                                           bool skip_lineto_zero)
 {
     if (length == 0)
     {
@@ -465,8 +490,7 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::ring_next(Value
                 // While this error message is not verbose a try catch here would slow down processing.
                 int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
                 int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
-                x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
-                y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
+                move_cursor(x, y, dx, dy, scale_x_, scale_y_);
                 rx = x;
                 ry = y;
                 ox = x;
@@ -509,13 +533,12 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::ring_next(Value
     // While this error message is not verbose a try catch here would slow down processing.
     int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
     int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
-    if (dx == 0 && dy == 0)
+    if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call ring_next again
-        return ring_next(rx,ry,len);
+        return ring_next(rx,ry,len,true);
     }
-    x += static_cast<ValueType>(static_cast<double>(dx) / scale_x_);
-    y += static_cast<ValueType>(static_cast<double>(dy) / scale_y_);
+    move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
     ry = y;
     return line_to;
@@ -587,7 +610,7 @@ void decode_linestring(mapnik::geometry::geometry<ValueType> & geom, T & paths,
     #endif
     
     mapnik::box2d<double> part_env;
-    cmd = paths.line_next(x0, y0, len);
+    cmd = paths.line_next(x0, y0, len, false);
     if (cmd == T::end)
     {
         geom = mapnik::geometry::geometry_empty();
@@ -600,7 +623,7 @@ void decode_linestring(mapnik::geometry::geometry<ValueType> & geom, T & paths,
 
     while (true)
     {
-        cmd = paths.line_next(x1, y1, len);
+        cmd = paths.line_next(x1, y1, len, true);
         if (cmd != T::line_to)
         {
             if (cmd == T::move_to)
@@ -647,7 +670,7 @@ void decode_linestring(mapnik::geometry::geometry<ValueType> & geom, T & paths,
         #if defined(DEBUG)
         previous_len = len;
         #endif
-        while ((cmd = paths.line_next(x1, y1, len)) == T::line_to)
+        while ((cmd = paths.line_next(x1, y1, len, true)) == T::line_to)
         {
             multi_line.back().add_coord(x1,y1);
             part_env.expand_to_include(x1,y1);
@@ -709,7 +732,7 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<ValueType> > & rings,
     #endif
     
     mapnik::box2d<double> part_env;
-    cmd = paths.ring_next(x0, y0, len);
+    cmd = paths.ring_next(x0, y0, len, false);
     if (cmd == T::end)
     {
         return;
@@ -721,14 +744,14 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<ValueType> > & rings,
 
     while (true)
     {
-        cmd = paths.ring_next(x1, y1, len);
+        cmd = paths.ring_next(x1, y1, len, true);
         if (cmd != T::line_to)
         {
             if (cmd == T::close && version == 1)
             {
                 // Version 1 of the specification we were not clear on the command requirements for polygons
                 // lets just to recover from this situation.
-                cmd = paths.ring_next(x0, y0, len);
+                cmd = paths.ring_next(x0, y0, len, false);
                 if (cmd == T::end)
                 {
                     break;
@@ -751,53 +774,38 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<ValueType> > & rings,
                 throw std::runtime_error("Vector Tile has POLYGON type geometry with a MOVETO command with out at least two LINETOs and CLOSE following.");
             }
         }
-        else if (len == 1)
+        #if defined(DEBUG)
+        prev_len = len;
+        #endif
+        cmd = paths.ring_next(x2, y2, len, true);
+        if (cmd != T::line_to)
         {
-            // A valid polygon ring should have at least two lineto
-            // commands -- while the version 2 spec does say the command count
-            // of a lineto command after a moveto command for polygons
-            // we will try to support that situation just in case it occurs
-            cmd = paths.ring_next(x2, y2, len);
-            if (cmd != T::line_to)
+            if (cmd == T::close && version == 1)
             {
-                if (cmd == T::close && version == 1)
+                // Version 1 of the specification we were not clear on the command requirements for polygons
+                // lets just to recover from this situation.
+                cmd = paths.ring_next(x0, y0, len, false);
+                if (cmd == T::end)
                 {
-                    // Version 1 of the specification it was not clear that polygon rings
-                    // should have at least 2 lineto commands, lets ignore the ring but continue.
-                    cmd = paths.ring_next(x0, y0, len);
-                    if (cmd == T::end)
-                    {
-                        break;
-                    }
-                    else if (cmd == T::move_to)
-                    {
-                        continue;
-                    }
-                    else if (cmd == T::close)
-                    {
-                        throw std::runtime_error("Vector Tile has POLYGON type geometry where a CLOSE is followed by a CLOSE.");
-                    }
-                    else // cmd == T::line_to
-                    {
-                        throw std::runtime_error("Vector Tile has POLYGON type geometry where a CLOSE is followed by a LINETO.");
-                    }
+                    break;
                 }
-                else // cmd == end || cmd == move_to
+                else if (cmd == T::move_to)
                 {
-                    throw std::runtime_error("Vector Tile has POLYGON type geometry with a MOVETO command with out at least two LINETOs and CLOSE following.");
+                    continue;
+                }
+                else if (cmd == T::close)
+                {
+                    throw std::runtime_error("Vector Tile has POLYGON type geometry where a CLOSE is followed by a CLOSE.");
+                }
+                else // cmd == T::line_to
+                {
+                    throw std::runtime_error("Vector Tile has POLYGON type geometry where a CLOSE is followed by a LINETO.");
                 }
             }
-            #if defined(DEBUG)
-            if (!already_had_warning)
+            else // cmd == end || cmd == move_to
             {
-                MAPNIK_LOG_ERROR(decode_linestring) << "warning: encountered LINESTRING that might have benefited higher LINETO command count.";
-                already_had_warning = true;
+                throw std::runtime_error("Vector Tile has POLYGON type geometry with a MOVETO command with out at least two LINETOs and CLOSE following.");
             }
-            #endif
-        }
-        else
-        {
-            cmd = paths.ring_next(x2, y2, len);
         }
         // add new ring to start adding to
         rings.emplace_back();
@@ -814,9 +822,14 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<ValueType> > & rings,
         ring.add_coord(x2,y2);
         part_env.expand_to_include(x2,y2);
         #if defined(DEBUG)
+        if (previous_len <= len && !already_had_warning)
+        {
+            MAPNIK_LOG_ERROR(decode_linestring) << "warning: encountered LINESTRING that might have benefited higher LINETO command count.";
+            already_had_warning = true;
+        }
         previous_len = len;
         #endif
-        while ((cmd = paths.ring_next(x1, y1, len)) == T::line_to)
+        while ((cmd = paths.ring_next(x1, y1, len, true)) == T::line_to)
         {
             ring.add_coord(x1,y1);
             part_env.expand_to_include(x1,y1);
@@ -847,7 +860,7 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<ValueType> > & rings,
             rings.pop_back();
         }
 
-        cmd = paths.ring_next(x0, y0, len);
+        cmd = paths.ring_next(x0, y0, len, false);
         if (cmd == T::end)
         {
             break;
