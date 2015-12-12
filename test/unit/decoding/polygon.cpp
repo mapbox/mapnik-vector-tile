@@ -1053,6 +1053,68 @@ TEST_CASE("decode polygon - only moveto and lineto")
     }
 }
 
+TEST_CASE("decode polygon - moveto and lineto followed by real polygon")
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_POLYGON);
+    // MoveTo(1,1)
+    feature.add_geometry(9); // move_to | (1 << 3)
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // LineTo(2,2)
+    feature.add_geometry((1 << 3u) | 2u);
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // MoveTo(0,0)
+    feature.add_geometry(9); // move_to | (1 << 3)
+    feature.add_geometry(protozero::encode_zigzag32(-2));
+    feature.add_geometry(protozero::encode_zigzag32(-2));
+    // LineTo(0,10)
+    feature.add_geometry((3 << 3u) | 2u);
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    feature.add_geometry(protozero::encode_zigzag32(10));
+    // LineTo(-10,10)
+    feature.add_geometry(protozero::encode_zigzag32(-10));
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    // LineTo(-10,0)
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    feature.add_geometry(protozero::encode_zigzag32(-10));
+    // Close
+    feature.add_geometry(15);
+
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    
+        SECTION("VT Spec v1")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
+        }
+
+        SECTION("VT Spec v2")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
+        }
+    }
+
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+    
+        SECTION("VT Spec v1")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
+        }
+
+        SECTION("VT Spec v2")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
+        }
+    }
+}
+
+
 TEST_CASE("decode polygon - only moveto lineto and close")
 {
     vector_tile::Tile_Feature feature;
@@ -1093,6 +1155,55 @@ TEST_CASE("decode polygon - only moveto lineto and close")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
             CHECK( geom.is<mapnik::geometry::geometry_empty>() );
+        }
+        
+        SECTION("VT Spec v2")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
+        }
+    }
+}
+
+TEST_CASE("decode polygon - only moveto, lineto, and close followed by close")
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_POLYGON);
+    // MoveTo(1,1)
+    feature.add_geometry(9); // move_to | (1 << 3)
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // LineTo(10,0)
+    feature.add_geometry((1 << 3u) | 2u);
+    feature.add_geometry(protozero::encode_zigzag32(10));
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    // Close
+    feature.add_geometry(15);
+    // Close
+    feature.add_geometry(15);
+
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    
+        SECTION("VT Spec v1")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
+        }
+
+        SECTION("VT Spec v2")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
+        }
+    }
+
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+    
+        SECTION("VT Spec v1")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
         }
         
         SECTION("VT Spec v2")
@@ -1212,7 +1323,7 @@ TEST_CASE("decode polygon - moveto lineto and close followed by real polygon")
     feature.add_geometry(9); // move_to | (1 << 3)
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
-    // LineTo(10,0)
+    // LineTo(2,2)
     feature.add_geometry((1 << 3u) | 2u);
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
@@ -1732,8 +1843,10 @@ TEST_CASE("decode polygon -- lineto command count 0")
     feature.add_geometry((1 << 3u) | 1u);
     feature.add_geometry(protozero::encode_zigzag32(0));
     feature.add_geometry(protozero::encode_zigzag32(0));
-    // LineTo(0,10)
+    // LineTo no commands
     feature.add_geometry((0 << 3u) | 2u);
+    // LineTo(0,10)
+    feature.add_geometry((3 << 3u) | 2u);
     feature.add_geometry(protozero::encode_zigzag32(0));
     feature.add_geometry(protozero::encode_zigzag32(10));
     // LineTo(-10,10)
@@ -2200,6 +2313,60 @@ TEST_CASE("decode polygon -- lineto is last command")
     feature.add_geometry((1 << 3u) | 2u);
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
+
+    SECTION("libprotobuf decoder")
+    {
+        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    
+        SECTION("VT Spec v1")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
+        }
+
+        SECTION("VT Spec v2")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
+        }
+    }
+
+    SECTION("protozero decoder")
+    {
+        std::string feature_string = feature.SerializeAsString();
+        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+    
+        SECTION("VT Spec v1")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
+        }
+
+        SECTION("VT Spec v2")
+        {
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
+        }
+    }
+}
+
+TEST_CASE("decode polygon -- has invalid command first")
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_POLYGON);
+    feature.add_geometry((1 << 3u) | 5u); // Invalid command
+    // MoveTo(0,0)
+    feature.add_geometry((1 << 3u) | 1u);
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    // LineTo(0,10)
+    feature.add_geometry((3 << 3u) | 2u);
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    feature.add_geometry(protozero::encode_zigzag32(10));
+    // LineTo(-10,10)
+    feature.add_geometry(protozero::encode_zigzag32(-10));
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    // LineTo(-10,0)
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    feature.add_geometry(protozero::encode_zigzag32(-10));
+    // Close
+    feature.add_geometry(15);
 
     SECTION("libprotobuf decoder")
     {
