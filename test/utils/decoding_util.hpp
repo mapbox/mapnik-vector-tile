@@ -1,6 +1,3 @@
-// libprotobuf
-#include "vector_tile.pb.h"
-
 // mapnik vector tile
 #include "vector_tile_geometry_decoder.hpp"
 

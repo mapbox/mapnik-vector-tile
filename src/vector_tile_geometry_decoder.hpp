@@ -61,25 +61,34 @@ public:
         close = 7
     };
 
-    bool scaling_reversed_orientation()
+    bool scaling_reversed_orientation() const
     {
         return (scale_x_ * scale_y_) < 0;
     }
 
-    command point_next(ValueType & rx, ValueType & ry, std::uint32_t & len);
-    command line_next(ValueType & rx, ValueType & ry, std::uint32_t & len, bool skip_lineto_zero);
-    command ring_next(ValueType & rx, ValueType & ry, std::uint32_t & len, bool skip_lineto_zero);
+    uint32_t get_length() const
+    {
+        return length;
+    }
 
+    command point_next(ValueType & rx, ValueType & ry);
+    command line_next(ValueType & rx, ValueType & ry, bool skip_lineto_zero);
+    command ring_next(ValueType & rx, ValueType & ry, bool skip_lineto_zero);
+    
 private:
     vector_tile::Tile_Feature const& f_;
     double scale_x_;
     double scale_y_;
     uint32_t k;
     uint32_t geoms_;
-    uint8_t cmd;
-    uint32_t length;
     ValueType x, y;
     ValueType ox, oy;
+    uint32_t length;
+    uint8_t cmd;
+    #if defined(DEBUG)
+public:
+    bool already_had_error;
+    #endif
 };
 
 // NOTE: this object is for one-time use.  Once you've progressed to the end
@@ -101,23 +110,32 @@ public:
     };
 
 
-    bool scaling_reversed_orientation()
+    bool scaling_reversed_orientation() const
     {
         return (scale_x_ * scale_y_) < 0;
     }
 
-    command point_next(ValueType & rx, ValueType & ry, std::uint32_t & len);
-    command line_next(ValueType & rx, ValueType & ry, std::uint32_t & len, bool skip_lineto_zero);
-    command ring_next(ValueType & rx, ValueType & ry, std::uint32_t & len, bool skip_lineto_zero);
+    uint32_t get_length() const
+    {
+        return length;
+    }
+
+    command point_next(ValueType & rx, ValueType & ry);
+    command line_next(ValueType & rx, ValueType & ry, bool skip_lineto_zero);
+    command ring_next(ValueType & rx, ValueType & ry, bool skip_lineto_zero);
 
 private:
     std::pair< protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > geo_iterator_;
     double scale_x_;
     double scale_y_;
-    uint8_t cmd;
-    std::uint32_t length;
     ValueType x, y;
     ValueType ox, oy;
+    uint32_t length;
+    uint8_t cmd;
+    #if defined(DEBUG)
+public:
+    bool already_had_error;
+    #endif
 };
 
 
@@ -130,13 +148,18 @@ Geometry<ValueType>::Geometry(vector_tile::Tile_Feature const& f,
       scale_y_(scale_y),
       k(0),
       geoms_(f_.geometry_size()),
-      cmd(move_to),
-      length(0),
       x(tile_x), y(tile_y),
-      ox(0), oy(0) {}
+      ox(0), oy(0),
+      length(0),
+      cmd(move_to)
+    {
+    #if defined(DEBUG)
+    already_had_error = false;
+    #endif
+    }
 
 template <typename ValueType>
-typename Geometry<ValueType>::command Geometry<ValueType>::point_next(ValueType & rx, ValueType & ry, std::uint32_t & len)
+typename Geometry<ValueType>::command Geometry<ValueType>::point_next(ValueType & rx, ValueType & ry)
 {
     if (length == 0)
     {
@@ -144,10 +167,10 @@ typename Geometry<ValueType>::command Geometry<ValueType>::point_next(ValueType 
         {
             uint32_t cmd_length = static_cast<uint32_t>(f_.geometry(k++));
             cmd = cmd_length & 0x7;
-            len = length = cmd_length >> 3;
+            length = cmd_length >> 3;
             if (cmd == move_to)
             {
-                if (len == 0 || k + (len * 2) > geoms_)
+                if (length == 0 || k + (length * 2) > geoms_)
                 {
                     throw std::runtime_error("Vector Tile has geometry with MOVETO command that is not followed by a proper number of parameters");
                 }
@@ -186,7 +209,6 @@ typename Geometry<ValueType>::command Geometry<ValueType>::point_next(ValueType 
 template <typename ValueType>
 typename Geometry<ValueType>::command Geometry<ValueType>::line_next(ValueType & rx, 
                                                                      ValueType & ry, 
-                                                                     std::uint32_t & len, 
                                                                      bool skip_lineto_zero)
 {
     if (length == 0)
@@ -195,11 +217,11 @@ typename Geometry<ValueType>::command Geometry<ValueType>::line_next(ValueType &
         {
             uint32_t cmd_length = static_cast<uint32_t>(f_.geometry(k++));
             cmd = cmd_length & 0x7;
-            len = length = cmd_length >> 3;
+            length = cmd_length >> 3;
 
             if (cmd == move_to)
             {
-                if (len != 1 || k + 2 > geoms_)
+                if (length != 1 || k + 2 > geoms_)
                 {
                     throw std::runtime_error("Vector Tile has LINESTRING with a MOVETO command that is given more then one pair of parameters or not enough parameters are provided");
                 }
@@ -213,7 +235,7 @@ typename Geometry<ValueType>::command Geometry<ValueType>::line_next(ValueType &
             }
             else if (cmd == line_to)
             {
-                if (len == 0 || k + (len * 2) > geoms_)
+                if (length == 0 || k + (length * 2) > geoms_)
                 {
                     throw std::runtime_error("Vector Tile has geometry with LINETO command that is not followed by a proper number of parameters");
                 }
@@ -242,7 +264,7 @@ typename Geometry<ValueType>::command Geometry<ValueType>::line_next(ValueType &
     if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call line_next again
-        return line_next(rx,ry,len, true);
+        return line_next(rx,ry,true);
     }
     move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
@@ -253,7 +275,6 @@ typename Geometry<ValueType>::command Geometry<ValueType>::line_next(ValueType &
 template <typename ValueType>
 typename Geometry<ValueType>::command Geometry<ValueType>::ring_next(ValueType & rx, 
                                                                      ValueType & ry, 
-                                                                     std::uint32_t & len, 
                                                                      bool skip_lineto_zero)
 {
     if (length == 0)
@@ -262,11 +283,11 @@ typename Geometry<ValueType>::command Geometry<ValueType>::ring_next(ValueType &
         {
             uint32_t cmd_length = static_cast<uint32_t>(f_.geometry(k++));
             cmd = cmd_length & 0x7;
-            len = length = cmd_length >> 3;
+            length = cmd_length >> 3;
 
             if (cmd == move_to)
             {
-                if (len != 1 || k + 2 > geoms_)
+                if (length != 1 || k + 2 > geoms_)
                 {
                     throw std::runtime_error("Vector Tile has POLYGON with a MOVETO command that is given more then one pair of parameters or not enough parameters are provided");
                 }
@@ -282,17 +303,17 @@ typename Geometry<ValueType>::command Geometry<ValueType>::ring_next(ValueType &
             }
             else if (cmd == line_to)
             {
-                if (len == 0 || k + (len * 2) > geoms_)
+                if (length == 0 || k + (length * 2) > geoms_)
                 {
                     throw std::runtime_error("Vector Tile has geometry with LINETO command that is not followed by a proper number of parameters");
                 }
             }
             else if (cmd == close)
             {
-                // Just set both lengths in case a close command provides an invalid number here.
+                // Just set length in case a close command provides an invalid number here.
                 // While we could throw because V2 of the spec declares it incorrect, this is not
                 // difficult to fix and has no effect on the results.
-                len = length = 0;
+                length = 0;
                 rx = ox;
                 ry = oy;
                 return close;
@@ -314,7 +335,7 @@ typename Geometry<ValueType>::command Geometry<ValueType>::ring_next(ValueType &
     if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call ring_next again
-        return ring_next(rx,ry,len, true);
+        return ring_next(rx,ry,true);
     }
     move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
@@ -329,13 +350,18 @@ GeometryPBF<ValueType>::GeometryPBF(std::pair<protozero::pbf_reader::const_uint3
     : geo_iterator_(geo_iterator),
       scale_x_(scale_x),
       scale_y_(scale_y),
-      cmd(move_to),
-      length(0),
       x(tile_x), y(tile_y),
-      ox(0), oy(0) {}
+      ox(0), oy(0),
+      length(0),
+      cmd(move_to)
+    {
+    #if defined(DEBUG)
+    already_had_error = false;
+    #endif
+    }
 
 template <typename ValueType>
-typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::point_next(ValueType & rx, ValueType & ry, std::uint32_t & len)
+typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::point_next(ValueType & rx, ValueType & ry)
 {
     if (length == 0) 
     {
@@ -343,10 +369,10 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::point_next(Valu
         {
             uint32_t cmd_length = static_cast<uint32_t>(*geo_iterator_.first++);
             cmd = cmd_length & 0x7;
-            len = length = cmd_length >> 3;
+            length = cmd_length >> 3;
             if (cmd == move_to)
             {
-                if (len == 0)
+                if (length == 0)
                 {
                     throw std::runtime_error("Vector Tile has POINT geometry with a MOVETO command that has a command count of zero");
                 }
@@ -390,7 +416,6 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::point_next(Valu
 template <typename ValueType>
 typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::line_next(ValueType & rx, 
                                                                            ValueType & ry, 
-                                                                           std::uint32_t & len,
                                                                            bool skip_lineto_zero)
 {
     if (length == 0)
@@ -399,10 +424,10 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::line_next(Value
         {
             uint32_t cmd_length = static_cast<uint32_t>(*geo_iterator_.first++);
             cmd = cmd_length & 0x7;
-            len = length = cmd_length >> 3;
+            length = cmd_length >> 3;
             if (cmd == move_to)
             {
-                if (len != 1)
+                if (length != 1)
                 {
                     throw std::runtime_error("Vector Tile has LINESTRING with a MOVETO command that is given more then one pair of parameters or not enough parameters are provided");
                 }
@@ -421,7 +446,7 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::line_next(Value
             }
             else if (cmd == line_to)
             {
-                if (len == 0)
+                if (length == 0)
                 {
                     throw std::runtime_error("Vector Tile has geometry with LINETO command that is not followed by a proper number of parameters");
                 }
@@ -455,7 +480,7 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::line_next(Value
     if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call line_next again
-        return line_next(rx,ry,len,true);
+        return line_next(rx,ry,true);
     }
     move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
@@ -466,7 +491,6 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::line_next(Value
 template <typename ValueType>
 typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::ring_next(ValueType & rx, 
                                                                            ValueType & ry, 
-                                                                           std::uint32_t & len,
                                                                            bool skip_lineto_zero)
 {
     if (length == 0)
@@ -475,10 +499,10 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::ring_next(Value
         {
             uint32_t cmd_length = static_cast<uint32_t>(*geo_iterator_.first++);
             cmd = cmd_length & 0x7;
-            len = length = cmd_length >> 3;
+            length = cmd_length >> 3;
             if (cmd == move_to)
             {
-                if (len != 1)
+                if (length != 1)
                 {
                     throw std::runtime_error("Vector Tile has POLYGON with a MOVETO command that is given more then one pair of parameters or not enough parameters are provided");
                 }
@@ -499,17 +523,17 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::ring_next(Value
             }
             else if (cmd == line_to)
             {
-                if (len == 0)
+                if (length == 0)
                 {
                     throw std::runtime_error("Vector Tile has geometry with LINETO command that is not followed by a proper number of parameters");
                 }
             }
             else if (cmd == close)
             {
-                // Just set both lengths in case a close command provides an invalid number here.
+                // Just set length in case a close command provides an invalid number here.
                 // While we could throw because V2 of the spec declares it incorrect, this is not
                 // difficult to fix and has no effect on the results.
-                len = length = 0;
+                length = 0;
                 rx = ox;
                 ry = oy;
                 return close;
@@ -536,7 +560,7 @@ typename GeometryPBF<ValueType>::command GeometryPBF<ValueType>::ring_next(Value
     if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call ring_next again
-        return ring_next(rx,ry,len,true);
+        return ring_next(rx,ry,true);
     }
     move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
@@ -552,20 +576,48 @@ void decode_point(mapnik::geometry::geometry<ValueType> & geom, T & paths, mapni
     typename T::command cmd;
     ValueType x1, y1;
     mapnik::geometry::multi_point<ValueType> mp;
-    bool first = true;
-    std::uint32_t len;
-    while ((cmd = paths.point_next(x1, y1, len)) != T::end)
+    #if defined(DEBUG)
+    std::uint32_t previous_len = 0;
+    #endif
+    // Find first moveto inside bbox and then reserve points from size of geometry.
+    while (true)
     {
+        cmd = paths.point_next(x1, y1);
+        if (cmd == T::end)
+        {
+            geom = mapnik::geometry::geometry_empty();
+            return;
+        } 
+        else if (bbox.intersects(x1,y1))
+        {
+            #if defined(DEBUG)
+            if (previous_len <= paths.get_length() && !paths.already_had_error)
+            {
+                MAPNIK_LOG_WARN(decode_point) << "warning: encountered POINT geometry that might have MOVETO commands repeated that could be fewer commands";
+                paths.already_had_error = true;
+            }
+            previous_len = paths.get_length();
+            #endif
+            mp.reserve(paths.get_length());
+            mp.emplace_back(x1,y1);
+            break;
+        }
+    }
+    while ((cmd = paths.point_next(x1, y1)) != T::end)
+    {
+        #if defined(DEBUG)
+        if (previous_len <= paths.get_length() && !paths.already_had_error)
+        {
+            MAPNIK_LOG_WARN(decode_point) << "warning: encountered POINT geometry that might have MOVETO commands repeated that could be fewer commands";
+            paths.already_had_error = true;
+        }
+        previous_len = paths.get_length();
+        #endif
         // TODO: consider profiling and trying to optimize this further
         // when all points are within the bbox filter then the `mp.reserve` should be
         // perfect, but when some points are thrown out we will allocate more than needed
         // the "all points intersect" case I think is going to be more common/important
         // however worth a future look to see if the "some or few points intersect" can be optimized
-        if (first)
-        {
-            first = false;
-            mp.reserve(len);
-        }
         if (!bbox.intersects(x1,y1))
         {
             continue;
@@ -573,12 +625,6 @@ void decode_point(mapnik::geometry::geometry<ValueType> & geom, T & paths, mapni
         mp.emplace_back(x1,y1);
     }
     std::size_t num_points = mp.size();
-    #if defined(DEBUG)
-    if (num_points > 0 && len != num_points) {
-        // BUG: https://github.com/mapbox/mapnik-vector-tile/issues/144
-        MAPNIK_LOG_ERROR(decode_point) << "warning: encountered incorrectly encoded multipoint with " << num_points << " points but only " << len << " repeated commands";
-    }
-    #endif
     if (num_points == 0)
     {
         geom = mapnik::geometry::geometry_empty();
@@ -603,14 +649,11 @@ void decode_linestring(mapnik::geometry::geometry<ValueType> & geom, T & paths,
     ValueType x0, y0;
     ValueType x1, y1;
     mapnik::geometry::multi_line_string<ValueType> multi_line;
-    std::uint32_t len;
     #if defined(DEBUG)
-    std::uint32_t previous_len;
-    bool already_had_warning = false;
+    std::uint32_t previous_len = 0;
     #endif
-    
     mapnik::box2d<double> part_env;
-    cmd = paths.line_next(x0, y0, len, false);
+    cmd = paths.line_next(x0, y0, false);
     if (cmd == T::end)
     {
         geom = mapnik::geometry::geometry_empty();
@@ -623,7 +666,7 @@ void decode_linestring(mapnik::geometry::geometry<ValueType> & geom, T & paths,
 
     while (true)
     {
-        cmd = paths.line_next(x1, y1, len, true);
+        cmd = paths.line_next(x1, y1, true);
         if (cmd != T::line_to)
         {
             if (cmd == T::move_to)
@@ -657,30 +700,31 @@ void decode_linestring(mapnik::geometry::geometry<ValueType> & geom, T & paths,
                 }
             }
         }
-        // add fresh line to start adding to
+        // add fresh line
         multi_line.emplace_back();
+        auto & line = multi_line.back();
         // reserve prior
-        multi_line.back().reserve(len+1);
+        line.reserve(paths.get_length() + 1);
         // add moveto command position
-        multi_line.back().add_coord(x0,y0);
-        part_env.init(x0,y0,x0,y0);
+        line.add_coord(x0, y0);
+        part_env.init(x0, y0, x0, y0);
         // add first lineto
-        multi_line.back().add_coord(x1,y1);
-        part_env.expand_to_include(x1,y1);
+        line.add_coord(x1, y1);
+        part_env.expand_to_include(x1, y1);
         #if defined(DEBUG)
-        previous_len = len;
+        previous_len = paths.get_length();
         #endif
-        while ((cmd = paths.line_next(x1, y1, len, true)) == T::line_to)
+        while ((cmd = paths.line_next(x1, y1, true)) == T::line_to)
         {
-            multi_line.back().add_coord(x1,y1);
-            part_env.expand_to_include(x1,y1);
+            line.add_coord(x1, y1);
+            part_env.expand_to_include(x1, y1);
             #if defined(DEBUG)
-            if (previous_len <= len && !already_had_warning)
+            if (previous_len <= paths.get_length() && !paths.already_had_error)
             {
-                MAPNIK_LOG_ERROR(decode_linestring) << "warning: encountered LINESTRING that might have benefited higher LINETO command count.";
-                already_had_warning = true;
+                MAPNIK_LOG_WARN(decode_linestring) << "warning: encountered LINESTRING geometry that might have LINETO commands repeated that could be fewer commands";
+                paths.already_had_error = true;
             }
-            previous_len = len;
+            previous_len = paths.get_length();
             #endif
         }
         if (!bbox.intersects(part_env))
@@ -725,14 +769,11 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<ValueType> > & rings,
     ValueType x0, y0;
     ValueType x1, y1;
     ValueType x2, y2;
-    std::uint32_t len;
     #if defined(DEBUG)
     std::uint32_t previous_len;
-    bool already_had_warning = false;
     #endif
-    
     mapnik::box2d<double> part_env;
-    cmd = paths.ring_next(x0, y0, len, false);
+    cmd = paths.ring_next(x0, y0, false);
     if (cmd == T::end)
     {
         return;
@@ -744,14 +785,14 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<ValueType> > & rings,
 
     while (true)
     {
-        cmd = paths.ring_next(x1, y1, len, true);
+        cmd = paths.ring_next(x1, y1, true);
         if (cmd != T::line_to)
         {
             if (cmd == T::close && version == 1)
             {
                 // Version 1 of the specification we were not clear on the command requirements for polygons
                 // lets just to recover from this situation.
-                cmd = paths.ring_next(x0, y0, len, false);
+                cmd = paths.ring_next(x0, y0, false);
                 if (cmd == T::end)
                 {
                     break;
@@ -775,16 +816,16 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<ValueType> > & rings,
             }
         }
         #if defined(DEBUG)
-        prev_len = len;
+        previous_len = paths.get_length();
         #endif
-        cmd = paths.ring_next(x2, y2, len, true);
+        cmd = paths.ring_next(x2, y2, true);
         if (cmd != T::line_to)
         {
             if (cmd == T::close && version == 1)
             {
                 // Version 1 of the specification we were not clear on the command requirements for polygons
                 // lets just to recover from this situation.
-                cmd = paths.ring_next(x0, y0, len, false);
+                cmd = paths.ring_next(x0, y0, false);
                 if (cmd == T::end)
                 {
                     break;
@@ -811,35 +852,35 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<ValueType> > & rings,
         rings.emplace_back();
         auto & ring = rings.back();
         // reserve prior
-        ring.reserve(len+2);
+        ring.reserve(paths.get_length() + 2);
         // add moveto command position
-        ring.add_coord(x0,y0);
-        part_env.init(x0,y0,x0,y0);
+        ring.add_coord(x0, y0);
+        part_env.init(x0, y0, x0, y0);
         // add first lineto
-        ring.add_coord(x1,y1);
-        part_env.expand_to_include(x1,y1);
+        ring.add_coord(x1, y1);
+        part_env.expand_to_include(x1, y1);
         // add second lineto
-        ring.add_coord(x2,y2);
-        part_env.expand_to_include(x2,y2);
+        ring.add_coord(x2, y2);
+        part_env.expand_to_include(x2, y2);
         #if defined(DEBUG)
-        if (previous_len <= len && !already_had_warning)
+        if (previous_len <= paths.get_length() && !paths.already_had_error)
         {
-            MAPNIK_LOG_ERROR(decode_linestring) << "warning: encountered LINESTRING that might have benefited higher LINETO command count.";
-            already_had_warning = true;
+            MAPNIK_LOG_WARN(read_rings) << "warning: encountered POLYGON geometry that might have LINETO commands repeated that could be fewer commands";
+            paths.already_had_error = true;
         }
-        previous_len = len;
+        previous_len = paths.get_length();
         #endif
-        while ((cmd = paths.ring_next(x1, y1, len, true)) == T::line_to)
+        while ((cmd = paths.ring_next(x1, y1, true)) == T::line_to)
         {
             ring.add_coord(x1,y1);
             part_env.expand_to_include(x1,y1);
             #if defined(DEBUG)
-            if (previous_len <= len && !already_had_warning)
+            if (previous_len <= paths.get_length() && !paths.already_had_error)
             {
-                MAPNIK_LOG_ERROR(decode_linestring) << "warning: encountered LINESTRING that might have benefited higher LINETO command count.";
-                already_had_warning = true;
+                MAPNIK_LOG_WARN(read_rings) << "warning: encountered POLYGON geometry that might have LINETO commands repeated that could be fewer commands";
+                paths.already_had_error = true;
             }
-            previous_len = len;
+            previous_len = paths.get_length();
             #endif
         }
         // Make sure we are now on a close command
@@ -860,7 +901,7 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<ValueType> > & rings,
             rings.pop_back();
         }
 
-        cmd = paths.ring_next(x0, y0, len, false);
+        cmd = paths.ring_next(x0, y0, false);
         if (cmd == T::end)
         {
             break;

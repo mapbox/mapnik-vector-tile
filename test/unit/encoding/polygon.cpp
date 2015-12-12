@@ -11,7 +11,11 @@
 #include <mapnik/util/geometry_to_wkt.hpp>
 
 // libprotobuf
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include "vector_tile.pb.h"
+#pragma GCC diagnostic pop
 
 //
 // Unit tests for geometry encoding of polygons

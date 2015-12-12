@@ -1,30 +1,40 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cmath>
-#include <mapnik/util/fs.hpp>
-#include <mapnik/projection.hpp>
-#include <mapnik/geometry_transform.hpp>
-#include <mapnik/util/geometry_to_geojson.hpp>
-#include <mapnik/geometry_correct.hpp>
-#include <mapnik/util/file_io.hpp>
-#include <mapnik/save_map.hpp>
-#include <mapnik/geometry_reprojection.hpp>
-#include <mapnik/geometry_strategy.hpp>
-#include <mapnik/proj_strategy.hpp>
-#include <mapnik/view_strategy.hpp>
-#include <mapnik/geometry_is_valid.hpp>
-#include <mapnik/geometry_is_simple.hpp>
-
+// catch
 #include "catch.hpp"
-#include "encoding_util.hpp"
-#include "test_utils.hpp"
+
+// mapnik-vector-tile
 #include "vector_tile_strategy.hpp"
 #include "vector_tile_processor.hpp"
 #include "vector_tile_backend_pbf.hpp"
 #include "vector_tile_projection.hpp"
 #include "vector_tile_geometry_decoder.hpp"
+
+// mapnik
+#include <mapnik/geometry_correct.hpp>
+#include <mapnik/geometry_is_simple.hpp>
+#include <mapnik/geometry_is_valid.hpp>
+#include <mapnik/geometry_reprojection.hpp>
+#include <mapnik/geometry_strategy.hpp>
+#include <mapnik/geometry_transform.hpp>
+#include <mapnik/projection.hpp>
+#include <mapnik/proj_strategy.hpp>
+#include <mapnik/save_map.hpp>
+#include <mapnik/util/file_io.hpp>
+#include <mapnik/util/fs.hpp>
+#include <mapnik/util/geometry_to_geojson.hpp>
+#include <mapnik/view_strategy.hpp>
+
+// boost
 #include <boost/filesystem/operations.hpp>
+
+// test utils
+#include "encoding_util.hpp"
+#include "test_utils.hpp"
+
+// std
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 void clip_geometry(std::string const& file,
                    mapnik::box2d<double> const& bbox,
