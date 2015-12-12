@@ -51,4 +51,4 @@ before_script:
 
 script:
  # make sure tileinfo command works
- - ./build/${BUILDTYPE:-Release}/tileinfo examples/data/14_2620_6331.vector.pbf.z
+ - ./build/${BUILDTYPE:-Release}/tileinfo examples/data/14_2620_6331.vector.mvt.z
