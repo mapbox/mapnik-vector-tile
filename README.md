@@ -7,7 +7,7 @@ Provides C++ headers that support rendering geodata into vector tiles and render
  - Master: [![Build Status](https://travis-ci.org/mapbox/mapnik-vector-tile.svg?branch=master)](https://travis-ci.org/mapbox/mapnik-vector-tile)
  - 0.6.x series: [![Build Status](https://secure.travis-ci.org/mapbox/mapnik-vector-tile.svg?branch=0.6.x)](http://travis-ci.org/mapbox/mapnik-vector-tile)
 
-[![Coverage Status](https://coveralls.io/repos/mapbox/mapnik-vector-tile/badge.svg?branch=coverage)](https://coveralls.io/r/mapbox/mapnik-vector-tile?branch=coverage)
+[![Coverage Status](https://coveralls.io/repos/mapbox/mapnik-vector-tile/badge.svg?branch=master&service=github)](https://coveralls.io/github/mapbox/mapnik-vector-tile?branch=master)
 
 ## Depends
 
