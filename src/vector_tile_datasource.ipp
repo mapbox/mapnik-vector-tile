@@ -66,6 +66,16 @@ datasource::datasource_t tile_datasource::type() const
 
 featureset_ptr tile_datasource::features(query const& q) const
 {
+    if (version_  > 2 || version_ < 1)
+    {
+        // From spec:
+        // When a Vector Tile consumer encounters a Vector Tile layer with an unknown version, 
+        // it MAY make a best-effort attempt to interpret the layer, or it MAY skip the layer. 
+        // In either case it SHOULD continue to process subsequent layers in the Vector Tile.
+    
+        // Therefore if version is invalid we will just return pointer
+        return featureset_ptr();
+    }
     mapnik::filter_in_box filter(q.get_bbox());
     return std::make_shared<tile_featureset<mapnik::filter_in_box> >
         (filter, get_tile_extent(), q.get_unbuffered_bbox(), q.property_names(), layer_, tile_x_, tile_y_, scale_, version_);
@@ -73,6 +83,16 @@ featureset_ptr tile_datasource::features(query const& q) const
 
 featureset_ptr tile_datasource::features_at_point(coord2d const& pt, double tol) const
 {
+    if (version_  > 2 || version_ < 1)
+    {
+        // From spec:
+        // When a Vector Tile consumer encounters a Vector Tile layer with an unknown version, 
+        // it MAY make a best-effort attempt to interpret the layer, or it MAY skip the layer. 
+        // In either case it SHOULD continue to process subsequent layers in the Vector Tile.
+    
+        // Therefore if version is invalid we will just return pointer
+        return featureset_ptr();
+    }
     mapnik::filter_at_point filter(pt,tol);
     std::set<std::string> names;
     for (int i = 0; i < layer_.keys_size(); ++i)
