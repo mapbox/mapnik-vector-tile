@@ -24,7 +24,6 @@
 #include <boost/optional/optional_io.hpp>
 
 // vector output api
-#include "vector_tile_compression.hpp"
 #include "vector_tile_processor.hpp"
 #include "vector_tile_strategy.hpp"
 #include "vector_tile_backend_pbf.hpp"
@@ -46,30 +45,6 @@ TEST_CASE( "vector tile negative id", "hmm" ) {
     //CHECK(std::fabs(map_extent.maxy() - e.maxy()) < epsilon);
 }
 */
-
-TEST_CASE( "vector tile compression", "should be able to round trip gzip and zlib data" ) {
-    std::string data("amazing data");
-    CHECK(!mapnik::vector_tile_impl::is_zlib_compressed(data));
-    CHECK(!mapnik::vector_tile_impl::is_gzip_compressed(data));
-    std::string zlibbed;
-    mapnik::vector_tile_impl::zlib_compress(data,zlibbed,false);
-    // failing - why?
-    //CHECK(mapnik::vector_tile_impl::is_zlib_compressed(zlibbed));
-    CHECK(!mapnik::vector_tile_impl::is_gzip_compressed(zlibbed));
-
-    std::string unzlibbed;
-    mapnik::vector_tile_impl::zlib_decompress(zlibbed,unzlibbed);
-    CHECK(data == unzlibbed);
-
-    std::string gzipped;
-    mapnik::vector_tile_impl::zlib_compress(data,gzipped,true);
-    CHECK(!mapnik::vector_tile_impl::is_zlib_compressed(gzipped));
-    CHECK(mapnik::vector_tile_impl::is_gzip_compressed(gzipped));
-
-    std::string ungzipped;
-    mapnik::vector_tile_impl::zlib_decompress(gzipped,ungzipped);
-    CHECK(data == ungzipped);
-}
 
 TEST_CASE( "vector tile output 1", "should create vector tile with two points" ) {
     typedef mapnik::vector_tile_impl::backend_pbf backend_type;

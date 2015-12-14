@@ -1,3 +1,6 @@
+#ifndef __MAPNIK_VECTOR_TILE_TEST_ENCODING_UTIL_H__
+#define __MAPNIK_VECTOR_TILE_TEST_ENCODING_UTIL_H__
+
 // mapnik
 #include <mapnik/geometry.hpp>
 
@@ -20,3 +23,5 @@ std::string decode_to_path_string(mapnik::geometry::geometry<T> const& g);
 std::string compare(mapnik::geometry::geometry<std::int64_t> const& g, unsigned version);
 
 std::string compare_pbf(mapnik::geometry::geometry<std::int64_t> const& g, unsigned version);
+
+#endif // __MAPNIK_VECTOR_TILE_TEST_ENCODING_UTIL_H__
