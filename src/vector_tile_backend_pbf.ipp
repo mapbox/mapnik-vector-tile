@@ -11,11 +11,17 @@
 #include "vector_tile.pb.h"
 #pragma GCC diagnostic pop
 
+// mapnik-vector-tile
 #include "vector_tile_geometry_encoder.hpp"
 
+// std
 #include <unordered_map>
 
-namespace mapnik { namespace vector_tile_impl {
+namespace mapnik
+{ 
+
+namespace vector_tile_impl
+{
 
 struct to_tile_value: public mapnik::util::static_visitor<>
 {
@@ -110,7 +116,7 @@ void backend_pbf::start_tile_feature(mapnik::feature_impl const& feature)
         // key value pair into the feature. 
         feature_kv_iterator itr = feature.begin();
         feature_kv_iterator end = feature.end();
-        for ( ;itr!=end; ++itr)
+        for (; itr!=end; ++itr)
         {
             std::string const& name = std::get<0>(*itr);
             mapnik::value const& val = std::get<1>(*itr);
@@ -177,4 +183,6 @@ bool backend_pbf::start_tile_layer(std::string const& name)
     return true;
 }
 
-}} // end ns
+} // end ns vector_tile_impl
+
+} // end ns mapnik

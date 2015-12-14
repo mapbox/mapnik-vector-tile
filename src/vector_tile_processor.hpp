@@ -1,20 +1,28 @@
 #ifndef __MAPNIK_VECTOR_PROCESSOR_H__
 #define __MAPNIK_VECTOR_PROCESSOR_H__
 
-#include <mapnik/map.hpp>
-#include <mapnik/layer.hpp>
+// mapnik
 #include <mapnik/feature.hpp>
-#include <mapnik/util/noncopyable.hpp>
-#include <mapnik/request.hpp>
-#include <mapnik/view_transform.hpp>
+#include <mapnik/geometry.hpp>
 #include <mapnik/image_scaling.hpp>
 #include <mapnik/image_compositing.hpp>
-#include <mapnik/geometry.hpp>
+#include <mapnik/layer.hpp>
+#include <mapnik/map.hpp>
+#include <mapnik/request.hpp>
+#include <mapnik/util/noncopyable.hpp>
+#include <mapnik/view_transform.hpp>
+
+// angus clipper
 #include "clipper.hpp"
 
+// mapnik-vector-tile
 #include "vector_tile_config.hpp"
 
-namespace mapnik { namespace vector_tile_impl {
+namespace mapnik
+{
+
+namespace vector_tile_impl
+{
 
 enum polygon_fill_type : std::uint8_t {
     even_odd_fill = 0, 
@@ -98,13 +106,13 @@ public:
     MAPNIK_VECTOR_INLINE bool painted() const;
 
     MAPNIK_VECTOR_INLINE void apply_to_layer(mapnik::layer const& lay,
-                        mapnik::projection const& proj0,
-                        double scale,
-                        double scale_denom,
-                        unsigned width,
-                        unsigned height,
-                        box2d<double> const& extent,
-                        int buffer_size);
+                                             mapnik::projection const& proj0,
+                                             double scale,
+                                             double scale_denom,
+                                             unsigned width,
+                                             unsigned height,
+                                             box2d<double> const& extent,
+                                             int buffer_size);
 
     template <typename T2>
     MAPNIK_VECTOR_INLINE bool handle_geometry(T2 const& vs,
@@ -114,7 +122,9 @@ public:
                                               mapnik::box2d<double> const& target_clipping_extent);
 };
 
-}} // end ns
+} // end ns vector_tile_impl
+
+} // end ns mapnik
 
 #if !defined(MAPNIK_VECTOR_TILE_LIBRARY)
 #include "vector_tile_processor.ipp"
