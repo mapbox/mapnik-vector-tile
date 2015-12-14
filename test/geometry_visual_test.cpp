@@ -76,7 +76,7 @@ void clip_geometry(std::string const& file,
     ren.apply();
     std::string buffer;
     tile.SerializeToString(&buffer);
-    if (buffer.size() > 0 && tile.layers_size() > 0 && tile.layers_size() != false)
+    if (!buffer.empty() && tile.layers_size() > 0)
     {
         vector_tile::Tile_Layer const& layer = tile.layers(0);
         if (layer.features_size() != false)

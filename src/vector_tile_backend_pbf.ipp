@@ -183,6 +183,17 @@ bool backend_pbf::start_tile_layer(std::string const& name)
     return true;
 }
 
+void backend_pbf::stop_tile_layer()
+{
+    if (current_layer_)
+    {
+        if (current_layer_->features_size() == 0)
+        {
+            tile_.mutable_layers()->RemoveLast();
+        }
+    }
+}
+
 } // end ns vector_tile_impl
 
 } // end ns mapnik

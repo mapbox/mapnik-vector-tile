@@ -56,12 +56,13 @@ namespace vector_tile_impl
         
         MAPNIK_VECTOR_INLINE bool start_tile_layer(std::string const& name);
         
+        MAPNIK_VECTOR_INLINE void stop_tile_layer();
+        
         MAPNIK_VECTOR_INLINE unsigned get_path_multiplier() const
         {
             return path_multiplier_;
         }
 
-        inline void stop_tile_layer() {}
 
         template <typename T>
         inline bool add_path(T const& path)
