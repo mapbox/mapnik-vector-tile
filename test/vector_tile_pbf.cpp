@@ -430,7 +430,7 @@ TEST_CASE( "pbf vector tile from simplified geojson", "should create vector tile
           found = true;
           std::pair< protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > geom_itr = pbf_feature.get_packed_uint32();
           mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, tile_x,tile_y,scale,-1*scale);
-          auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, f.type(),2);
+          auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, f.type(),2);
               unsigned int n_err = 0;
           mapnik::projection wgs84("+init=epsg:4326",true);
           mapnik::projection merc("+init=epsg:3857",true);

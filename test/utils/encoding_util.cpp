@@ -110,7 +110,7 @@ std::string compare(mapnik::geometry::geometry<std::int64_t> const& g, unsigned 
 {
     vector_tile::Tile_Feature feature = geometry_to_feature(g);
     mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    auto g2 = mapnik::vector_tile_impl::decode_geometry<double>(geoms,feature.type(),version);
+    auto g2 = mapnik::vector_tile_impl::decode_geometry(geoms,feature.type(),version);
     return decode_to_path_string(g2);
 }
 
@@ -119,6 +119,6 @@ std::string compare_pbf(mapnik::geometry::geometry<std::int64_t> const& g, unsig
     vector_tile::Tile_Feature feature = geometry_to_feature(g);
     std::string feature_string = feature.SerializeAsString();
     mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    auto g2 = mapnik::vector_tile_impl::decode_geometry<double>(geoms,feature.type(),version);
+    auto g2 = mapnik::vector_tile_impl::decode_geometry(geoms,feature.type(),version);
     return decode_to_path_string(g2);
 }

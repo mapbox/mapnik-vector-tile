@@ -39,7 +39,7 @@ TEST_CASE( "decode simple point")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(5 5)");
@@ -48,7 +48,7 @@ TEST_CASE( "decode simple point")
 
         SECTION("VT Spec v2") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(5 5)");
@@ -63,7 +63,7 @@ TEST_CASE( "decode simple point")
 
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(5 5)");
@@ -72,7 +72,7 @@ TEST_CASE( "decode simple point")
 
         SECTION("VT Spec v2") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(5 5)");
@@ -96,7 +96,7 @@ TEST_CASE( "decode simple negative point")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-5 -5)");
@@ -105,7 +105,7 @@ TEST_CASE( "decode simple negative point")
 
         SECTION("VT Spec v2") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-5 -5)");
@@ -120,7 +120,7 @@ TEST_CASE( "decode simple negative point")
 
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-5 -5)");
@@ -129,7 +129,7 @@ TEST_CASE( "decode simple negative point")
 
         SECTION("VT Spec v2") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-5 -5)");
@@ -153,7 +153,7 @@ TEST_CASE( "point with delta of max int32")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(2147483647 2147483647)");
@@ -162,7 +162,7 @@ TEST_CASE( "point with delta of max int32")
 
         SECTION("VT Spec v2") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(2147483647 2147483647)");
@@ -177,7 +177,7 @@ TEST_CASE( "point with delta of max int32")
 
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(2147483647 2147483647)");
@@ -186,7 +186,7 @@ TEST_CASE( "point with delta of max int32")
 
         SECTION("VT Spec v2") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(2147483647 2147483647)");
@@ -210,7 +210,7 @@ TEST_CASE( "point with delta of min int32")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483648 -2147483648)");
@@ -219,7 +219,7 @@ TEST_CASE( "point with delta of min int32")
 
         SECTION("VT Spec v2") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483648 -2147483648)");
@@ -234,7 +234,7 @@ TEST_CASE( "point with delta of min int32")
 
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483648 -2147483648)");
@@ -243,7 +243,7 @@ TEST_CASE( "point with delta of min int32")
 
         SECTION("VT Spec v2") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483648 -2147483648)");
@@ -267,7 +267,7 @@ TEST_CASE( "point with delta of min int32 + 1")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483647 -2147483647)");
@@ -276,7 +276,7 @@ TEST_CASE( "point with delta of min int32 + 1")
 
         SECTION("VT Spec v2") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483647 -2147483647)");
@@ -291,7 +291,7 @@ TEST_CASE( "point with delta of min int32 + 1")
 
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483647 -2147483647)");
@@ -300,7 +300,7 @@ TEST_CASE( "point with delta of min int32 + 1")
 
         SECTION("VT Spec v2") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483647 -2147483647)");
@@ -327,12 +327,12 @@ TEST_CASE("degenerate point with close command" )
     
         SECTION("VT Spec v1") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
         }
     }
 
@@ -343,12 +343,12 @@ TEST_CASE("degenerate point with close command" )
         
         SECTION("VT Spec v1") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
         }
     }
 }
@@ -372,12 +372,12 @@ TEST_CASE( "degenerate point with lineto command" )
         
         SECTION("VT Spec v1") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
         }
     }
 
@@ -388,12 +388,12 @@ TEST_CASE( "degenerate point with lineto command" )
         
         SECTION("VT Spec v1") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
         }
     }
 }
@@ -412,12 +412,12 @@ TEST_CASE( "degenerate point with moveto with out enough parameters" )
         
         SECTION("VT Spec v1") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
         }
     }
 
@@ -428,12 +428,12 @@ TEST_CASE( "degenerate point with moveto with out enough parameters" )
         
         SECTION("VT Spec v1") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
         }
     }
 }
@@ -453,12 +453,12 @@ TEST_CASE( "degenerate point with moveto with out enough parameters - case 2" )
         
         SECTION("VT Spec v1") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
         }
     }
 
@@ -469,12 +469,12 @@ TEST_CASE( "degenerate point with moveto with out enough parameters - case 2" )
         
         SECTION("VT Spec v1") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
         }
     }
 }
@@ -494,12 +494,12 @@ TEST_CASE( "degenerate point with moveto with command count of zero" )
         
         SECTION("VT Spec v1") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
         }
     }
 
@@ -510,12 +510,12 @@ TEST_CASE( "degenerate point with moveto with command count of zero" )
         
         SECTION("VT Spec v1") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
         }
     }
 }
@@ -535,12 +535,12 @@ TEST_CASE( "degenerate point with invalid command" )
         
         SECTION("VT Spec v1") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
         }
     }
 
@@ -551,12 +551,12 @@ TEST_CASE( "degenerate point with invalid command" )
         
         SECTION("VT Spec v1") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
         }
     }
 }
@@ -586,7 +586,7 @@ TEST_CASE( "multipoint with three movetos with command count 1" )
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
@@ -595,7 +595,7 @@ TEST_CASE( "multipoint with three movetos with command count 1" )
 
         SECTION("VT Spec v2") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
@@ -610,7 +610,7 @@ TEST_CASE( "multipoint with three movetos with command count 1" )
 
         SECTION("VT Spec v2") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
@@ -619,7 +619,7 @@ TEST_CASE( "multipoint with three movetos with command count 1" )
 
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");

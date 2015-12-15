@@ -46,7 +46,7 @@ TEST_CASE("decode simple linestring")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,10 10,0 10)");
@@ -55,7 +55,7 @@ TEST_CASE("decode simple linestring")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,10 10,0 10)");
@@ -70,7 +70,7 @@ TEST_CASE("decode simple linestring")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,10 10,0 10)");
@@ -79,7 +79,7 @@ TEST_CASE("decode simple linestring")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,10 10,0 10)");
@@ -103,13 +103,13 @@ TEST_CASE("decode degenerate line_string only moveto")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             CHECK( geom.is<mapnik::geometry::geometry_empty>() );
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2));
         }
     }
 
@@ -120,13 +120,13 @@ TEST_CASE("decode degenerate line_string only moveto")
 
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             CHECK( geom.is<mapnik::geometry::geometry_empty>() );
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2));
         }
     }
 }
@@ -150,13 +150,13 @@ TEST_CASE("decode degenerate line_string lineto(0,0)")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             CHECK( geom.is<mapnik::geometry::geometry_empty>() );
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2));
         }
     }
 
@@ -167,13 +167,13 @@ TEST_CASE("decode degenerate line_string lineto(0,0)")
 
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             CHECK( geom.is<mapnik::geometry::geometry_empty>() );
         }
 
         SECTION("VT Spec v2") 
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2));
         }
     }
 }
@@ -199,7 +199,7 @@ TEST_CASE("decode line_string with first lineto command having delta zero")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
@@ -208,7 +208,7 @@ TEST_CASE("decode line_string with first lineto command having delta zero")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
@@ -223,7 +223,7 @@ TEST_CASE("decode line_string with first lineto command having delta zero")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
@@ -232,7 +232,7 @@ TEST_CASE("decode line_string with first lineto command having delta zero")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
@@ -262,7 +262,7 @@ TEST_CASE("decode line_string with second lineto command having delta zero")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
@@ -271,7 +271,7 @@ TEST_CASE("decode line_string with second lineto command having delta zero")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
@@ -286,7 +286,7 @@ TEST_CASE("decode line_string with second lineto command having delta zero")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
@@ -295,7 +295,7 @@ TEST_CASE("decode line_string with second lineto command having delta zero")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
@@ -327,7 +327,7 @@ TEST_CASE("decode line_string with third lineto command having delta zero")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,3 3)");
@@ -336,7 +336,7 @@ TEST_CASE("decode line_string with third lineto command having delta zero")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,3 3)");
@@ -351,7 +351,7 @@ TEST_CASE("decode line_string with third lineto command having delta zero")
         
         SECTION("VT Spec v1") 
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,3 3)");
@@ -360,7 +360,7 @@ TEST_CASE("decode line_string with third lineto command having delta zero")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,3 3)");
@@ -390,12 +390,12 @@ TEST_CASE("decode degenerate linestring with close command at end")
         
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 
@@ -406,12 +406,12 @@ TEST_CASE("decode degenerate linestring with close command at end")
         
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 }
@@ -437,12 +437,12 @@ TEST_CASE("decode degenerate linestring with close command first")
         
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 
@@ -453,12 +453,12 @@ TEST_CASE("decode degenerate linestring with close command first")
         
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 }
@@ -485,12 +485,12 @@ TEST_CASE("decode degenerate linestring with moveto command count greater then 1
     
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 
@@ -501,12 +501,12 @@ TEST_CASE("decode degenerate linestring with moveto command count greater then 1
         
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 }
@@ -530,12 +530,12 @@ TEST_CASE("decode degenerate linestring with moveto command count of zero")
     
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 
@@ -546,12 +546,12 @@ TEST_CASE("decode degenerate linestring with moveto command count of zero")
         
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 }
@@ -577,12 +577,12 @@ TEST_CASE("decode degenerate linestring with lineto command count of zero")
     
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 
@@ -593,12 +593,12 @@ TEST_CASE("decode degenerate linestring with lineto command count of zero")
         
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 }
@@ -623,12 +623,12 @@ TEST_CASE("decode degenerate linestring that starts with unknown command")
     
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 
@@ -639,12 +639,12 @@ TEST_CASE("decode degenerate linestring that starts with unknown command")
         
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 }
@@ -669,12 +669,12 @@ TEST_CASE("decode degenerate linestring that ends with unknown command")
     
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 
@@ -685,12 +685,12 @@ TEST_CASE("decode degenerate linestring that ends with unknown command")
         
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 }
@@ -718,12 +718,12 @@ TEST_CASE("decode degenerate linestring that begins with lineto")
     
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 
@@ -734,12 +734,12 @@ TEST_CASE("decode degenerate linestring that begins with lineto")
         
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 }
@@ -767,12 +767,12 @@ TEST_CASE("decode degenerate linestring that begins with lineto delta zero")
     
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 
@@ -783,12 +783,12 @@ TEST_CASE("decode degenerate linestring that begins with lineto delta zero")
         
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 }
@@ -813,12 +813,12 @@ TEST_CASE("decode degenerate linestring that begins with close")
     
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 
@@ -829,12 +829,12 @@ TEST_CASE("decode degenerate linestring that begins with close")
         
         SECTION("VT Spec v1")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 1));
         }
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 }
@@ -863,7 +863,7 @@ TEST_CASE("decode linestring that begins with two moveto commands")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(2 2,3 3)");
@@ -872,7 +872,7 @@ TEST_CASE("decode linestring that begins with two moveto commands")
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 
@@ -883,7 +883,7 @@ TEST_CASE("decode linestring that begins with two moveto commands")
         
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(2 2,3 3)");
@@ -892,7 +892,7 @@ TEST_CASE("decode linestring that begins with two moveto commands")
 
         SECTION("VT Spec v2")
         {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
+            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_LINESTRING, 2));
         }
     }
 }

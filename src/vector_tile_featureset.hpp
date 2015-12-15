@@ -201,7 +201,7 @@ public:
                 continue;
             }
             mapnik::vector_tile_impl::Geometry<double> geoms(f,tile_x_, tile_y_, scale_, -1*scale_);
-            mapnik::geometry::geometry<double> geom = decode_geometry<double>(geoms, f.type(), filter_.box_, version_);
+            mapnik::geometry::geometry<double> geom = decode_geometry(geoms, f.type(), version_, filter_.box_);
             if (geom.is<mapnik::geometry::geometry_empty>())
             {
                 continue;

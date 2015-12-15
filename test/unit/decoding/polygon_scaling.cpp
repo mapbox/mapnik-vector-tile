@@ -48,7 +48,7 @@ TEST_CASE("decode simple polygon - scale 2")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 5,-5 5,-5 0,0 0))");
@@ -57,7 +57,7 @@ TEST_CASE("decode simple polygon - scale 2")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 5,-5 5,-5 0,0 0))");
@@ -72,7 +72,7 @@ TEST_CASE("decode simple polygon - scale 2")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 5,-5 5,-5 0,0 0))");
@@ -81,7 +81,7 @@ TEST_CASE("decode simple polygon - scale 2")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 5,-5 5,-5 0,0 0))");
@@ -117,7 +117,7 @@ TEST_CASE("decode simple polygon - scale 2 - int64 decode")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 5,-5 5,-5 0,0 0))");
@@ -126,7 +126,7 @@ TEST_CASE("decode simple polygon - scale 2 - int64 decode")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 5,-5 5,-5 0,0 0))");
@@ -141,7 +141,7 @@ TEST_CASE("decode simple polygon - scale 2 - int64 decode")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 5,-5 5,-5 0,0 0))");
@@ -150,7 +150,7 @@ TEST_CASE("decode simple polygon - scale 2 - int64 decode")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 5,-5 5,-5 0,0 0))");
@@ -186,7 +186,7 @@ TEST_CASE("decode simple polygon - scale 3.214")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 3.11138767890479,-3.11138767890479 3.11138767890479,-3.11138767890479 0,0 0))");
@@ -195,7 +195,7 @@ TEST_CASE("decode simple polygon - scale 3.214")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 3.11138767890479,-3.11138767890479 3.11138767890479,-3.11138767890479 0,0 0))");
@@ -210,7 +210,7 @@ TEST_CASE("decode simple polygon - scale 3.214")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 3.11138767890479,-3.11138767890479 3.11138767890479,-3.11138767890479 0,0 0))");
@@ -219,7 +219,7 @@ TEST_CASE("decode simple polygon - scale 3.214")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 3.11138767890479,-3.11138767890479 3.11138767890479,-3.11138767890479 0,0 0))");
@@ -255,7 +255,7 @@ TEST_CASE("decode simple polygon - scale 3.214 - int64 decode")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 3,-3 3,-3 0,0 0))");
@@ -264,7 +264,7 @@ TEST_CASE("decode simple polygon - scale 3.214 - int64 decode")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 3,-3 3,-3 0,0 0))");
@@ -279,7 +279,7 @@ TEST_CASE("decode simple polygon - scale 3.214 - int64 decode")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 3,-3 3,-3 0,0 0))");
@@ -288,7 +288,7 @@ TEST_CASE("decode simple polygon - scale 3.214 - int64 decode")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 3,-3 3,-3 0,0 0))");
@@ -324,7 +324,7 @@ TEST_CASE("decode simple polygon - scale 0.46")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 21.7391304347826,-21.7391304347826 21.7391304347826,-21.7391304347826 0,0 0))");
@@ -333,7 +333,7 @@ TEST_CASE("decode simple polygon - scale 0.46")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 21.7391304347826,-21.7391304347826 21.7391304347826,-21.7391304347826 0,0 0))");
@@ -348,7 +348,7 @@ TEST_CASE("decode simple polygon - scale 0.46")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 21.7391304347826,-21.7391304347826 21.7391304347826,-21.7391304347826 0,0 0))");
@@ -357,7 +357,7 @@ TEST_CASE("decode simple polygon - scale 0.46")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 21.7391304347826,-21.7391304347826 21.7391304347826,-21.7391304347826 0,0 0))");
@@ -393,7 +393,7 @@ TEST_CASE("decode simple polygon - scale 0.46 - int64 decode")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 22,-22 22,-22 0,0 0))");
@@ -402,7 +402,7 @@ TEST_CASE("decode simple polygon - scale 0.46 - int64 decode")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 22,-22 22,-22 0,0 0))");
@@ -417,7 +417,7 @@ TEST_CASE("decode simple polygon - scale 0.46 - int64 decode")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 22,-22 22,-22 0,0 0))");
@@ -426,7 +426,7 @@ TEST_CASE("decode simple polygon - scale 0.46 - int64 decode")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 22,-22 22,-22 0,0 0))");
@@ -462,7 +462,7 @@ TEST_CASE("decode simple polygon - inverted y axis")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,-10 0,-10 -10,0 -10,0 0))");
@@ -471,7 +471,7 @@ TEST_CASE("decode simple polygon - inverted y axis")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,-10 0,-10 -10,0 -10,0 0))");
@@ -486,7 +486,7 @@ TEST_CASE("decode simple polygon - inverted y axis")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,-10 0,-10 -10,0 -10,0 0))");
@@ -495,7 +495,7 @@ TEST_CASE("decode simple polygon - inverted y axis")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,-10 0,-10 -10,0 -10,0 0))");
@@ -531,7 +531,7 @@ TEST_CASE("decode simple polygon - inverted x axis")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 10,0 0))");
@@ -540,7 +540,7 @@ TEST_CASE("decode simple polygon - inverted x axis")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 10,0 0))");
@@ -555,7 +555,7 @@ TEST_CASE("decode simple polygon - inverted x axis")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 10,0 0))");
@@ -564,7 +564,7 @@ TEST_CASE("decode simple polygon - inverted x axis")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 10,0 0))");
@@ -600,7 +600,7 @@ TEST_CASE("decode simple polygon - inverted x axis and y axis")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 -10,10 -10,10 0,0 0))");
@@ -609,7 +609,7 @@ TEST_CASE("decode simple polygon - inverted x axis and y axis")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 -10,10 -10,10 0,0 0))");
@@ -624,7 +624,7 @@ TEST_CASE("decode simple polygon - inverted x axis and y axis")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 -10,10 -10,10 0,0 0))");
@@ -633,7 +633,7 @@ TEST_CASE("decode simple polygon - inverted x axis and y axis")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 -10,10 -10,10 0,0 0))");
@@ -688,7 +688,7 @@ TEST_CASE("decode simple polygon with hole - invert y axis")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,-10 0,-10 -10,0 -10,0 0),(-7 -7,-7 -3,-3 -3,-3 -7,-7 -7))");
@@ -697,7 +697,7 @@ TEST_CASE("decode simple polygon with hole - invert y axis")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,-10 0,-10 -10,0 -10,0 0),(-7 -7,-7 -3,-3 -3,-3 -7,-7 -7))");
@@ -712,7 +712,7 @@ TEST_CASE("decode simple polygon with hole - invert y axis")
     
         SECTION("VT Spec v1")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),1);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,-10 0,-10 -10,0 -10,0 0),(-7 -7,-7 -3,-3 -3,-3 -7,-7 -7))");
@@ -721,7 +721,7 @@ TEST_CASE("decode simple polygon with hole - invert y axis")
 
         SECTION("VT Spec v2")
         {
-            auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(),2);
+            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
             CHECK( mapnik::util::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,-10 0,-10 -10,0 -10,0 0),(-7 -7,-7 -3,-3 -3,-3 -7,-7 -7))");
