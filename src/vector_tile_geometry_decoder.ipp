@@ -1057,7 +1057,7 @@ typename GeometryPBF<T>::command GeometryPBF<T>::ring_next(value_type & rx,
 }
 
 template <typename T>
-mapnik::geometry::geometry<typename T::value_type> decode_geometry(T & paths, 
+MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_geometry(T & paths, 
                                                                    int32_t geom_type, 
                                                                    unsigned version,
                                                                    mapnik::box2d<double> const& bbox)
@@ -1103,7 +1103,7 @@ mapnik::geometry::geometry<typename T::value_type> decode_geometry(T & paths,
 }
 
 template <typename T>
-mapnik::geometry::geometry<typename T::value_type> decode_geometry(T & paths, int32_t geom_type, unsigned version)
+MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_geometry(T & paths, int32_t geom_type, unsigned version)
 {
     mapnik::box2d<double> bbox(std::numeric_limits<double>::lowest(),
                                std::numeric_limits<double>::lowest(),

@@ -122,7 +122,6 @@ template <typename T>
 bool geometry_clipper<T>::operator() (mapnik::geometry::point<std::int64_t> const& geom)
 {
     backend_.start_tile_feature(feature_);
-    backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
     bool painted = backend_.add_path(geom);
     backend_.stop_tile_feature();
     return painted;
@@ -135,7 +134,6 @@ bool geometry_clipper<T>::operator() (mapnik::geometry::multi_point<std::int64_t
     if (!geom.empty())
     {
         backend_.start_tile_feature(feature_);
-        backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POINT);
         painted = backend_.add_path(geom);
         backend_.stop_tile_feature();
     }
@@ -166,7 +164,6 @@ bool geometry_clipper<T>::operator() (mapnik::geometry::line_string<std::int64_t
         painted = true;
         // Add the data to the tile
         backend_.start_tile_feature(feature_);
-        backend_.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
         for (auto const& ls : result)
         {
             backend_.add_path(ls);
@@ -204,7 +201,6 @@ bool geometry_clipper<T>::operator() (mapnik::geometry::multi_line_string<std::i
                 painted = true;
                 first = false;
                 backend_.start_tile_feature(feature_);
-                backend_.current_feature_->set_type(vector_tile::Tile_GeomType_LINESTRING);
             }
             for (auto const& ls : result)
             {
@@ -305,7 +301,6 @@ bool geometry_clipper<T>::operator() (mapnik::geometry::polygon<std::int64_t> & 
     }
 
     backend_.start_tile_feature(feature_);
-    backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POLYGON);
     
     for (auto const& poly : mp)
     {
@@ -481,7 +476,6 @@ bool geometry_clipper<T>::operator() (mapnik::geometry::multi_polygon<std::int64
     }
 
     backend_.start_tile_feature(feature_);
-    backend_.current_feature_->set_type(vector_tile::Tile_GeomType_POLYGON);
     
     for (auto const& poly : mp)
     {

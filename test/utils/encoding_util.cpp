@@ -1,3 +1,5 @@
+#include "catch.hpp"
+
 // mapnik vector tile
 #include "vector_tile_geometry_decoder.hpp"
 #include "vector_tile_geometry_encoder.hpp"
@@ -43,59 +45,6 @@ struct show_path
     }
 };
 
-struct encoder_visitor
-{
-    vector_tile::Tile_Feature & feature_;
-    int32_t x_;
-    int32_t y_;
-    encoder_visitor(vector_tile::Tile_Feature & feature) :
-      feature_(feature),
-      x_(0),
-      y_(0) { }
-
-    void operator() (geometry_empty const&)
-    {
-    }
-
-    void operator()(mapnik::geometry::geometry_collection<std::int64_t> const& path)
-    {
-        for (auto const& p : path)
-        {
-            mapnik::util::apply_visitor((*this), p);
-        }
-    }
-
-    template <typename T>
-    void operator()(T const& geom)
-    {
-        mapnik::vector_tile_impl::encode_geometry(geom,feature_,x_,y_);
-    }
-};
-
-vector_tile::Tile_Feature geometry_to_feature(mapnik::geometry::geometry<std::int64_t> const& g)
-{
-    vector_tile::Tile_Feature feature;
-    if (g.template is<mapnik::geometry::point<std::int64_t>>() || g.template is<mapnik::geometry::multi_point<std::int64_t>>())
-    {
-        feature.set_type(vector_tile::Tile_GeomType_POINT);
-    }
-    else if (g.template is<mapnik::geometry::line_string<std::int64_t>>() || g.template is<mapnik::geometry::multi_line_string<std::int64_t>>())
-    {
-        feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
-    }
-    else if (g.template is<mapnik::geometry::polygon<std::int64_t>>() || g.template is<mapnik::geometry::multi_polygon<std::int64_t>>())
-    {
-        feature.set_type(vector_tile::Tile_GeomType_POLYGON);
-    }
-    else
-    {
-        throw std::runtime_error("could not detect valid geometry type");
-    }
-    encoder_visitor ap(feature);
-    mapnik::util::apply_visitor(ap,g);
-    return feature;
-}
-
 template <typename T>
 std::string decode_to_path_string(mapnik::geometry::geometry<T> const& g)
 {
@@ -108,7 +57,10 @@ std::string decode_to_path_string(mapnik::geometry::geometry<T> const& g)
 
 std::string compare(mapnik::geometry::geometry<std::int64_t> const& g, unsigned version)
 {
-    vector_tile::Tile_Feature feature = geometry_to_feature(g);
+    std::int32_t x = 0;
+    std::int32_t y = 0;
+    vector_tile::Tile_Feature feature;
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry(g, feature, x, y));
     mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
     auto g2 = mapnik::vector_tile_impl::decode_geometry(geoms,feature.type(),version);
     return decode_to_path_string(g2);
@@ -116,7 +68,10 @@ std::string compare(mapnik::geometry::geometry<std::int64_t> const& g, unsigned 
 
 std::string compare_pbf(mapnik::geometry::geometry<std::int64_t> const& g, unsigned version)
 {
-    vector_tile::Tile_Feature feature = geometry_to_feature(g);
+    std::int32_t x = 0;
+    std::int32_t y = 0;
+    vector_tile::Tile_Feature feature;
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry(g, feature, x, y));
     std::string feature_string = feature.SerializeAsString();
     mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     auto g2 = mapnik::vector_tile_impl::decode_geometry(geoms,feature.type(),version);

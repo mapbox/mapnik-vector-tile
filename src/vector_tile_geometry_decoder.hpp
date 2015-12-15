@@ -1,6 +1,9 @@
 #ifndef __MAPNIK_VECTOR_TILE_GEOMETRY_DECODER_H__
 #define __MAPNIK_VECTOR_TILE_GEOMETRY_DECODER_H__
 
+// mapnik-vector-tile
+#include "vector_tile_config.hpp"
+
 //libprotobuf
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -131,13 +134,13 @@ public:
 };
 
 template <typename T>
-mapnik::geometry::geometry<typename T::value_type> decode_geometry(T & paths, 
+MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_geometry(T & paths, 
                                                                    int32_t geom_type, 
                                                                    unsigned version,
                                                                    mapnik::box2d<double> const& bbox);
 
 template <typename T>
-mapnik::geometry::geometry<typename T::value_type> decode_geometry(T & paths, int32_t geom_type, unsigned version);
+MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_geometry(T & paths, int32_t geom_type, unsigned version);
 
 } // end ns vector_tile_impl
 
