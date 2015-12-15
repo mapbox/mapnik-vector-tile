@@ -17,16 +17,8 @@ TEST_CASE( "cannot create datasource from layer pbf without name" )
     vector_tile::Tile_Layer layer;
 
     std::string buffer;
-    layer.SerializeToString(&buffer);
+    layer.SerializePartialToString(&buffer);
     protozero::pbf_reader pbf_layer(buffer);
 
-    try
-    {
-        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
-        FAIL( "expected exception" );
-    }
-    catch(std::exception const& ex)
-    {
-        REQUIRE(std::string(ex.what()) == "The required name field is missing in a vector tile layer.");
-    }
+    CHECK_THROWS_AS(mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size), std::runtime_error);
 }
