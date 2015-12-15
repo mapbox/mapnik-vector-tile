@@ -63,7 +63,6 @@ namespace vector_tile_impl
             return path_multiplier_;
         }
 
-
         template <typename T>
         inline bool add_path(T const& path)
         {
