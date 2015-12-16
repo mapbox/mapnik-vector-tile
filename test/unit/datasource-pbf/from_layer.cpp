@@ -14,16 +14,16 @@
 // Boost
 #include <boost/optional.hpp>
 
+unsigned tile_size = 256;
+
 TEST_CASE( "cannot create datasource from layer pbf without name" )
 {
-    unsigned tile_size = 256;
+    std::string buffer;
+    vector_tile::Tile_Layer layer;
 
     SECTION("VT Spec v1")
     {
-        vector_tile::Tile_Layer layer;
         layer.set_version(1);
-
-        std::string buffer;
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
@@ -40,10 +40,7 @@ TEST_CASE( "cannot create datasource from layer pbf without name" )
 
     SECTION("VT Spec v2")
     {
-        vector_tile::Tile_Layer layer;
         layer.set_version(2);
-
-        std::string buffer;
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
@@ -61,30 +58,24 @@ TEST_CASE( "cannot create datasource from layer pbf without name" )
 
 TEST_CASE( "can create datasource from layer pbf with name but without extent" )
 {
-    unsigned tile_size = 256;
+    std::string buffer;
+    vector_tile::Tile_Layer layer;
+    layer.set_name("test_name");
 
     SECTION("VT Spec v1")
     {
-        vector_tile::Tile_Layer layer;
         layer.set_version(1);
-        layer.set_name("test_name");
-
-        std::string buffer;
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
         mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
-        
+
         CHECK(ds.get_name() == "test_name");
     }
 
     SECTION("VT Spec v2")
     {
-        vector_tile::Tile_Layer layer;
         layer.set_version(2);
-        layer.set_name("test_name");
-
-        std::string buffer;
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
@@ -102,58 +93,49 @@ TEST_CASE( "can create datasource from layer pbf with name but without extent" )
 
 TEST_CASE( "can create datasource from layer pbf with name and extent" )
 {
-    unsigned tile_size = 256;
+    std::string buffer;
+    vector_tile::Tile_Layer layer;
+    layer.set_name("test_name");
+    layer.set_extent(4096);
 
     SECTION("VT Spec v1")
     {
-        vector_tile::Tile_Layer layer;
         layer.set_version(1);
-        layer.set_name("test_name");
-        layer.set_extent(4096);
-
-        std::string buffer;
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
         mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
-        
+
         CHECK(ds.get_name() == "test_name");
     }
 
     SECTION("VT Spec v2")
     {
-        vector_tile::Tile_Layer layer;
         layer.set_version(2);
-        layer.set_name("test_name");
-        layer.set_extent(4096);
-
-        std::string buffer;
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
         mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
-        
+
         CHECK(ds.get_name() == "test_name");
     }
 }
 
 TEST_CASE( "datasource of empty layer pbf returns a featureset pointer whose first feature is null" )
 {
-    unsigned tile_size = 256;
+    std::string buffer;
+    vector_tile::Tile_Layer layer;
+    layer.set_name("test_name");
+    layer.set_extent(4096);
 
     SECTION("VT Spec v1")
     {
-        vector_tile::Tile_Layer layer;
         layer.set_version(1);
-        layer.set_name("test_name");
-        layer.set_extent(4096);
-
-        std::string buffer;
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
         mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
-        
+
         mapnik::query q(ds.get_tile_extent());
         mapnik::featureset_ptr features = ds.features(q);
 
@@ -165,23 +147,18 @@ TEST_CASE( "datasource of empty layer pbf returns a featureset pointer whose fir
 
     SECTION("VT Spec v2")
     {
-        vector_tile::Tile_Layer layer;
         layer.set_version(2);
-        layer.set_name("test_name");
-        layer.set_extent(4096);
-
-        std::string buffer;
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
         mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
 
         mapnik::query q(ds.get_tile_extent());
-        mapnik::featureset_ptr features = ds.features(q);
+        mapnik::featureset_ptr featureset = ds.features(q);
 
-        CHECK(features);
+        CHECK(featureset);
 
-        mapnik::feature_ptr feature = features->next();
+        mapnik::feature_ptr feature = featureset->next();
         CHECK(!feature);
     }
 }
