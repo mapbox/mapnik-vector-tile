@@ -121,8 +121,10 @@ TEST_CASE( "can create datasource from layer pbf with name and extent" )
     }
 }
 
-TEST_CASE( "datasource of empty layer pbf returns a featureset pointer whose first feature is null" )
+TEST_CASE( "datasource of empty layer pbf returns a null featureset pointer" )
 {
+    // From the spec: A layer SHOULD contain at least one feature. Unknown behavior when
+    // that is not the case. Current behavior is to return a null featureset.
     std::string buffer;
     vector_tile::Tile_Layer layer;
     layer.set_name("test_name");
@@ -137,12 +139,9 @@ TEST_CASE( "datasource of empty layer pbf returns a featureset pointer whose fir
         mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
 
         mapnik::query q(ds.get_tile_extent());
-        mapnik::featureset_ptr features = ds.features(q);
+        mapnik::featureset_ptr featureset = ds.features(q);
 
-        CHECK(features);
-
-        mapnik::feature_ptr feature = features->next();
-        CHECK(!feature);
+        CHECK(!featureset);
     }
 
     SECTION("VT Spec v2")
@@ -156,9 +155,25 @@ TEST_CASE( "datasource of empty layer pbf returns a featureset pointer whose fir
         mapnik::query q(ds.get_tile_extent());
         mapnik::featureset_ptr featureset = ds.features(q);
 
-        CHECK(featureset);
-
-        mapnik::feature_ptr feature = featureset->next();
-        CHECK(!feature);
+        CHECK(!featureset);
     }
+}
+
+TEST_CASE( "datasource of pbf with unkown version returns a null featureset pointer" )
+{
+    std::string buffer;
+    vector_tile::Tile_Layer layer;
+    layer.set_name("test_name");
+    layer.set_extent(4096);
+
+    layer.set_version(3);
+    layer.SerializePartialToString(&buffer);
+    protozero::pbf_reader pbf_layer(buffer);
+
+    mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+
+    mapnik::query q(ds.get_tile_extent());
+    mapnik::featureset_ptr featureset = ds.features(q);
+
+    CHECK(!featureset);
 }
