@@ -76,9 +76,6 @@ TEST_CASE( "can create datasource from layer pbf with name but without extent" )
         mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
         
         CHECK(ds.get_name() == "test_name");
-
-        // Check that layer extent is the default 4096
-        // by querying features? (Not sure what to do here)
     }
 
     SECTION("VT Spec v2")
@@ -103,7 +100,7 @@ TEST_CASE( "can create datasource from layer pbf with name but without extent" )
     }
 }
 
-TEST_CASE( "can create datasource from layer pbf with name but and extent" )
+TEST_CASE( "can create datasource from layer pbf with name and extent" )
 {
     unsigned tile_size = 256;
 
@@ -112,7 +109,7 @@ TEST_CASE( "can create datasource from layer pbf with name but and extent" )
         vector_tile::Tile_Layer layer;
         layer.set_version(1);
         layer.set_name("test_name");
-        layer.set_extent(2048);
+        layer.set_extent(4096);
 
         std::string buffer;
         layer.SerializePartialToString(&buffer);
@@ -121,9 +118,6 @@ TEST_CASE( "can create datasource from layer pbf with name but and extent" )
         mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
         
         CHECK(ds.get_name() == "test_name");
-
-        // Check that extent is 2048
-        // by querying features? (Not sure what to do here)
     }
 
     SECTION("VT Spec v2")
@@ -131,7 +125,7 @@ TEST_CASE( "can create datasource from layer pbf with name but and extent" )
         vector_tile::Tile_Layer layer;
         layer.set_version(2);
         layer.set_name("test_name");
-        layer.set_extent(2048);
+        layer.set_extent(4096);
 
         std::string buffer;
         layer.SerializePartialToString(&buffer);
@@ -140,8 +134,54 @@ TEST_CASE( "can create datasource from layer pbf with name but and extent" )
         mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
         
         CHECK(ds.get_name() == "test_name");
+    }
+}
 
-        // Check that extent is 2048
-        // by querying features? (Not sure what to do here)
+TEST_CASE( "datasource of empty layer pbf returns a featureset pointer whose first feature is null" )
+{
+    unsigned tile_size = 256;
+
+    SECTION("VT Spec v1")
+    {
+        vector_tile::Tile_Layer layer;
+        layer.set_version(1);
+        layer.set_name("test_name");
+        layer.set_extent(4096);
+
+        std::string buffer;
+        layer.SerializePartialToString(&buffer);
+        protozero::pbf_reader pbf_layer(buffer);
+
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+        
+        mapnik::query q(ds.get_tile_extent());
+        mapnik::featureset_ptr features = ds.features(q);
+
+        CHECK(features);
+
+        mapnik::feature_ptr feature = features->next();
+        CHECK(!feature);
+    }
+
+    SECTION("VT Spec v2")
+    {
+        vector_tile::Tile_Layer layer;
+        layer.set_version(2);
+        layer.set_name("test_name");
+        layer.set_extent(4096);
+
+        std::string buffer;
+        layer.SerializePartialToString(&buffer);
+        protozero::pbf_reader pbf_layer(buffer);
+
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+
+        mapnik::query q(ds.get_tile_extent());
+        mapnik::featureset_ptr features = ds.features(q);
+
+        CHECK(features);
+
+        mapnik::feature_ptr feature = features->next();
+        CHECK(!feature);
     }
 }
