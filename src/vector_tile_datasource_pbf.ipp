@@ -158,7 +158,7 @@ datasource::datasource_t tile_datasource_pbf::type() const
 
 featureset_ptr tile_datasource_pbf::features(query const& q) const
 {
-    if (version_  > 2 || version_ < 1 || features_.size() == 0)
+    if (version_  > 2 || version_ < 1 || features_.empty())
     {
         // From spec:
         // When a Vector Tile consumer encounters a Vector Tile layer with an unknown version, 
