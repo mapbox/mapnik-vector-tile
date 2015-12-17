@@ -140,6 +140,7 @@ TEST_CASE( "extent of a tile effects the scale of features" )
 
     SECTION("default for v1 is 4096")
     {
+        layer.set_version(1);
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
@@ -233,6 +234,66 @@ TEST_CASE( "datasource of pbf with unkown version returns a null featureset poin
 
     mapnik::query q(ds.get_tile_extent());
     mapnik::featureset_ptr featureset = ds.features(q);
+
+    CHECK(!featureset);
+}
+
+TEST_CASE( "datasource of empty layer pbf returns a null featureset pointer for features_at_point query" )
+{
+    // From the spec: A layer SHOULD contain at least one feature.
+    // Unknown behavior when that is not the case. Current behavior is to
+    // return a null featureset.
+    std::string buffer;
+    vector_tile::Tile_Layer layer;
+    layer.set_name("test_name");
+    layer.set_extent(4096);
+
+    SECTION("VT Spec v1")
+    {
+        layer.set_version(1);
+        layer.SerializePartialToString(&buffer);
+        protozero::pbf_reader pbf_layer(buffer);
+
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+
+        mapnik::featureset_ptr featureset = ds.features_at_point(mapnik::coord2d(0.0,0.0),0.0001);
+
+        CHECK(!featureset);
+    }
+
+    SECTION("VT Spec v2")
+    {
+        layer.set_version(2);
+        layer.SerializePartialToString(&buffer);
+        protozero::pbf_reader pbf_layer(buffer);
+
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+
+        mapnik::featureset_ptr featureset = ds.features_at_point(mapnik::coord2d(0.0,0.0),0.0001);
+
+        CHECK(!featureset);
+    }
+}
+
+TEST_CASE( "datasource of pbf with unknown version returns a null featureset pointer" )
+{
+    // From spec:
+    // When a Vector Tile consumer encounters a Vector Tile layer with an unknown
+    // version, it MAY make a best-effort attempt to interpret the layer, or it MAY
+    // skip the layer. In either case it SHOULD continue to process subsequent layers
+    // in the Vector Tile.
+    std::string buffer;
+    vector_tile::Tile_Layer layer;
+    layer.set_name("test_name");
+    layer.set_extent(4096);
+
+    layer.set_version(3);
+    layer.SerializePartialToString(&buffer);
+    protozero::pbf_reader pbf_layer(buffer);
+
+    mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+
+    mapnik::featureset_ptr featureset = ds.features_at_point(mapnik::coord2d(0.0,0.0),0.0001);
 
     CHECK(!featureset);
 }

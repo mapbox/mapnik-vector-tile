@@ -40,6 +40,7 @@ public:
 private:
     mutable mapnik::layer_descriptor desc_;
     mutable bool attributes_added_;
+    mutable bool valid_layer_;
     protozero::pbf_reader layer_;
     unsigned x_;
     unsigned y_;

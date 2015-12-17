@@ -40,6 +40,7 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
     : datasource(parameters()),
       desc_("in-memory PBF encoded datasource","utf-8"),
       attributes_added_(false),
+      valid_layer_(true),
       layer_(layer),
       x_(x),
       y_(y),
@@ -147,6 +148,17 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
         }
         scale_ = (static_cast<double>(layer_extent_) / tile_size_) * tile_size_/resolution;
     }
+    else
+    {
+        std::cout << "Is invalid here?" << std::endl;
+        valid_layer_ = false;
+    }
+
+    if (features_.empty())
+    {
+        std::cout << "Is invalid here?" << std::endl;
+        valid_layer_ = false;
+    }
 }
 
 tile_datasource_pbf::~tile_datasource_pbf() {}
@@ -158,7 +170,7 @@ datasource::datasource_t tile_datasource_pbf::type() const
 
 featureset_ptr tile_datasource_pbf::features(query const& q) const
 {
-    if (version_  > 2 || version_ < 1 || features_.empty())
+    if (valid_layer_)
     {
         // From spec:
         // When a Vector Tile consumer encounters a Vector Tile layer with an unknown version, 
@@ -175,7 +187,7 @@ featureset_ptr tile_datasource_pbf::features(query const& q) const
 
 featureset_ptr tile_datasource_pbf::features_at_point(coord2d const& pt, double tol) const
 {
-    if (version_  > 2 || version_ < 1)
+    if (valid_layer_)
     {
         // From spec:
         // When a Vector Tile consumer encounters a Vector Tile layer with an unknown version, 
