@@ -145,6 +145,7 @@ public:
         ren.copy_from(src_pixf,0,start_x_, start_y_);
         backend_.start_tile_feature(feature_);
         backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
+        backend_.stop_tile_feature();
         painted_ = true;
     }
 

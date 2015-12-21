@@ -76,9 +76,9 @@ void backend_pbf::add_tile_feature_raster(std::string const& image_buffer)
 
 void backend_pbf::stop_tile_feature()
 {
-    if (current_feature_)
+    if (current_layer_ && current_feature_)
     {
-        if (current_feature_->geometry_size() == 0 && current_layer_)
+        if (!current_feature_->has_raster() && current_feature_->geometry_size() == 0 )
         {
             current_layer_->mutable_features()->RemoveLast();
         }
