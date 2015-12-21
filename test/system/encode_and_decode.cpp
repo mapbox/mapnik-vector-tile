@@ -3,9 +3,6 @@
 // test utils
 #include "encoding_util.hpp"
 
-// mapnik
-#include <mapnik/util/geometry_to_wkt.hpp>
-
 //
 // Point Round Trip
 //

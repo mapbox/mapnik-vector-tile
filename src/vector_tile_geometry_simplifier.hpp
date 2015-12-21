@@ -13,34 +13,29 @@ namespace mapnik
 namespace vector_tile_impl
 {
 
-template <typename T>
 struct geometry_simplifier 
 {
-    typedef T backend_type;
-
     geometry_simplifier(double simplify_distance,
-                        geometry_clipper<backend_type> & encoder);
+                        geometry_clipper & clipper);
 
-    bool operator() (mapnik::geometry::geometry_empty const&)
-    {
-        return false;
-    }
-
-    bool operator() (mapnik::geometry::point<std::int64_t> const& geom);
-
-    bool operator() (mapnik::geometry::multi_point<std::int64_t> const& geom);
-
-    bool operator() (mapnik::geometry::line_string<std::int64_t> const& geom);
-
-    bool operator() (mapnik::geometry::multi_line_string<std::int64_t> const& geom);
-
-    bool operator() (mapnik::geometry::polygon<std::int64_t> const& geom);
-
-    bool operator() (mapnik::geometry::multi_polygon<std::int64_t> const& geom);
-
-    bool operator() (mapnik::geometry::geometry_collection<std::int64_t> const& geom);
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::geometry_empty & geom);
     
-    geometry_clipper<backend_type> & encoder_;
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::point<std::int64_t> & geom);
+
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::multi_point<std::int64_t> & geom);
+
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::geometry_collection<std::int64_t> & geom);
+
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::line_string<std::int64_t> const& geom);
+    
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::multi_line_string<std::int64_t> const& geom);
+
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::polygon<std::int64_t> const& geom);
+
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::multi_polygon<std::int64_t> const& geom);
+
+    
+    geometry_clipper & clipper_;
     unsigned simplify_distance_;
 };
 

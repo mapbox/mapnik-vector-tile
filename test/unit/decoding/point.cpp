@@ -5,10 +5,10 @@
 
 // test utils
 #include "decoding_util.hpp"
+#include "geom_to_wkt.hpp"
 
 // mapnik
 #include <mapnik/geometry.hpp>
-#include <mapnik/util/geometry_to_wkt.hpp>
 
 // libprotobuf
 #pragma GCC diagnostic push
@@ -41,7 +41,7 @@ TEST_CASE( "decode simple point")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(5 5)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -50,7 +50,7 @@ TEST_CASE( "decode simple point")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(5 5)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -65,7 +65,7 @@ TEST_CASE( "decode simple point")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(5 5)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -74,7 +74,7 @@ TEST_CASE( "decode simple point")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(5 5)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -98,7 +98,7 @@ TEST_CASE( "decode simple negative point")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-5 -5)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -107,7 +107,7 @@ TEST_CASE( "decode simple negative point")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-5 -5)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -122,7 +122,7 @@ TEST_CASE( "decode simple negative point")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-5 -5)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -131,7 +131,7 @@ TEST_CASE( "decode simple negative point")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-5 -5)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -155,7 +155,7 @@ TEST_CASE( "point with delta of max int32")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(2147483647 2147483647)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -164,7 +164,7 @@ TEST_CASE( "point with delta of max int32")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(2147483647 2147483647)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -179,7 +179,7 @@ TEST_CASE( "point with delta of max int32")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(2147483647 2147483647)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -188,7 +188,7 @@ TEST_CASE( "point with delta of max int32")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(2147483647 2147483647)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -212,7 +212,7 @@ TEST_CASE( "point with delta of min int32")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483648 -2147483648)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -221,7 +221,7 @@ TEST_CASE( "point with delta of min int32")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483648 -2147483648)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -236,7 +236,7 @@ TEST_CASE( "point with delta of min int32")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483648 -2147483648)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -245,7 +245,7 @@ TEST_CASE( "point with delta of min int32")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483648 -2147483648)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -269,7 +269,7 @@ TEST_CASE( "point with delta of min int32 + 1")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483647 -2147483647)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -278,7 +278,7 @@ TEST_CASE( "point with delta of min int32 + 1")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483647 -2147483647)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -293,7 +293,7 @@ TEST_CASE( "point with delta of min int32 + 1")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483647 -2147483647)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -302,7 +302,7 @@ TEST_CASE( "point with delta of min int32 + 1")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POINT(-2147483647 -2147483647)");
             CHECK( geom.is<mapnik::geometry::point<double> >() );
         }
@@ -588,7 +588,7 @@ TEST_CASE( "multipoint with three movetos with command count 1" )
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
             CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
         }
@@ -597,7 +597,7 @@ TEST_CASE( "multipoint with three movetos with command count 1" )
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
             CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
         }
@@ -612,7 +612,7 @@ TEST_CASE( "multipoint with three movetos with command count 1" )
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
             CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
         }
@@ -621,7 +621,7 @@ TEST_CASE( "multipoint with three movetos with command count 1" )
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
             CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
         }

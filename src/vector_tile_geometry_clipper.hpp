@@ -3,12 +3,7 @@
 
 // mapnik
 #include <mapnik/box2d.hpp>
-#include <mapnik/feature.hpp>
 #include <mapnik/geometry.hpp>
-
-// angus clipper
-// http://www.angusj.com/delphi/clipper.php
-#include "clipper.hpp"
 
 namespace mapnik
 {
@@ -16,46 +11,44 @@ namespace mapnik
 namespace vector_tile_impl
 {
 
-template <typename T>
+enum polygon_fill_type : std::uint8_t {
+    even_odd_fill = 0, 
+    non_zero_fill, 
+    positive_fill, 
+    negative_fill,
+    polygon_fill_type_max
+};
+
 struct geometry_clipper 
 {
-    typedef T backend_type;
-
-    geometry_clipper(backend_type & backend,
-                     mapnik::feature_impl const& feature,
-                     mapnik::box2d<int> const& tile_clipping_extent,
+    geometry_clipper(mapnik::box2d<int> const& tile_clipping_extent,
                      double area_threshold,
                      bool strictly_simple,
                      bool multi_polygon_union,
-                     ClipperLib::PolyFillType fill_type,
+                     polygon_fill_type fill_type,
                      bool process_all_rings);
 
-    bool operator() (mapnik::geometry::geometry_empty const&)
-    {
-        return false;
-    }
-
-    bool operator() (mapnik::geometry::geometry_collection<std::int64_t> & geom);
-
-    bool operator() (mapnik::geometry::point<std::int64_t> const& geom);
-
-    bool operator() (mapnik::geometry::multi_point<std::int64_t> const& geom);
-
-    bool operator() (mapnik::geometry::line_string<std::int64_t> & geom);
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::geometry_empty &);
     
-    bool operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom);
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::point<std::int64_t> &);
+    
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::multi_point<std::int64_t> &);
 
-    bool operator() (mapnik::geometry::polygon<std::int64_t> & geom);
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::line_string<std::int64_t> & geom);
+    
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom);
 
-    bool operator() (mapnik::geometry::multi_polygon<std::int64_t> & geom);
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::polygon<std::int64_t> & geom);
 
-    backend_type & backend_;
-    mapnik::feature_impl const& feature_;
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::multi_polygon<std::int64_t> & geom);
+
+    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::geometry_collection<std::int64_t> & geom);
+
     mapnik::box2d<int> const& tile_clipping_extent_;
     double area_threshold_;
     bool strictly_simple_;
     bool multi_polygon_union_;
-    ClipperLib::PolyFillType fill_type_;
+    polygon_fill_type fill_type_;
     bool process_all_rings_;
 };
 

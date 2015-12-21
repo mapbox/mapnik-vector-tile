@@ -13,7 +13,6 @@
 #include "vector_tile_compression.hpp"
 #include "vector_tile_processor.hpp"
 #include "vector_tile_strategy.hpp"
-#include "vector_tile_backend_pbf.hpp"
 #include "vector_tile_util.hpp"
 #include "vector_tile_projection.hpp"
 #include "vector_tile_geometry_decoder.hpp"
@@ -21,11 +20,13 @@
 #include "vector_tile_datasource_pbf.hpp"
 #include "protozero/pbf_reader.hpp"
 
+// boost
 #include <boost/optional/optional_io.hpp>
 
 #include <fstream>
 
-TEST_CASE( "vector tile rasterize", "should try to decode windfail tile" ) {
+TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
+{
     // open vtile
     std::ifstream stream("./test/data/0.0.0.vector.mvt",std::ios_base::in|std::ios_base::binary);
     REQUIRE(stream.is_open());
@@ -37,25 +38,19 @@ TEST_CASE( "vector tile rasterize", "should try to decode windfail tile" ) {
     mapnik::vector_tile_impl::zlib_decompress(buffer,uncompressed);
     REQUIRE(uncompressed.size() == 4934);
 
-    typedef vector_tile::Tile tile_type;
-    tile_type tile;
     unsigned tile_size = 256;
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
 
     // first we render the raw tile directly to an image
     {
         mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
-        tile_type tile2;
+        vector_tile::Tile tile2;
         CHECK(tile2.ParseFromString(uncompressed));
-        //std::string key("");
-        //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
-        //CHECK("" == key);
-        //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(uncompressed,key));
-        //CHECK("" == key);
 
         CHECK(1 == tile2.layers_size());
         vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
         CHECK(std::string("water") == layer2.name());
+        CHECK(1 == layer2.version());
         CHECK(23 == layer2.features_size());
 
         mapnik::layer lyr2("water",map.srs());
@@ -83,7 +78,8 @@ TEST_CASE( "vector tile rasterize", "should try to decode windfail tile" ) {
         mapnik::image_rgba8 im(map.width(),map.height());
         mapnik::agg_renderer<mapnik::image_rgba8> ren(map,im);
         ren.apply();
-        if (!mapnik::util::exists("test/fixtures/rasterize-expected-1.png")) {
+        if (!mapnik::util::exists("test/fixtures/rasterize-expected-1.png"))
+        {
             mapnik::save_to_file(im,"test/fixtures/rasterize-expected-1.png","png32");
         }
     }
@@ -91,16 +87,16 @@ TEST_CASE( "vector tile rasterize", "should try to decode windfail tile" ) {
     // set up to "re-render" it
     // the goal here is to trigger the geometries to pass through
     // the decoder and encoder again
+    mapnik::vector_tile_impl::tile out_tile;
+    
     {
-        typedef mapnik::vector_tile_impl::backend_pbf backend_type;
-        typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
-        backend_type backend(tile,16);
         std::string merc_srs("+init=epsg:3857");
-        mapnik::Map map(tile_size,tile_size,merc_srs);
+        mapnik::Map map(tile_size, tile_size, merc_srs);
         map.zoom_to_box(bbox);
-        mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
-        protozero::pbf_reader message(uncompressed.data(),uncompressed.size());
-        while (message.next(3)) {
+        mapnik::request m_req(map.width(), map.height(), map.get_current_extent());
+        protozero::pbf_reader message(uncompressed.data(), uncompressed.size());
+        while (message.next(3))
+        {
             protozero::pbf_reader layer_msg = message.get_message();
             auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
                         layer_msg,
@@ -113,14 +109,15 @@ TEST_CASE( "vector tile rasterize", "should try to decode windfail tile" ) {
             lyr.set_datasource(ds);
             map.add_layer(lyr);
         }
-        renderer_type ren(backend,map,m_req);
+        mapnik::vector_tile_impl::processor ren(map);
         ren.set_process_all_rings(true);
-        ren.apply();
+        ren.set_fill_type(mapnik::vector_tile_impl::non_zero_fill);
+        ren.update_tile(out_tile, m_req);
     }
     // now `tile` should contain all the data
     std::string buffer2;
-    CHECK(tile.SerializeToString(&buffer2));
-    CHECK(2771 == buffer2.size());
+    CHECK(out_tile.serialize_to_string(buffer2));
+    CHECK(2776 == buffer2.size());
 
     std::ofstream stream_out("./test/data/0.0.0.vector-b.mvt",std::ios_base::out|std::ios_base::binary);
     stream_out << buffer2;
@@ -129,18 +126,13 @@ TEST_CASE( "vector tile rasterize", "should try to decode windfail tile" ) {
     // let's now render this to a image and make sure it looks right
     {
         mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
-        tile_type tile2;
+        vector_tile::Tile tile2;
         CHECK(tile2.ParseFromString(buffer2));
-        //std::string key("");
-        //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
-        //CHECK("" == key);
-        //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer2,key));
-        //CHECK("" == key);
-
         CHECK(1 == tile2.layers_size());
         vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
         CHECK(std::string("water") == layer2.name());
         CHECK(5 == layer2.features_size());
+        CHECK(2 == layer2.version());
 
         mapnik::layer lyr2("water",map.srs());
         std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
@@ -168,12 +160,12 @@ TEST_CASE( "vector tile rasterize", "should try to decode windfail tile" ) {
         mapnik::agg_renderer<mapnik::image_rgba8> ren(map,im);
         ren.apply();
         unsigned diff = testing::compare_images(im,"test/fixtures/rasterize-expected-1.png");
-        // should be almost equal (49 is good enough since re-rendering filters a few small degenerates)
-        CHECK(49 == diff);
-        if (diff > 49) {
+        // should be almost equal (50 is good enough since re-rendering filters a few small degenerates)
+        CHECK(50 == diff);
+        if (diff > 50)
+        {
             mapnik::save_to_file(im,"test/fixtures/rasterize-actual-1.png","png32");
         }
     }
-
 }
 

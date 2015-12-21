@@ -4,7 +4,6 @@
 // mapnik-vector-tile
 #include "vector_tile_strategy.hpp"
 #include "vector_tile_processor.hpp"
-#include "vector_tile_backend_pbf.hpp"
 #include "vector_tile_projection.hpp"
 #include "vector_tile_geometry_decoder.hpp"
 
@@ -36,6 +35,9 @@
 #include <fstream>
 #include <sstream>
 
+// debug
+#include <functional>
+
 void clip_geometry(std::string const& file,
                    mapnik::box2d<double> const& bbox,
                    int simplify_distance,
@@ -44,65 +46,65 @@ void clip_geometry(std::string const& file,
                    bool mpu,
                    bool process_all)
 {
-    typedef mapnik::vector_tile_impl::backend_pbf backend_type;
-    typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
-    typedef vector_tile::Tile tile_type;
+    unsigned path_multiplier = 16;
+    unsigned tile_size = 256;
     std::string geojson_string;
     std::shared_ptr<mapnik::memory_datasource> ds = testing::build_geojson_ds(file);
-    tile_type tile;
-    backend_type backend(tile,1000);
 
-    mapnik::Map map(256,256,"+init=epsg:4326");
+    mapnik::Map map(tile_size, tile_size, "+init=epsg:4326");
     mapnik::layer lyr("layer","+init=epsg:4326");
     lyr.set_datasource(ds);
     map.add_layer(lyr);
-    map.zoom_to_box(bbox);
-    mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
-    renderer_type ren(
-        backend,
-        map,
-        m_req,
-        1.0,
-        0,
-        0,
-        0.1,
-        strictly_simple
-    );
+    //map.zoom_to_box(bbox);
+    mapnik::request m_req(tile_size, tile_size, bbox);
+    mapnik::vector_tile_impl::processor ren(map);
+    // TODO - test these booleans https://github.com/mapbox/mapnik-vector-tile/issues/165
+    ren.set_strictly_simple(strictly_simple);
     ren.set_simplify_distance(simplify_distance);
     ren.set_fill_type(fill_type);
-    // TODO - test these booleans https://github.com/mapbox/mapnik-vector-tile/issues/165
     ren.set_process_all_rings(process_all);
     ren.set_multi_polygon_union(mpu);
-    ren.apply();
+    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(m_req, path_multiplier);
     std::string buffer;
-    tile.SerializeToString(&buffer);
+    out_tile.serialize_to_string(buffer);
+    std::size_t hash_num = std::hash<std::string>{}(buffer);
+
+    vector_tile::Tile & tile = out_tile.get_tile();
     if (!buffer.empty() && tile.layers_size() > 0)
     {
         vector_tile::Tile_Layer const& layer = tile.layers(0);
         if (layer.features_size() != false)
         {
             vector_tile::Tile_Feature const& f = layer.features(0);
-            mapnik::vector_tile_impl::Geometry<double> geoms(f,0.0,0.0,32.0,32.0);
-            mapnik::geometry::geometry<double> geom = mapnik::vector_tile_impl::decode_geometry(geoms,f.type(), 2);
-            mapnik::geometry::scale_strategy ss(1.0/32.0);
-            mapnik::view_transform vt(256, 256, bbox);
-            mapnik::unview_strategy uvs(vt);
-            using sg_type = mapnik::geometry::strategy_group_first<mapnik::geometry::scale_strategy, mapnik::unview_strategy >;
-            sg_type sg(ss, uvs);
-            mapnik::geometry::geometry<double> geom4326 = mapnik::geometry::transform<double>(geom, sg);
+            /*
+            double sx = static_cast<double>(tile_size * path_multiplier) / bbox.width();
+            double sy = static_cast<double>(tile_size * path_multiplier) / bbox.height();
+            double i_x = bbox.minx();
+            double i_y = bbox.maxy();
+            mapnik::vector_tile_impl::Geometry<double> geoms(f, i_x, i_y, 1.0 * sx, -1.0 * sy);
+            mapnik::geometry::geometry<double> geom4326 = mapnik::vector_tile_impl::decode_geometry(geoms,f.type(), 2);
+            */
+            mapnik::vector_tile_impl::Geometry<double> geoms2(f, 0.0, 0.0, 1.0, 1.0);
+            mapnik::geometry::geometry<double> geom4326 = mapnik::vector_tile_impl::decode_geometry(geoms2, f.type(), 2);
+            //mapnik::view_transform vt(tile_size, tile_size, bbox);
+            //mapnik::unview_strategy uvs(vt);
+            //mapnik::geometry::geometry<double> geom4326 = mapnik::geometry::transform<double>(geom, uvs);
             std::string reason;
             std::string is_valid = "false";
             std::string is_simple = "false";
             if (mapnik::geometry::is_valid(geom4326, reason))
+            {
                 is_valid = "true";
+            }
             if (mapnik::geometry::is_simple(geom4326))
+            {
                 is_simple = "true";
-
+            }
             unsigned int n_err = 0;
             mapnik::util::to_geojson(geojson_string,geom4326);
 
             geojson_string = geojson_string.substr(0, geojson_string.size()-1);
-            geojson_string += ",\"properties\":{\"is_valid\":"+is_valid+", \"is_simple\":"+is_simple+", \"message\":\""+reason+"\"}}";
+            geojson_string += ",\"properties\":{\"hash\":"+std::to_string(hash_num)+", \"is_valid\":"+is_valid+", \"is_simple\":"+is_simple+", \"message\":\""+reason+"\"}}";
         }
         else
         {
@@ -149,7 +151,6 @@ void clip_geometry(std::string const& file,
         {
             throw std::runtime_error("failed to open geojson");
         }
-        mapnik::geometry::geometry<double> geom;
         std::string expected_string(input.data().get(), input.size());
         CHECK(expected_string == geojson_string);
     }
@@ -233,9 +234,8 @@ mapnik::box2d<double> zoomed_out(mapnik::box2d<double> const& bbox)
     return new_bbox;
 }
 
-TEST_CASE( "geometries", "should reproject, clip, and simplify")
+TEST_CASE("geometries visual tests")
 {
-
     std::vector<std::string> geometries = mapnik::util::list_directory("./test/geometry-test-data/input");
     std::vector<std::string> benchmarks = mapnik::util::list_directory("./test/geometry-test-data/benchmark");
     if (std::getenv("BENCHMARK") != nullptr)

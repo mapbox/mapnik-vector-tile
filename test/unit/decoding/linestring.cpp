@@ -5,10 +5,10 @@
 
 // test utils
 #include "decoding_util.hpp"
+#include "geom_to_wkt.hpp"
 
 // mapnik
 #include <mapnik/geometry.hpp>
-#include <mapnik/util/geometry_to_wkt.hpp>
 
 // libprotobuf
 #pragma GCC diagnostic push
@@ -48,7 +48,7 @@ TEST_CASE("decode simple linestring")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,10 10,0 10)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -57,7 +57,7 @@ TEST_CASE("decode simple linestring")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,10 10,0 10)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -72,7 +72,7 @@ TEST_CASE("decode simple linestring")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,10 10,0 10)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -81,7 +81,7 @@ TEST_CASE("decode simple linestring")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,10 10,0 10)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -201,7 +201,7 @@ TEST_CASE("decode line_string with first lineto command having delta zero")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -210,7 +210,7 @@ TEST_CASE("decode line_string with first lineto command having delta zero")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -225,7 +225,7 @@ TEST_CASE("decode line_string with first lineto command having delta zero")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -234,7 +234,7 @@ TEST_CASE("decode line_string with first lineto command having delta zero")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -264,7 +264,7 @@ TEST_CASE("decode line_string with second lineto command having delta zero")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -273,7 +273,7 @@ TEST_CASE("decode line_string with second lineto command having delta zero")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -288,7 +288,7 @@ TEST_CASE("decode line_string with second lineto command having delta zero")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -297,7 +297,7 @@ TEST_CASE("decode line_string with second lineto command having delta zero")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -329,7 +329,7 @@ TEST_CASE("decode line_string with third lineto command having delta zero")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,3 3)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -338,7 +338,7 @@ TEST_CASE("decode line_string with third lineto command having delta zero")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,3 3)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -353,7 +353,7 @@ TEST_CASE("decode line_string with third lineto command having delta zero")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,3 3)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -362,7 +362,7 @@ TEST_CASE("decode line_string with third lineto command having delta zero")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(1 1,2 2,3 3)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -865,7 +865,7 @@ TEST_CASE("decode linestring that begins with two moveto commands")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(2 2,3 3)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
@@ -885,7 +885,7 @@ TEST_CASE("decode linestring that begins with two moveto commands")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "LINESTRING(2 2,3 3)");
             CHECK( geom.is<mapnik::geometry::line_string<double> >() );
         }
