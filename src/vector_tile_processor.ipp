@@ -107,8 +107,8 @@ public:
 
     void operator() (mapnik::image_rgba8 & source_data)
     {
-        mapnik::image_rgba8 data(raster_width_, raster_height_);
-        mapnik::raster target(target_ext_, data, source_.get_filter_factor());
+        mapnik::image_rgba8 data(raster_width_, raster_height_, true, true);
+        mapnik::raster target(target_ext_, std::move(data), source_.get_filter_factor());
         mapnik::premultiply_alpha(source_data);
         if (!prj_trans_.equal())
         {
@@ -133,10 +133,10 @@ public:
                             source_.get_filter_factor());
         }
 
-        using pixfmt_type = agg::pixfmt_rgba32;
+        using pixfmt_type = agg::pixfmt_rgba32_pre;
         using renderer_type = agg::renderer_base<pixfmt_type>;
 
-        mapnik::image_any im_tile(width_, height_, mapnik::image_dtype_rgba8, true, true);
+        mapnik::image_rgba8 im_tile(width_, height_, true, true);
         agg::rendering_buffer dst_buffer(im_tile.bytes(), im_tile.width(), im_tile.height(), im_tile.row_size());
         agg::rendering_buffer src_buffer(target.data_.bytes(),target.data_.width(), target.data_.height(), target.data_.row_size());
         pixfmt_type src_pixf(src_buffer);
@@ -144,6 +144,7 @@ public:
         renderer_type ren(dst_pixf);
         ren.copy_from(src_pixf,0,start_x_, start_y_);
         backend_.start_tile_feature(feature_);
+        mapnik::demultiply_alpha(im_tile);
         backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
         backend_.stop_tile_feature();
         painted_ = true;
