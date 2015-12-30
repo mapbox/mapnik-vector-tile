@@ -36,15 +36,7 @@ tile::tile(std::string const& str)
     }
 }
 
-tile::tile(tile && t)
-    : tile_(std::move(t.tile_)),
-      empty_layers_(std::move(t.empty_layers_)),
-      solid_layers_(std::move(t.solid_layers_)),
-      painted_layers_(std::move(t.painted_layers_))
-{
-}
-
-MAPNIK_VECTOR_INLINE bool tile::add_layer(std::unique_ptr<vector_tile::Tile_Layer> vt_layer,
+MAPNIK_VECTOR_INLINE bool tile::add_layer(std::unique_ptr<vector_tile::Tile_Layer> & vt_layer,
                                           bool layer_is_painted,
                                           bool layer_is_solid,
                                           bool layer_is_empty)
@@ -75,19 +67,21 @@ MAPNIK_VECTOR_INLINE bool tile::add_layer(std::unique_ptr<vector_tile::Tile_Laye
             solid_layers_.emplace_back(new_name);
         }
         // the Tile_Layer's pointer is now going to be owned by the tile_.
-        tile_->mutable_layers()->AddAllocated(vt_layer.release());
+        //tile_->mutable_layers()->AddAllocated(vt_layer.release());
+        vector_tile::Tile_Layer * lay = tile_->add_layers();
+        lay->Swap(vt_layer.get());
     }
     return true;
 }
 
 MAPNIK_VECTOR_INLINE bool tile::append_to_string(std::string & str)
 {
-    return tile_->AppendToString(&str);
+    return tile_->AppendPartialToString(&str);
 }
 
 MAPNIK_VECTOR_INLINE bool tile::serialize_to_string(std::string & str)
 {
-    return tile_->SerializeToString(&str);
+    return tile_->SerializePartialToString(&str);
 }
 
 } // end ns vector_tile_impl

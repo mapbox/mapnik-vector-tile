@@ -62,7 +62,7 @@ void decode_point(mapnik::geometry::geometry<typename T::value_type> & geom,
         cmd = paths.point_next(x1, y1);
         if (cmd == T::end)
         {
-            geom = mapnik::geometry::geometry_empty();
+            geom = std::move(mapnik::geometry::geometry_empty());
             return;
         } 
         else if (bbox.intersects(x1,y1))
@@ -104,7 +104,7 @@ void decode_point(mapnik::geometry::geometry<typename T::value_type> & geom,
     std::size_t num_points = mp.size();
     if (num_points == 0)
     {
-        geom = mapnik::geometry::geometry_empty();
+        geom = std::move(mapnik::geometry::geometry_empty());
     }
     else if (num_points == 1)
     {
@@ -135,7 +135,7 @@ void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom
     cmd = paths.line_next(x0, y0, false);
     if (cmd == T::end)
     {
-        geom = mapnik::geometry::geometry_empty();
+        geom = std::move(mapnik::geometry::geometry_empty());
         return;
     }
     else if (cmd != T::move_to)
@@ -223,7 +223,7 @@ void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom
     std::size_t num_lines = multi_line.size();
     if (num_lines == 0)
     {
-        geom = mapnik::geometry::geometry_empty();
+        geom = std::move(mapnik::geometry::geometry_empty());
     }
     else if (num_lines == 1)
     {
@@ -413,7 +413,7 @@ void decode_polygons(mapnik::geometry::geometry<T1> & geom,
     std::size_t num_rings = rings.size();
     if (num_rings == 0)
     {
-        geom = mapnik::geometry::geometry_empty();
+        geom = std::move(mapnik::geometry::geometry_empty());
     }
     else if (num_rings == 1)
     {
@@ -421,7 +421,7 @@ void decode_polygons(mapnik::geometry::geometry<T1> & geom,
         {
             if (version == 1)
             {
-                geom = mapnik::geometry::geometry_empty();
+                geom = std::move(mapnik::geometry::geometry_empty());
                 return;
             }
             else
@@ -531,7 +531,7 @@ void decode_polygons(mapnik::geometry::geometry<T1> & geom,
         if (num_poly == 1)
         {
             auto itr = std::make_move_iterator(multi_poly.begin());
-            geom = mapnik::geometry::polygon<value_type>(std::move(*itr));
+            geom = std::move(*itr);
         }
         else
         {
@@ -608,7 +608,7 @@ void decode_polygons(mapnik::geometry::geometry<T1> & geom,
         if (num_poly == 1)
         {
             auto itr = std::make_move_iterator(multi_poly.begin());
-            geom = mapnik::geometry::polygon<value_type>(std::move(*itr));
+            geom = std::move(*itr);
         }
         else
         {
@@ -819,7 +819,7 @@ typename Geometry<T>::command Geometry<T>::ring_next(value_type & rx,
     if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call ring_next again
-        return ring_next(rx,ry,true);
+        return ring_next(rx, ry, true);
     }
     detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
@@ -968,7 +968,7 @@ typename GeometryPBF<T>::command GeometryPBF<T>::line_next(value_type & rx,
     if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call line_next again
-        return line_next(rx,ry,true);
+        return line_next(rx, ry, true);
     }
     detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
@@ -1048,7 +1048,7 @@ typename GeometryPBF<T>::command GeometryPBF<T>::ring_next(value_type & rx,
     if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call ring_next again
-        return ring_next(rx,ry,true);
+        return ring_next(rx, ry, true);
     }
     detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
@@ -1082,7 +1082,7 @@ MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_g
         detail::read_rings<T>(rings, paths, bbox, version);
         if (rings.empty())
         {
-            geom = mapnik::geometry::geometry_empty();
+            geom = std::move(mapnik::geometry::geometry_empty());
         }
         else
         {
@@ -1095,11 +1095,11 @@ MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_g
     {
         // This was changed to not throw as unknown according to v2 of spec can simply be ignored and doesn't require
         // it failing the processing
-        geom = mapnik::geometry::geometry_empty();
+        geom = std::move(mapnik::geometry::geometry_empty());
         break;
     }
     }
-    return geom;
+    return std::move(geom);
 }
 
 template <typename T>

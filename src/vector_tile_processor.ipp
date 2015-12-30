@@ -197,8 +197,8 @@ tile_layer create_geom_layer(mapnik::datasource_ptr ds,
                              mapnik::query const& q,
                              std::string const& layer_name,
                              std::uint32_t layer_extent,
-                             mapnik::projection const& target_proj,
-                             mapnik::projection const& source_proj,
+                             std::string const& target_proj_srs,
+                             std::string const& source_proj_srs,
                              mapnik::view_transform const& view_trans,
                              std::uint32_t path_multiplier,
                              mapnik::box2d<double> const& buffered_extent,
@@ -209,6 +209,9 @@ tile_layer create_geom_layer(mapnik::datasource_ptr ds,
                              bool multi_polygon_union,
                              bool process_all_rings)
 {
+    // Setup projection
+    mapnik::projection target_proj(target_proj_srs, true);
+    mapnik::projection source_proj(source_proj_srs, true);
     // set up a transform from target to source
     // target == final map (aka tile) projection, usually epsg:3857
     // source == projection of the data being queried
@@ -307,12 +310,15 @@ tile_layer create_raster_layer(mapnik::datasource_ptr ds,
                                std::uint32_t tile_size,
                                std::string const& layer_name,
                                std::uint32_t layer_extent,
-                               mapnik::projection const& target_proj,
-                               mapnik::projection const& source_proj,
+                               std::string const& target_proj_srs,
+                               std::string const& source_proj_srs,
                                mapnik::view_transform const& view_trans,
                                std::string const& image_format,
                                scaling_method_e scaling_method)
 {
+    // Setup projection
+    mapnik::projection target_proj(target_proj_srs, true);
+    mapnik::projection source_proj(source_proj_srs, true);
     // set up a transform from target to source
     // target == final map (aka tile) projection, usually epsg:3857
     // source == projection of the data being queried
@@ -419,6 +425,7 @@ void processor::update_tile(tile & t,
     
     // Futures
     std::vector<std::future<tile_layer> > lay_vec;
+    //std::vector<tile_layer> lay_vec;
     lay_vec.reserve(m_.layers().size());
     
     for (mapnik::layer const& lay : m_.layers())
@@ -434,8 +441,10 @@ void processor::update_tile(tile & t,
             continue;
         }
 
-        mapnik::projection target_proj(m_.srs(),true);
-        mapnik::projection source_proj(lay.srs(),true);
+        std::string const& target_proj_srs = m_.srs();
+        std::string const& source_proj_srs = lay.srs();
+        mapnik::projection target_proj(target_proj_srs, true);
+        mapnik::projection source_proj(source_proj_srs, true);
 
         mapnik::box2d<double> buffered_extent = detail::get_buffered_extent(req, lay, m_);
         mapnik::box2d<double> query_ext(lay.envelope());
@@ -449,15 +458,14 @@ void processor::update_tile(tile & t,
 
         if (ds->type() == datasource::Vector)
         {
-
             lay_vec.emplace_back(std::async(
                         detail::create_geom_layer,
                         ds,
                         q,
                         lay.name(),
                         req.width() * path_multiplier,
-                        target_proj,
-                        source_proj,
+                        target_proj_srs,
+                        source_proj_srs,
                         view_trans,
                         path_multiplier,
                         buffered_extent,
@@ -468,6 +476,25 @@ void processor::update_tile(tile & t,
                         multi_polygon_union_,
                         process_all_rings_
             ));
+            /*
+            lay_vec.emplace_back(
+                        detail::create_geom_layer(
+                        ds,
+                        q,
+                        lay.name(),
+                        req.width() * path_multiplier,
+                        target_proj_srs,
+                        source_proj_srs,
+                        view_trans,
+                        path_multiplier,
+                        buffered_extent,
+                        simplify_distance_,
+                        area_threshold_,
+                        fill_type_,
+                        strictly_simple_,
+                        multi_polygon_union_,
+                        process_all_rings_
+            ));*/
         }
         else // Raster
         {
@@ -478,19 +505,35 @@ void processor::update_tile(tile & t,
                         req.width(),
                         lay.name(),
                         req.width() * path_multiplier,
-                        target_proj,
-                        source_proj,
+                        target_proj_srs,
+                        source_proj_srs,
                         view_trans,
                         image_format_,
                         scaling_method_
             ));
+            /*
+            lay_vec.emplace_back(
+                        detail::create_raster_layer(
+                        ds,
+                        q,
+                        req.width(),
+                        lay.name(),
+                        req.width() * path_multiplier,
+                        target_proj_srs,
+                        source_proj_srs,
+                        view_trans,
+                        image_format_,
+                        scaling_method_
+            ));
+            */
         }
     }
 
     for (auto & lay_future : lay_vec)
+    //for (auto & l : lay_vec)
     {
         tile_layer l = lay_future.get();
-        t.add_layer(l.release(), 
+        t.add_layer(l.get_layer(), 
                     l.is_painted(), 
                     l.is_solid(),
                     l.is_empty());

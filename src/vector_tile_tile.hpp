@@ -14,6 +14,9 @@
 #include "vector_tile.pb.h"
 #pragma GCC diagnostic pop
 
+// std
+#include <algorithm>
+
 namespace mapnik
 {
 
@@ -25,9 +28,37 @@ struct tile
 public:
     tile();
     tile(std::string const& str);
-    tile(tile && t);
+    tile(tile const& rhs)
+        : tile_(new vector_tile::Tile(*rhs.tile_)),
+          empty_layers_(rhs.empty_layers_),
+          solid_layers_(rhs.solid_layers_),
+          painted_layers_(rhs.painted_layers_)
+    {
+    }
+
+    tile(tile && rhs)
+        : tile_(std::move(rhs.tile_)),
+          empty_layers_(std::move(rhs.empty_layers_)),
+          solid_layers_(std::move(rhs.solid_layers_)),
+          painted_layers_(std::move(rhs.painted_layers_))
+    {
+    }
+
+    tile& operator=(tile rhs)
+    {
+        swap(rhs);
+        return *this;
+    }
     
-    MAPNIK_VECTOR_INLINE bool add_layer(std::unique_ptr<vector_tile::Tile_Layer> vt_layer, 
+    void swap(tile & rhs)
+    {
+        std::swap(tile_, rhs.tile_);
+        std::swap(empty_layers_, rhs.empty_layers_);
+        std::swap(solid_layers_, rhs.solid_layers_);
+        std::swap(painted_layers_, rhs.painted_layers_);
+    }
+
+    MAPNIK_VECTOR_INLINE bool add_layer(std::unique_ptr<vector_tile::Tile_Layer> & vt_layer, 
                                         bool layer_is_painted,
                                         bool layer_is_solid,
                                         bool layer_is_empty);

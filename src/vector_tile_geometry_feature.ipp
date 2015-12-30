@@ -72,7 +72,7 @@ MAPNIK_VECTOR_INLINE void geometry_to_feature(T const& geom,
     if (encode_geometry(geom, *vt_feature, x, y))
     {
         // Releasing the pointer is important here because the layer will take over ownership!
-        layer.add_feature(vt_feature.release(), mapnik_feature, solid);
+        layer.add_feature(vt_feature, mapnik_feature, solid);
     }
 }
 
@@ -92,7 +92,7 @@ MAPNIK_VECTOR_INLINE void raster_to_feature(std::string const& buffer,
     std::unique_ptr<vector_tile::Tile_Feature> vt_feature(new vector_tile::Tile_Feature());
     vt_feature->set_raster(buffer);
     // Releasing the pointer is important here because the layer will take over ownership!
-    layer.add_feature(vt_feature.release(), mapnik_feature, false);
+    layer.add_feature(vt_feature, mapnik_feature, false);
 }
 
 } // end ns vector_tile_impl

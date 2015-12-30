@@ -32,17 +32,43 @@ struct tile_layer
 
     tile_layer(std::string const & name, std::uint32_t extent);
     
-    tile_layer(tile_layer && l)
-        : layer_(std::move(l.layer_)),
-          keys_(std::move(l.keys_)),
-          values_(std::move(l.values_)),
-          solid_(l.solid_),
-          empty_(l.empty_),
-          painted_(l.painted_)
+    tile_layer(tile_layer && rhs)
+        : layer_(std::move(rhs.layer_)),
+          keys_(std::move(rhs.keys_)),
+          values_(std::move(rhs.values_)),
+          solid_(std::move(rhs.solid_)),
+          empty_(std::move(rhs.empty_)),
+          painted_(std::move(rhs.painted_))
     {
     }
 
-    MAPNIK_VECTOR_INLINE void add_feature(vector_tile::Tile_Feature * vt_feature, 
+    tile_layer(tile_layer const& rhs)
+        : layer_(new vector_tile::Tile_Layer(*rhs.layer_)),
+          keys_(rhs.keys_),
+          values_(rhs.values_),
+          solid_(rhs.solid_),
+          empty_(rhs.empty_),
+          painted_(rhs.painted_)
+    {
+    }
+
+    tile_layer& operator=(tile_layer rhs)
+    {
+        swap(rhs);
+        return *this;
+    }
+    
+    void swap(tile_layer & rhs)
+    {
+        std::swap(layer_, rhs.layer_);
+        std::swap(keys_, rhs.keys_);
+        std::swap(values_, rhs.values_);
+        std::swap(solid_, rhs.solid_);
+        std::swap(empty_, rhs.empty_);
+        std::swap(painted_, rhs.painted_);
+    }
+
+    MAPNIK_VECTOR_INLINE void add_feature(std::unique_ptr<vector_tile::Tile_Feature> & vt_feature, 
                                           mapnik::feature_impl const& mapnik_feature,
                                           bool feature_solid);
 
@@ -66,9 +92,9 @@ struct tile_layer
         painted_ = true;
     }
 
-    std::unique_ptr<vector_tile::Tile_Layer> release()
+    std::unique_ptr<vector_tile::Tile_Layer> & get_layer()
     {
-        return std::move(layer_);
+        return layer_;
     }
 
 private:
