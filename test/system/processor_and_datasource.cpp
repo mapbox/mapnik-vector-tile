@@ -36,7 +36,6 @@ TEST_CASE("vector tile output -- simple two points")
     // Request Tile
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
     CHECK(out_tile.is_painted() == true);
-    CHECK(out_tile.is_solid() == false);
     CHECK(out_tile.is_empty() == false);
 
     // Now check that the tile is correct.
@@ -67,7 +66,6 @@ TEST_CASE("vector tile output -- empty tile")
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
     CHECK(out_tile.is_painted() == false);
     CHECK(out_tile.is_empty() == true);
-    CHECK(out_tile.is_solid() == false);
     vector_tile::Tile & tile = out_tile.get_tile();
     CHECK(0 == tile.layers_size());
     std::string buffer;
@@ -104,7 +102,6 @@ TEST_CASE("vector tile output -- layers outside extent")
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(m_req);
     CHECK(out_tile.is_painted() == false);
     CHECK(out_tile.is_empty() == true);
-    CHECK(out_tile.is_solid() == false);
     vector_tile::Tile & tile = out_tile.get_tile();
     CHECK(0 == tile.layers_size());
     std::string buffer;
@@ -139,7 +136,6 @@ TEST_CASE("vector tile output is empty -- degenerate geometries")
     // Check output
     CHECK(out_tile.is_painted() == false);
     CHECK(out_tile.is_empty() == true);
-    CHECK(out_tile.is_solid() == false);
     vector_tile::Tile & tile = out_tile.get_tile();
     CHECK(0 == tile.layers_size());
     std::string buffer;
@@ -164,7 +160,6 @@ TEST_CASE("vector tile render simple point")
     CHECK(out_tile.serialize_to_string(buffer));
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    CHECK(out_tile.is_solid() == false);
     CHECK(151 == buffer.size());
 
     // create a new vector tile from the buffer
@@ -245,7 +240,6 @@ TEST_CASE("vector tile datasource -- should filter features outside extent")
     CHECK(out_tile.serialize_to_string(buffer));
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    CHECK(out_tile.is_solid() == false);
     
     // check that vector tile contains proper information
     vector_tile::Tile & tile = out_tile.get_tile();

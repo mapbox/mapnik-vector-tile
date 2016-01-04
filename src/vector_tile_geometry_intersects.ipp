@@ -7,10 +7,6 @@
 // boost
 #include <boost/geometry.hpp>
 
-// debug
-#include <mapnik/util/geometry_to_wkt.hpp>
-#include <iostream>
-
 namespace mapnik 
 {
 
@@ -85,32 +81,7 @@ bool geometry_intersects::operator() (mapnik::geometry::geometry_collection<doub
 
 bool intersects(mapnik::box2d<double> const& extent, mapnik::geometry::geometry<double> const& geom)
 {
-    //return mapnik::util::apply_visitor(geometry_intersects(extent), geom); 
-    if (mapnik::util::apply_visitor(geometry_intersects(extent), geom))
-    {
-        return true;
-    }
-    else
-    {
-        mapnik::geometry::polygon<double> poly;
-        poly.exterior_ring.reserve(5);
-        poly.exterior_ring.emplace_back(extent.minx(),extent.miny());
-        poly.exterior_ring.emplace_back(extent.maxx(),extent.miny());
-        poly.exterior_ring.emplace_back(extent.maxx(),extent.maxy());
-        poly.exterior_ring.emplace_back(extent.minx(),extent.maxy());
-        poly.exterior_ring.emplace_back(extent.minx(),extent.miny());
-        mapnik::geometry::geometry<double> geom2(poly);
-        std::string wkt;
-        std::string wkt2;
-        mapnik::util::to_wkt(wkt, geom);
-        mapnik::util::to_wkt(wkt2, geom2);
-        std::clog << "Extent: " << std::endl;
-        std::clog << wkt2 << std::endl;
-        std::clog << "Geometry: " << std::endl;
-        std::clog << wkt << std::endl;
-        std::clog << std::endl;
-        return false;
-    }
+    return mapnik::util::apply_visitor(geometry_intersects(extent), geom); 
 }
 
 } // end ns vector_tile_impl

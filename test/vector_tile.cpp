@@ -39,7 +39,6 @@ TEST_CASE("vector tile from simplified geojson")
     mapnik::vector_tile_impl::processor ren(map);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size,0,1000);
     CHECK(out_tile.is_painted() == true);
-    CHECK(out_tile.is_solid() == false);
     CHECK(out_tile.is_empty() == false);
     
     vector_tile::Tile & tile = out_tile.get_tile();
@@ -87,7 +86,6 @@ TEST_CASE("vector tile transform -- should not throw on coords outside merc rang
     mapnik::vector_tile_impl::processor ren(map);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size,0,64);
     CHECK(out_tile.is_painted() == true);
-    CHECK(out_tile.is_solid() == false);
     CHECK(out_tile.is_empty() == false);
     
     vector_tile::Tile & tile = out_tile.get_tile();
@@ -163,7 +161,6 @@ TEST_CASE("vector tile transform2 -- should not throw reprojected data from loca
     mapnik::vector_tile_impl::processor ren(map);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size,0,64);
     CHECK(out_tile.is_painted() == true);
-    CHECK(out_tile.is_solid() == false);
     CHECK(out_tile.is_empty() == false);
     
     vector_tile::Tile & tile = out_tile.get_tile();
@@ -176,11 +173,6 @@ TEST_CASE("vector tile transform2 -- should not throw reprojected data from loca
     mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
     vector_tile::Tile tile2;
     CHECK(tile2.ParseFromString(buffer));
-    //std::string key("");
-    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile2,key));
-    //CHECK("" == key);
-    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(buffer,key));
-    //CHECK("" == key);
     CHECK(1 == tile2.layers_size());
     vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
     CHECK(std::string("layer") == layer2.name());

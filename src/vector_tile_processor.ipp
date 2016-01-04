@@ -157,7 +157,7 @@ void create_geom_feature(T const& vs,
                          bool multi_polygon_union,
                          bool process_all_rings)
 {
-    // TODO
+    // TODO possible changes?
     // - no need to create a new skipping_transformer per geometry
     using vector_tile_strategy_type = T;
     
@@ -171,9 +171,6 @@ void create_geom_feature(T const& vs,
     // Since we know some data intersects with the bounding box, mark as painted.
     layer.make_painted();
     
-    // For now just make solid always false
-    // TODO add solid logic
-    bool solid = false;
 
     // Reproject geometry
     mapnik::vector_tile_impl::transform_visitor<vector_tile_strategy_type> skipping_transformer(vs, target_clipping_extent);
@@ -191,12 +188,12 @@ void create_geom_feature(T const& vs,
     {
         geometry_simplifier simplifier(simplify_distance, clipper);
         mapnik::geometry::geometry<std::int64_t> out_geom = mapnik::util::apply_visitor(simplifier, new_geom);
-        geometry_to_feature(out_geom, feature, layer, solid);
+        geometry_to_feature(out_geom, feature, layer);
     }
     else
     {
         mapnik::geometry::geometry<std::int64_t> out_geom = mapnik::util::apply_visitor(clipper, new_geom);
-        geometry_to_feature(out_geom, feature, layer, solid);
+        geometry_to_feature(out_geom, feature, layer);
     }
 
 }
@@ -543,7 +540,6 @@ void processor::update_tile(tile & t,
         tile_layer l = lay_future.get();
         t.add_layer(l.get_layer(), 
                     l.is_painted(), 
-                    l.is_solid(),
                     l.is_empty());
     }
 }

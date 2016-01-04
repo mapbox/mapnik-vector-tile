@@ -13,7 +13,6 @@
 #include "vector_tile_compression.hpp"
 #include "vector_tile_processor.hpp"
 #include "vector_tile_strategy.hpp"
-#include "vector_tile_util.hpp"
 #include "vector_tile_projection.hpp"
 #include "vector_tile_geometry_decoder.hpp"
 #include "vector_tile_datasource.hpp"

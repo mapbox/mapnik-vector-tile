@@ -30,14 +30,11 @@ struct geometry_to_feature_visitor
 {
     mapnik::feature_impl const& mapnik_feature_;
     tile_layer & layer_;
-    bool solid_;
 
     geometry_to_feature_visitor(mapnik::feature_impl const& mapnik_feature,
-                                tile_layer & layer,
-                                bool solid)
+                                tile_layer & layer)
         : mapnik_feature_(mapnik_feature),
-          layer_(layer),
-          solid_(solid) {}
+          layer_(layer) {}
 
     void operator() (mapnik::geometry::geometry_empty const&)
     {
@@ -46,7 +43,7 @@ struct geometry_to_feature_visitor
     template <typename T>
     void operator() (T const& geom)
     {
-        geometry_to_feature(geom, mapnik_feature_, layer_, solid_);
+        geometry_to_feature(geom, mapnik_feature_, layer_);
     }
 
     void operator() (mapnik::geometry::geometry_collection<std::int64_t> const& collection)
@@ -63,8 +60,7 @@ struct geometry_to_feature_visitor
 template <typename T>
 MAPNIK_VECTOR_INLINE void geometry_to_feature(T const& geom,
                                               mapnik::feature_impl const& mapnik_feature,
-                                              tile_layer & layer,
-                                              bool solid)
+                                              tile_layer & layer)
 {
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -72,16 +68,15 @@ MAPNIK_VECTOR_INLINE void geometry_to_feature(T const& geom,
     if (encode_geometry(geom, *vt_feature, x, y))
     {
         // Releasing the pointer is important here because the layer will take over ownership!
-        layer.add_feature(vt_feature, mapnik_feature, solid);
+        layer.add_feature(vt_feature, mapnik_feature);
     }
 }
 
 MAPNIK_VECTOR_INLINE void geometry_to_feature(mapnik::geometry::geometry<std::int64_t> const& geom,
                                               mapnik::feature_impl const& mapnik_feature,
-                                              tile_layer & layer,
-                                              bool solid)
+                                              tile_layer & layer)
 {
-    detail::geometry_to_feature_visitor visitor(mapnik_feature, layer, solid);
+    detail::geometry_to_feature_visitor visitor(mapnik_feature, layer);
     mapnik::util::apply_visitor(visitor, geom);
 }
 
@@ -92,7 +87,7 @@ MAPNIK_VECTOR_INLINE void raster_to_feature(std::string const& buffer,
     std::unique_ptr<vector_tile::Tile_Feature> vt_feature(new vector_tile::Tile_Feature());
     vt_feature->set_raster(buffer);
     // Releasing the pointer is important here because the layer will take over ownership!
-    layer.add_feature(vt_feature, mapnik_feature, false);
+    layer.add_feature(vt_feature, mapnik_feature);
 }
 
 } // end ns vector_tile_impl

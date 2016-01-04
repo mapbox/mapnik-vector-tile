@@ -28,7 +28,6 @@
 // vector output api
 #include "vector_tile_compression.hpp"
 #include "vector_tile_processor.hpp"
-#include "vector_tile_util.hpp"
 #include "vector_tile_projection.hpp"
 #include "vector_tile_geometry_decoder.hpp"
 #include "vector_tile_geometry_encoder.hpp"
@@ -53,7 +52,6 @@ TEST_CASE( "pbf vector tile input")
     mapnik::vector_tile_impl::processor ren(map);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size);
     CHECK(out_tile.is_painted() == true);
-    CHECK(out_tile.is_solid() == false);
     CHECK(out_tile.is_empty() == false);
     vector_tile::Tile & tile = out_tile.get_tile();
     // serialize to message
@@ -136,7 +134,6 @@ TEST_CASE("pbf vector tile datasource")
     CHECK(out_tile.serialize_to_string(buffer));
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    CHECK(out_tile.is_solid() == false);
     
     // check that vector tile contains proper information
     vector_tile::Tile & tile = out_tile.get_tile();
@@ -307,7 +304,6 @@ TEST_CASE("pbf decoding some truncated buffers")
     // Request Tile
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
     CHECK(out_tile.is_painted() == true);
-    CHECK(out_tile.is_solid() == false);
     CHECK(out_tile.is_empty() == false);
     
     // Now check that the tile is correct.
@@ -361,7 +357,6 @@ TEST_CASE("pbf vector tile from simplified geojson")
     mapnik::vector_tile_impl::processor ren(map);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size,0,1000);
     CHECK(out_tile.is_painted() == true);
-    CHECK(out_tile.is_solid() == false);
     CHECK(out_tile.is_empty() == false);
     
     vector_tile::Tile & tile = out_tile.get_tile();
@@ -544,7 +539,6 @@ TEST_CASE("pbf vector tile from linestring geojson")
     // Request Tile
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
     CHECK(out_tile.is_painted() == true);
-    CHECK(out_tile.is_solid() == false);
     CHECK(out_tile.is_empty() == false);
 
     // Now check that the tile is correct.

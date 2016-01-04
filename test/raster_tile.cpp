@@ -6,7 +6,6 @@
 
 // vector output api
 #include "vector_tile_processor.hpp"
-#include "vector_tile_util.hpp"
 #include "vector_tile_datasource.hpp"
 
 #include <mapnik/util/fs.hpp>
@@ -107,9 +106,6 @@ TEST_CASE("raster tile output 1")
     
     vector_tile::Tile tile2;
     CHECK(tile2.ParseFromString(buffer));
-    //std::string key2("");
-    //CHECK(false == mapnik::vector_tile_impl::is_solid_extent(tile,key2));
-    //CHECK("" == key2);
     CHECK(1 == tile2.layers_size());
     vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
     CHECK(std::string("layer") == layer2.name());

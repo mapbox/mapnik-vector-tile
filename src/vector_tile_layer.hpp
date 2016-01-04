@@ -36,7 +36,6 @@ struct tile_layer
         : layer_(std::move(rhs.layer_)),
           keys_(std::move(rhs.keys_)),
           values_(std::move(rhs.values_)),
-          solid_(std::move(rhs.solid_)),
           empty_(std::move(rhs.empty_)),
           painted_(std::move(rhs.painted_))
     {
@@ -46,7 +45,6 @@ struct tile_layer
         : layer_(new vector_tile::Tile_Layer(*rhs.layer_)),
           keys_(rhs.keys_),
           values_(rhs.values_),
-          solid_(rhs.solid_),
           empty_(rhs.empty_),
           painted_(rhs.painted_)
     {
@@ -63,20 +61,13 @@ struct tile_layer
         std::swap(layer_, rhs.layer_);
         std::swap(keys_, rhs.keys_);
         std::swap(values_, rhs.values_);
-        std::swap(solid_, rhs.solid_);
         std::swap(empty_, rhs.empty_);
         std::swap(painted_, rhs.painted_);
     }
 
     MAPNIK_VECTOR_INLINE void add_feature(std::unique_ptr<vector_tile::Tile_Feature> & vt_feature, 
-                                          mapnik::feature_impl const& mapnik_feature,
-                                          bool feature_solid);
+                                          mapnik::feature_impl const& mapnik_feature);
 
-    bool is_solid() const
-    {
-        return !empty_ && solid_;
-    }
-    
     bool is_empty() const
     {
         return empty_;
@@ -101,7 +92,6 @@ private:
     std::unique_ptr<vector_tile::Tile_Layer> layer_;
     keys_container keys_;
     values_container values_;
-    bool solid_;
     bool empty_;
     bool painted_;
 };

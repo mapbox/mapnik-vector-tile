@@ -10,7 +10,6 @@ namespace vector_tile_impl
 tile::tile()
     : tile_(new vector_tile::Tile()),
       empty_layers_(),
-      solid_layers_(),
       painted_layers_()
 {
 }
@@ -18,7 +17,6 @@ tile::tile()
 tile::tile(std::string const& str)
     : tile_(new vector_tile::Tile()),
       empty_layers_(),
-      solid_layers_(),
       painted_layers_()
 {
     if(!tile_->ParseFromString(str))
@@ -38,7 +36,6 @@ tile::tile(std::string const& str)
 
 MAPNIK_VECTOR_INLINE bool tile::add_layer(std::unique_ptr<vector_tile::Tile_Layer> & vt_layer,
                                           bool layer_is_painted,
-                                          bool layer_is_solid,
                                           bool layer_is_empty)
 {
     std::string const& new_name = vt_layer->name();
@@ -62,14 +59,8 @@ MAPNIK_VECTOR_INLINE bool tile::add_layer(std::unique_ptr<vector_tile::Tile_Laye
     else
     {
         painted_layers_.emplace_back(new_name);
-        if (layer_is_solid)
-        {
-            solid_layers_.emplace_back(new_name);
-        }
         // the Tile_Layer's pointer is now going to be owned by the tile_.
-        //tile_->mutable_layers()->AddAllocated(vt_layer.release());
-        vector_tile::Tile_Layer * lay = tile_->add_layers();
-        lay->Swap(vt_layer.get());
+        tile_->mutable_layers()->AddAllocated(vt_layer.release());
     }
     return true;
 }

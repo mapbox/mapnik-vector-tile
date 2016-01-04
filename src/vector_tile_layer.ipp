@@ -61,7 +61,6 @@ private:
 
 tile_layer::tile_layer(std::string const & name, std::uint32_t extent)
     : layer_(new vector_tile::Tile_Layer()),
-      solid_(true),
       empty_(true),
       painted_(false)
 {
@@ -71,8 +70,7 @@ tile_layer::tile_layer(std::string const & name, std::uint32_t extent)
 }
 
 MAPNIK_VECTOR_INLINE void tile_layer::add_feature(std::unique_ptr<vector_tile::Tile_Feature> & vt_feature, 
-                                                  mapnik::feature_impl const& mapnik_feature,
-                                                  bool feature_solid)
+                                                  mapnik::feature_impl const& mapnik_feature)
 
 {
     if (!layer_)
@@ -130,13 +128,7 @@ MAPNIK_VECTOR_INLINE void tile_layer::add_feature(std::unique_ptr<vector_tile::T
             }
         }
     }
-    vector_tile::Tile_Feature * feat = layer_->add_features();
-    feat->Swap(vt_feature.get());
-    //layer_->mutable_features()->AddAllocated(vt_feature.release());
-    if (!feature_solid)
-    {
-        solid_ = false;
-    }
+    layer_->mutable_features()->AddAllocated(vt_feature.release());
     empty_ = false;
 }
 

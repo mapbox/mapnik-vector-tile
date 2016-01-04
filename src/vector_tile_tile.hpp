@@ -31,7 +31,6 @@ public:
     tile(tile const& rhs)
         : tile_(new vector_tile::Tile(*rhs.tile_)),
           empty_layers_(rhs.empty_layers_),
-          solid_layers_(rhs.solid_layers_),
           painted_layers_(rhs.painted_layers_)
     {
     }
@@ -39,7 +38,6 @@ public:
     tile(tile && rhs)
         : tile_(std::move(rhs.tile_)),
           empty_layers_(std::move(rhs.empty_layers_)),
-          solid_layers_(std::move(rhs.solid_layers_)),
           painted_layers_(std::move(rhs.painted_layers_))
     {
     }
@@ -54,13 +52,11 @@ public:
     {
         std::swap(tile_, rhs.tile_);
         std::swap(empty_layers_, rhs.empty_layers_);
-        std::swap(solid_layers_, rhs.solid_layers_);
         std::swap(painted_layers_, rhs.painted_layers_);
     }
 
     MAPNIK_VECTOR_INLINE bool add_layer(std::unique_ptr<vector_tile::Tile_Layer> & vt_layer, 
                                         bool layer_is_painted,
-                                        bool layer_is_solid,
                                         bool layer_is_empty);
     
     MAPNIK_VECTOR_INLINE bool append_to_string(std::string & str);
@@ -87,11 +83,6 @@ public:
         return tile_->layers_size() == 0;
     }
 
-    bool is_solid() const
-    {
-        return !solid_layers_.empty();
-    }
-
     std::vector<std::string> const& get_painted() const
     {
         return painted_layers_;
@@ -102,15 +93,9 @@ public:
         return empty_layers_;
     }
 
-    std::vector<std::string> const& get_solid() const
-    {
-        return solid_layers_;
-    }
-
 private:
     std::unique_ptr<vector_tile::Tile> tile_;
     std::vector<std::string> empty_layers_;
-    std::vector<std::string> solid_layers_;
     std::vector<std::string> painted_layers_;
 };
 
