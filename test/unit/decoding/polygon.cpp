@@ -5,10 +5,10 @@
 
 // test utils
 #include "decoding_util.hpp"
+#include "geom_to_wkt.hpp"
 
 // mapnik
 #include <mapnik/geometry.hpp>
-#include <mapnik/util/geometry_to_wkt.hpp>
 
 // libprotobuf
 #pragma GCC diagnostic push
@@ -50,7 +50,7 @@ TEST_CASE("decode simple polygon")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -59,7 +59,7 @@ TEST_CASE("decode simple polygon")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -74,7 +74,7 @@ TEST_CASE("decode simple polygon")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -83,7 +83,7 @@ TEST_CASE("decode simple polygon")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -119,7 +119,7 @@ TEST_CASE("decode simple polygon - int64 decode")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<std::int64_t> >() );
         }
@@ -128,7 +128,7 @@ TEST_CASE("decode simple polygon - int64 decode")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<std::int64_t> >() );
         }
@@ -143,7 +143,7 @@ TEST_CASE("decode simple polygon - int64 decode")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<std::int64_t> >() );
         }
@@ -152,7 +152,7 @@ TEST_CASE("decode simple polygon - int64 decode")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<std::int64_t> >() );
         }
@@ -207,7 +207,7 @@ TEST_CASE("decode simple polygon with hole")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -216,7 +216,7 @@ TEST_CASE("decode simple polygon with hole")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -231,7 +231,7 @@ TEST_CASE("decode simple polygon with hole")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -240,7 +240,7 @@ TEST_CASE("decode simple polygon with hole")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -295,7 +295,7 @@ TEST_CASE("decode simple multipolygon")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
             CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
         }
@@ -304,7 +304,7 @@ TEST_CASE("decode simple multipolygon")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
             CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
         }
@@ -319,7 +319,7 @@ TEST_CASE("decode simple multipolygon")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
             CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
         }
@@ -328,7 +328,7 @@ TEST_CASE("decode simple multipolygon")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
             CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
         }
@@ -385,7 +385,7 @@ TEST_CASE("decode polygon with hole where winding orders are reversed.")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -405,7 +405,7 @@ TEST_CASE("decode polygon with hole where winding orders are reversed.")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -501,7 +501,7 @@ TEST_CASE("decode simple multi polygon with hole")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)),((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)))");
             CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
         }
@@ -510,7 +510,7 @@ TEST_CASE("decode simple multi polygon with hole")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)),((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)))");
             CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
         }
@@ -525,7 +525,7 @@ TEST_CASE("decode simple multi polygon with hole")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)),((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)))");
             CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
         }
@@ -534,7 +534,7 @@ TEST_CASE("decode simple multi polygon with hole")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)),((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)))");
             CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
         }
@@ -624,7 +624,7 @@ TEST_CASE("decode multi polygon with holes - first ring invalid")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOLYGON(((-7 7,-7 3,-3 3,-3 7,-7 7),(0 0,-10 0,-10 10,0 10,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
             CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
         }
@@ -644,7 +644,7 @@ TEST_CASE("decode multi polygon with holes - first ring invalid")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "MULTIPOLYGON(((-7 7,-7 3,-3 3,-3 7,-7 7),(0 0,-10 0,-10 10,0 10,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
             CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
         }
@@ -688,7 +688,7 @@ TEST_CASE("decode simple polygon -- incorrect exterior winding order")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 10,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -708,7 +708,7 @@ TEST_CASE("decode simple polygon -- incorrect exterior winding order")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 10,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -980,7 +980,7 @@ TEST_CASE("decode polygon - moveto and close followed by real polygon")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -1000,7 +1000,7 @@ TEST_CASE("decode polygon - moveto and close followed by real polygon")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -1358,7 +1358,7 @@ TEST_CASE("decode polygon - moveto lineto and close followed by real polygon")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -1378,7 +1378,7 @@ TEST_CASE("decode polygon - moveto lineto and close followed by real polygon")
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -1628,7 +1628,7 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - lineto two c
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -1637,7 +1637,7 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - lineto two c
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -1652,7 +1652,7 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - lineto two c
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -1661,7 +1661,7 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - lineto two c
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -1693,7 +1693,7 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - lineto one c
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -1702,7 +1702,7 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - lineto one c
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -1717,7 +1717,7 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - lineto one c
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }
@@ -1726,7 +1726,7 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - lineto one c
         {
             auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
             std::string wkt0;
-            CHECK( mapnik::util::to_wkt(wkt0,geom) );
+            CHECK( test_utils::to_wkt(wkt0,geom) );
             CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
             CHECK( geom.is<mapnik::geometry::polygon<double> >() );
         }

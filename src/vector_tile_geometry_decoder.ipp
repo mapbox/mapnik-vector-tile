@@ -62,7 +62,7 @@ void decode_point(mapnik::geometry::geometry<typename T::value_type> & geom,
         cmd = paths.point_next(x1, y1);
         if (cmd == T::end)
         {
-            geom = mapnik::geometry::geometry_empty();
+            geom = std::move(mapnik::geometry::geometry_empty());
             return;
         } 
         else if (bbox.intersects(x1,y1))
@@ -75,7 +75,7 @@ void decode_point(mapnik::geometry::geometry<typename T::value_type> & geom,
             }
             previous_len = paths.get_length();
             #endif
-            mp.reserve(paths.get_length());
+            mp.reserve(paths.get_length() + 1);
             mp.emplace_back(x1,y1);
             break;
         }
@@ -104,7 +104,7 @@ void decode_point(mapnik::geometry::geometry<typename T::value_type> & geom,
     std::size_t num_points = mp.size();
     if (num_points == 0)
     {
-        geom = mapnik::geometry::geometry_empty();
+        geom = std::move(mapnik::geometry::geometry_empty());
     }
     else if (num_points == 1)
     {
@@ -135,7 +135,7 @@ void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom
     cmd = paths.line_next(x0, y0, false);
     if (cmd == T::end)
     {
-        geom = mapnik::geometry::geometry_empty();
+        geom = std::move(mapnik::geometry::geometry_empty());
         return;
     }
     else if (cmd != T::move_to)
@@ -183,7 +183,7 @@ void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom
         multi_line.emplace_back();
         auto & line = multi_line.back();
         // reserve prior
-        line.reserve(paths.get_length() + 1);
+        line.reserve(paths.get_length() + 2);
         // add moveto command position
         line.add_coord(x0, y0);
         part_env.init(x0, y0, x0, y0);
@@ -223,7 +223,7 @@ void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom
     std::size_t num_lines = multi_line.size();
     if (num_lines == 0)
     {
-        geom = mapnik::geometry::geometry_empty();
+        geom = std::move(mapnik::geometry::geometry_empty());
     }
     else if (num_lines == 1)
     {
@@ -333,7 +333,7 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<typename T::value_type
         rings.emplace_back();
         auto & ring = rings.back();
         // reserve prior
-        ring.reserve(paths.get_length() + 2);
+        ring.reserve(paths.get_length() + 4);
         // add moveto command position
         ring.add_coord(x0, y0);
         part_env.init(x0, y0, x0, y0);
@@ -413,7 +413,7 @@ void decode_polygons(mapnik::geometry::geometry<T1> & geom,
     std::size_t num_rings = rings.size();
     if (num_rings == 0)
     {
-        geom = mapnik::geometry::geometry_empty();
+        geom = std::move(mapnik::geometry::geometry_empty());
     }
     else if (num_rings == 1)
     {
@@ -421,7 +421,7 @@ void decode_polygons(mapnik::geometry::geometry<T1> & geom,
         {
             if (version == 1)
             {
-                geom = mapnik::geometry::geometry_empty();
+                geom = std::move(mapnik::geometry::geometry_empty());
                 return;
             }
             else
@@ -531,7 +531,7 @@ void decode_polygons(mapnik::geometry::geometry<T1> & geom,
         if (num_poly == 1)
         {
             auto itr = std::make_move_iterator(multi_poly.begin());
-            geom = mapnik::geometry::polygon<value_type>(std::move(*itr));
+            geom = std::move(*itr);
         }
         else
         {
@@ -608,7 +608,7 @@ void decode_polygons(mapnik::geometry::geometry<T1> & geom,
         if (num_poly == 1)
         {
             auto itr = std::make_move_iterator(multi_poly.begin());
-            geom = mapnik::geometry::polygon<value_type>(std::move(*itr));
+            geom = std::move(*itr);
         }
         else
         {
@@ -682,8 +682,8 @@ typename Geometry<T>::command Geometry<T>::point_next(value_type & rx, value_typ
     }
 
     --length;
-    int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
-    int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
+    int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
+    int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
     detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
     ry = y;
@@ -710,8 +710,8 @@ typename Geometry<T>::command Geometry<T>::line_next(value_type & rx,
                     throw std::runtime_error("Vector Tile has LINESTRING with a MOVETO command that is given more then one pair of parameters or not enough parameters are provided");
                 }
                 --length;
-                int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
-                int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
+                int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
+                int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
                 detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
                 rx = x;
                 ry = y;
@@ -743,8 +743,8 @@ typename Geometry<T>::command Geometry<T>::line_next(value_type & rx,
     }
 
     --length;
-    int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
-    int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
+    int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
+    int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
     if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call line_next again
@@ -776,8 +776,8 @@ typename Geometry<T>::command Geometry<T>::ring_next(value_type & rx,
                     throw std::runtime_error("Vector Tile has POLYGON with a MOVETO command that is given more then one pair of parameters or not enough parameters are provided");
                 }
                 --length;
-                int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
-                int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
+                int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
+                int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
                 detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
                 rx = x;
                 ry = y;
@@ -814,12 +814,12 @@ typename Geometry<T>::command Geometry<T>::ring_next(value_type & rx,
     }
 
     --length;
-    int32_t dx = protozero::decode_zigzag32(f_.geometry(k++));
-    int32_t dy = protozero::decode_zigzag32(f_.geometry(k++));
+    int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
+    int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
     if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call ring_next again
-        return ring_next(rx,ry,true);
+        return ring_next(rx, ry, true);
     }
     detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
@@ -893,8 +893,8 @@ typename GeometryPBF<T>::command GeometryPBF<T>::point_next(value_type & rx, val
     // If an exception occurs it will likely be a end_of_buffer_exception with the text:
     // "end of buffer exception"
     // While this error message is not verbose a try catch here would slow down processing.
-    int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
-    int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
+    int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
+    int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
     detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
     ry = y;
@@ -925,8 +925,8 @@ typename GeometryPBF<T>::command GeometryPBF<T>::line_next(value_type & rx,
                 // If an exception occurs it will likely be a end_of_buffer_exception with the text:
                 // "end of buffer exception"
                 // While this error message is not verbose a try catch here would slow down processing.
-                int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
-                int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
+                int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
+                int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
                 detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
                 rx = x;
                 ry = y;
@@ -963,12 +963,12 @@ typename GeometryPBF<T>::command GeometryPBF<T>::line_next(value_type & rx,
     // If an exception occurs it will likely be a end_of_buffer_exception with the text:
     // "end of buffer exception"
     // While this error message is not verbose a try catch here would slow down processing.
-    int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
-    int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
+    int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
+    int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
     if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call line_next again
-        return line_next(rx,ry,true);
+        return line_next(rx, ry, true);
     }
     detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
@@ -1000,8 +1000,8 @@ typename GeometryPBF<T>::command GeometryPBF<T>::ring_next(value_type & rx,
                 // If an exception occurs it will likely be a end_of_buffer_exception with the text:
                 // "end of buffer exception"
                 // While this error message is not verbose a try catch here would slow down processing.
-                int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
-                int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
+                int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
+                int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
                 detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
                 rx = x;
                 ry = y;
@@ -1043,12 +1043,12 @@ typename GeometryPBF<T>::command GeometryPBF<T>::ring_next(value_type & rx,
     // If an exception occurs it will likely be a end_of_buffer_exception with the text:
     // "end of buffer exception"
     // While this error message is not verbose a try catch here would slow down processing.
-    int32_t dx = protozero::decode_zigzag32(*geo_iterator_.first++);
-    int32_t dy = protozero::decode_zigzag32(*geo_iterator_.first++);
+    int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
+    int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
     if (skip_lineto_zero && dx == 0 && dy == 0)
     {
         // We are going to skip this vertex as the point doesn't move call ring_next again
-        return ring_next(rx,ry,true);
+        return ring_next(rx, ry, true);
     }
     detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
     rx = x;
@@ -1082,7 +1082,7 @@ MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_g
         detail::read_rings<T>(rings, paths, bbox, version);
         if (rings.empty())
         {
-            geom = mapnik::geometry::geometry_empty();
+            geom = std::move(mapnik::geometry::geometry_empty());
         }
         else
         {
@@ -1095,11 +1095,11 @@ MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_g
     {
         // This was changed to not throw as unknown according to v2 of spec can simply be ignored and doesn't require
         // it failing the processing
-        geom = mapnik::geometry::geometry_empty();
+        geom = std::move(mapnik::geometry::geometry_empty());
         break;
     }
     }
-    return geom;
+    return std::move(geom);
 }
 
 template <typename T>

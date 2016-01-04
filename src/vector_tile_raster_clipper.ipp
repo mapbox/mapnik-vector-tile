@@ -1,6 +1,5 @@
 // mapnik
 #include <mapnik/box2d.hpp>
-#include <mapnik/feature.hpp>
 #include <mapnik/image.hpp>
 #include <mapnik/image_any.hpp>
 #include <mapnik/image_scaling.hpp>
@@ -22,28 +21,21 @@ namespace mapnik
 namespace vector_tile_impl
 {
 
-template <typename T>
-raster_clipper<T>::raster_clipper(mapnik::raster const& source,
-                                  mapnik::feature_impl const& feature,
-                                  box2d<double> const& target_ext,
-                                  box2d<double> const& ext,
-                                  backend_type & backend,
-                                  bool & painted,
-                                  mapnik::proj_transform const& prj_trans,
-                                  std::string const& image_format,
-                                  scaling_method_e scaling_method,
-                                  unsigned width,
-                                  unsigned height,
-                                  unsigned raster_width,
-                                  unsigned raster_height,
-                                  int start_x,
-                                  int start_y)
+raster_clipper::raster_clipper(mapnik::raster const& source,
+                               box2d<double> const& target_ext,
+                               box2d<double> const& ext,
+                               mapnik::proj_transform const& prj_trans,
+                               std::string const& image_format,
+                               scaling_method_e scaling_method,
+                               unsigned width,
+                               unsigned height,
+                               unsigned raster_width,
+                               unsigned raster_height,
+                               int start_x,
+                               int start_y)
     : source_(source),
-      feature_(feature),
       target_ext_(target_ext),
       ext_(ext),
-      backend_(backend),
-      painted_(painted),
       prj_trans_(prj_trans),
       image_format_(image_format),
       scaling_method_(scaling_method),
@@ -56,8 +48,7 @@ raster_clipper<T>::raster_clipper(mapnik::raster const& source,
 {
 }
 
-template <typename T>
-void raster_clipper<T>::operator() (mapnik::image_rgba8 & source_data)
+std::string raster_clipper::operator() (mapnik::image_rgba8 & source_data)
 {
     mapnik::image_rgba8 data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -95,13 +86,10 @@ void raster_clipper<T>::operator() (mapnik::image_rgba8 & source_data)
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    backend_.start_tile_feature(feature_);
-    backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
-    painted_ = true;
+    return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-template <typename T>
-void raster_clipper<T>::operator() (mapnik::image_gray8 & source_data)
+std::string raster_clipper::operator() (mapnik::image_gray8 & source_data)
 {
     mapnik::image_gray8 data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -138,13 +126,10 @@ void raster_clipper<T>::operator() (mapnik::image_gray8 & source_data)
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    backend_.start_tile_feature(feature_);
-    backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
-    painted_ = true;
+    return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-template <typename T>
-void raster_clipper<T>::operator() (mapnik::image_gray8s & source_data)
+std::string raster_clipper::operator() (mapnik::image_gray8s & source_data)
 {
     mapnik::image_gray8s data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -181,13 +166,10 @@ void raster_clipper<T>::operator() (mapnik::image_gray8s & source_data)
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    backend_.start_tile_feature(feature_);
-    backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
-    painted_ = true;
+    return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-template <typename T>
-void raster_clipper<T>::operator() (mapnik::image_gray16 & source_data)
+std::string raster_clipper::operator() (mapnik::image_gray16 & source_data)
 {
     mapnik::image_gray16 data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -224,13 +206,10 @@ void raster_clipper<T>::operator() (mapnik::image_gray16 & source_data)
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    backend_.start_tile_feature(feature_);
-    backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
-    painted_ = true;
+    return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-template <typename T>
-void raster_clipper<T>::operator() (mapnik::image_gray16s & source_data)
+std::string raster_clipper::operator() (mapnik::image_gray16s & source_data)
 {
     mapnik::image_gray16s data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -267,13 +246,10 @@ void raster_clipper<T>::operator() (mapnik::image_gray16s & source_data)
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    backend_.start_tile_feature(feature_);
-    backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
-    painted_ = true;
+    return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-template <typename T>
-void raster_clipper<T>::operator() (mapnik::image_gray32 & source_data)
+std::string raster_clipper::operator() (mapnik::image_gray32 & source_data)
 {
     mapnik::image_gray32 data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -310,13 +286,10 @@ void raster_clipper<T>::operator() (mapnik::image_gray32 & source_data)
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    backend_.start_tile_feature(feature_);
-    backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
-    painted_ = true;
+    return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-template <typename T>
-void raster_clipper<T>::operator() (mapnik::image_gray32s & source_data)
+std::string raster_clipper::operator() (mapnik::image_gray32s & source_data)
 {
     mapnik::image_gray32s data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -353,13 +326,10 @@ void raster_clipper<T>::operator() (mapnik::image_gray32s & source_data)
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    backend_.start_tile_feature(feature_);
-    backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
-    painted_ = true;
+    return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-template <typename T>
-void raster_clipper<T>::operator() (mapnik::image_gray32f & source_data)
+std::string raster_clipper::operator() (mapnik::image_gray32f & source_data)
 {
     mapnik::image_gray32f data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -396,13 +366,10 @@ void raster_clipper<T>::operator() (mapnik::image_gray32f & source_data)
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    backend_.start_tile_feature(feature_);
-    backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
-    painted_ = true;
+    return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-template <typename T>
-void raster_clipper<T>::operator() (mapnik::image_gray64 & source_data)
+std::string raster_clipper::operator() (mapnik::image_gray64 & source_data)
 {
     mapnik::image_gray64 data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -439,13 +406,10 @@ void raster_clipper<T>::operator() (mapnik::image_gray64 & source_data)
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    backend_.start_tile_feature(feature_);
-    backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
-    painted_ = true;
+    return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-template <typename T>
-void raster_clipper<T>::operator() (mapnik::image_gray64s & source_data)
+std::string raster_clipper::operator() (mapnik::image_gray64s & source_data)
 {
     mapnik::image_gray64s data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -482,13 +446,10 @@ void raster_clipper<T>::operator() (mapnik::image_gray64s & source_data)
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    backend_.start_tile_feature(feature_);
-    backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
-    painted_ = true;
+    return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-template <typename T>
-void raster_clipper<T>::operator() (mapnik::image_gray64f & source_data)
+std::string raster_clipper::operator() (mapnik::image_gray64f & source_data)
 {
     mapnik::image_gray64f data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -525,9 +486,7 @@ void raster_clipper<T>::operator() (mapnik::image_gray64f & source_data)
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    backend_.start_tile_feature(feature_);
-    backend_.add_tile_feature_raster(mapnik::save_to_string(im_tile,image_format_));
-    painted_ = true;
+    return mapnik::save_to_string(im_tile, image_format_);    
 }
 
 } // end ns vector_tile_impl

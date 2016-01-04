@@ -20,8 +20,11 @@
 #include <string>
 #include <memory>
 
-namespace testing {
-std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool second) {
+namespace testing
+{
+
+std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool second)
+{
     mapnik::parameters params;
     params["type"] = "memory";
     std::shared_ptr<mapnik::memory_datasource> ds = std::make_shared<mapnik::memory_datasource>(params);
@@ -51,7 +54,8 @@ std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool seco
     return ds;
 }
 
-std::shared_ptr<mapnik::memory_datasource> build_geojson_ds(std::string const& geojson_file) {
+std::shared_ptr<mapnik::memory_datasource> build_geojson_ds(std::string const& geojson_file)
+{
     mapnik::util::file input(geojson_file);
     if (!input.open())
     {
@@ -75,7 +79,8 @@ std::shared_ptr<mapnik::memory_datasource> build_geojson_ds(std::string const& g
     return ds;
 }
 
-std::shared_ptr<mapnik::datasource> build_geojson_fs_ds(std::string const& geojson_file) {
+mapnik::datasource_ptr build_geojson_fs_ds(std::string const& geojson_file)
+{
     mapnik::parameters params;
     params["type"] = "geojson";
     params["file"] = geojson_file;
@@ -83,7 +88,8 @@ std::shared_ptr<mapnik::datasource> build_geojson_fs_ds(std::string const& geojs
     return mapnik::datasource_cache::instance().create(params);
 }
 
-mapnik::geometry::geometry<double> read_geojson(std::string const& geojson_file) {
+mapnik::geometry::geometry<double> read_geojson(std::string const& geojson_file)
+{
     mapnik::util::file input(geojson_file);
     if (!input.open())
     {

@@ -3,34 +3,22 @@
 
 // mapnik
 #include <mapnik/feature.hpp>
-#include <mapnik/geometry.hpp>
 #include <mapnik/image_scaling.hpp>
-#include <mapnik/image_compositing.hpp>
 #include <mapnik/layer.hpp>
 #include <mapnik/map.hpp>
 #include <mapnik/request.hpp>
 #include <mapnik/util/noncopyable.hpp>
-#include <mapnik/view_transform.hpp>
-
-// angus clipper
-#include "clipper.hpp"
 
 // mapnik-vector-tile
 #include "vector_tile_config.hpp"
+#include "vector_tile_geometry_clipper.hpp"
+#include "vector_tile_tile.hpp"
 
 namespace mapnik
 {
 
 namespace vector_tile_impl
 {
-
-enum polygon_fill_type : std::uint8_t {
-    even_odd_fill = 0, 
-    non_zero_fill, 
-    positive_fill, 
-    negative_fill,
-    polygon_fill_type_max
-};
 
 /*
   This processor combines concepts from mapnik's
@@ -41,85 +29,156 @@ enum polygon_fill_type : std::uint8_t {
   that would normally come from a style's symbolizers
 */
 
-template <typename T>
 class processor : private mapnik::util::noncopyable
 {
-public:
-    typedef T backend_type;
 private:
-    backend_type & backend_;
     mapnik::Map const& m_;
-    mapnik::request const& m_req_;
-    double scale_factor_;
-    mapnik::view_transform t_;
-    double area_threshold_;
-    bool strictly_simple_;
     std::string image_format_;
-    scaling_method_e scaling_method_;
-    bool painted_;
+    double scale_factor_;
+    double area_threshold_;
     double simplify_distance_;
+    polygon_fill_type fill_type_;
+    scaling_method_e scaling_method_;
+    bool strictly_simple_;
     bool multi_polygon_union_;
-    ClipperLib::PolyFillType fill_type_;
     bool process_all_rings_;
-public:
-    MAPNIK_VECTOR_INLINE processor(T & backend,
-              mapnik::Map const& map,
-              mapnik::request const& m_req,
-              double scale_factor=1.0,
-              unsigned offset_x=0,
-              unsigned offset_y=0,
-              double area_threshold=0.1,
-              bool strictly_simple=false,
-              std::string const& image_format="jpeg",
-              scaling_method_e scaling_method=SCALING_NEAR
-        );
 
-    inline void set_simplify_distance(double dist)
+public:
+    processor(mapnik::Map const& map);
+
+    void update_tile(tile & t,
+                     std::uint64_t x,
+                     std::uint64_t y,
+                     std::uint64_t z,
+                     std::uint32_t tile_size = 256,
+                     std::uint32_t buffer_size = 0,
+                     std::uint32_t path_multiplier = 16,
+                     double scale_denom = 0.0,
+                     unsigned offset_x = 0,
+                     unsigned offset_y = 0);
+
+    void update_tile(tile & t,
+                     mapnik::request const& req,
+                     std::uint32_t path_multiplier = 16,
+                     double scale_denom = 0.0,
+                     unsigned offset_x = 0,
+                     unsigned offset_y = 0);
+
+    tile create_tile(std::uint64_t x,
+                     std::uint64_t y,
+                     std::uint64_t z,
+                     std::uint32_t tile_size = 256,
+                     std::uint32_t buffer_size = 0,
+                     std::uint32_t path_multiplier = 16,
+                     double scale_denom = 0.0,
+                     unsigned offset_x = 0,
+                     unsigned offset_y = 0)
+    {
+        tile t;
+        update_tile(t, x, y, z, tile_size, buffer_size, path_multiplier, scale_denom, offset_x, offset_y);
+        return t;
+    }
+    
+    tile create_tile(mapnik::request const& req,
+                     std::uint32_t path_multiplier = 16,
+                     double scale_denom = 0.0,
+                     unsigned offset_x = 0,
+                     unsigned offset_y = 0)
+    {
+        tile t;
+        update_tile(t, req, path_multiplier, scale_denom, offset_x, offset_y);
+        return t;
+    }
+
+    void set_simplify_distance(double dist)
     {
         simplify_distance_ = dist;
     }
-
-    inline void set_process_all_rings(bool value)
-    {
-        process_all_rings_ = value;
-    }
-
-    inline void set_multi_polygon_union(bool value)
-    {
-        multi_polygon_union_ = value;
-    }
-
-    inline double get_simplify_distance() const
+    
+    double get_simplify_distance() const
     {
         return simplify_distance_;
     }
 
-    inline mapnik::view_transform const& get_transform()
+    void set_area_threshold(double value)
     {
-        return t_;
+        area_threshold_ = value;
     }
     
-    MAPNIK_VECTOR_INLINE void set_fill_type(polygon_fill_type type);
+    double get_area_threshold() const
+    {
+        return area_threshold_;
+    }
 
-    MAPNIK_VECTOR_INLINE void apply(double scale_denom=0.0);
+    void set_scale_factor(double value)
+    {
+        scale_factor_ = value;
+    }
+    
+    double get_scale_factor() const
+    {
+        return scale_factor_;
+    }
 
-    MAPNIK_VECTOR_INLINE bool painted() const;
+    void set_process_all_rings(bool value)
+    {
+        process_all_rings_ = value;
+    }
+    
+    bool get_process_all_rings() const
+    {
+        return process_all_rings_;
+    }
 
-    MAPNIK_VECTOR_INLINE void apply_to_layer(mapnik::layer const& lay,
-                                             mapnik::projection const& proj0,
-                                             double scale,
-                                             double scale_denom,
-                                             unsigned width,
-                                             unsigned height,
-                                             box2d<double> const& extent,
-                                             int buffer_size);
+    void set_multi_polygon_union(bool value)
+    {
+        multi_polygon_union_ = value;
+    }
+    
+    bool get_multi_polygon_union() const
+    {
+        return multi_polygon_union_;
+    }
+    
+    void set_strictly_simple(bool value)
+    {
+        strictly_simple_ = value;
+    }
+    
+    bool get_multipolygon_union() const
+    {
+        return strictly_simple_;
+    }
+    
+    void set_fill_type(polygon_fill_type type)
+    {
+        fill_type_ = type;
+    }
+    
+    polygon_fill_type set_fill_type() const
+    {
+        return fill_type_;
+    }
 
-    template <typename T2>
-    MAPNIK_VECTOR_INLINE bool handle_geometry(T2 const& vs,
-                                              mapnik::feature_impl const& feature,
-                                              mapnik::geometry::geometry<double> const& geom,
-                                              mapnik::box2d<int> const& tile_clipping_extent,
-                                              mapnik::box2d<double> const& target_clipping_extent);
+    void set_scaling_method(scaling_method_e type)
+    {
+        scaling_method_ = type;
+    }
+    
+    scaling_method_e set_scaling_method() const
+    {
+        return scaling_method_;
+    }
+
+    void set_image_format(std::string const& value)
+    {
+        image_format_ = value;
+    }
+
+    std::string const& get_image_format() const
+    {
+        return image_format_;
+    }
 };
 
 } // end ns vector_tile_impl

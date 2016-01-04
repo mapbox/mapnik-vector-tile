@@ -1,6 +1,5 @@
 // mapnik
 #include <mapnik/box2d.hpp>
-#include <mapnik/feature.hpp>
 #include <mapnik/geometry.hpp>
 #include <mapnik/geometry_adapters.hpp>
 
@@ -32,6 +31,22 @@ namespace vector_tile_impl
 
 namespace detail
 {
+
+ClipperLib::PolyFillType get_angus_fill_type(polygon_fill_type type)
+{
+    switch (type) 
+    {
+    case polygon_fill_type_max:
+    case even_odd_fill:
+        return ClipperLib::pftEvenOdd;
+    case non_zero_fill: 
+        return ClipperLib::pftNonZero;
+    case positive_fill:
+        return ClipperLib::pftPositive;
+    case negative_fill:
+        return ClipperLib::pftNegative;
+    }
+}
 
 inline void process_polynode_branch(ClipperLib::PolyNode* polynode, 
                                     mapnik::geometry::multi_polygon<std::int64_t> & mp,
@@ -84,17 +99,12 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
 
 } // end ns detail
 
-template <typename T>
-geometry_clipper<T>::geometry_clipper(backend_type & backend,
-                                      mapnik::feature_impl const& feature,
-                                      mapnik::box2d<int> const& tile_clipping_extent,
-                                      double area_threshold,
-                                      bool strictly_simple,
-                                      bool multi_polygon_union,
-                                      ClipperLib::PolyFillType fill_type,
-                                      bool process_all_rings) :
-          backend_(backend),
-          feature_(feature),
+geometry_clipper::geometry_clipper(mapnik::box2d<int> const& tile_clipping_extent,
+                                   double area_threshold,
+                                   bool strictly_simple,
+                                   bool multi_polygon_union,
+                                   polygon_fill_type fill_type,
+                                   bool process_all_rings) :
           tile_clipping_extent_(tile_clipping_extent),
           area_threshold_(area_threshold),
           strictly_simple_(strictly_simple),
@@ -104,159 +114,121 @@ geometry_clipper<T>::geometry_clipper(backend_type & backend,
 {
 }
 
-template <typename T>
-bool geometry_clipper<T>::operator() (mapnik::geometry::geometry_collection<std::int64_t> & geom)
+mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::geometry_empty & geom)
 {
-    bool painted = false;
+    return std::move(geom);
+}
+
+mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::point<std::int64_t> & geom)
+{
+    return std::move(geom);
+}
+
+mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::multi_point<std::int64_t> & geom)
+{
+    return std::move(geom);
+}
+
+mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::geometry_collection<std::int64_t> & geom)
+{
     for (auto & g : geom)
     {
-        if (mapnik::util::apply_visitor((*this), g))
-        {
-            painted = true;
-        }
+        g = std::move(mapnik::util::apply_visitor((*this), g));
     }
-    return painted;
+    return std::move(geom);
 }
 
-template <typename T>
-bool geometry_clipper<T>::operator() (mapnik::geometry::point<std::int64_t> const& geom)
+mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::line_string<std::int64_t> & geom)
 {
-    backend_.start_tile_feature(feature_);
-    bool painted = backend_.add_path(geom);
-    backend_.stop_tile_feature();
-    return painted;
-}
-
-template <typename T>
-bool geometry_clipper<T>::operator() (mapnik::geometry::multi_point<std::int64_t> const& geom)
-{
-    bool painted = false;
-    if (!geom.empty())
-    {
-        backend_.start_tile_feature(feature_);
-        painted = backend_.add_path(geom);
-        backend_.stop_tile_feature();
-    }
-    return painted;
-}
-
-template <typename T>
-bool geometry_clipper<T>::operator() (mapnik::geometry::line_string<std::int64_t> & geom)
-{
-    bool painted = false;
     boost::geometry::unique(geom);
     if (geom.size() < 2)
     {
-        // This is false because it means the original data was invalid
-        return false;
+        return mapnik::geometry::geometry_empty();
     }
-    std::deque<mapnik::geometry::line_string<int64_t>> result;
+    //std::deque<mapnik::geometry::line_string<int64_t>> result;
+    mapnik::geometry::multi_line_string<int64_t> result;
     mapnik::geometry::linear_ring<std::int64_t> clip_box;
+    clip_box.reserve(5);
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
     clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
     clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.maxy());
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.maxy());
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
-    boost::geometry::intersection(clip_box,geom,result);
+    boost::geometry::intersection(clip_box, geom, result);
     if (!result.empty())
     {
-        // Found some data in tile so painted is now true
-        painted = true;
-        // Add the data to the tile
-        backend_.start_tile_feature(feature_);
-        for (auto const& ls : result)
-        {
-            backend_.add_path(ls);
-        }
-        backend_.stop_tile_feature();
+        return result;   
     }
-    return painted;
+    return mapnik::geometry::geometry_empty();
 }
 
-template <typename T>
-bool geometry_clipper<T>::operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom)
+mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom)
 {
-    bool painted = false;
     mapnik::geometry::linear_ring<std::int64_t> clip_box;
+    clip_box.reserve(5);
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
     clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
     clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.maxy());
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.maxy());
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
-    bool first = true;
     boost::geometry::unique(geom);
+    mapnik::geometry::multi_line_string<int64_t> results;
     for (auto const& line : geom)
     {
         if (line.size() < 2)
         {
            continue;
         }
-        // If any line reaches here painted is now true because
-        std::deque<mapnik::geometry::line_string<int64_t>> result;
-        boost::geometry::intersection(clip_box,line,result);
-        if (!result.empty())
-        {
-            if (first)
-            {
-                painted = true;
-                first = false;
-                backend_.start_tile_feature(feature_);
-            }
-            for (auto const& ls : result)
-            {
-                backend_.add_path(ls);
-            }
-        }
+        //std::deque<mapnik::geometry::line_string<int64_t>> result;
+        boost::geometry::intersection(clip_box, line, results);
     }
-    if (!first)
+    if (!results.empty())
     {
-        backend_.stop_tile_feature();
+        return results;   
     }
-    return painted;
+    return mapnik::geometry::geometry_empty();
 }
 
-template <typename T>
-bool geometry_clipper<T>::operator() (mapnik::geometry::polygon<std::int64_t> & geom)
+mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::polygon<std::int64_t> & geom)
 {
-    bool painted = false;
     if ((geom.exterior_ring.size() < 3) && !process_all_rings_)
     {
-        // Invalid geometry so will be false
-        return false;
+        return mapnik::geometry::geometry_empty();
     }
-    // Because of geometry cleaning and other methods
-    // we automatically call this tile painted even if there is no intersections.
-    painted = true;
+    
     double clean_distance = 1.415;
-    mapnik::geometry::linear_ring<std::int64_t> clip_box;
-    clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
-    clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
-    clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.maxy());
-    clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.maxy());
-    clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
+    
+    // Prepare the clipper object
     ClipperLib::Clipper clipper;
+    
+    if (strictly_simple_) 
+    {
+        clipper.StrictlySimple(true);
+    }
+    
+    // Start processing on exterior ring
+    // if proces_all_rings is true even if the exterior
+    // ring is invalid we will continue to insert all polygon
+    // rings into the clipper
     ClipperLib::CleanPolygon(geom.exterior_ring, clean_distance);
     double outer_area = ClipperLib::Area(geom.exterior_ring);
     if ((std::abs(outer_area) < area_threshold_)  && !process_all_rings_)
     {
-        return painted;
+        return mapnik::geometry::geometry_empty();
     }
+
     // The view transform inverts the y axis so this should be positive still despite now
     // being clockwise for the exterior ring. If it is not lets invert it.
     if (outer_area < 0)
     {   
         std::reverse(geom.exterior_ring.begin(), geom.exterior_ring.end());
     }
-    ClipperLib::Clipper poly_clipper;
-    
-    if (strictly_simple_) 
+
+    if (!clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
     {
-        poly_clipper.StrictlySimple(true);
+        return mapnik::geometry::geometry_empty();
     }
-    if (!poly_clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
-    {
-        return painted;
-    }
+
     for (auto & ring : geom.interior_rings)
     {
         if (ring.size() < 3) 
@@ -275,18 +247,31 @@ bool geometry_clipper<T>::operator() (mapnik::geometry::polygon<std::int64_t> & 
         {
             std::reverse(ring.begin(), ring.end());
         }
-        if (!poly_clipper.AddPath(ring, ClipperLib::ptSubject, true))
+        if (!clipper.AddPath(ring, ClipperLib::ptSubject, true))
         {
             continue;
         }
     }
-    if (!poly_clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+
+    // Setup the box for clipping
+    mapnik::geometry::linear_ring<std::int64_t> clip_box;
+    clip_box.reserve(5);
+    clip_box.emplace_back(tile_clipping_extent_.minx(), tile_clipping_extent_.miny());
+    clip_box.emplace_back(tile_clipping_extent_.maxx(), tile_clipping_extent_.miny());
+    clip_box.emplace_back(tile_clipping_extent_.maxx(), tile_clipping_extent_.maxy());
+    clip_box.emplace_back(tile_clipping_extent_.minx(), tile_clipping_extent_.maxy());
+    clip_box.emplace_back(tile_clipping_extent_.minx(), tile_clipping_extent_.miny());
+    
+    // Finally add the box we will be using for clipping
+    if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
     {
-        return painted;
+        return mapnik::geometry::geometry_empty();
     }
+
     ClipperLib::PolyTree polygons;
-    poly_clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_, fill_type_);
-    poly_clipper.Clear();
+    ClipperLib::PolyFillType fill_type = detail::get_angus_fill_type(fill_type_);
+    clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, fill_type);
+    clipper.Clear();
     
     mapnik::geometry::multi_polygon<std::int64_t> mp;
     
@@ -297,41 +282,39 @@ bool geometry_clipper<T>::operator() (mapnik::geometry::polygon<std::int64_t> & 
 
     if (mp.empty())
     {
-        return painted;
+        return mapnik::geometry::geometry_empty();
     }
 
-    backend_.start_tile_feature(feature_);
-    
-    for (auto const& poly : mp)
-    {
-        backend_.add_path(poly);
-    }
-    backend_.stop_tile_feature();
-    return painted;
+    return mp;
 }
 
-template <typename T>
-bool geometry_clipper<T>::operator() (mapnik::geometry::multi_polygon<std::int64_t> & geom)
+mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::multi_polygon<std::int64_t> & geom)
 {
-    bool painted = false;
-    //mapnik::box2d<std::int64_t> bbox = mapnik::geometry::envelope(geom);
     if (geom.empty())
     {
-        return painted;
+        return mapnik::geometry::geometry_empty();
     }
-    // From this point on due to polygon cleaning etc, we just assume that the tile has some sort
-    // of intersection and is painted.
-    painted = true;   
+    
     double clean_distance = 1.415;
     mapnik::geometry::linear_ring<std::int64_t> clip_box;
+    clip_box.reserve(5);
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
     clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
     clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.maxy());
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.maxy());
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
+    
     mapnik::geometry::multi_polygon<std::int64_t> mp;
     
     ClipperLib::Clipper clipper;
+    
+    if (strictly_simple_) 
+    {
+        clipper.StrictlySimple(true);
+    }
+
+    ClipperLib::PolyFillType fill_type = detail::get_angus_fill_type(fill_type_);
+
     if (multi_polygon_union_)
     {
         for (auto & poly : geom)
@@ -361,6 +344,7 @@ bool geometry_clipper<T>::operator() (mapnik::geometry::multi_polygon<std::int64
             {
                 continue;
             }
+
             for (auto & ring : poly.interior_rings)
             {
                 if (ring.size() < 3)
@@ -384,14 +368,10 @@ bool geometry_clipper<T>::operator() (mapnik::geometry::multi_polygon<std::int64
         }
         if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
         {
-            return painted;
+            return mapnik::geometry::geometry_empty();
         }
         ClipperLib::PolyTree polygons;
-        if (strictly_simple_) 
-        {
-            clipper.StrictlySimple(true);
-        }
-        clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_, fill_type_);
+        clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, fill_type);
         clipper.Clear();
         
         for (auto * polynode : polygons.Childs)
@@ -453,14 +433,10 @@ bool geometry_clipper<T>::operator() (mapnik::geometry::multi_polygon<std::int64
             }
             if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
             {
-                return painted;
+                return mapnik::geometry::geometry_empty();
             }
             ClipperLib::PolyTree polygons;
-            if (strictly_simple_) 
-            {
-                clipper.StrictlySimple(true);
-            }
-            clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type_, fill_type_);
+            clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, fill_type);
             clipper.Clear();
             
             for (auto * polynode : polygons.Childs)
@@ -472,17 +448,10 @@ bool geometry_clipper<T>::operator() (mapnik::geometry::multi_polygon<std::int64
 
     if (mp.empty())
     {
-        return painted;
+        return mapnik::geometry::geometry_empty();
     }
 
-    backend_.start_tile_feature(feature_);
-    
-    for (auto const& poly : mp)
-    {
-        backend_.add_path(poly);
-    }
-    backend_.stop_tile_feature();
-    return painted;
+    return mp;
 }
 
 } // end ns vector_tile_impl
