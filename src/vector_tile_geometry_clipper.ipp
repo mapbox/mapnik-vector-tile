@@ -148,6 +148,7 @@ mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::g
     //std::deque<mapnik::geometry::line_string<int64_t>> result;
     mapnik::geometry::multi_line_string<int64_t> result;
     mapnik::geometry::linear_ring<std::int64_t> clip_box;
+    clip_box.reserve(5);
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
     clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
     clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.maxy());
@@ -164,6 +165,7 @@ mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::g
 mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom)
 {
     mapnik::geometry::linear_ring<std::int64_t> clip_box;
+    clip_box.reserve(5);
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
     clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
     clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.maxy());
@@ -253,6 +255,7 @@ mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::g
 
     // Setup the box for clipping
     mapnik::geometry::linear_ring<std::int64_t> clip_box;
+    clip_box.reserve(5);
     clip_box.emplace_back(tile_clipping_extent_.minx(), tile_clipping_extent_.miny());
     clip_box.emplace_back(tile_clipping_extent_.maxx(), tile_clipping_extent_.miny());
     clip_box.emplace_back(tile_clipping_extent_.maxx(), tile_clipping_extent_.maxy());
@@ -294,6 +297,7 @@ mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::g
     
     double clean_distance = 1.415;
     mapnik::geometry::linear_ring<std::int64_t> clip_box;
+    clip_box.reserve(5);
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
     clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
     clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.maxy());

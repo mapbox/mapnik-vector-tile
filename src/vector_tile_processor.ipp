@@ -1,6 +1,7 @@
 // mapnik-vector-tile
 #include "vector_tile_geometry_clipper.hpp"
 #include "vector_tile_geometry_feature.hpp"
+#include "vector_tile_geometry_intersects.hpp"
 #include "vector_tile_geometry_simplifier.hpp"
 #include "vector_tile_projection.hpp"
 #include "vector_tile_raster_clipper.hpp"
@@ -159,13 +160,20 @@ void create_geom_feature(T const& vs,
     // TODO
     // - no need to create a new skipping_transformer per geometry
     using vector_tile_strategy_type = T;
+    
+    // Check if the geometry intersects with the clipping extent, if it
+    // does not return early.
+    if (!intersects(target_clipping_extent, geom))
+    {
+        return;
+    }
 
+    // Since we know some data intersects with the bounding box, mark as painted.
+    layer.make_painted();
+    
     // For now just make solid always false
     // TODO add solid logic
     bool solid = false;
-
-    // Mark the layer as painted
-    layer.make_painted();
 
     // Reproject geometry
     mapnik::vector_tile_impl::transform_visitor<vector_tile_strategy_type> skipping_transformer(vs, target_clipping_extent);

@@ -33,7 +33,6 @@ struct geometry_simplifier
     mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::polygon<std::int64_t> const& geom);
 
     mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::multi_polygon<std::int64_t> const& geom);
-
     
     geometry_clipper & clipper_;
     unsigned simplify_distance_;
