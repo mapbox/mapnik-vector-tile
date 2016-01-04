@@ -75,7 +75,7 @@ void decode_point(mapnik::geometry::geometry<typename T::value_type> & geom,
             }
             previous_len = paths.get_length();
             #endif
-            mp.reserve(paths.get_length());
+            mp.reserve(paths.get_length() + 1);
             mp.emplace_back(x1,y1);
             break;
         }
@@ -183,7 +183,7 @@ void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom
         multi_line.emplace_back();
         auto & line = multi_line.back();
         // reserve prior
-        line.reserve(paths.get_length() + 1);
+        line.reserve(paths.get_length() + 2);
         // add moveto command position
         line.add_coord(x0, y0);
         part_env.init(x0, y0, x0, y0);
@@ -333,7 +333,7 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<typename T::value_type
         rings.emplace_back();
         auto & ring = rings.back();
         // reserve prior
-        ring.reserve(paths.get_length() + 2);
+        ring.reserve(paths.get_length() + 4);
         // add moveto command position
         ring.add_coord(x0, y0);
         part_env.init(x0, y0, x0, y0);
