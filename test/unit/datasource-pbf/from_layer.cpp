@@ -148,7 +148,7 @@ TEST_CASE( "extent of a tile effects the scale of features" )
 
         mapnik::query q(ds.get_tile_extent());
         mapnik::featureset_ptr featureset = ds.features(q);
-
+        REQUIRE(featureset);
         mapnik::feature_ptr feature = featureset->next();
 
         std::string wkt0;
@@ -166,7 +166,7 @@ TEST_CASE( "extent of a tile effects the scale of features" )
 
         mapnik::query q(ds.get_tile_extent());
         mapnik::featureset_ptr featureset = ds.features(q);
-
+        REQUIRE(featureset);
         mapnik::feature_ptr feature = featureset->next();
 
         std::string wkt0;

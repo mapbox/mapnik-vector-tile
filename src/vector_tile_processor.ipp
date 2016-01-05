@@ -76,7 +76,7 @@ box2d<double> get_buffered_extent(mapnik::request const& req,
     ext.width(ext.width() + buffer_padding);
     ext.height(ext.height() + buffer_padding);
     
-    boost::optional<box2d<double>> const& maximum_extent = map.maximum_extent();
+    boost::optional<box2d<double> > const& maximum_extent = map.maximum_extent();
     if (maximum_extent)
     {
         ext.clip(*maximum_extent);

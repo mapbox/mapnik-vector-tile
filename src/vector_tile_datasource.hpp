@@ -27,7 +27,8 @@ public:
                     unsigned x,
                     unsigned y,
                     unsigned z,
-                    unsigned tile_size);
+                    unsigned tile_size,
+                    bool is_raster = false);
     virtual ~tile_datasource();
     datasource::datasource_t type() const;
     featureset_ptr features(query const& q) const;
@@ -51,6 +52,7 @@ private:
     double tile_y_;
     double scale_;
     unsigned version_;
+    datasource::datasource_t type_;
 };
 
 } // end ns vector_tile_impl

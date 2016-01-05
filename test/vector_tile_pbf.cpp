@@ -474,7 +474,7 @@ TEST_CASE("pbf raster tile output -- should be able to overzoom raster")
     mapnik::layer lyr2("layer",map2.srs());
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds2 = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                        layer2,0,0,0,256);
+                                        layer2,0,0,0,256,true);
     lyr2.set_datasource(ds2);
     lyr2.add_style("style");
     map2.add_layer(lyr2);

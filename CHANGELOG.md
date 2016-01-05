@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.2
+
+- Fixed premultiplication bug in raster encoding (#170)
+
 ## 0.14.1
 
 - Had error in publish, republishing.

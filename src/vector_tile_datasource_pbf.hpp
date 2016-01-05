@@ -26,7 +26,8 @@ public:
                     unsigned x,
                     unsigned y,
                     unsigned z,
-                    unsigned tile_size);
+                    unsigned tile_size,
+                    bool is_raster = false);
     virtual ~tile_datasource_pbf();
     datasource::datasource_t type() const;
     featureset_ptr features(query const& q) const;
@@ -53,6 +54,7 @@ private:
     double scale_;
     uint32_t layer_extent_;
     uint32_t version_;
+    datasource::datasource_t type_;
 
     std::string name_;
     std::vector<protozero::pbf_reader> features_;

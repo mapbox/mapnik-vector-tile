@@ -39,7 +39,8 @@ tile_datasource::tile_datasource(vector_tile::Tile_Layer const& layer,
                                  unsigned x,
                                  unsigned y,
                                  unsigned z,
-                                 unsigned tile_size)
+                                 unsigned tile_size,
+                                 bool is_raster)
     : datasource(parameters()),
       desc_("in-memory datasource","utf-8"),
       attributes_added_(false),
@@ -49,19 +50,24 @@ tile_datasource::tile_datasource(vector_tile::Tile_Layer const& layer,
       z_(z),
       tile_size_(tile_size),
       extent_initialized_(false),
-      version_(layer_.version())
+      version_(layer_.version()),
+      type_(datasource::Vector)
 {
     double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z_);
     tile_x_ = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x_ * resolution;
     tile_y_ =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y_ * resolution;
     scale_ = (static_cast<double>(layer_.extent()) / tile_size_) * tile_size_/resolution;
+    if (is_raster)
+    {
+        type_ = datasource::Raster;
+    }
 }
 
 tile_datasource::~tile_datasource() {}
 
 datasource::datasource_t tile_datasource::type() const
 {
-    return datasource::Vector;
+    return type_;
 }
 
 featureset_ptr tile_datasource::features(query const& q) const

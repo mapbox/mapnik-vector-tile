@@ -36,7 +36,8 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
                                          unsigned x,
                                          unsigned y,
                                          unsigned z,
-                                         unsigned tile_size)
+                                         unsigned tile_size,
+                                         bool is_raster)
     : datasource(parameters()),
       desc_("in-memory PBF encoded datasource","utf-8"),
       attributes_added_(false),
@@ -51,8 +52,13 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
       tile_y_(0.0),
       scale_(0.0),
       layer_extent_(0),
-      version_(1) // Version == 1 is the default because it was not required until v2 to have this field
+      version_(1), // Version == 1 is the default because it was not required until v2 to have this field
+      type_(datasource::Vector)
 {
+    if (is_raster)
+    {
+        type_ = datasource::Raster;
+    }
     double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z_);
     tile_x_ = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x_ * resolution;
     tile_y_ =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y_ * resolution;
@@ -150,13 +156,11 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
     }
     else
     {
-        std::cout << "Is invalid here?" << std::endl;
         valid_layer_ = false;
     }
 
     if (features_.empty())
     {
-        std::cout << "Is invalid here?" << std::endl;
         valid_layer_ = false;
     }
 }
@@ -165,12 +169,12 @@ tile_datasource_pbf::~tile_datasource_pbf() {}
 
 datasource::datasource_t tile_datasource_pbf::type() const
 {
-    return datasource::Vector;
+    return type_;
 }
 
 featureset_ptr tile_datasource_pbf::features(query const& q) const
 {
-    if (valid_layer_)
+    if (!valid_layer_)
     {
         // From spec:
         // When a Vector Tile consumer encounters a Vector Tile layer with an unknown version, 
@@ -187,7 +191,7 @@ featureset_ptr tile_datasource_pbf::features(query const& q) const
 
 featureset_ptr tile_datasource_pbf::features_at_point(coord2d const& pt, double tol) const
 {
-    if (valid_layer_)
+    if (!valid_layer_)
     {
         // From spec:
         // When a Vector Tile consumer encounters a Vector Tile layer with an unknown version, 

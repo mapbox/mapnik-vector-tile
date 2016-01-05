@@ -14,6 +14,8 @@
 #include <mapnik/load_map.hpp>
 #include <mapnik/image_reader.hpp>
 #include <mapnik/image_util.hpp>
+#include <mapnik/feature_factory.hpp>
+#include <mapnik/raster.hpp>
 
 #include <sstream>
 #include <fstream>
@@ -122,7 +124,7 @@ TEST_CASE("raster tile output 1")
     mapnik::layer lyr2("layer",map2.srs());
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds2 = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource>(
-                                        layer2,_x,_y,_z,map2.width());
+                                        layer2,_x,_y,_z,map2.width(),true);
     lyr2.set_datasource(ds2);
     lyr2.add_style("style");
     map2.add_layer(lyr2);
@@ -243,7 +245,7 @@ TEST_CASE("raster tile output 2")
     mapnik::layer lyr2("layer",map2.srs());
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds2 = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource>(
-                                        layer2,0,0,0,256);
+                                        layer2,0,0,0,256,true);
     lyr2.set_datasource(ds2);
     lyr2.add_style("style");
     map2.add_layer(lyr2);
@@ -262,4 +264,169 @@ TEST_CASE("raster tile output 2")
     {
         mapnik::save_to_file(im,"test/fixtures/actual-3.png","png32");
     }
+}
+
+TEST_CASE("raster tile output 3 -- should be able to round trip image with alpha")
+{
+    double minx,miny,maxx,maxy;
+    unsigned tile_size = 256;
+    mapnik::vector_tile_impl::spherical_mercator merc(tile_size);
+    merc.xyz(0,0,0,minx,miny,maxx,maxy);
+    mapnik::box2d<double> bbox(minx,miny,maxx,maxy);
+    std::ostringstream s;
+    s << std::fixed << std::setprecision(16)
+      << bbox.minx() << ',' << bbox.miny() << ','
+      << bbox.maxx() << ',' << bbox.maxy();
+
+    // create a vtile from scratch with a raster
+    mapnik::vector_tile_impl::tile out_tile;
+    {
+        //unsigned buffer_size = 1024;
+        
+        // build map
+        mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+        //map.set_buffer_size(buffer_size);
+        mapnik::layer lyr("layer",map.srs());
+        mapnik::parameters params;
+        params["type"] = "raster";
+        params["lox"] = minx;
+        params["loy"] = miny;
+        params["hix"] = maxx;
+        params["hiy"] = maxy;
+        params["file"] = "test/fixtures/alpha-white-2.png";
+        std::shared_ptr<mapnik::datasource> ds = mapnik::datasource_cache::instance().create(params);
+        lyr.set_datasource(ds);
+        map.add_layer(lyr);
+        
+        // build processor
+        mapnik::vector_tile_impl::processor ren(map);
+        ren.set_image_format("png32");
+        ren.set_scaling_method(mapnik::SCALING_NEAR);
+        
+        // Update the tile
+        ren.update_tile(out_tile, 0, 0, 0, tile_size); //, buffer_size);
+    }
+    vector_tile::Tile & tile = out_tile.get_tile();
+    // Done creating test data, now test created tile
+
+/*
+    vector_tile::Tile tile;
+    std::string format("png32");
+    {
+        mapnik::vector_tile_impl::backend_pbf backend(tile,16);
+        backend.start_tile_layer("layer");
+        mapnik::feature_ptr feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
+        backend.start_tile_feature(*feature);
+        std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader("./test/fixtures/alpha-white-2.png"));
+        if (!reader.get()) {
+            throw std::runtime_error("could not open image");
+        }
+        mapnik::image_rgba8 im_data(reader->width(),reader->height());
+        reader->read(0,0,im_data);
+        backend.add_tile_feature_raster(mapnik::save_to_string(im_data,format));
+        backend.stop_tile_feature();
+        backend.stop_tile_layer();
+    }
+*/
+    {
+        REQUIRE(1 == tile.layers_size());
+        vector_tile::Tile_Layer const& layer = tile.layers(0);
+        REQUIRE(1 == layer.features_size());
+        vector_tile::Tile_Feature const& f = layer.features(0);
+        REQUIRE(f.has_raster());
+        std::string const& ras_buffer = f.raster();
+        REQUIRE(!ras_buffer.empty());
+        std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(ras_buffer.data(), ras_buffer.size()));
+        if (!reader.get())
+        {
+            throw std::runtime_error("could not open image bytes");
+        }
+        mapnik::image_rgba8 im_data(reader->width(), reader->height());
+        reader->read(0, 0, im_data);
+        unsigned diff = testing::compare_images(im_data, "./test/fixtures/alpha-white-2.png", 0, true);
+        CHECK(0 == diff);
+        if (diff > 0)
+        {
+            mapnik::save_to_file(im_data, "test/fixtures/actual-4.png", "png32");
+        }
+
+    }
+
+    // Now actually re-render to trigger the raster being passed through the processor
+    // and confirm raster still looks correct
+    {
+        // create datasource wrapping raster
+        std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
+                                        mapnik::vector_tile_impl::tile_datasource>(
+                                            tile.layers(0),0,0,0,tile_size,true);
+        // before rendering let's query the raster directly to ensure
+        // the datasource returns it correctly.
+        mapnik::query q(bbox);
+        mapnik::featureset_ptr fs = ds->features(q);
+        mapnik::feature_ptr feat = fs->next();
+        mapnik::raster_ptr const& source = feat->get_raster();
+        CHECK(source->data_.is<mapnik::image_rgba8>());
+        mapnik::image_rgba8 const& source_data = mapnik::util::get<mapnik::image_rgba8>(source->data_);
+        unsigned diff = testing::compare_images(source_data, "./test/fixtures/alpha-white-2.png", 0, true);
+        CHECK(0 == diff);
+        if (diff > 0)
+        {
+            mapnik::save_to_file(source_data, "test/fixtures/actual-5.png", "png32");
+        }
+
+        // okay, now we'll re-render another vector tile from original
+        // which triggers the raster to be resampled
+        mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+        mapnik::layer lyr("layer",map.srs());
+        ds->set_envelope(bbox);
+        lyr.set_datasource(ds);
+        map.add_layer(lyr);
+        map.zoom_to_box(bbox);
+
+        // build processor
+        mapnik::vector_tile_impl::processor ren(map);
+        ren.set_image_format("png32");
+        //ren.set_scaling_method(mapnik::SCALING_NEAR);
+        
+        // Update the tile
+        mapnik::vector_tile_impl::tile new_tile = ren.create_tile(0, 0, 0, tile_size); //, buffer_size);
+        
+        vector_tile::Tile & round_tripped_tile = new_tile.get_tile();
+
+        REQUIRE(1 == round_tripped_tile.layers_size());
+        vector_tile::Tile_Layer const& layer = round_tripped_tile.layers(0);
+        REQUIRE(1 == layer.features_size());
+        vector_tile::Tile_Feature const& f = layer.features(0);
+        REQUIRE(f.has_raster());
+        std::string const& ras_buffer = f.raster();
+        REQUIRE(!ras_buffer.empty());
+        std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(ras_buffer.data(),ras_buffer.size()));
+        if (!reader.get())
+        {
+            throw std::runtime_error("could not open image bytes");
+        }
+
+        mapnik::image_rgba8 im_data(reader->width(), reader->height());
+        reader->read(0, 0, im_data);
+
+        if (!mapnik::util::exists("test/fixtures/expected-4.png"))
+        {
+            mapnik::save_to_file(im_data, "test/fixtures/expected-4.png", "png32");
+        }
+
+        diff = testing::compare_images(im_data, "test/fixtures/expected-4.png", 0, true);
+        CHECK(0 == diff);
+        if (diff > 0)
+        {
+            mapnik::save_to_file(im_data, "test/fixtures/actual-7.png", "png32");
+        }
+
+        diff = testing::compare_images(im_data, "./test/fixtures/alpha-white-2.png", 0, true);
+        CHECK(0 == diff);
+        if (diff > 0)
+        {
+            mapnik::save_to_file(im_data, "test/fixtures/actual-7.png", "png32");
+        }
+    }
+
 }
