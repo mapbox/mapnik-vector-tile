@@ -36,7 +36,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <functional>
+//#include <functional>
 
 // protozero
 #include <protozero/pbf_reader.hpp>
@@ -70,7 +70,6 @@ void clip_geometry(mapnik::Map const& map,
     
     std::string buffer;
     out_tile.serialize_to_string(buffer);
-    std::size_t hash_num = std::hash<std::string>{}(buffer);
     std::string buffer2 = tile.SerializePartialAsString();
     CHECK(buffer2 == buffer);
     if (!buffer.empty() && tile.layers_size() > 0)
@@ -133,7 +132,7 @@ void clip_geometry(mapnik::Map const& map,
             mapnik::util::to_geojson(geojson_string,geom4326);
 
             geojson_string = geojson_string.substr(0, geojson_string.size()-1);
-            geojson_string += ",\"properties\":{\"hash\":\""+std::to_string(hash_num)+"\", \"is_valid\":"+is_valid+", \"is_simple\":"+is_simple+", \"message\":\""+reason+"\"}}";
+            geojson_string += ",\"properties\":{\"is_valid\":"+is_valid+", \"is_simple\":"+is_simple+", \"message\":\""+reason+"\"}}";
         }
         else
         {
