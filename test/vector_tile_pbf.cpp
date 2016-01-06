@@ -221,6 +221,8 @@ TEST_CASE("pbf encoding multi line")
     vector_tile::Tile tile;
     vector_tile::Tile_Layer * t_layer = tile.add_layers();
     t_layer->set_name("layer");
+    t_layer->set_version(2);
+    t_layer->set_extent(4096);
     vector_tile::Tile_Feature * t_feature = t_layer->add_features();
     std::int32_t x = 0;
     std::int32_t y = 0;
