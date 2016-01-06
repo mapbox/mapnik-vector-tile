@@ -146,4 +146,8 @@ MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_g
 
 } // end ns mapnik
 
+#if !defined(MAPNIK_VECTOR_TILE_LIBRARY)
+#include "vector_tile_geometry_decoder.ipp"
+#endif
+
 #endif // __MAPNIK_VECTOR_TILE_GEOMETRY_DECODER_H__

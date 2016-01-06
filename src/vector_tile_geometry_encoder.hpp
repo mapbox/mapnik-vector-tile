@@ -66,4 +66,8 @@ MAPNIK_VECTOR_INLINE bool encode_geometry(mapnik::geometry::geometry<std::int64_
 
 } // end ns mapnik
 
+#if !defined(MAPNIK_VECTOR_TILE_LIBRARY)
+#include "vector_tile_geometry_encoder.ipp"
+#endif
+
 #endif // __MAPNIK_VECTOR_TILE_GEOMETRY_ENCODER_H__
