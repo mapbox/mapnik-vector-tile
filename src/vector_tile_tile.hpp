@@ -68,6 +68,11 @@ public:
         return *tile_;
     }
 
+    void clear()
+    {
+        tile_->Clear();
+    }
+
     vector_tile::Tile const& get_tile() const
     {
         return *tile_;
