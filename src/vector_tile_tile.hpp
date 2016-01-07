@@ -59,9 +59,15 @@ public:
                                         bool layer_is_painted,
                                         bool layer_is_empty);
     
-    MAPNIK_VECTOR_INLINE bool append_to_string(std::string & str);
+    bool append_to_string(std::string & str)
+    {
+        return tile_->AppendPartialToString(&str);
+    }
 
-    MAPNIK_VECTOR_INLINE bool serialize_to_string(std::string & str);
+    bool serialize_to_string(std::string & str)
+    {
+        return tile_->SerializePartialToString(&str);
+    }
 
     vector_tile::Tile & get_tile()
     {

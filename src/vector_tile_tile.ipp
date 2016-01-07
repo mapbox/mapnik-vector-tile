@@ -65,16 +65,6 @@ MAPNIK_VECTOR_INLINE bool tile::add_layer(std::unique_ptr<vector_tile::Tile_Laye
     return true;
 }
 
-MAPNIK_VECTOR_INLINE bool tile::append_to_string(std::string & str)
-{
-    return tile_->AppendPartialToString(&str);
-}
-
-MAPNIK_VECTOR_INLINE bool tile::serialize_to_string(std::string & str)
-{
-    return tile_->SerializePartialToString(&str);
-}
-
 } // end ns vector_tile_impl
 
 } // end ns mapnik
