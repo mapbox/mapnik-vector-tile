@@ -464,7 +464,7 @@ void processor::update_tile(tile & t,
 
         if (ds->type() == datasource::Vector)
         {
-            lay_vec.emplace_back(std::async(
+            lay_vec.push_back(std::async(
                         std::launch::deferred, // uncomment to make single threaded  
                         detail::create_geom_layer,
                         ds,
@@ -490,7 +490,7 @@ void processor::update_tile(tile & t,
                                                 req.extent(), 
                                                 offset_x, 
                                                 offset_y);
-            lay_vec.emplace_back(std::async(
+            lay_vec.push_back(std::async(
                         std::launch::deferred, // uncomment to make single threaded  
                         detail::create_raster_layer,
                         ds,
