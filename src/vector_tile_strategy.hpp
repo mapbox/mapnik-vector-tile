@@ -27,10 +27,8 @@ static constexpr double coord_min = -1 * static_cast<double>(ClipperLib::hiRange
 
 struct vector_tile_strategy
 {
-    vector_tile_strategy(view_transform const& tr,
-                          double scaling)
-        : tr_(tr),
-          scaling_(scaling) {}
+    vector_tile_strategy(view_transform const& tr)
+        : tr_(tr) {}
 
     template <typename P1, typename P2>
     inline bool apply(P1 const& p1, P2 & p2) const
@@ -39,8 +37,8 @@ struct vector_tile_strategy
         double x = boost::geometry::get<0>(p1);
         double y = boost::geometry::get<1>(p1);
         tr_.forward(&x,&y);
-        x = std::round(x * scaling_);
-        y = std::round(y * scaling_);
+        x = std::round(x);
+        y = std::round(y);
         if (x <= coord_min || x >= coord_max ||
             y <= coord_min || y >= coord_max) return false;
         boost::geometry::set<0>(p2, static_cast<p2_type>(x));
@@ -57,18 +55,14 @@ struct vector_tile_strategy
     }
 
     view_transform const& tr_;
-    double const scaling_;
 };
 
 struct vector_tile_strategy_proj
 {
     vector_tile_strategy_proj(proj_transform const& prj_trans,
-                         view_transform const& tr,
-                         double scaling)
+                              view_transform const& tr)
         : prj_trans_(prj_trans),
-          tr_(tr),
-          scaling_(scaling),
-          not_equal_(!prj_trans_.equal()) {}
+          tr_(tr) {}
 
     template <typename P1, typename P2>
     inline bool apply(P1 const& p1, P2 & p2) const
@@ -77,10 +71,10 @@ struct vector_tile_strategy_proj
         double x = boost::geometry::get<0>(p1);
         double y = boost::geometry::get<1>(p1);
         double z = 0.0;
-        if (not_equal_ && !prj_trans_.backward(x, y, z)) return false;
+        if (!prj_trans_.backward(x, y, z)) return false;
         tr_.forward(&x,&y);
-        x = std::round(x * scaling_);
-        y = std::round(y * scaling_);
+        x = std::round(x);
+        y = std::round(y);
         if (x <= coord_min || x >= coord_max ||
             y <= coord_min || y >= coord_max) return false;
         boost::geometry::set<0>(p2, static_cast<p2_type>(x));
@@ -98,8 +92,6 @@ struct vector_tile_strategy_proj
 
     proj_transform const& prj_trans_;
     view_transform const& tr_;
-    double const scaling_;
-    bool not_equal_;
 };
 
 // TODO - avoid creating degenerate polygons when first/last point of ring is skipped

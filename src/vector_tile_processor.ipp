@@ -170,7 +170,6 @@ void create_geom_feature(T const& vs,
 
     // Since we know some data intersects with the bounding box, mark as painted.
     layer.make_painted();
-    
 
     // Reproject geometry
     mapnik::vector_tile_impl::transform_visitor<vector_tile_strategy_type> skipping_transformer(vs, target_clipping_extent);
@@ -205,7 +204,6 @@ tile_layer create_geom_layer(mapnik::datasource_ptr ds,
                              std::string const& target_proj_srs,
                              std::string const& source_proj_srs,
                              mapnik::view_transform const& view_trans,
-                             std::uint32_t path_multiplier,
                              mapnik::box2d<double> const& buffered_extent,
                              double simplify_distance,
                              double area_threshold,
@@ -240,12 +238,12 @@ tile_layer create_geom_layer(mapnik::datasource_ptr ds,
 
     if (prj_trans.equal())
     {
-        mapnik::vector_tile_impl::vector_tile_strategy vs(view_trans, path_multiplier);
+        mapnik::vector_tile_impl::vector_tile_strategy vs(view_trans);
         mapnik::geometry::point<double> p1_min(buffered_extent.minx(), buffered_extent.miny());
         mapnik::geometry::point<double> p1_max(buffered_extent.maxx(), buffered_extent.maxy());
         mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
         mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
-        box2d<int> tile_clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
+        mapnik::box2d<int> tile_clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
         while (feature)
         {
             mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
@@ -273,13 +271,13 @@ tile_layer create_geom_layer(mapnik::datasource_ptr ds,
     }
     else
     {
-        mapnik::vector_tile_impl::vector_tile_strategy vs(view_trans, path_multiplier);
+        mapnik::vector_tile_impl::vector_tile_strategy vs(view_trans);
         mapnik::geometry::point<double> p1_min(buffered_extent.minx(), buffered_extent.miny());
         mapnik::geometry::point<double> p1_max(buffered_extent.maxx(), buffered_extent.maxy());
         mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
         mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
         box2d<int> tile_clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
-        mapnik::vector_tile_impl::vector_tile_strategy_proj vs2(prj_trans, view_trans, path_multiplier);
+        mapnik::vector_tile_impl::vector_tile_strategy_proj vs2(prj_trans, view_trans);
         box2d<double> trans_buffered_extent(buffered_extent);
         prj_trans.forward(trans_buffered_extent, PROJ_ENVELOPE_POINTS);
         while (feature)
@@ -426,11 +424,14 @@ void processor::update_tile(tile & t,
         scale_denom = mapnik::scale_denominator(req.scale(), proj.is_geographic());
     }
     scale_denom *= scale_factor_;
-    mapnik::view_transform view_trans(req.width(),req.height(),req.extent(), offset_x, offset_y);
+    mapnik::view_transform view_trans(req.width() * path_multiplier,
+                                      req.height() * path_multiplier,
+                                      req.extent(), 
+                                      offset_x * path_multiplier, 
+                                      offset_y * path_multiplier);
     
     // Futures
     std::vector<std::future<tile_layer> > lay_vec;
-    //std::vector<tile_layer> lay_vec;
     lay_vec.reserve(m_.layers().size());
     
     for (mapnik::layer const& lay : m_.layers())
@@ -464,6 +465,7 @@ void processor::update_tile(tile & t,
         if (ds->type() == datasource::Vector)
         {
             lay_vec.emplace_back(std::async(
+                        std::launch::deferred, // uncomment to make single threaded  
                         detail::create_geom_layer,
                         ds,
                         q,
@@ -472,7 +474,6 @@ void processor::update_tile(tile & t,
                         target_proj_srs,
                         source_proj_srs,
                         view_trans,
-                        path_multiplier,
                         buffered_extent,
                         simplify_distance_,
                         area_threshold_,
@@ -481,29 +482,16 @@ void processor::update_tile(tile & t,
                         multi_polygon_union_,
                         process_all_rings_
             ));
-            /*
-            lay_vec.emplace_back(
-                        detail::create_geom_layer(
-                        ds,
-                        q,
-                        lay.name(),
-                        req.width() * path_multiplier,
-                        target_proj_srs,
-                        source_proj_srs,
-                        view_trans,
-                        path_multiplier,
-                        buffered_extent,
-                        simplify_distance_,
-                        area_threshold_,
-                        fill_type_,
-                        strictly_simple_,
-                        multi_polygon_union_,
-                        process_all_rings_
-            ));*/
         }
         else // Raster
         {
+            mapnik::view_transform raster_trans(req.width(),
+                                                req.height(),
+                                                req.extent(), 
+                                                offset_x, 
+                                                offset_y);
             lay_vec.emplace_back(std::async(
+                        std::launch::deferred, // uncomment to make single threaded  
                         detail::create_raster_layer,
                         ds,
                         q,
@@ -512,30 +500,14 @@ void processor::update_tile(tile & t,
                         req.width() * path_multiplier,
                         target_proj_srs,
                         source_proj_srs,
-                        view_trans,
+                        raster_trans,
                         image_format_,
                         scaling_method_
             ));
-            /*
-            lay_vec.emplace_back(
-                        detail::create_raster_layer(
-                        ds,
-                        q,
-                        req.width(),
-                        lay.name(),
-                        req.width() * path_multiplier,
-                        target_proj_srs,
-                        source_proj_srs,
-                        view_trans,
-                        image_format_,
-                        scaling_method_
-            ));
-            */
         }
     }
 
     for (auto & lay_future : lay_vec)
-    //for (auto & l : lay_vec)
     {
         tile_layer l = lay_future.get();
         t.add_layer(l.get_layer(), 
