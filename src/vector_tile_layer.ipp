@@ -59,6 +59,11 @@ private:
 
 } // end ns detail
 
+tile_layer::tile_layer()
+    : layer_(),
+      empty_(true),
+      painted_(false) {}
+
 tile_layer::tile_layer(std::string const & name, std::uint32_t extent)
     : layer_(new vector_tile::Tile_Layer()),
       empty_(true),

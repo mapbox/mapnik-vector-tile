@@ -30,7 +30,7 @@ struct tile_layer
     typedef std::map<std::string, unsigned> keys_container;
     typedef std::unordered_map<mapnik::value, unsigned> values_container;
 
-    tile_layer() = delete;
+    tile_layer();
     tile_layer(std::string const & name, std::uint32_t extent);
     
     tile_layer(tile_layer && rhs)
