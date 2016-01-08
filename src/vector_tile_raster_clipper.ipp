@@ -14,9 +14,6 @@
 #include "agg_pixfmt_gray.h"
 #include "agg_renderer_base.h"
 
-// debug
-#include <iostream>
-
 namespace mapnik
 {
 
