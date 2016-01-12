@@ -13,6 +13,7 @@
 #include "vector_tile_config.hpp"
 #include "vector_tile_geometry_clipper.hpp"
 #include "vector_tile_tile.hpp"
+#include "vector_tile_merc_tile.hpp"
 
 namespace mapnik
 {
@@ -47,46 +48,35 @@ public:
     processor(mapnik::Map const& map);
 
     void update_tile(tile & t,
-                     std::uint64_t x,
-                     std::uint64_t y,
-                     std::uint64_t z,
-                     std::uint32_t tile_size = 256,
-                     std::uint32_t buffer_size = 0,
-                     std::uint32_t path_multiplier = 16,
                      double scale_denom = 0.0,
                      unsigned offset_x = 0,
                      unsigned offset_y = 0);
 
-    void update_tile(tile & t,
-                     mapnik::request const& req,
-                     std::uint32_t path_multiplier = 16,
-                     double scale_denom = 0.0,
-                     unsigned offset_x = 0,
-                     unsigned offset_y = 0);
-
-    tile create_tile(std::uint64_t x,
-                     std::uint64_t y,
-                     std::uint64_t z,
-                     std::uint32_t tile_size = 256,
-                     std::uint32_t buffer_size = 0,
-                     std::uint32_t path_multiplier = 16,
-                     double scale_denom = 0.0,
-                     unsigned offset_x = 0,
-                     unsigned offset_y = 0)
+    merc_tile create_tile(std::uint64_t x,
+                          std::uint64_t y,
+                          std::uint64_t z,
+                          std::uint32_t tile_size = 256,
+                          std::uint32_t buffer_size = 0,
+                          std::uint32_t path_multiplier = 16,
+                          double scale_denom = 0.0,
+                          unsigned offset_x = 0,
+                          unsigned offset_y = 0)
     {
-        tile t;
-        update_tile(t, x, y, z, tile_size, buffer_size, path_multiplier, scale_denom, offset_x, offset_y);
+        merc_tile t(x, y, z, tile_size, buffer_size, path_multiplier);
+        update_tile(t, scale_denom, offset_x, offset_y);
         return t;
     }
     
-    tile create_tile(mapnik::request const& req,
+    tile create_tile(mapnik::box2d<double> const & extent,
+                     std::uint32_t tile_size = 256,
+                     std::uint32_t buffer_size = 0,
                      std::uint32_t path_multiplier = 16,
                      double scale_denom = 0.0,
                      unsigned offset_x = 0,
                      unsigned offset_y = 0)
     {
-        tile t;
-        update_tile(t, req, path_multiplier, scale_denom, offset_x, offset_y);
+        tile t(extent, tile_size, buffer_size, path_multiplier);
+        update_tile(t, scale_denom, offset_x, offset_y);
         return t;
     }
 

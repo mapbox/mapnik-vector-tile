@@ -41,28 +41,12 @@ namespace vector_tile_impl
 namespace detail
 {
 
-mapnik::request build_request(std::uint64_t x,
-                              std::uint64_t y,
-                              std::uint64_t z,
-                              std::uint32_t tile_size,
-                              std::uint32_t buffer_size)
-{
-    spherical_mercator merc(tile_size);
-    double minx,miny,maxx,maxy;
-    merc.xyz(x, y, z, minx, miny, maxx, maxy);
-    mapnik::box2d<double> tile_extent(minx,miny,maxx,maxy);
-    // create request
-    mapnik::request req(tile_size, tile_size, tile_extent);
-    req.set_buffer_size(buffer_size);
-    return req;
-}
-
-box2d<double> get_buffered_extent(mapnik::request const& req, 
+box2d<double> get_buffered_extent(tile const& t, 
                                   mapnik::layer const& lay,
                                   mapnik::Map const & map)
 {
-    mapnik::box2d<double> ext(req.extent());
-    double scale = req.scale();
+    mapnik::box2d<double> ext(t.extent());
+    double scale = t.scale();
     double buffer_padding = 2.0 * scale;
     boost::optional<int> layer_buffer_size = lay.buffer_size();
     if (layer_buffer_size) // if layer overrides buffer size, use this value to compute buffered extent
@@ -71,7 +55,7 @@ box2d<double> get_buffered_extent(mapnik::request const& req,
     }
     else
     {
-        buffer_padding *= req.buffer_size();
+        buffer_padding *= t.buffer_size();
     }
     ext.width(ext.width() + buffer_padding);
     ext.height(ext.height() + buffer_padding);
@@ -125,15 +109,15 @@ bool set_query_extent(mapnik::box2d<double> & layer_ext,
     return true;
 }
 
-mapnik::query build_query(mapnik::request const& req,
+mapnik::query build_query(tile const& t,
                           mapnik::box2d<double> const& query_ext,
                           double scale_denom,
                           mapnik::datasource_ptr ds)
 {
-    mapnik::box2d<double> const& req_ext = req.extent();
+    mapnik::box2d<double> const& req_ext = t.extent();
     double qw = req_ext.width() > 0 ? req_ext.width() : 1;
     double qh = req_ext.height() > 0 ? req_ext.height() : 1;
-    mapnik::query::resolution_type res(req.width() / qw, req.height() / qh);
+    mapnik::query::resolution_type res(t.tile_size() / qw, t.tile_size() / qh);
     mapnik::query q(query_ext, res, scale_denom, req_ext);
     mapnik::layer_descriptor lay_desc = ds->get_descriptor();
     for (mapnik::attribute_descriptor const& desc : lay_desc.get_descriptors())
@@ -145,7 +129,7 @@ mapnik::query build_query(mapnik::request const& req,
 
 template <typename T>
 void create_geom_feature(T const& vs,
-                         tile_layer & layer,
+                         layer_builder & layer,
                          mapnik::feature_impl const& feature,
                          mapnik::geometry::geometry<double> const& geom,
                          mapnik::box2d<int> const& tile_clipping_extent,
@@ -219,7 +203,9 @@ tile_layer create_geom_layer(mapnik::datasource_ptr ds,
     // target == final map (aka tile) projection, usually epsg:3857
     // source == projection of the data being queried
     mapnik::proj_transform prj_trans(target_proj, source_proj);
-    tile_layer layer(layer_name, layer_extent);
+    layer_builder builder(layer_name, layer_extent);
+    tile_layer layer;
+    layer.name(layer_name);
 
     // query for the features
     mapnik::featureset_ptr features = ds->features(q);
@@ -254,7 +240,7 @@ tile_layer create_geom_layer(mapnik::datasource_ptr ds,
             }
 
             create_geom_feature(vs,
-                                layer,
+                                builder,
                                 *feature,
                                 geom,
                                 tile_clipping_extent,
@@ -290,7 +276,7 @@ tile_layer create_geom_layer(mapnik::datasource_ptr ds,
             }
 
             create_geom_feature(vs2,
-                                layer,
+                                builder,
                                 *feature,
                                 geom,
                                 tile_clipping_extent,
@@ -305,6 +291,7 @@ tile_layer create_geom_layer(mapnik::datasource_ptr ds,
             feature = features->next();
         }
     }
+    layer.build(builder);
     return layer;
 }
 
@@ -326,7 +313,9 @@ tile_layer create_raster_layer(mapnik::datasource_ptr ds,
     // target == final map (aka tile) projection, usually epsg:3857
     // source == projection of the data being queried
     mapnik::proj_transform prj_trans(target_proj, source_proj);
-    tile_layer layer(layer_name, layer_extent);
+    layer_builder builder(layer_name, layer_extent);
+    tile_layer layer;
+    layer.name(layer_name);
 
     // query for the features
     mapnik::featureset_ptr features = ds->features(q);
@@ -362,7 +351,7 @@ tile_layer create_raster_layer(mapnik::datasource_ptr ds,
     int raster_height = end_y - start_y;
     if (raster_width > 0 && raster_height > 0)
     {
-        layer.make_painted();
+        builder.make_painted();
         raster_clipper visit(*source,
                              target_ext,
                              ext,
@@ -376,8 +365,9 @@ tile_layer create_raster_layer(mapnik::datasource_ptr ds,
                              start_x,
                              start_y);
         std::string buffer = mapnik::util::apply_visitor(visit, source->data_);
-        raster_to_feature(buffer, *feature, layer);
+        raster_to_feature(buffer, *feature, builder);
     }
+    layer.build(builder);
     return layer;
 }
 
@@ -396,23 +386,6 @@ processor::processor(mapnik::Map const& map)
       process_all_rings_(false) {}
 
 void processor::update_tile(tile & t,
-                            std::uint64_t x,
-                            std::uint64_t y,
-                            std::uint64_t z,
-                            std::uint32_t tile_size,
-                            std::uint32_t buffer_size,
-                            std::uint32_t path_multiplier,
-                            double scale_denom,
-                            unsigned offset_x,
-                            unsigned offset_y)
-{
-    mapnik::request req = detail::build_request(x, y, z, tile_size, buffer_size);
-    update_tile(t, req, path_multiplier, scale_denom, offset_x, offset_y);
-}
-
-void processor::update_tile(tile & t,
-                            mapnik::request const& req,
-                            std::uint32_t path_multiplier,
                             double scale_denom,
                             unsigned offset_x,
                             unsigned offset_y)
@@ -421,14 +394,14 @@ void processor::update_tile(tile & t,
     if (scale_denom <= 0.0)
     {
         mapnik::projection proj(m_.srs(),true);
-        scale_denom = mapnik::scale_denominator(req.scale(), proj.is_geographic());
+        scale_denom = mapnik::scale_denominator(t.scale(), proj.is_geographic());
     }
     scale_denom *= scale_factor_;
-    mapnik::view_transform view_trans(req.width() * path_multiplier,
-                                      req.height() * path_multiplier,
-                                      req.extent(), 
-                                      offset_x * path_multiplier, 
-                                      offset_y * path_multiplier);
+    mapnik::view_transform view_trans(t.tile_extent(),
+                                      t.tile_extent(),
+                                      t.extent(), 
+                                      offset_x * t.path_multiplier(), 
+                                      offset_y * t.path_multiplier());
     
     // Futures
     std::vector<std::future<tile_layer> > lay_vec;
@@ -452,7 +425,7 @@ void processor::update_tile(tile & t,
         mapnik::projection target_proj(target_proj_srs, true);
         mapnik::projection source_proj(source_proj_srs, true);
 
-        mapnik::box2d<double> buffered_extent = detail::get_buffered_extent(req, lay, m_);
+        mapnik::box2d<double> buffered_extent = detail::get_buffered_extent(t, lay, m_);
         mapnik::box2d<double> query_ext(lay.envelope());
         
         if (!detail::set_query_extent(query_ext, buffered_extent, target_proj, source_proj))
@@ -460,7 +433,7 @@ void processor::update_tile(tile & t,
             continue;
         }
         
-        mapnik::query q = detail::build_query(req, query_ext, scale_denom, ds);
+        mapnik::query q = detail::build_query(t, query_ext, scale_denom, ds);
 
         if (ds->type() == datasource::Vector)
         {
@@ -470,7 +443,7 @@ void processor::update_tile(tile & t,
                         ds,
                         q,
                         lay.name(),
-                        req.width() * path_multiplier,
+                        t.tile_extent(),
                         target_proj_srs,
                         source_proj_srs,
                         view_trans,
@@ -485,9 +458,9 @@ void processor::update_tile(tile & t,
         }
         else // Raster
         {
-            mapnik::view_transform raster_trans(req.width(),
-                                                req.height(),
-                                                req.extent(), 
+            mapnik::view_transform raster_trans(t.tile_size(),
+                                                t.tile_size(),
+                                                t.extent(), 
                                                 offset_x, 
                                                 offset_y);
             lay_vec.push_back(std::move(std::async(
@@ -495,9 +468,9 @@ void processor::update_tile(tile & t,
                         detail::create_raster_layer,
                         ds,
                         q,
-                        req.width(),
+                        t.tile_size(),
                         lay.name(),
-                        req.width() * path_multiplier,
+                        t.tile_extent(),
                         target_proj_srs,
                         source_proj_srs,
                         raster_trans,
@@ -510,9 +483,7 @@ void processor::update_tile(tile & t,
     for (auto & lay_future : lay_vec)
     {
         tile_layer l = lay_future.get();
-        t.add_layer(l.get_layer(), 
-                    l.is_painted(), 
-                    l.is_empty());
+        t.add_layer(l); 
     }
 }
 

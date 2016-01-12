@@ -41,7 +41,7 @@ TEST_CASE("vector tile from simplified geojson")
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
     
-    vector_tile::Tile & tile = out_tile.get_tile();
+    vector_tile::Tile tile = out_tile.get_tile();
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -88,7 +88,7 @@ TEST_CASE("vector tile transform -- should not throw on coords outside merc rang
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
     
-    vector_tile::Tile & tile = out_tile.get_tile();
+    vector_tile::Tile tile = out_tile.get_tile();
 
     // serialize to message
     std::string buffer;
@@ -163,7 +163,7 @@ TEST_CASE("vector tile transform2 -- should not throw reprojected data from loca
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
     
-    vector_tile::Tile & tile = out_tile.get_tile();
+    vector_tile::Tile tile = out_tile.get_tile();
 
     // serialize to message
     std::string buffer;

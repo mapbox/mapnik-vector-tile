@@ -23,6 +23,7 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
 {
     unsigned tile_size = 256;
     unsigned path_multiplier = 1000;
+    unsigned buffer_size = 0;
     // Create map note its not 3857 -- round trip as 4326
     mapnik::Map map(tile_size,tile_size,"+init=epsg:4326");
     // create layer
@@ -41,15 +42,14 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     
     // Build request
     mapnik::box2d<double> bbox(-180,-90,180,90);
-    mapnik::request m_req(tile_size,tile_size,bbox);
 
     // Build processor and create tile
     mapnik::vector_tile_impl::processor ren(map);
     ren.set_simplify_distance(simplify_distance);
     ren.set_fill_type(fill_type);
     ren.set_multi_polygon_union(mpu);
-    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(m_req, path_multiplier);
-    vector_tile::Tile & tile = out_tile.get_tile();
+    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(bbox, tile_size, buffer_size, path_multiplier);
+    vector_tile::Tile tile = out_tile.get_tile();
     
     if (tile.layers_size() != 1)
     {

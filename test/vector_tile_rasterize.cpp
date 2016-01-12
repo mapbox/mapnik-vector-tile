@@ -86,13 +86,11 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
     // set up to "re-render" it
     // the goal here is to trigger the geometries to pass through
     // the decoder and encoder again
-    mapnik::vector_tile_impl::tile out_tile;
+    mapnik::vector_tile_impl::tile out_tile(bbox, tile_size);
     
     {
         std::string merc_srs("+init=epsg:3857");
         mapnik::Map map(tile_size, tile_size, merc_srs);
-        map.zoom_to_box(bbox);
-        mapnik::request m_req(map.width(), map.height(), map.get_current_extent());
         protozero::pbf_reader message(uncompressed.data(), uncompressed.size());
         while (message.next(3))
         {
@@ -104,18 +102,18 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
                         0,
                         tile_size);
             mapnik::layer lyr(ds->get_name(),merc_srs);
-            ds->set_envelope(m_req.get_buffered_extent());
+            ds->set_envelope(out_tile.get_buffered_extent());
             lyr.set_datasource(ds);
             map.add_layer(lyr);
         }
         mapnik::vector_tile_impl::processor ren(map);
         ren.set_process_all_rings(true);
         ren.set_fill_type(mapnik::vector_tile_impl::non_zero_fill);
-        ren.update_tile(out_tile, m_req);
+        ren.update_tile(out_tile);
     }
     // now `tile` should contain all the data
     std::string buffer2;
-    CHECK(out_tile.serialize_to_string(buffer2));
+    out_tile.serialize_to_string(buffer2);
     CHECK(2776 == buffer2.size());
 
     std::ofstream stream_out("./test/data/0.0.0.vector-b.mvt",std::ios_base::out|std::ios_base::binary);

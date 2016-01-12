@@ -3,9 +3,17 @@
 
 #include <cstdint>
 
+// mapnik-vector-tile
 #include "vector_tile_config.hpp"
 
-namespace mapnik { namespace vector_tile_impl {
+// mapnik
+#include <mapnik/box2d.hpp>
+
+namespace mapnik 
+{ 
+
+namespace vector_tile_impl 
+{
 
     class spherical_mercator
     {
@@ -25,7 +33,17 @@ namespace mapnik { namespace vector_tile_impl {
                  double & maxy);
     };
 
-}} // end ns
+    mapnik::box2d<double> merc_extent(unsigned tile_size, int x, int y, int z)
+    {
+        spherical_mercator merc(tile_size);
+        double minx,miny,maxx,maxy;
+        merc.xyz(x, y, z, minx, miny, maxx, maxy);
+        return mapnik::box2d<double>(minx,miny,maxx,maxy);
+    }
+
+} // end vector_tile_impl ns
+
+} // end mapnik ns
 
 #if !defined(MAPNIK_VECTOR_TILE_LIBRARY)
 #include "vector_tile_projection.ipp"

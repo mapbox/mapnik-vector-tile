@@ -53,7 +53,7 @@ TEST_CASE( "pbf vector tile input")
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    vector_tile::Tile & tile = out_tile.get_tile();
+    vector_tile::Tile tile = out_tile.get_tile();
     // serialize to message
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
@@ -131,12 +131,12 @@ TEST_CASE("pbf vector tile datasource")
 
     // serialize to message
     std::string buffer;
-    CHECK(out_tile.serialize_to_string(buffer));
+    out_tile.serialize_to_string(buffer);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
     
     // check that vector tile contains proper information
-    vector_tile::Tile & tile = out_tile.get_tile();
+    vector_tile::Tile tile = out_tile.get_tile();
     
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
@@ -309,7 +309,7 @@ TEST_CASE("pbf decoding some truncated buffers")
     CHECK(out_tile.is_empty() == false);
     
     // Now check that the tile is correct.
-    vector_tile::Tile & tile = out_tile.get_tile();
+    vector_tile::Tile tile = out_tile.get_tile();
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -361,7 +361,7 @@ TEST_CASE("pbf vector tile from simplified geojson")
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
     
-    vector_tile::Tile & tile = out_tile.get_tile();
+    vector_tile::Tile tile = out_tile.get_tile();
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -410,14 +410,11 @@ TEST_CASE("pbf vector tile from simplified geojson")
 
 TEST_CASE("pbf raster tile output -- should be able to overzoom raster")
 {
-    mapnik::vector_tile_impl::tile out_tile;
+    unsigned tile_size = 256;
+    unsigned buffer_size = 1024;
+    mapnik::vector_tile_impl::merc_tile out_tile(0, 0, 0, tile_size, buffer_size);
     {
-        unsigned tile_size = 256;
-        unsigned buffer_size = 1024;
-        double minx,miny,maxx,maxy;
-        mapnik::vector_tile_impl::spherical_mercator merc(tile_size);
-        merc.xyz(0,0,0,minx,miny,maxx,maxy);
-        mapnik::box2d<double> bbox(minx,miny,maxx,maxy);
+        mapnik::box2d<double> const& bbox = out_tile.extent();
         std::ostringstream s;
         s << std::fixed << std::setprecision(16)
           << bbox.minx() << ',' << bbox.miny() << ','
@@ -441,9 +438,9 @@ TEST_CASE("pbf raster tile output -- should be able to overzoom raster")
         ren.set_scaling_method(mapnik::SCALING_BILINEAR);
         
         // Update the tile
-        ren.update_tile(out_tile, 0, 0, 0, tile_size, buffer_size);
+        ren.update_tile(out_tile);
     }
-    vector_tile::Tile & tile = out_tile.get_tile();
+    vector_tile::Tile tile = out_tile.get_tile();
     // Done creating test data, now test created tile
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
@@ -544,7 +541,7 @@ TEST_CASE("pbf vector tile from linestring geojson")
     CHECK(out_tile.is_empty() == false);
 
     // Now check that the tile is correct.
-    vector_tile::Tile & tile = out_tile.get_tile();
+    vector_tile::Tile tile = out_tile.get_tile();
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());

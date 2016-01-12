@@ -34,12 +34,12 @@ TEST_CASE("vector tile output -- simple two points")
     mapnik::vector_tile_impl::processor ren(map);
     
     // Request Tile
-    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
+    mapnik::vector_tile_impl::merc_tile out_tile = ren.create_tile(0,0,0);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
 
     // Now check that the tile is correct.
-    vector_tile::Tile & tile = out_tile.get_tile();
+    vector_tile::Tile tile = out_tile.get_tile();
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -66,10 +66,10 @@ TEST_CASE("vector tile output -- empty tile")
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
     CHECK(out_tile.is_painted() == false);
     CHECK(out_tile.is_empty() == true);
-    vector_tile::Tile & tile = out_tile.get_tile();
+    vector_tile::Tile tile = out_tile.get_tile();
     CHECK(0 == tile.layers_size());
     std::string buffer;
-    CHECK(out_tile.serialize_to_string(buffer));
+    out_tile.serialize_to_string(buffer);
     CHECK(buffer.empty());
 }
 
@@ -93,19 +93,17 @@ TEST_CASE("vector tile output -- layers outside extent")
     lyr.set_datasource(ds);
     map.add_layer(lyr);
 
-    // Build custom request
     mapnik::box2d<double> custom_bbox(0,0,10,10);
-    mapnik::request m_req(tile_size,tile_size,custom_bbox);
     
     // Build processor and create tile
     mapnik::vector_tile_impl::processor ren(map);
-    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(m_req);
+    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(custom_bbox, tile_size);
     CHECK(out_tile.is_painted() == false);
     CHECK(out_tile.is_empty() == true);
-    vector_tile::Tile & tile = out_tile.get_tile();
+    vector_tile::Tile tile = out_tile.get_tile();
     CHECK(0 == tile.layers_size());
     std::string buffer;
-    CHECK(out_tile.serialize_to_string(buffer));
+    out_tile.serialize_to_string(buffer);
     CHECK(buffer.empty());
 }
 
@@ -124,22 +122,19 @@ TEST_CASE("vector tile output is empty -- degenerate geometries")
     lyr.set_datasource(ds);
     map.add_layer(lyr);
     
-    // Build request
-    mapnik::request m_req(tile_size,tile_size,bbox);
-    
     // Build processor and create tile
     mapnik::vector_tile_impl::processor ren(map);
     
     // Request Tile
-    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(m_req);
+    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(bbox, tile_size);
     
     // Check output
     CHECK(out_tile.is_painted() == false);
     CHECK(out_tile.is_empty() == true);
-    vector_tile::Tile & tile = out_tile.get_tile();
+    vector_tile::Tile tile = out_tile.get_tile();
     CHECK(0 == tile.layers_size());
     std::string buffer;
-    CHECK(out_tile.serialize_to_string(buffer));
+    out_tile.serialize_to_string(buffer);
     CHECK(buffer.empty());
 }
 
@@ -157,7 +152,7 @@ TEST_CASE("vector tile render simple point")
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
     // serialize to message
     std::string buffer;
-    CHECK(out_tile.serialize_to_string(buffer));
+    out_tile.serialize_to_string(buffer);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
     CHECK(151 == buffer.size());
@@ -237,12 +232,12 @@ TEST_CASE("vector tile datasource -- should filter features outside extent")
 
     // serialize to message
     std::string buffer;
-    CHECK(out_tile.serialize_to_string(buffer));
+    out_tile.serialize_to_string(buffer);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
     
     // check that vector tile contains proper information
-    vector_tile::Tile & tile = out_tile.get_tile();
+    vector_tile::Tile tile = out_tile.get_tile();
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());

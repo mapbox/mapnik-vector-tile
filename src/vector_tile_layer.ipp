@@ -59,29 +59,23 @@ private:
 
 } // end ns detail
 
-tile_layer::tile_layer()
-    : layer_(),
-      empty_(true),
-      painted_(false) {}
-
-tile_layer::tile_layer(std::string const & name, std::uint32_t extent)
-    : layer_(new vector_tile::Tile_Layer()),
-      empty_(true),
-      painted_(false)
+layer_builder::layer_builder(std::string const & name, std::uint32_t extent)
+    : tile(), 
+      layer(tile.add_layers()),
+      keys(),
+      values(),
+      empty(true),
+      painted(false)
 {
-    layer_->set_name(name);
-    layer_->set_extent(extent);
-    layer_->set_version(2);
+    layer->set_name(name);
+    layer->set_extent(extent);
+    layer->set_version(2);
 }
 
-MAPNIK_VECTOR_INLINE void tile_layer::add_feature(std::unique_ptr<vector_tile::Tile_Feature> & vt_feature, 
-                                                  mapnik::feature_impl const& mapnik_feature)
+MAPNIK_VECTOR_INLINE void layer_builder::add_feature(std::unique_ptr<vector_tile::Tile_Feature> & vt_feature, 
+                                                     mapnik::feature_impl const& mapnik_feature)
 
 {
-    if (!layer_)
-    {
-        throw std::runtime_error("Attempting to add feature to a tile layer after the pointer has been released.");
-    }
     // Feature id should be unique from mapnik so we should comply with
     // the following wording of the specification:
     // "the value of the (feature) id SHOULD be unique among the features of the parent layer."
@@ -102,13 +96,13 @@ MAPNIK_VECTOR_INLINE void tile_layer::add_feature(std::unique_ptr<vector_tile::T
         if (!val.is_null())
         {
             // Insert the key index
-            keys_container::const_iterator key_itr = keys_.find(name);
-            if (key_itr == keys_.end())
+            keys_container::const_iterator key_itr = keys.find(name);
+            if (key_itr == keys.end())
             {
                 // The key doesn't exist yet in the dictionary.
-                layer_->add_keys(name.c_str(), name.length());
-                size_t index = keys_.size();
-                keys_.emplace(name, index);
+                layer->add_keys(name.c_str(), name.length());
+                size_t index = keys.size();
+                keys.emplace(name, index);
                 vt_feature->add_tags(index);
             }
             else
@@ -117,14 +111,14 @@ MAPNIK_VECTOR_INLINE void tile_layer::add_feature(std::unique_ptr<vector_tile::T
             }
 
             // Insert the value index
-            values_container::const_iterator val_itr = values_.find(val);
-            if (val_itr == values_.end())
+            values_container::const_iterator val_itr = values.find(val);
+            if (val_itr == values.end())
             {
                 // The value doesn't exist yet in the dictionary.
-                detail::to_tile_value visitor(layer_->add_values());
+                detail::to_tile_value visitor(layer->add_values());
                 mapnik::util::apply_visitor(visitor, val);
-                size_t index = values_.size();
-                values_.emplace(val, index);
+                size_t index = values.size();
+                values.emplace(val, index);
                 vt_feature->add_tags(index);
             }
             else
@@ -133,8 +127,8 @@ MAPNIK_VECTOR_INLINE void tile_layer::add_feature(std::unique_ptr<vector_tile::T
             }
         }
     }
-    layer_->mutable_features()->AddAllocated(vt_feature.release());
-    empty_ = false;
+    layer->mutable_features()->AddAllocated(vt_feature.release());
+    empty = false;
 }
 
 } // end ns vector_tile_impl

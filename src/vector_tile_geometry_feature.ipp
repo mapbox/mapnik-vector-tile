@@ -29,10 +29,10 @@ namespace detail
 struct geometry_to_feature_visitor
 {
     mapnik::feature_impl const& mapnik_feature_;
-    tile_layer & layer_;
+    layer_builder & layer_;
 
     geometry_to_feature_visitor(mapnik::feature_impl const& mapnik_feature,
-                                tile_layer & layer)
+                                layer_builder & layer)
         : mapnik_feature_(mapnik_feature),
           layer_(layer) {}
 
@@ -60,7 +60,7 @@ struct geometry_to_feature_visitor
 template <typename T>
 MAPNIK_VECTOR_INLINE void geometry_to_feature(T const& geom,
                                               mapnik::feature_impl const& mapnik_feature,
-                                              tile_layer & layer)
+                                              layer_builder & layer)
 {
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -74,7 +74,7 @@ MAPNIK_VECTOR_INLINE void geometry_to_feature(T const& geom,
 
 MAPNIK_VECTOR_INLINE void geometry_to_feature(mapnik::geometry::geometry<std::int64_t> const& geom,
                                               mapnik::feature_impl const& mapnik_feature,
-                                              tile_layer & layer)
+                                              layer_builder & layer)
 {
     detail::geometry_to_feature_visitor visitor(mapnik_feature, layer);
     mapnik::util::apply_visitor(visitor, geom);
@@ -82,7 +82,7 @@ MAPNIK_VECTOR_INLINE void geometry_to_feature(mapnik::geometry::geometry<std::in
 
 MAPNIK_VECTOR_INLINE void raster_to_feature(std::string const& buffer,
                                             mapnik::feature_impl const& mapnik_feature,
-                                            tile_layer & layer)
+                                            layer_builder & layer)
 {
     std::unique_ptr<vector_tile::Tile_Feature> vt_feature(new vector_tile::Tile_Feature());
     vt_feature->set_raster(buffer);

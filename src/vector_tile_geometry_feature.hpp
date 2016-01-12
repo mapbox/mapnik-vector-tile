@@ -17,16 +17,16 @@ namespace vector_tile_impl
 
 MAPNIK_VECTOR_INLINE void raster_to_feature(std::string const& buffer,
                                              mapnik::feature_impl const& mapnik_feature,
-                                             tile_layer & layer);
+                                             layer_builder & layer);
 
 template <typename T>
 MAPNIK_VECTOR_INLINE void geometry_to_feature(T const& geom,
                                               mapnik::feature_impl const& mapnik_feature,
-                                              tile_layer & layer);
+                                              layer_builder & layer);
 
 MAPNIK_VECTOR_INLINE void geometry_to_feature(mapnik::geometry::geometry<std::int64_t> const& geom,
                                               mapnik::feature_impl const& mapnik_feature,
-                                              tile_layer & layer);
+                                              layer_builder & layer);
 
 } // end ns vector_tile_impl
 

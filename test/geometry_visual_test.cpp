@@ -52,9 +52,9 @@ void clip_geometry(mapnik::Map const& map,
 {
     unsigned path_multiplier = 16;
     unsigned tile_size = 256;
+    unsigned buffer_size = 0;
     std::string geojson_string;
-    //map.zoom_to_box(bbox);
-    mapnik::request m_req(tile_size, tile_size, bbox);
+    
     mapnik::vector_tile_impl::processor ren(map);
     // TODO - test these booleans https://github.com/mapbox/mapnik-vector-tile/issues/165
     ren.set_strictly_simple(strictly_simple);
@@ -63,8 +63,8 @@ void clip_geometry(mapnik::Map const& map,
     ren.set_process_all_rings(process_all);
     ren.set_multi_polygon_union(mpu);
     
-    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(m_req, path_multiplier);
-    vector_tile::Tile const& tile = out_tile.get_tile();
+    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(bbox, tile_size, buffer_size, path_multiplier);
+    vector_tile::Tile tile = out_tile.get_tile();
     mapnik::geometry::geometry<double> geom4326;
     mapnik::geometry::geometry<double> geom4326_pbf;
     

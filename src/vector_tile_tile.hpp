@@ -2,20 +2,11 @@
 #define __MAPNIK_VECTOR_TILE_TILE_H__
 
 // mapnik-vector-tile
-#include "vector_tile_config.hpp"
-
-// mapnik
-#include <mapnik/layer.hpp>
-
-// libprotobuf
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#include "vector_tile.pb.h"
-#pragma GCC diagnostic pop
+#include "vector_tile_layer.hpp"
 
 // std
-#include <algorithm>
+#include <set>
+#include <string>
 
 namespace mapnik
 {
@@ -23,65 +14,109 @@ namespace mapnik
 namespace vector_tile_impl
 {
 
-struct tile
+class tile
 {
+private:
+    std::string buffer_;
+    std::set<std::string> painted_layers_;
+    std::set<std::string> empty_layers_;
+    std::set<std::string> layers_;
+    mapnik::box2d<double> extent_;
+    std::uint32_t tile_size_;
+    std::uint32_t buffer_size_;
+    std::uint32_t path_multiplier_;
+
 public:
-    tile();
-    tile(std::string const& str);
-    tile(tile const& rhs)
-        : tile_(new vector_tile::Tile(*rhs.tile_)),
-          empty_layers_(rhs.empty_layers_),
-          painted_layers_(rhs.painted_layers_)
-    {
-    }
+    tile(mapnik::box2d<double> const& extent,
+         std::uint32_t tile_size = 256,
+         std::uint32_t buffer_size = 0,
+         std::uint32_t path_multiplier = 16)
+        : buffer_(),
+          painted_layers_(),
+          empty_layers_(),
+          layers_(),
+          extent_(extent),
+          tile_size_(tile_size),
+          buffer_size_(buffer_size),
+          path_multiplier_(path_multiplier) {}
 
-    tile(tile && rhs)
-        : tile_(std::move(rhs.tile_)),
-          empty_layers_(std::move(rhs.empty_layers_)),
-          painted_layers_(std::move(rhs.painted_layers_))
-    {
-    }
+    tile(tile const& rhs) = default;
 
-    tile& operator=(tile rhs)
+    tile(tile && rhs) = default;
+
+    bool add_layer(tile_layer & layer)
     {
-        swap(rhs);
-        return *this;
+        std::string const& new_name = layer.name();
+        if (layer.is_empty())
+        {
+            empty_layers_.insert(new_name);
+            if (layer.is_painted())
+            {
+                painted_layers_.insert(new_name);
+            }
+        }
+        else
+        {
+            painted_layers_.insert(new_name);
+            auto p = layers_.insert(new_name);
+            if (!p.second)
+            {
+                // Layer already in tile
+                return false;
+            }
+            buffer_.append(layer.get_data());
+            auto itr = empty_layers_.find(new_name);
+            if (itr != empty_layers_.end())
+            {
+                empty_layers_.erase(itr);
+            }
+        }
+        return true;
     }
     
-    void swap(tile & rhs)
+    std::size_t size() const
     {
-        std::swap(tile_, rhs.tile_);
-        std::swap(empty_layers_, rhs.empty_layers_);
-        std::swap(painted_layers_, rhs.painted_layers_);
+        return buffer_.size();
     }
 
-    MAPNIK_VECTOR_INLINE bool add_layer(std::unique_ptr<vector_tile::Tile_Layer> & vt_layer, 
-                                        bool layer_is_painted,
-                                        bool layer_is_empty);
+    double scale() const
+    {
+        if (tile_size_ > 0)
+        {
+            return extent_.width()/tile_size_;
+        }
+        return extent_.width();
+    }
+
+    box2d<double> get_buffered_extent() const
+    {
+        double extra = 2.0 * scale() * buffer_size_;
+        box2d<double> ext(extent_);
+        ext.width(extent_.width() + extra);
+        ext.height(extent_.height() + extra);
+        return ext;
+    }
     
-    bool append_to_string(std::string & str)
+    std::uint32_t tile_extent() const
     {
-        return tile_->AppendPartialToString(&str);
+        return tile_size_ * path_multiplier_;
     }
 
-    bool serialize_to_string(std::string & str)
+    void append_to_string(std::string & str) const
     {
-        return tile_->SerializePartialToString(&str);
+        str.append(buffer_);
     }
 
-    vector_tile::Tile & get_tile()
+    void serialize_to_string(std::string & str) const
     {
-        return *tile_;
+        str = buffer_;
     }
 
-    void clear()
+    vector_tile::Tile get_tile() const
     {
-        tile_->Clear();
-    }
-
-    vector_tile::Tile const& get_tile() const
-    {
-        return *tile_;
+        vector_tile::Tile t;
+        t.ParseFromString(buffer_);
+        return t;
     }
 
     bool is_painted() const
@@ -91,31 +126,58 @@ public:
 
     bool is_empty() const
     {
-        return tile_->layers_size() == 0;
+        return layers_.empty();
     }
 
-    std::vector<std::string> const& get_painted() const
+    box2d<double> const& extent() const
+    {
+        return extent_;
+    }
+
+    std::uint32_t tile_size() const
+    {
+        return tile_size_;
+    }
+
+    void tile_size(std::uint32_t val)
+    {
+        tile_size_ = val;
+    }
+
+    std::uint32_t path_multiplier() const
+    {
+        return path_multiplier_;
+    }
+
+    void path_multiplier(std::uint32_t val)
+    {
+        path_multiplier_ = val;
+    }
+
+    std::uint32_t buffer_size() const
+    {
+        return buffer_size_;
+    }
+
+    void buffer_size(std::uint32_t val)
+    {
+        buffer_size_ = val;
+    }
+
+    std::set<std::string> const& get_painted_layers() const
     {
         return painted_layers_;
     }
 
-    std::vector<std::string> const& get_empty() const
+    std::set<std::string> const& get_empty_layers() const
     {
         return empty_layers_;
     }
 
-private:
-    std::unique_ptr<vector_tile::Tile> tile_;
-    std::vector<std::string> empty_layers_;
-    std::vector<std::string> painted_layers_;
 };
 
 } // end ns vector_tile_impl
 
 } // end ns mapnik
-
-#if !defined(MAPNIK_VECTOR_TILE_LIBRARY)
-#include "vector_tile_tile.ipp"
-#endif
 
 #endif // __MAPNIK_VECTOR_TILE_TILE_H__
