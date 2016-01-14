@@ -17,7 +17,7 @@
 
 namespace mapnik { namespace vector_tile_impl {
 
-struct to_tile_value: public mapnik::util::static_visitor<>
+struct to_tile_value
 {
 public:
     to_tile_value(vector_tile::Tile_Value * value):
