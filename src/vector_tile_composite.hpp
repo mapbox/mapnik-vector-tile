@@ -5,6 +5,7 @@
 #include "vector_tile_merc_tile.hpp"
 #include "vector_tile_datasource_pbf.hpp"
 #include "vector_tile_processor.hpp"
+#include "vector_tile_config.hpp"
 
 // mapnik
 #include <mapnik/map.hpp>
@@ -53,12 +54,12 @@ void composite(merc_tile & target_vt,
         
         protozero::pbf_reader tile_message(vt->get_reader());
         // loop through the layers of the tile!
-        while (tile_message.next(3))
+        while (tile_message.next(LAYER_ENCODING))
         {
             bool reencode_layer = reencode_tile;
             auto data_pair = tile_message.get_data();
             protozero::pbf_reader layer_message(data_pair);
-            if (!layer_message.next(1))
+            if (!layer_message.next(LAYER_NAME_ENCODING))
             {
                 continue;
             }

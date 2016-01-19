@@ -1,6 +1,9 @@
 #ifndef __MAPNIK_VECTOR_TILE_IS_VALID_H__
 #define __MAPNIK_VECTOR_TILE_IS_VALID_H__
 
+// mapnik protzero parsing configuration
+#include "vector_tile_config.hpp"
+
 //protozero
 #include <protozero/pbf_reader.hpp>
 
@@ -99,13 +102,13 @@ void feature_is_valid(protozero::pbf_reader & feature_msg, std::set<validity_err
     {
         switch (feature_msg.tag())
         {
-            case 1: // id
+            case FEATURE_ID_ENCODING: // id
                 feature_msg.skip();
                 break;
-            case 2: // tags
+            case FEATURE_TAGS_ENCODING: // tags
                 feature_msg.get_packed_uint32();
                 break;
-            case 3: // geom type
+            case FEATURE_TYPE_ENCODING: // geom type
                 {
                     std::int32_t type = feature_msg.get_enum();
                     if (type <= 0 || type > 3)
@@ -115,7 +118,7 @@ void feature_is_valid(protozero::pbf_reader & feature_msg, std::set<validity_err
                     has_type = true;
                 }
                 break;
-            case 4: // geometry
+            case FEATURE_GEOMETRY_ENCODING: // geometry
                 if (has_geom || has_raster)
                 {
                     errors.insert(FEATURE_MULTIPLE_GEOM);
@@ -123,7 +126,7 @@ void feature_is_valid(protozero::pbf_reader & feature_msg, std::set<validity_err
                 has_geom = true;
                 feature_msg.get_packed_uint32();
                 break;
-            case 5: // raster
+            case FEATURE_RASTER_ENCODING: // raster
                 if (has_geom || has_raster)
                 {
                     errors.insert(FEATURE_MULTIPLE_GEOM);
@@ -154,13 +157,13 @@ void value_is_valid(protozero::pbf_reader & value_msg, std::set<validity_error> 
     {
         switch (value_msg.tag())
         {
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-            case 7:
+            case VALUE_STRING_ENCODING:
+            case VALUE_FLOAT_ENCODING:
+            case VALUE_DOUBLE_ENCODING:
+            case VALUE_INT_ENCODING:
+            case VALUE_UINT_ENCODING:
+            case VALUE_SINT_ENCODING:
+            case VALUE_BOOL_ENCODING:
                 if (has_value)
                 {
                     errors.insert(VALUE_MULTIPLE_VALUES);
@@ -194,31 +197,31 @@ void layer_is_valid(protozero::pbf_reader & layer_msg,
         {
             switch (layer_msg.tag())
             {
-                case 1: // name
+                case LAYER_NAME_ENCODING: // name
                     contains_a_name = true;
                     layer_name = layer_msg.get_string();
                     break;
-                case 2:
+                case FEATURE_ENCODING:
                     {
                         contains_a_feature = true;
                         protozero::pbf_reader feature_msg = layer_msg.get_message();
                         feature_is_valid(feature_msg, errors);
                     }
                     break;
-                case 3: // keys
+                case KEYS_ENCODING: // keys
                     layer_msg.skip();
                     break;
-                case 4: // value
+                case VALUE_ENCODING: // value
                     {
                         protozero::pbf_reader value_msg = layer_msg.get_message();
                         value_is_valid(value_msg, errors);
                     }
                     break;
-                case 5: // extent
+                case LAYER_EXTENT_ENCODING: // extent
                     contains_an_extent = true;
                     layer_msg.skip();
                     break;
-                case 15:
+                case LAYER_VERSION_ENCODING:
                     version = layer_msg.get_uint32();
                     break;
                 default:
@@ -263,7 +266,7 @@ void tile_is_valid(protozero::pbf_reader & tile_msg, std::set<validity_error> & 
         {
             switch (tile_msg.tag())
             {
-                case 3:
+                case LAYER_ENCODING:
                     {
                         protozero::pbf_reader layer_msg = tile_msg.get_message();
                         std::string layer_name;
