@@ -59,8 +59,7 @@ TEST_CASE("vector tile output -- simple two points")
 TEST_CASE("vector tile output -- empty tile")
 {
     // test adding empty layers should result in empty tile
-    unsigned tile_size = 256;
-    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::Map map(256,256,"+init=epsg:3857");
     map.add_layer(mapnik::layer("layer",map.srs()));
     mapnik::vector_tile_impl::processor ren(map);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
@@ -76,9 +75,9 @@ TEST_CASE("vector tile output -- empty tile")
 TEST_CASE("vector tile output -- layers outside extent")
 {
     // adding layers with geometries outside rendering extent should not add layer
-    unsigned tile_size = 256;
+    unsigned tile_size = 4096;
     // Create map
-    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::Map map(256,256,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
@@ -110,9 +109,9 @@ TEST_CASE("vector tile output -- layers outside extent")
 TEST_CASE("vector tile output is empty -- degenerate geometries")
 {
     // adding layers with degenerate geometries should not add layer
-    unsigned tile_size = 256;
+    unsigned tile_size = 4096;
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
-    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::Map map(256,256,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     // create a datasource with a feature outside the map
     std::shared_ptr<mapnik::memory_datasource> ds = testing::build_ds(bbox.minx()-1,bbox.miny()-1);
@@ -141,8 +140,8 @@ TEST_CASE("vector tile output is empty -- degenerate geometries")
 TEST_CASE("vector tile render simple point")
 {
     // should be able to parse message and render point
-    unsigned tile_size = 256;
-    mapnik::Map map(tile_size, tile_size, "+init=epsg:3857");
+    unsigned tile_size = 4096;
+    mapnik::Map map(256, 256, "+init=epsg:3857");
     mapnik::layer lyr("layer", map.srs());
     lyr.set_datasource(testing::build_ds(0,0));
     map.add_layer(lyr);
@@ -168,13 +167,13 @@ TEST_CASE("vector tile render simple point")
     CHECK(1 == layer2.features_size());
     
     // Create another map
-    mapnik::Map map2(tile_size, tile_size, "+init=epsg:3857");
+    mapnik::Map map2(256, 256, "+init=epsg:3857");
     mapnik::layer lyr2("layer",map.srs());
     
     // Create datasource from tile.
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource>(
-                                        layer2,0,0,0,map2.width());
+                                        layer2,0,0,0);
     CHECK( ds->type() == mapnik::datasource::Vector );
     CHECK( ds->get_geometry_type() == mapnik::datasource_geometry_t::Collection );
     
@@ -221,8 +220,7 @@ TEST_CASE("vector tile render simple point")
 
 TEST_CASE("vector tile datasource -- should filter features outside extent")
 {
-    unsigned tile_size = 256;
-    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::Map map(256,256,"+init=epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(testing::build_ds(0,0));
     map.add_layer(lyr);
@@ -251,7 +249,7 @@ TEST_CASE("vector tile datasource -- should filter features outside extent")
     
     // now actually start the meat of the test
     // create a datasource from the vector tile
-    mapnik::vector_tile_impl::tile_datasource ds(layer,0,0,0,tile_size);
+    mapnik::vector_tile_impl::tile_datasource ds(layer,0,0,0);
 
     // ensure we can query single feature
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);

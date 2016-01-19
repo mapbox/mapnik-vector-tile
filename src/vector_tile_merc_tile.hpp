@@ -11,7 +11,7 @@ namespace mapnik
 namespace vector_tile_impl
 {
 
-struct merc_tile : public tile
+class merc_tile : public tile
 {
 private:
     std::uint32_t x_;
@@ -21,10 +21,9 @@ public:
     merc_tile(std::uint32_t x,
               std::uint32_t y,
               std::uint32_t z,
-              std::uint32_t tile_size = 256,
-              std::uint32_t buffer_size = 0,
-              std::uint32_t path_multiplier = 16)
-        : tile(merc_extent(tile_size, x, y, z), tile_size, buffer_size, path_multiplier),
+              std::uint32_t tile_size = 4096,
+              std::uint32_t buffer_size = 0)
+        : tile(merc_extent(tile_size, x, y, z), tile_size, buffer_size),
           x_(x),
           y_(y),
           z_(z) {}
@@ -32,12 +31,42 @@ public:
     merc_tile(merc_tile const& rhs) = default;
 
     merc_tile(merc_tile && rhs) = default;
-
+    
+    bool same_extent(merc_tile & other)
+    {
+        return x_ == other.x_ &&
+               y_ == other.y_ &&
+               z_ == other.z_;
+    }
+    
+    std::uint32_t x() const
+    {
+        return x_;
+    }
+    
+    std::uint32_t y() const
+    {
+        return y_;
+    }
+    
+    std::uint32_t z() const
+    {
+        return z_;
+    }
+    
+    mapnik::box2d<double> merc_extent(unsigned tile_size, int x, int y, int z)
+    {
+        spherical_mercator merc(tile_size);
+        double minx,miny,maxx,maxy;
+        merc.xyz(x, y, z, minx, miny, maxx, maxy);
+        return mapnik::box2d<double>(minx,miny,maxx,maxy);
+    }
 };
+
+typedef std::shared_ptr<merc_tile> merc_tile_ptr;
 
 } // end ns vector_tile_impl
 
 } // end ns mapnik
 
 #endif // __MAPNIK_VECTOR_TILE_MERC_TILE_H__
-

@@ -17,7 +17,6 @@
 // Boost
 #include <boost/optional.hpp>
 
-unsigned tile_size = 256;
 
 TEST_CASE( "cannot create datasource from layer pbf without name" )
 {
@@ -32,7 +31,7 @@ TEST_CASE( "cannot create datasource from layer pbf without name" )
 
         try
         {
-            mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+            mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0);
             FAIL( "expected exception" );
         }
         catch(std::exception const& ex)
@@ -49,7 +48,7 @@ TEST_CASE( "cannot create datasource from layer pbf without name" )
 
         try
         {
-            mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+            mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0);
             FAIL( "expected exception" );
         }
         catch(std::exception const& ex)
@@ -71,7 +70,7 @@ TEST_CASE( "can create datasource from layer pbf with name but without extent" )
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
-        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0);
 
         CHECK(ds.get_name() == "test_name");
     }
@@ -84,7 +83,7 @@ TEST_CASE( "can create datasource from layer pbf with name but without extent" )
 
         try
         {
-            mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+            mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0);
             FAIL( "expected exception" );
         }
         catch(std::exception const& ex)
@@ -107,7 +106,7 @@ TEST_CASE( "can create datasource from layer pbf with name and extent" )
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
-        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0);
 
         CHECK(ds.get_name() == "test_name");
     }
@@ -118,7 +117,7 @@ TEST_CASE( "can create datasource from layer pbf with name and extent" )
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
-        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0);
 
         CHECK(ds.get_name() == "test_name");
     }
@@ -144,7 +143,7 @@ TEST_CASE( "extent of a tile effects the scale of features" )
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
-        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0);
 
         mapnik::query q(ds.get_tile_extent());
         mapnik::featureset_ptr featureset = ds.features(q);
@@ -162,7 +161,7 @@ TEST_CASE( "extent of a tile effects the scale of features" )
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
-        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0);
 
         mapnik::query q(ds.get_tile_extent());
         mapnik::featureset_ptr featureset = ds.features(q);
@@ -191,7 +190,7 @@ TEST_CASE( "datasource of empty layer pbf returns a null featureset pointer" )
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
-        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0);
 
         mapnik::query q(ds.get_tile_extent());
         mapnik::featureset_ptr featureset = ds.features(q);
@@ -205,7 +204,7 @@ TEST_CASE( "datasource of empty layer pbf returns a null featureset pointer" )
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
-        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0);
 
         mapnik::query q(ds.get_tile_extent());
         mapnik::featureset_ptr featureset = ds.features(q);
@@ -230,7 +229,7 @@ TEST_CASE( "datasource of pbf with unkown version returns a null featureset poin
     layer.SerializePartialToString(&buffer);
     protozero::pbf_reader pbf_layer(buffer);
 
-    mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+    mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0);
 
     mapnik::query q(ds.get_tile_extent());
     mapnik::featureset_ptr featureset = ds.features(q);
@@ -254,7 +253,7 @@ TEST_CASE( "datasource of empty layer pbf returns a null featureset pointer for 
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
-        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0);
 
         mapnik::featureset_ptr featureset = ds.features_at_point(mapnik::coord2d(0.0,0.0),0.0001);
 
@@ -267,7 +266,7 @@ TEST_CASE( "datasource of empty layer pbf returns a null featureset pointer for 
         layer.SerializePartialToString(&buffer);
         protozero::pbf_reader pbf_layer(buffer);
 
-        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+        mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0);
 
         mapnik::featureset_ptr featureset = ds.features_at_point(mapnik::coord2d(0.0,0.0),0.0001);
 
@@ -291,7 +290,7 @@ TEST_CASE( "datasource of pbf with unknown version returns a null featureset poi
     layer.SerializePartialToString(&buffer);
     protozero::pbf_reader pbf_layer(buffer);
 
-    mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0,tile_size);
+    mapnik::vector_tile_impl::tile_datasource_pbf ds(pbf_layer,0,0,0);
 
     mapnik::featureset_ptr featureset = ds.features_at_point(mapnik::coord2d(0.0,0.0),0.0001);
 

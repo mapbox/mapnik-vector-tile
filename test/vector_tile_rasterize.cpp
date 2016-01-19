@@ -37,12 +37,11 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
     mapnik::vector_tile_impl::zlib_decompress(buffer,uncompressed);
     REQUIRE(uncompressed.size() == 4934);
 
-    unsigned tile_size = 256;
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
 
     // first we render the raw tile directly to an image
     {
-        mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+        mapnik::Map map(256,256,"+init=epsg:3857");
         vector_tile::Tile tile2;
         CHECK(tile2.ParseFromString(uncompressed));
 
@@ -55,7 +54,7 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
         mapnik::layer lyr2("water",map.srs());
         std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                         mapnik::vector_tile_impl::tile_datasource>(
-                                            layer2,0,0,0,map.width());
+                                            layer2,0,0,0);
         ds->set_envelope(bbox);
         CHECK( ds->type() == mapnik::datasource::Vector );
         CHECK( ds->get_geometry_type() == mapnik::datasource_geometry_t::Collection );
@@ -86,11 +85,11 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
     // set up to "re-render" it
     // the goal here is to trigger the geometries to pass through
     // the decoder and encoder again
-    mapnik::vector_tile_impl::tile out_tile(bbox, tile_size);
+    mapnik::vector_tile_impl::tile out_tile(bbox);
     
     {
         std::string merc_srs("+init=epsg:3857");
-        mapnik::Map map(tile_size, tile_size, merc_srs);
+        mapnik::Map map(256, 256, merc_srs);
         protozero::pbf_reader message(uncompressed.data(), uncompressed.size());
         while (message.next(3))
         {
@@ -99,8 +98,7 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
                         layer_msg,
                         0,
                         0,
-                        0,
-                        tile_size);
+                        0);
             mapnik::layer lyr(ds->get_name(),merc_srs);
             ds->set_envelope(out_tile.get_buffered_extent());
             lyr.set_datasource(ds);
@@ -122,7 +120,7 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
 
     // let's now render this to a image and make sure it looks right
     {
-        mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+        mapnik::Map map(256,256,"+init=epsg:3857");
         vector_tile::Tile tile2;
         CHECK(tile2.ParseFromString(buffer2));
         CHECK(1 == tile2.layers_size());
@@ -134,7 +132,7 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
         mapnik::layer lyr2("water",map.srs());
         std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                         mapnik::vector_tile_impl::tile_datasource>(
-                                            layer2,0,0,0,map.width());
+                                            layer2,0,0,0);
         ds->set_envelope(bbox);
         CHECK( ds->type() == mapnik::datasource::Vector );
         CHECK( ds->get_geometry_type() == mapnik::datasource_geometry_t::Collection );

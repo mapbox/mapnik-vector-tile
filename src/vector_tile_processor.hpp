@@ -49,33 +49,31 @@ public:
 
     void update_tile(tile & t,
                      double scale_denom = 0.0,
-                     unsigned offset_x = 0,
-                     unsigned offset_y = 0);
+                     int offset_x = 0,
+                     int offset_y = 0);
 
     merc_tile create_tile(std::uint64_t x,
                           std::uint64_t y,
                           std::uint64_t z,
-                          std::uint32_t tile_size = 256,
+                          std::uint32_t tile_size = 4096,
                           std::uint32_t buffer_size = 0,
-                          std::uint32_t path_multiplier = 16,
                           double scale_denom = 0.0,
-                          unsigned offset_x = 0,
-                          unsigned offset_y = 0)
+                          int offset_x = 0,
+                          int offset_y = 0)
     {
-        merc_tile t(x, y, z, tile_size, buffer_size, path_multiplier);
+        merc_tile t(x, y, z, tile_size, buffer_size);
         update_tile(t, scale_denom, offset_x, offset_y);
         return t;
     }
     
     tile create_tile(mapnik::box2d<double> const & extent,
-                     std::uint32_t tile_size = 256,
+                     std::uint32_t tile_size = 4096,
                      std::uint32_t buffer_size = 0,
-                     std::uint32_t path_multiplier = 16,
                      double scale_denom = 0.0,
-                     unsigned offset_x = 0,
-                     unsigned offset_y = 0)
+                     int offset_x = 0,
+                     int offset_y = 0)
     {
-        tile t(extent, tile_size, buffer_size, path_multiplier);
+        tile t(extent, tile_size, buffer_size);
         update_tile(t, scale_denom, offset_x, offset_y);
         return t;
     }

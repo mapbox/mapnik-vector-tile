@@ -26,9 +26,7 @@ public:
     tile_datasource(vector_tile::Tile_Layer const& layer,
                     unsigned x,
                     unsigned y,
-                    unsigned z,
-                    unsigned tile_size,
-                    bool is_raster = false);
+                    unsigned z);
     virtual ~tile_datasource();
     datasource::datasource_t type() const;
     featureset_ptr features(query const& q) const;

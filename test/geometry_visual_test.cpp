@@ -4,19 +4,15 @@
 // mapnik-vector-tile
 #include "vector_tile_strategy.hpp"
 #include "vector_tile_processor.hpp"
-#include "vector_tile_projection.hpp"
 #include "vector_tile_geometry_decoder.hpp"
 
 // mapnik
 #include <mapnik/geometry_correct.hpp>
 #include <mapnik/geometry_is_simple.hpp>
 #include <mapnik/geometry_is_valid.hpp>
-#include <mapnik/geometry_reprojection.hpp>
 #include <mapnik/geometry_strategy.hpp>
 #include <mapnik/geometry_transform.hpp>
 #include <mapnik/json/geometry_parser.hpp>
-#include <mapnik/projection.hpp>
-#include <mapnik/proj_strategy.hpp>
 #include <mapnik/save_map.hpp>
 #include <mapnik/util/file_io.hpp>
 #include <mapnik/util/fs.hpp>
@@ -50,8 +46,7 @@ void clip_geometry(mapnik::Map const& map,
                    bool mpu,
                    bool process_all)
 {
-    unsigned path_multiplier = 16;
-    unsigned tile_size = 256;
+    unsigned tile_size = 4096;
     unsigned buffer_size = 0;
     std::string geojson_string;
     
@@ -63,7 +58,7 @@ void clip_geometry(mapnik::Map const& map,
     ren.set_process_all_rings(process_all);
     ren.set_multi_polygon_union(mpu);
     
-    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(bbox, tile_size, buffer_size, path_multiplier);
+    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(bbox, tile_size, buffer_size);
     vector_tile::Tile tile = out_tile.get_tile();
     mapnik::geometry::geometry<double> geom4326;
     mapnik::geometry::geometry<double> geom4326_pbf;
@@ -102,8 +97,8 @@ void clip_geometry(mapnik::Map const& map,
                 }
             }
             vector_tile::Tile_Feature const& f = layer.features(0);
-            double sx = static_cast<double>(tile_size * path_multiplier) / bbox.width();
-            double sy = static_cast<double>(tile_size * path_multiplier) / bbox.height();
+            double sx = static_cast<double>(tile_size) / bbox.width();
+            double sy = static_cast<double>(tile_size) / bbox.height();
             double i_x = bbox.minx();
             double i_y = bbox.maxy();
             mapnik::vector_tile_impl::Geometry<double> geoms(f, i_x, i_y, 1.0 * sx, -1.0 * sy);

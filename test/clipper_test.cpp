@@ -2,7 +2,6 @@
 #include <iostream>
 #include <mapnik/projection.hpp>
 #include <mapnik/geometry_transform.hpp>
-//#include <mapnik/util/geometry_to_geojson.hpp>
 
 #include "vector_tile_strategy.hpp"
 #include "vector_tile_projection.hpp"
@@ -15,15 +14,14 @@ TEST_CASE("vector_tile_strategy -- should not overflow")
 {
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform prj_trans(merc,merc); // no-op
-    unsigned tile_size = 256;
+    unsigned tile_size = 4096;
     mapnik::vector_tile_impl::spherical_mercator merc_tiler(tile_size);
     double minx,miny,maxx,maxy;
     merc_tiler.xyz(9664,20435,15,minx,miny,maxx,maxy);
     mapnik::box2d<double> z15_extent(minx,miny,maxx,maxy);
     {
-        unsigned path_multiplier = 16;
-        mapnik::view_transform tr(tile_size * path_multiplier,
-                                  tile_size * path_multiplier,
+        mapnik::view_transform tr(tile_size,
+                                  tile_size,
                                   z15_extent,
                                   0,
                                   0);
@@ -106,14 +104,13 @@ TEST_CASE("vector_tile_strategy2 -- invalid mercator coord in interior ring")
     mapnik::geometry::geometry<double> geom = testing::read_geojson("./test/data/invalid-interior-ring.json");
     mapnik::projection longlat("+init=epsg:4326",true);
     mapnik::proj_transform prj_trans(longlat,longlat); // no-op
-    unsigned path_multiplier = 16;
-    unsigned tile_size = 256;
+    unsigned tile_size = 4096;
     mapnik::vector_tile_impl::spherical_mercator merc_tiler(tile_size);
     double minx,miny,maxx,maxy;
     merc_tiler.xyz(9664,20435,15,minx,miny,maxx,maxy);
     mapnik::box2d<double> z15_extent(minx,miny,maxx,maxy);
-    mapnik::view_transform tr(tile_size * path_multiplier,
-                              tile_size * path_multiplier,
+    mapnik::view_transform tr(tile_size,
+                              tile_size,
                               z15_extent,
                               0,
                               0);

@@ -4,6 +4,10 @@
 // mapnik-vector-tile
 #include "vector_tile_layer.hpp"
 
+//protozero
+#include <protozero/pbf_reader.hpp>
+#include <protozero/pbf_writer.hpp>
+
 // std
 #include <set>
 #include <string>
@@ -20,25 +24,24 @@ private:
     std::string buffer_;
     std::set<std::string> painted_layers_;
     std::set<std::string> empty_layers_;
-    std::set<std::string> layers_;
+    std::set<std::string> layers_set_;
+    std::vector<std::string> layers_;
     mapnik::box2d<double> extent_;
     std::uint32_t tile_size_;
     std::uint32_t buffer_size_;
-    std::uint32_t path_multiplier_;
 
 public:
     tile(mapnik::box2d<double> const& extent,
-         std::uint32_t tile_size = 256,
-         std::uint32_t buffer_size = 0,
-         std::uint32_t path_multiplier = 16)
+         std::uint32_t tile_size = 4096,
+         std::uint32_t buffer_size = 0)
         : buffer_(),
           painted_layers_(),
           empty_layers_(),
+          layers_set_(),
           layers_(),
           extent_(extent),
           tile_size_(tile_size),
-          buffer_size_(buffer_size),
-          path_multiplier_(path_multiplier) {}
+          buffer_size_(buffer_size) {}
 
     tile(tile const& rhs) = default;
 
@@ -58,12 +61,13 @@ public:
         else
         {
             painted_layers_.insert(new_name);
-            auto p = layers_.insert(new_name);
+            auto p = layers_set_.insert(new_name);
             if (!p.second)
             {
                 // Layer already in tile
                 return false;
             }
+            layers_.push_back(new_name);
             buffer_.append(layer.get_data());
             auto itr = empty_layers_.find(new_name);
             if (itr != empty_layers_.end())
@@ -72,6 +76,16 @@ public:
             }
         }
         return true;
+    }
+
+    void add_empty_layer(std::string const& name)
+    {
+        empty_layers_.insert(name);
+    }
+
+    const char * data() const
+    {
+        return buffer_.data();
     }
     
     std::size_t size() const
@@ -97,11 +111,6 @@ public:
         return ext;
     }
     
-    std::uint32_t tile_extent() const
-    {
-        return tile_size_ * path_multiplier_;
-    }
-
     void append_to_string(std::string & str) const
     {
         str.append(buffer_);
@@ -144,16 +153,6 @@ public:
         tile_size_ = val;
     }
 
-    std::uint32_t path_multiplier() const
-    {
-        return path_multiplier_;
-    }
-
-    void path_multiplier(std::uint32_t val)
-    {
-        path_multiplier_ = val;
-    }
-
     std::uint32_t buffer_size() const
     {
         return buffer_size_;
@@ -162,6 +161,26 @@ public:
     void buffer_size(std::uint32_t val)
     {
         buffer_size_ = val;
+    }
+
+    bool append_layer_buffer(const char * data, std::size_t size, std::string const& name)
+    {
+        painted_layers_.insert(name);
+        auto p = layers_set_.insert(name);
+        if (!p.second)
+        {
+            // Layer already in tile
+            return false;
+        }
+        layers_.push_back(name);
+        protozero::pbf_writer writer(buffer_);
+        writer.add_message(3, data, size);
+        auto itr = empty_layers_.find(name);
+        if (itr != empty_layers_.end())
+        {
+            empty_layers_.erase(itr);
+        }
+        return true;
     }
 
     std::set<std::string> const& get_painted_layers() const
@@ -173,7 +192,76 @@ public:
     {
         return empty_layers_;
     }
+    
+    std::vector<std::string> const& get_layers() const
+    {
+        return layers_;
+    }
 
+    std::set<std::string> const& get_layers_set() const
+    {
+        return layers_set_;
+    }
+
+    bool same_extent(tile & other)
+    {
+        return extent_ == other.extent_;
+    }
+
+    void clear()
+    {
+        buffer_.clear();
+        empty_layers_.clear();
+        layers_.clear();
+        layers_set_.clear();
+        painted_layers_.clear();
+    }
+    
+    bool has_layer(std::string const& name)
+    {
+        auto itr = layers_set_.find(name);
+        return itr != layers_set_.end();
+    }
+
+    protozero::pbf_reader get_reader() const
+    {
+        return protozero::pbf_reader(buffer_.data(), buffer_.size());
+    }
+
+    bool layer_reader(std::string const& name, protozero::pbf_reader & layer_msg) const
+    {
+        protozero::pbf_reader item(buffer_.data(), buffer_.size());
+        while (item.next(3))
+        {
+            layer_msg = item.get_message();
+            protozero::pbf_reader lay(layer_msg);
+            while (lay.next(1)) 
+            {
+                if (lay.get_string() == name)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    bool layer_reader(std::size_t index, protozero::pbf_reader & layer_msg) const
+    {
+        protozero::pbf_reader item(buffer_.data(), buffer_.size());
+        std::size_t idx = 0;
+        while (item.next(3))
+        {
+            if (idx == index)
+            {
+                layer_msg = item.get_message();
+                return true;
+            }
+            ++idx;
+            item.skip();
+        }
+        return false;
+    }
 };
 
 } // end ns vector_tile_impl

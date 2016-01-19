@@ -21,9 +21,7 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
                                               mapnik::vector_tile_impl::polygon_fill_type fill_type,
                                               bool mpu)
 {
-    unsigned tile_size = 256;
-    unsigned path_multiplier = 1000;
-    unsigned buffer_size = 0;
+    unsigned tile_size = 256 * 1000;
     // Create map note its not 3857 -- round trip as 4326
     mapnik::Map map(tile_size,tile_size,"+init=epsg:4326");
     // create layer
@@ -48,7 +46,7 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     ren.set_simplify_distance(simplify_distance);
     ren.set_fill_type(fill_type);
     ren.set_multi_polygon_union(mpu);
-    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(bbox, tile_size, buffer_size, path_multiplier);
+    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(bbox, tile_size);
     vector_tile::Tile tile = out_tile.get_tile();
     
     if (tile.layers_size() != 1)
@@ -65,9 +63,8 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
         throw std::runtime_error(s.str());
     }
     vector_tile::Tile_Feature const& f = layer.features(0);
-    double scale = (double)path_multiplier;
 
-    mapnik::vector_tile_impl::Geometry<double> geoms(f, 0, 0, scale, -1 * scale);
+    mapnik::vector_tile_impl::Geometry<double> geoms(f, 0, 0, 1000, -1000);
     return mapnik::vector_tile_impl::decode_geometry(geoms, f.type(), 2);
 }
 

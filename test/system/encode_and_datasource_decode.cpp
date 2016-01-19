@@ -60,8 +60,7 @@ TEST_CASE("encoding multi line string and check output datasource")
     mapnik::featureset_ptr fs;
     mapnik::feature_ptr f_ptr;
 
-    unsigned tile_size = 256;
-    mapnik::vector_tile_impl::tile_datasource ds(layer,0,0,0,tile_size);
+    mapnik::vector_tile_impl::tile_datasource ds(layer,0,0,0);
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     fs = ds.features(mapnik::query(bbox));
     f_ptr = fs->next();

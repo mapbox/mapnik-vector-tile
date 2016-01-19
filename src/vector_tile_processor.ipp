@@ -41,12 +41,13 @@ namespace vector_tile_impl
 namespace detail
 {
 
-box2d<double> get_buffered_extent(tile const& t, 
+box2d<double> get_buffered_extent(tile const& t,
+                                  std::uint32_t layer_extent, 
                                   mapnik::layer const& lay,
                                   mapnik::Map const & map)
 {
     mapnik::box2d<double> ext(t.extent());
-    double scale = t.scale();
+    double scale = ext.width() / layer_extent;
     double buffer_padding = 2.0 * scale;
     boost::optional<int> layer_buffer_size = lay.buffer_size();
     if (layer_buffer_size) // if layer overrides buffer size, use this value to compute buffered extent
@@ -109,16 +110,16 @@ bool set_query_extent(mapnik::box2d<double> & layer_ext,
     return true;
 }
 
-mapnik::query build_query(tile const& t,
+mapnik::query build_query(box2d<double> const& tile_extent,
+                          std::uint32_t layer_extent,
                           mapnik::box2d<double> const& query_ext,
                           double scale_denom,
                           mapnik::datasource_ptr ds)
 {
-    mapnik::box2d<double> const& req_ext = t.extent();
-    double qw = req_ext.width() > 0 ? req_ext.width() : 1;
-    double qh = req_ext.height() > 0 ? req_ext.height() : 1;
-    mapnik::query::resolution_type res(t.tile_size() / qw, t.tile_size() / qh);
-    mapnik::query q(query_ext, res, scale_denom, req_ext);
+    double qw = tile_extent.width() > 0 ? tile_extent.width() : 1;
+    double qh = tile_extent.height() > 0 ? tile_extent.height() : 1;
+    mapnik::query::resolution_type res(layer_extent / qw, layer_extent / qh);
+    mapnik::query q(query_ext, res, scale_denom, tile_extent);
     mapnik::layer_descriptor lay_desc = ds->get_descriptor();
     for (mapnik::attribute_descriptor const& desc : lay_desc.get_descriptors())
     {
@@ -297,7 +298,6 @@ tile_layer create_geom_layer(mapnik::datasource_ptr ds,
 
 tile_layer create_raster_layer(mapnik::datasource_ptr ds,
                                mapnik::query const& q,
-                               std::uint32_t tile_size,
                                std::string const& layer_name,
                                std::uint32_t layer_extent,
                                std::string const& target_proj_srs,
@@ -358,8 +358,8 @@ tile_layer create_raster_layer(mapnik::datasource_ptr ds,
                              prj_trans,
                              image_format,
                              scaling_method,
-                             tile_size,
-                             tile_size,
+                             layer_extent,
+                             layer_extent,
                              raster_width,
                              raster_height,
                              start_x,
@@ -387,63 +387,88 @@ processor::processor(mapnik::Map const& map)
 
 void processor::update_tile(tile & t,
                             double scale_denom,
-                            unsigned offset_x,
-                            unsigned offset_y)
+                            int offset_x,
+                            int offset_y)
 {
-    // Adjust the scale denominator if required
-    if (scale_denom <= 0.0)
-    {
-        mapnik::projection proj(m_.srs(),true);
-        scale_denom = mapnik::scale_denominator(t.scale(), proj.is_geographic());
-    }
-    scale_denom *= scale_factor_;
-    mapnik::view_transform view_trans(t.tile_extent(),
-                                      t.tile_extent(),
-                                      t.extent(), 
-                                      offset_x * t.path_multiplier(), 
-                                      offset_y * t.path_multiplier());
-    
     // Futures
     std::vector<std::future<tile_layer> > lay_vec;
     lay_vec.reserve(m_.layers().size());
     
     for (mapnik::layer const& lay : m_.layers())
     {
-        if (!lay.visible(scale_denom))
+        if (t.has_layer(lay.name()))
         {
+            t.add_empty_layer(lay.name());
             continue;
         }
         
         mapnik::datasource_ptr ds = lay.datasource();
         if (!ds)
         {
+            t.add_empty_layer(lay.name());
             continue;
         }
+        
+        std::uint32_t layer_extent = t.tile_size();
 
+        auto ds_extent = ds->params().get<mapnik::value_integer>("vector_layer_extent");
+        if (ds_extent)
+        {
+            layer_extent = *ds_extent;
+        }
+
+        if (layer_extent == 0)
+        {
+            t.add_empty_layer(lay.name());
+            continue;
+        }
+        
         std::string const& target_proj_srs = m_.srs();
         std::string const& source_proj_srs = lay.srs();
         mapnik::projection target_proj(target_proj_srs, true);
         mapnik::projection source_proj(source_proj_srs, true);
-
-        mapnik::box2d<double> buffered_extent = detail::get_buffered_extent(t, lay, m_);
+        
+        double layer_scale_denom = scale_denom;
+        
+        // Adjust the scale denominator if required
+        if (layer_scale_denom <= 0.0)
+        {
+            double scale = t.extent().width() / layer_extent;
+            layer_scale_denom = mapnik::scale_denominator(scale, target_proj.is_geographic());
+        }
+        layer_scale_denom *= scale_factor_;
+    
+        if (!lay.visible(scale_denom))
+        {
+            t.add_empty_layer(lay.name());
+            continue;
+        }
+        mapnik::box2d<double> buffered_extent = detail::get_buffered_extent(t, layer_extent, lay, m_);
         mapnik::box2d<double> query_ext(lay.envelope());
         
         if (!detail::set_query_extent(query_ext, buffered_extent, target_proj, source_proj))
         {
+            t.add_empty_layer(lay.name());
             continue;
         }
         
-        mapnik::query q = detail::build_query(t, query_ext, scale_denom, ds);
+        mapnik::query q = detail::build_query(t.extent(), layer_extent, query_ext, layer_scale_denom, ds);
+        
+        mapnik::view_transform view_trans(layer_extent,
+                                          layer_extent,
+                                          t.extent(), 
+                                          offset_x, 
+                                          offset_y);
 
         if (ds->type() == datasource::Vector)
         {
             lay_vec.push_back(std::move(std::async(
-                        std::launch::deferred, // uncomment to make single threaded  
+                        //std::launch::deferred, // uncomment to make single threaded  
                         detail::create_geom_layer,
                         ds,
                         q,
                         lay.name(),
-                        t.tile_extent(),
+                        layer_extent,
                         target_proj_srs,
                         source_proj_srs,
                         view_trans,
@@ -458,22 +483,16 @@ void processor::update_tile(tile & t,
         }
         else // Raster
         {
-            mapnik::view_transform raster_trans(t.tile_size(),
-                                                t.tile_size(),
-                                                t.extent(), 
-                                                offset_x, 
-                                                offset_y);
             lay_vec.push_back(std::move(std::async(
-                        std::launch::deferred, // uncomment to make single threaded  
+                        //std::launch::deferred, // uncomment to make single threaded  
                         detail::create_raster_layer,
                         ds,
                         q,
-                        t.tile_size(),
                         lay.name(),
-                        t.tile_extent(),
+                        layer_extent,
                         target_proj_srs,
                         source_proj_srs,
-                        raster_trans,
+                        view_trans,
                         image_format_,
                         scaling_method_
             )));

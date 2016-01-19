@@ -66,6 +66,50 @@ tile_featureset_pbf<Filter>::tile_featureset_pbf(Filter const& filter,
     }
 }
 
+struct value_visitor
+{
+    mapnik::transcoder & tr_;
+    mapnik::feature_ptr & feature_;
+    std::string const& name_;
+
+    value_visitor(mapnik::transcoder & tr,
+                  mapnik::feature_ptr & feature,
+                  std::string const& name)
+        : tr_(tr),
+          feature_(feature),
+          name_(name) {}
+    
+    void operator() (std::string const& val)
+    {
+        feature_->put(name_, tr_.transcode(val.data(), val.length()));
+    }
+
+    void operator() (bool const& val)
+    {
+        feature_->put(name_, static_cast<mapnik::value_bool>(val));
+    }
+
+    void operator() (int64_t const& val)
+    {
+        feature_->put(name_, static_cast<mapnik::value_integer>(val));
+    }
+
+    void operator() (uint64_t const& val)
+    {
+        feature_->put(name_, static_cast<mapnik::value_integer>(val));
+    }
+
+    void operator() (double const& val)
+    {
+        feature_->put(name_, static_cast<mapnik::value_double>(val));
+    }
+
+    void operator() (float const& val)
+    {
+        feature_->put(name_, static_cast<mapnik::value_double>(val));
+    }
+};
+
 template <typename Filter>
 feature_ptr tile_featureset_pbf<Filter>::next()
 {
@@ -107,34 +151,8 @@ feature_ptr tile_featureset_pbf<Filter>::next()
                                 if (feature->has_key(name))
                                 {
                                     pbf_attr_value_type val = layer_values_.at(key_value);
-                                    if (val.is<std::string>())
-                                    {
-                                        feature->put(name, tr_.transcode(val.get<std::string>().data(), val.get<std::string>().length()));
-                                    }
-                                    else if (val.is<bool>())
-                                    {
-                                        feature->put(name, static_cast<mapnik::value_bool>(val.get<bool>()));
-                                    }
-                                    else if (val.is<int64_t>())
-                                    {
-                                        feature->put(name, static_cast<mapnik::value_integer>(val.get<int64_t>()));
-                                    }
-                                    else if (val.is<uint64_t>())
-                                    {
-                                        feature->put(name, static_cast<mapnik::value_integer>(val.get<uint64_t>()));
-                                    }
-                                    else if (val.is<double>())
-                                    {
-                                        feature->put(name, static_cast<mapnik::value_double>(val.get<double>()));
-                                    }
-                                    else if (val.is<float>())
-                                    {
-                                        feature->put(name, static_cast<mapnik::value_double>(val.get<float>()));
-                                    }
-                                    else
-                                    {
-                                        throw std::runtime_error("Vector Tile has unknown attribute type while reading feature");
-                                    }
+                                    value_visitor vv(tr_, feature, name);
+                                    mapnik::util::apply_visitor(vv, val);
                                 }
                             }
                             else if (version_ == 2)

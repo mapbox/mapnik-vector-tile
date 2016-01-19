@@ -1,3 +1,5 @@
+#include "test_utils.hpp"
+
 // mapnik
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
@@ -43,7 +45,8 @@ std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool seco
     feature->put_new("boolf",false);
     feature->set_geometry(mapnik::geometry::point<double>(x,y));
     ds->push(feature);
-    if (second) {
+    if (second)
+    {
         ctx->push("name2");
         mapnik::feature_ptr feature2(mapnik::feature_factory::create(ctx,1));
         feature2->put("name",tr.transcode("null island"));

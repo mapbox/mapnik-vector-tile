@@ -36,8 +36,7 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
                                          unsigned x,
                                          unsigned y,
                                          unsigned z,
-                                         unsigned tile_size,
-                                         bool is_raster)
+                                         bool use_tile_extent)
     : datasource(parameters()),
       desc_("in-memory PBF encoded datasource","utf-8"),
       attributes_added_(false),
@@ -46,19 +45,14 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
       x_(x),
       y_(y),
       z_(z),
-      tile_size_(tile_size),
+      tile_size_(4096), // default for version 1
       extent_initialized_(false),
       tile_x_(0.0),
       tile_y_(0.0),
       scale_(0.0),
-      layer_extent_(0),
       version_(1), // Version == 1 is the default because it was not required until v2 to have this field
       type_(datasource::Vector)
 {
-    if (is_raster)
-    {
-        type_ = datasource::Raster;
-    }
     double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z_);
     tile_x_ = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x_ * resolution;
     tile_y_ =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y_ * resolution;
@@ -78,7 +72,17 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
                 has_name = true;
                 break;
             case 2:
-                features_.push_back(layer_.get_message());
+                {
+                    auto data_pair = layer_.get_data();
+                    protozero::pbf_reader check_feature(data_pair);
+                    while (check_feature.next(5))
+                    {
+                        type_ = datasource::Raster;
+                        check_feature.skip();
+                    }
+                    protozero::pbf_reader f_msg(data_pair);
+                    features_.push_back(f_msg);
+                }
                 break;
             case 3:
                 layer_keys_.push_back(layer_.get_string());
@@ -115,7 +119,7 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
                 }
                 break;
             case 5:
-                layer_extent_ = layer_.get_uint32();
+                tile_size_ = layer_.get_uint32();
                 has_extent = true;
                 break;
             case 15:
@@ -136,7 +140,7 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
         {
             throw std::runtime_error("The required extent field is missing in the layer " + name_ + ". Tile does not comply with Version 2 of the Mapbox Vector Tile Specification.");
         }
-        scale_ = (static_cast<double>(layer_extent_) / tile_size_) * tile_size_/resolution;
+        scale_ = static_cast<double>(tile_size_)/resolution;
     }
     else if (version_ == 1)
     {
@@ -144,15 +148,7 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
         {
             throw std::runtime_error("The required name field is missing in a vector tile layer.");
         }
-        if (!has_extent)
-        {
-            // the extent was never set in a version 1 tile
-            // so lets try to process with the default extent
-            // this was not declared as required in version 1 of the
-            // the specification
-            layer_extent_ = 4096; 
-        }
-        scale_ = (static_cast<double>(layer_extent_) / tile_size_) * tile_size_/resolution;
+        scale_ = static_cast<double>(tile_size_)/resolution;
     }
     else
     {
@@ -162,6 +158,10 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
     if (features_.empty())
     {
         valid_layer_ = false;
+    }
+    if (use_tile_extent)
+    {
+        params_["vector_layer_extent"] = tile_size_;
     }
 }
 

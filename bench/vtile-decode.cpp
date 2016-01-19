@@ -72,7 +72,7 @@ int main(int argc, char** argv)
                 while (tile.next(3)) {
                     ++layer_count;
                     protozero::pbf_reader layer = tile.get_message();
-                    auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(layer,x,y,z,256);
+                    auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(layer,x,y,z);
                     mapnik::query q(ds->get_tile_extent());
                     auto fs = ds->features(q);
                     while (fs->next()) {
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
                 {
                     ++layer_count2;
                     auto const& layer = tiledata.layers(j);
-                    auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource>(layer,x,y,z,256);
+                    auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource>(layer,x,y,z);
                     mapnik::query q(ds->get_tile_extent());
                     auto fs = ds->features(q);
                     while (fs->next()) {

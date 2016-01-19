@@ -29,15 +29,15 @@
 
 TEST_CASE("vector tile from simplified geojson")
 {
-    unsigned tile_size = 256;
-    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    unsigned tile_size = 256 * 1000;
+    mapnik::Map map(256,256,"+init=epsg:3857");
     mapnik::layer lyr("layer","+init=epsg:4326");
     std::shared_ptr<mapnik::memory_datasource> ds = testing::build_geojson_ds("./test/data/poly.geojson");
     ds->set_envelope(mapnik::box2d<double>(160.147311,11.047284,160.662858,11.423830));
     lyr.set_datasource(ds);
     map.add_layer(lyr);
     mapnik::vector_tile_impl::processor ren(map);
-    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size,0,1000);
+    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
     
@@ -53,7 +53,7 @@ TEST_CASE("vector tile from simplified geojson")
     double resolution = mapnik::EARTH_CIRCUMFERENCE/(1 << z);
     double tile_x = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x * resolution;
     double tile_y =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
-    double scale = (static_cast<double>(layer.extent()) / tile_size) * tile_size/resolution;
+    double scale = static_cast<double>(layer.extent())/resolution;
     mapnik::vector_tile_impl::Geometry<double> geoms(f,tile_x, tile_y,scale,-1*scale);
     auto geom = mapnik::vector_tile_impl::decode_geometry(geoms,f.type(),2);
 
@@ -71,8 +71,8 @@ TEST_CASE("vector tile from simplified geojson")
 
 TEST_CASE("vector tile transform -- should not throw on coords outside merc range")
 {
-    unsigned tile_size = 256;
-    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    unsigned tile_size = 256 * 64;
+    mapnik::Map map(256,256,"+init=epsg:3857");
     // Note: 4269 is key. 4326 will trigger custom mapnik reprojection code
     // that does not hit proj4 and clamps values
     mapnik::layer lyr("layer","+init=epsg:4269");
@@ -84,7 +84,7 @@ TEST_CASE("vector tile transform -- should not throw on coords outside merc rang
     lyr.set_datasource(ds);
     map.add_layer(lyr);
     mapnik::vector_tile_impl::processor ren(map);
-    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size,0,64);
+    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
     
@@ -95,7 +95,7 @@ TEST_CASE("vector tile transform -- should not throw on coords outside merc rang
     CHECK(tile.SerializeToString(&buffer));
     CHECK(70 == buffer.size());
     // now create new objects
-    mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::Map map2(256,256,"+init=epsg:3857");
     vector_tile::Tile tile2;
     CHECK(tile2.ParseFromString(buffer));
     CHECK(1 == tile2.layers_size());
@@ -108,7 +108,7 @@ TEST_CASE("vector tile transform -- should not throw on coords outside merc rang
     mapnik::layer lyr2("layer",map.srs());
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds2 = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource>(
-                                        layer2,0,0,0,map2.width());
+                                        layer2,0,0,0);
     //ds2->set_envelope(bbox);
     CHECK( ds2->type() == mapnik::datasource::Vector );
     CHECK( ds2->get_geometry_type() == mapnik::datasource_geometry_t::Collection );
@@ -144,9 +144,9 @@ TEST_CASE("vector tile transform -- should not throw on coords outside merc rang
 
 TEST_CASE("vector tile transform2 -- should not throw reprojected data from local NZ projection")
 {
-    unsigned tile_size = 256;
+    unsigned tile_size = 256 * 64;
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
-    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::Map map(256,256,"+init=epsg:3857");
     // Note: 4269 is key. 4326 will trigger custom mapnik reprojection code
     // that does not hit proj4 and clamps values
     mapnik::layer lyr("layer","+proj=nzmg +lat_0=-41 +lon_0=173 +x_0=2510000 +y_0=6023150 +ellps=intl +units=m +no_defs");
@@ -159,7 +159,7 @@ TEST_CASE("vector tile transform2 -- should not throw reprojected data from loca
     map.add_layer(lyr);
     
     mapnik::vector_tile_impl::processor ren(map);
-    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size,0,64);
+    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
     
@@ -170,7 +170,7 @@ TEST_CASE("vector tile transform2 -- should not throw reprojected data from loca
     CHECK(tile.SerializeToString(&buffer));
     CHECK(231 == buffer.size());
     // now create new objects
-    mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::Map map2(256,256,"+init=epsg:3857");
     vector_tile::Tile tile2;
     CHECK(tile2.ParseFromString(buffer));
     CHECK(1 == tile2.layers_size());
@@ -181,7 +181,7 @@ TEST_CASE("vector tile transform2 -- should not throw reprojected data from loca
     mapnik::layer lyr2("layer",map.srs());
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds2 = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource>(
-                                        layer2,0,0,0,map2.width());
+                                        layer2,0,0,0);
     ds2->set_envelope(bbox);
     CHECK( ds2->type() == mapnik::datasource::Vector );
     CHECK( ds2->get_geometry_type() == mapnik::datasource_geometry_t::Collection );

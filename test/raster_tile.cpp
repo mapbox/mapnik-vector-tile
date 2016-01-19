@@ -124,7 +124,7 @@ TEST_CASE("raster tile output 1")
     mapnik::layer lyr2("layer",map2.srs());
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds2 = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource>(
-                                        layer2,_x,_y,_z,map2.width(),true);
+                                        layer2,_x,_y,_z);
     lyr2.set_datasource(ds2);
     lyr2.add_style("style");
     map2.add_layer(lyr2);
@@ -242,7 +242,7 @@ TEST_CASE("raster tile output 2")
     mapnik::layer lyr2("layer",map2.srs());
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds2 = std::make_shared<
                                     mapnik::vector_tile_impl::tile_datasource>(
-                                        layer2,0,0,0,256,true);
+                                        layer2,0,0,0);
     lyr2.set_datasource(ds2);
     lyr2.add_style("style");
     map2.add_layer(lyr2);
@@ -348,7 +348,7 @@ TEST_CASE("raster tile output 3 -- should be able to round trip image with alpha
         // create datasource wrapping raster
         std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
                                         mapnik::vector_tile_impl::tile_datasource>(
-                                            tile.layers(0),0,0,0,tile_size,true);
+                                            tile.layers(0),0,0,0);
         // before rendering let's query the raster directly to ensure
         // the datasource returns it correctly.
         mapnik::query q(bbox);

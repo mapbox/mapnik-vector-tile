@@ -26,8 +26,7 @@ public:
                     unsigned x,
                     unsigned y,
                     unsigned z,
-                    unsigned tile_size,
-                    bool is_raster = false);
+                    bool use_tile_extent = false);
     virtual ~tile_datasource_pbf();
     datasource::datasource_t type() const;
     featureset_ptr features(query const& q) const;
@@ -38,6 +37,7 @@ public:
     boost::optional<datasource_geometry_t> get_geometry_type() const;
     layer_descriptor get_descriptor() const;
     std::string const& get_name() { return name_; }
+    std::uint32_t get_layer_extent() { return tile_size_; }
 private:
     mutable mapnik::layer_descriptor desc_;
     mutable bool attributes_added_;
@@ -46,13 +46,12 @@ private:
     unsigned x_;
     unsigned y_;
     unsigned z_;
-    unsigned tile_size_;
+    std::uint32_t tile_size_;
     mutable bool extent_initialized_;
     mutable mapnik::box2d<double> extent_;
     double tile_x_;
     double tile_y_;
     double scale_;
-    uint32_t layer_extent_;
     uint32_t version_;
     datasource::datasource_t type_;
 
