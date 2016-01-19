@@ -27,13 +27,13 @@ namespace vector_tile_impl
 void merge_from_buffer(merc_tile & t, const char * data, std::size_t size)
 {
     using ds_ptr = std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf>;
-    protozero::pbf_reader tile_msg(data, size);
+    protozero::pbf_reader<TileEncoding> tile_msg(data, size);
     std::vector<ds_ptr> ds_vec;
     while (tile_msg.next())
     {
         switch (tile_msg.tag())
         {
-            case LAYER_ENCODING:
+            case TileEncoding::LAYERS:
                 {
                     auto layer_data = tile_msg.get_data();
                     protozero::pbf_reader layer_valid_msg(layer_data);

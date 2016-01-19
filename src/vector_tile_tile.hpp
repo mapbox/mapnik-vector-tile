@@ -241,11 +241,11 @@ public:
     bool layer_reader(std::string const& name, protozero::pbf_reader & layer_msg) const
     {
         protozero::pbf_reader item(buffer_.data(), buffer_.size());
-        while (item.next(LAYER_ENCODING))
+        while (item.next(TileEncoding::LAYERS))
         {
             layer_msg = item.get_message();
             protozero::pbf_reader lay(layer_msg);
-            while (lay.next(LAYER_NAME_ENCODING)) 
+            while (lay.next(LayerEncoding::NAME))
             {
                 if (lay.get_string() == name)
                 {
@@ -260,7 +260,7 @@ public:
     {
         protozero::pbf_reader item(buffer_.data(), buffer_.size());
         std::size_t idx = 0;
-        while (item.next(LAYER_ENCODING))
+        while (item.next(TileEncoding::LAYERS))
         {
             if (idx == index)
             {

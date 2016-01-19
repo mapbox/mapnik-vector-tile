@@ -68,15 +68,15 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
     {
         switch(layer_.tag())
         {
-            case LAYER_NAME_ENCODING:
+            case LayerEncoding::NAME:
                 name_ = layer_.get_string();
                 has_name = true;
                 break;
-            case FEATURE_ENCODING:
+            case LayerEncoding::FEATURES:
                 {
                     auto data_pair = layer_.get_data();
                     protozero::pbf_reader check_feature(data_pair);
-                    while (check_feature.next(FEATURE_RASTER_ENCODING))
+                    while (check_feature.next(FeatureEncoding::RASTER))
                     {
                         type_ = datasource::Raster;
                         check_feature.skip();
@@ -85,33 +85,33 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
                     features_.push_back(f_msg);
                 }
                 break;
-            case KEYS_ENCODING:
+            case LayerEncoding::KEYS:
                 layer_keys_.push_back(layer_.get_string());
                 break;
-            case VALUE_ENCODING:
+            case LayerEncoding::VALUES:
                 val_msg = layer_.get_message();
                 while (val_msg.next())
                 {
                     switch(val_msg.tag()) {
-                        case VALUE_STRING_ENCODING:
+                        case ValueEncoding::STRING:
                             layer_values_.push_back(val_msg.get_string());
                             break;
-                        case VALUE_FLOAT_ENCODING:
+                        case ValueEncoding::FLOAT:
                             layer_values_.push_back(val_msg.get_float());
                             break;
-                        case VALUE_DOUBLE_ENCODING:
+                        case ValueEncoding::DOUBLE:
                             layer_values_.push_back(val_msg.get_double());
                             break;
-                        case VALUE_INT_ENCODING:
+                        case ValueEncoding::INT:
                             layer_values_.push_back(val_msg.get_int64());
                             break;
-                        case VALUE_UINT_ENCODING:
+                        case ValueEncoding::UINT:
                             layer_values_.push_back(val_msg.get_uint64());
                             break;
-                        case VALUE_SINT_ENCODING:
+                        case ValueEncoding::SINT:
                             layer_values_.push_back(val_msg.get_sint64());
                             break;
-                        case VALUE_BOOL_ENCODING:
+                        case ValueEncoding::BOOL:
                             layer_values_.push_back(val_msg.get_bool());
                             break;
                         default:
@@ -119,11 +119,11 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
                     }
                 }
                 break;
-            case LAYER_EXTENT_ENCODING:
+            case LayerEncoding::EXTENT:
                 tile_size_ = layer_.get_uint32();
                 has_extent = true;
                 break;
-            case LAYER_VERSION_ENCODING:
+            case LayerEncoding::VERSION:
                 version_ = layer_.get_uint32();
                 break;
             default:
