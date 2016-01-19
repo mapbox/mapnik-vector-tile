@@ -21,7 +21,7 @@ namespace vector_tile_impl
 {
 
 void composite(merc_tile & target_vt,
-               std::vector<merc_tile_ptr> vtiles,
+               std::vector<merc_tile_ptr> const& vtiles,
                mapnik::Map & map,
                processor & ren, // processor should be on map object provided
                double scale_denominator = 0.0,
@@ -34,7 +34,7 @@ void composite(merc_tile & target_vt,
         throw std::runtime_error("Vector tile size must be great than zero");
     }
 
-    for (auto vt : vtiles)
+    for (auto const& vt : vtiles)
     {
         if (vt->tile_size() <= 0)
         {
