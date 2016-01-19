@@ -47,7 +47,7 @@ void clip_geometry(mapnik::Map const& map,
                    bool process_all)
 {
     unsigned tile_size = 4096;
-    unsigned buffer_size = 0;
+    int buffer_size = 0;
     std::string geojson_string;
     
     mapnik::vector_tile_impl::processor ren(map);

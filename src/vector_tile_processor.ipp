@@ -58,8 +58,18 @@ box2d<double> get_buffered_extent(tile const& t,
     {
         buffer_padding *= t.buffer_size();
     }
-    ext.width(ext.width() + buffer_padding);
-    ext.height(ext.height() + buffer_padding);
+    double buffered_width = ext.width() + buffer_padding;
+    double buffered_height = ext.height() + buffer_padding;
+    if (buffered_width < 0.0)
+    {
+        buffered_width = 0.0;
+    }
+    if (buffered_height < 0.0)
+    {
+        buffered_height = 0.0;
+    }
+    ext.width(buffered_width);
+    ext.height(buffered_height);
     
     boost::optional<box2d<double> > const& maximum_extent = map.maximum_extent();
     if (maximum_extent)
@@ -230,7 +240,11 @@ tile_layer create_geom_layer(mapnik::datasource_ptr ds,
         mapnik::geometry::point<double> p1_max(buffered_extent.maxx(), buffered_extent.maxy());
         mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
         mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
-        mapnik::box2d<int> tile_clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
+        double minx = std::min(p2_min.x, p2_max.x);
+        double maxx = std::max(p2_min.x, p2_max.x);
+        double miny = std::min(p2_min.y, p2_max.y);
+        double maxy = std::max(p2_min.y, p2_max.y);
+        mapnik::box2d<int> tile_clipping_extent(minx, miny, maxx, maxy);
         while (feature)
         {
             mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
@@ -263,9 +277,13 @@ tile_layer create_geom_layer(mapnik::datasource_ptr ds,
         mapnik::geometry::point<double> p1_max(buffered_extent.maxx(), buffered_extent.maxy());
         mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
         mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
-        box2d<int> tile_clipping_extent(p2_min.x, p2_min.y, p2_max.x, p2_max.y);
+        double minx = std::min(p2_min.x, p2_max.x);
+        double maxx = std::max(p2_min.x, p2_max.x);
+        double miny = std::min(p2_min.y, p2_max.y);
+        double maxy = std::max(p2_min.y, p2_max.y);
+        mapnik::box2d<int> tile_clipping_extent(minx, miny, maxx, maxy);
         mapnik::vector_tile_impl::vector_tile_strategy_proj vs2(prj_trans, view_trans);
-        box2d<double> trans_buffered_extent(buffered_extent);
+        mapnik::box2d<double> trans_buffered_extent(buffered_extent);
         prj_trans.forward(trans_buffered_extent, PROJ_ENVELOPE_POINTS);
         while (feature)
         {

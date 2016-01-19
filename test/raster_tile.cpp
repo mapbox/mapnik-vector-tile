@@ -27,7 +27,7 @@ TEST_CASE("raster tile output 1")
     unsigned _y = 0;
     unsigned _z = 1;
     unsigned tile_size = 512;
-    unsigned buffer_size = 256;
+    int buffer_size = 256;
     
     // setup map object
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
@@ -149,7 +149,7 @@ TEST_CASE("raster tile output 2")
 {
     // the test is to check if you can overzoom a raster after encoding it into a vector tile
     unsigned tile_size = 256;
-    unsigned buffer_size = 1024;
+    int buffer_size = 1024;
     mapnik::vector_tile_impl::merc_tile out_tile(0, 0, 0, tile_size, buffer_size);
     {
         mapnik::box2d<double> const& bbox = out_tile.extent();
@@ -271,11 +271,8 @@ TEST_CASE("raster tile output 3 -- should be able to round trip image with alpha
     mapnik::box2d<double> const& bbox = out_tile.extent();
 
     {
-        //unsigned buffer_size = 1024;
-        
         // build map
         mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
-        //map.set_buffer_size(buffer_size);
         mapnik::layer lyr("layer",map.srs());
         mapnik::parameters params;
         params["type"] = "raster";

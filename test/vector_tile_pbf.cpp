@@ -410,7 +410,7 @@ TEST_CASE("pbf vector tile from simplified geojson")
 TEST_CASE("pbf raster tile output -- should be able to overzoom raster")
 {
     unsigned tile_size = 4096;
-    unsigned buffer_size = 1024;
+    int buffer_size = 1024;
     mapnik::vector_tile_impl::merc_tile out_tile(0, 0, 0, tile_size, buffer_size);
     {
         mapnik::box2d<double> const& bbox = out_tile.extent();

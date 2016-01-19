@@ -22,7 +22,7 @@ public:
               std::uint32_t y,
               std::uint32_t z,
               std::uint32_t tile_size = 4096,
-              std::uint32_t buffer_size = 0)
+              std::int32_t buffer_size = 0)
         : tile(merc_extent(tile_size, x, y, z), tile_size, buffer_size),
           x_(x),
           y_(y),
@@ -54,7 +54,7 @@ public:
         return z_;
     }
     
-    mapnik::box2d<double> merc_extent(unsigned tile_size, int x, int y, int z)
+    mapnik::box2d<double> merc_extent(std::uint32_t tile_size, int x, int y, int z)
     {
         spherical_mercator merc(tile_size);
         double minx,miny,maxx,maxy;

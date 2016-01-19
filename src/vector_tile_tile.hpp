@@ -28,12 +28,12 @@ private:
     std::vector<std::string> layers_;
     mapnik::box2d<double> extent_;
     std::uint32_t tile_size_;
-    std::uint32_t buffer_size_;
+    std::int32_t buffer_size_;
 
 public:
     tile(mapnik::box2d<double> const& extent,
          std::uint32_t tile_size = 4096,
-         std::uint32_t buffer_size = 0)
+         std::int32_t buffer_size = 0)
         : buffer_(),
           painted_layers_(),
           empty_layers_(),
@@ -106,8 +106,18 @@ public:
     {
         double extra = 2.0 * scale() * buffer_size_;
         box2d<double> ext(extent_);
-        ext.width(extent_.width() + extra);
-        ext.height(extent_.height() + extra);
+        double extra_width = extent_.width() + extra;
+        double extra_height = extent_.height() + extra;
+        if (extra_width < 0.0)
+        {
+            extra_width = 0.0;
+        }
+        if (extra_height < 0.0)
+        {
+            extra_height = 0.0;
+        }
+        ext.width(extra_width);
+        ext.height(extra_height);
         return ext;
     }
     
@@ -153,12 +163,12 @@ public:
         tile_size_ = val;
     }
 
-    std::uint32_t buffer_size() const
+    std::int32_t buffer_size() const
     {
         return buffer_size_;
     }
 
-    void buffer_size(std::uint32_t val)
+    void buffer_size(std::int32_t val)
     {
         buffer_size_ = val;
     }
