@@ -2,6 +2,7 @@
 #define __MAPNIK_VECTOR_TILE_TILE_H__
 
 // mapnik-vector-tile
+#include "vector_tile_config.hpp"
 #include "vector_tile_layer.hpp"
 
 //protozero

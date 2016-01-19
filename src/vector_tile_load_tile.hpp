@@ -2,6 +2,7 @@
 #define __MAPNIK_VECTOR_TILE_LOAD_TILE_H__
 
 // mapnik-vector-tile
+#include "vector_tile_config.hpp"
 #include "vector_tile_compression.hpp"
 #include "vector_tile_tile.hpp"
 #include "vector_tile_datasource_pbf.hpp"
@@ -27,7 +28,7 @@ namespace vector_tile_impl
 void merge_from_buffer(merc_tile & t, const char * data, std::size_t size)
 {
     using ds_ptr = std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf>;
-    protozero::pbf_reader<TileEncoding> tile_msg(data, size);
+    protozero::pbf_reader tile_msg(data, size);
     std::vector<ds_ptr> ds_vec;
     while (tile_msg.next())
     {
