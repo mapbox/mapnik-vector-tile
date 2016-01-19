@@ -16,7 +16,7 @@ all: libvtile
 ./deps/clipper:
 	git clone https://github.com/mapnik/clipper.git -b r496-mapnik ./deps/clipper && cd ./deps/clipper && git checkout $(CLIPPER_REVISION) && ./cpp/fix_members.sh
 
-build/Makefile: ./deps/gyp ./deps/clipper ./deps/protozero gyp/build.gyp test/*cpp
+build/Makefile: ./deps/gyp ./deps/clipper ./deps/protozero gyp/build.gyp test/*
 	deps/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(MAPNIK_PLUGINDIR)\" -Goutput_dir=. --generator-output=./build -f make
 
 libvtile: build/Makefile Makefile
