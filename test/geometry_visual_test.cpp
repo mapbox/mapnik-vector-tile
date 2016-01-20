@@ -287,7 +287,7 @@ TEST_CASE("geometries visual tests")
                 types.emplace_back(mapnik::vector_tile_impl::non_zero_fill);
                 types.emplace_back(mapnik::vector_tile_impl::positive_fill); 
                 types.emplace_back(mapnik::vector_tile_impl::negative_fill);
-                for (auto type : types)
+                for (auto const& type : types)
                 {
                     for (bool mpu : std::vector<bool>({false, true}))
                     {
