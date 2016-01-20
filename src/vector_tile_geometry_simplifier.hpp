@@ -2,7 +2,7 @@
 #define __MAPNIK_VECTOR_TILE_GEOMETRY_SIMPLIFIER_H__
 
 // mapnik-vector-tile
-#include "vector_tile_geometry_clipper.hpp"
+#include "vector_tile_config.hpp"
 
 // mapnik
 #include <mapnik/geometry.hpp>
@@ -15,26 +15,26 @@ namespace vector_tile_impl
 
 struct geometry_simplifier 
 {
-    geometry_simplifier(double simplify_distance,
-                        geometry_clipper & clipper);
+    geometry_simplifier(mapnik::geometry::geometry<std::int64_t> & geom,
+                        double simplify_distance);
 
-    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::geometry_empty & geom);
+    MAPNIK_VECTOR_INLINE void operator() (mapnik::geometry::geometry_empty & geom);
     
-    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::point<std::int64_t> & geom);
+    MAPNIK_VECTOR_INLINE void operator() (mapnik::geometry::point<std::int64_t> & geom);
 
-    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::multi_point<std::int64_t> & geom);
+    MAPNIK_VECTOR_INLINE void operator() (mapnik::geometry::multi_point<std::int64_t> & geom);
 
-    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::geometry_collection<std::int64_t> & geom);
+    MAPNIK_VECTOR_INLINE void operator() (mapnik::geometry::geometry_collection<std::int64_t> & geom);
 
-    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::line_string<std::int64_t> const& geom);
+    MAPNIK_VECTOR_INLINE void operator() (mapnik::geometry::line_string<std::int64_t> & geom);
     
-    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::multi_line_string<std::int64_t> const& geom);
+    MAPNIK_VECTOR_INLINE void operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom);
 
-    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::polygon<std::int64_t> const& geom);
+    MAPNIK_VECTOR_INLINE void operator() (mapnik::geometry::polygon<std::int64_t> & geom);
 
-    mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::multi_polygon<std::int64_t> const& geom);
+    MAPNIK_VECTOR_INLINE void operator() (mapnik::geometry::multi_polygon<std::int64_t> & geom);
     
-    geometry_clipper & clipper_;
+    mapnik::geometry::geometry<std::int64_t> & geom_;
     unsigned simplify_distance_;
 };
 

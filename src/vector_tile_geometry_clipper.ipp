@@ -48,7 +48,7 @@ ClipperLib::PolyFillType get_angus_fill_type(polygon_fill_type type)
     }
 }
 
-inline void process_polynode_branch(ClipperLib::PolyNode* polynode, 
+inline MAPNIK_VECTOR_INLINE void process_polynode_branch(ClipperLib::PolyNode* polynode, 
                                     mapnik::geometry::multi_polygon<std::int64_t> & mp,
                                     double area_threshold)
 {
@@ -99,12 +99,14 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
 
 } // end ns detail
 
-geometry_clipper::geometry_clipper(mapnik::box2d<int> const& tile_clipping_extent,
+geometry_clipper::geometry_clipper(mapnik::geometry::geometry<std::int64_t> & geom,
+                                   mapnik::box2d<int> const& tile_clipping_extent,
                                    double area_threshold,
                                    bool strictly_simple,
                                    bool multi_polygon_union,
                                    polygon_fill_type fill_type,
                                    bool process_all_rings) :
+          geom_(geom),
           tile_clipping_extent_(tile_clipping_extent),
           area_threshold_(area_threshold),
           strictly_simple_(strictly_simple),
@@ -114,36 +116,41 @@ geometry_clipper::geometry_clipper(mapnik::box2d<int> const& tile_clipping_exten
 {
 }
 
-mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::geometry_empty & geom)
+MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::geometry_empty &)
 {
-    return std::move(geom);
 }
 
-mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::point<std::int64_t> & geom)
+MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::point<std::int64_t> &)
 {
-    return std::move(geom);
 }
 
-mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::multi_point<std::int64_t> & geom)
+MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::multi_point<std::int64_t> &)
 {
-    return std::move(geom);
 }
 
-mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::geometry_collection<std::int64_t> & geom)
+MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::geometry_collection<std::int64_t> & geom)
 {
     for (auto & g : geom)
     {
-        g = std::move(mapnik::util::apply_visitor((*this), g));
+        geometry_clipper clipper(g,
+                                 tile_clipping_extent_,
+                                 area_threshold_,
+                                 strictly_simple_,
+                                 multi_polygon_union_,
+                                 fill_type_,
+                                 process_all_rings_);
+                           
+        mapnik::util::apply_visitor(clipper, g);
     }
-    return std::move(geom);
 }
 
-mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::line_string<std::int64_t> & geom)
+MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::line_string<std::int64_t> & geom)
 {
     boost::geometry::unique(geom);
     if (geom.size() < 2)
     {
-        return mapnik::geometry::geometry_empty();
+        geom_ = mapnik::geometry::geometry_empty();
+        return;
     }
     //std::deque<mapnik::geometry::line_string<int64_t>> result;
     mapnik::geometry::multi_line_string<int64_t> result;
@@ -155,15 +162,22 @@ mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::g
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.maxy());
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
     boost::geometry::intersection(clip_box, geom, result);
-    if (!result.empty())
+    if (result.empty())
     {
-        return result;   
+        geom_ = mapnik::geometry::geometry_empty();
+        return;
     }
-    return mapnik::geometry::geometry_empty();
+    geom_ = mapnik::geometry::geometry<std::int64_t>(std::move(result));
 }
 
-mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom)
+MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom)
 {
+    if (geom.empty())
+    {
+        geom_ = mapnik::geometry::geometry_empty();
+        return;
+    }
+
     mapnik::geometry::linear_ring<std::int64_t> clip_box;
     clip_box.reserve(5);
     clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
@@ -179,21 +193,22 @@ mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::g
         {
            continue;
         }
-        //std::deque<mapnik::geometry::line_string<int64_t>> result;
         boost::geometry::intersection(clip_box, line, results);
     }
-    if (!results.empty())
+    if (results.empty())
     {
-        return results;   
+        geom_ = mapnik::geometry::geometry_empty();
+        return;
     }
-    return mapnik::geometry::geometry_empty();
+    geom_ = mapnik::geometry::geometry<std::int64_t>(std::move(results));
 }
 
-mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::polygon<std::int64_t> & geom)
+MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::polygon<std::int64_t> & geom)
 {
     if ((geom.exterior_ring.size() < 3) && !process_all_rings_)
     {
-        return mapnik::geometry::geometry_empty();
+        geom_ = mapnik::geometry::geometry_empty();
+        return;
     }
     
     double clean_distance = 1.415;
@@ -214,7 +229,8 @@ mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::g
     double outer_area = ClipperLib::Area(geom.exterior_ring);
     if ((std::abs(outer_area) < area_threshold_)  && !process_all_rings_)
     {
-        return mapnik::geometry::geometry_empty();
+        geom_ = mapnik::geometry::geometry_empty();
+        return;
     }
 
     // The view transform inverts the y axis so this should be positive still despite now
@@ -226,7 +242,8 @@ mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::g
 
     if (!clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
     {
-        return mapnik::geometry::geometry_empty();
+        geom_ = mapnik::geometry::geometry_empty();
+        return;
     }
 
     for (auto & ring : geom.interior_rings)
@@ -265,7 +282,8 @@ mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::g
     // Finally add the box we will be using for clipping
     if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
     {
-        return mapnik::geometry::geometry_empty();
+        geom_ = mapnik::geometry::geometry_empty();
+        return;
     }
 
     ClipperLib::PolyTree polygons;
@@ -282,17 +300,18 @@ mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::g
 
     if (mp.empty())
     {
-        return mapnik::geometry::geometry_empty();
+        geom_ = mapnik::geometry::geometry_empty();
+        return;
     }
-
-    return mp;
+    geom_ = mapnik::geometry::geometry<std::int64_t>(std::move(mp));
 }
 
-mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::geometry::multi_polygon<std::int64_t> & geom)
+MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::multi_polygon<std::int64_t> & geom)
 {
     if (geom.empty())
     {
-        return mapnik::geometry::geometry_empty();
+        geom_ = mapnik::geometry::geometry_empty();
+        return;
     }
     
     double clean_distance = 1.415;
@@ -368,7 +387,8 @@ mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::g
         }
         if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
         {
-            return mapnik::geometry::geometry_empty();
+            geom_ = mapnik::geometry::geometry_empty();
+            return;
         }
         ClipperLib::PolyTree polygons;
         clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, fill_type);
@@ -433,7 +453,8 @@ mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::g
             }
             if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
             {
-                return mapnik::geometry::geometry_empty();
+                geom_ = mapnik::geometry::geometry_empty();
+                return;
             }
             ClipperLib::PolyTree polygons;
             clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, fill_type);
@@ -448,10 +469,10 @@ mapnik::geometry::geometry<std::int64_t> geometry_clipper::operator() (mapnik::g
 
     if (mp.empty())
     {
-        return mapnik::geometry::geometry_empty();
+        geom_ = mapnik::geometry::geometry_empty();
+        return;
     }
-
-    return mp;
+    geom_ = mapnik::geometry::geometry<std::int64_t>(std::move(mp));
 }
 
 } // end ns vector_tile_impl

@@ -168,28 +168,24 @@ void create_geom_feature(T const& vs,
 
     // Reproject geometry
     mapnik::vector_tile_impl::transform_visitor<vector_tile_strategy_type> skipping_transformer(vs, target_clipping_extent);
-    mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(skipping_transformer,geom);
+    mapnik::geometry::geometry<std::int64_t> new_geom = std::move(mapnik::util::apply_visitor(skipping_transformer,geom));
     
+    if (simplify_distance > 0)
+    {
+        geometry_simplifier simplifier(new_geom, simplify_distance);
+        mapnik::util::apply_visitor(simplifier, new_geom);
+    }
+
     // Clip geometry
-    geometry_clipper clipper(tile_clipping_extent, 
+    geometry_clipper clipper(new_geom,
+                             tile_clipping_extent, 
                              area_threshold, 
                              strictly_simple, 
                              multi_polygon_union, 
                              fill_type,
                              process_all_rings);
-
-    if (simplify_distance > 0)
-    {
-        geometry_simplifier simplifier(simplify_distance, clipper);
-        mapnik::geometry::geometry<std::int64_t> out_geom = mapnik::util::apply_visitor(simplifier, new_geom);
-        geometry_to_feature(out_geom, feature, layer);
-    }
-    else
-    {
-        mapnik::geometry::geometry<std::int64_t> out_geom = mapnik::util::apply_visitor(clipper, new_geom);
-        geometry_to_feature(out_geom, feature, layer);
-    }
-
+    mapnik::util::apply_visitor(clipper, new_geom);
+    geometry_to_feature(new_geom, feature, layer);
 }
 
 tile_layer create_geom_layer(mapnik::datasource_ptr ds,
