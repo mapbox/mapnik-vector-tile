@@ -81,7 +81,8 @@ void composite(merc_tile & target_vt,
                         layer_pbf,
                         vt->x(),
                         vt->y(),
-                        vt->z());
+                        vt->z(),
+                        true);
             mapnik::layer lyr(layer_name,"+init=epsg:3857");
             ds->set_envelope(vt->get_buffered_extent());
             lyr.set_datasource(ds);
