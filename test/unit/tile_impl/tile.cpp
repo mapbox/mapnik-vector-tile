@@ -170,10 +170,52 @@ TEST_CASE("Vector tile base class")
 
         protozero::pbf_reader layer_reader_by_index;
         bool status_by_index = tile.layer_reader(0, layer_reader_by_index);
-        CHECK(status_by_name == true);
+        CHECK(status_by_index == true);
         if(layer_reader_by_index.next(1))
         {
             CHECK(layer_reader_by_index.get_string() == "valid");
         }
+
+        vector_tile::Tile parsed_tile = tile.get_tile();
+        CHECK(parsed_tile.layers_size() == 1);
+        vector_tile::Tile_Layer parsed_layer = parsed_tile.layers(0);
+        CHECK(parsed_layer.version() == 2);
+        CHECK(parsed_layer.name() == "valid");
+    }
+
+    SECTION("layer_reader by name works by name in buffer")
+    {
+        mapnik::vector_tile_impl::tile tile(global_extent);
+
+        // Create layer
+        vector_tile::Tile_Layer layer;
+        layer.set_version(2);
+        layer.set_name("buffer name");
+
+        std::string layer_buffer;
+        layer.SerializePartialToString(&layer_buffer);
+        tile.append_layer_buffer(layer_buffer.data(), layer_buffer.length(), "layer name");
+
+        const std::set<std::string> expected_set{"layer name"};
+        const std::set<std::string> empty_set;
+        const std::vector<std::string> expected_vec{"layer name"};
+
+        CHECK(tile.get_painted_layers() == expected_set);
+        CHECK(tile.get_layers() == expected_vec);
+        CHECK(tile.get_layers_set() == expected_set);
+        CHECK(tile.has_layer("layer name") == true);
+        CHECK(tile.has_layer("buffer name") == false);
+
+        protozero::pbf_reader layer_reader_by_buffer_name;
+        bool status_by_buffer_name = tile.layer_reader("buffer name", layer_reader_by_buffer_name);
+        CHECK(status_by_buffer_name == true);
+        if(layer_reader_by_buffer_name.next(1))
+        {
+            CHECK(layer_reader_by_buffer_name.get_string() == "buffer name");
+        }
+
+        protozero::pbf_reader layer_reader_by_name;
+        bool status_by_layer_name = tile.layer_reader("layer name", layer_reader_by_name);
+        CHECK(status_by_layer_name == false);
     }
 }
