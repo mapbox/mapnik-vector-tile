@@ -284,7 +284,7 @@ TEST_CASE( "pbf decoding empty buffer", "should throw exception" ) {
 TEST_CASE( "pbf decoding garbage buffer", "should throw exception" ) {
     std::string buffer("daufyglwi3h7fseuhfas8w3h,dksufasdf");
     protozero::pbf_reader pbf_tile(buffer);
-    pbf_tile.next();
+    REQUIRE_THROWS(pbf_tile.next());
     protozero::pbf_reader layer2;
     REQUIRE_THROWS(layer2 = pbf_tile.get_message());
 }
