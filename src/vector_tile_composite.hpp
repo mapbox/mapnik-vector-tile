@@ -54,12 +54,12 @@ void composite(merc_tile & target_vt,
         
         protozero::pbf_reader tile_message(vt->get_reader());
         // loop through the layers of the tile!
-        while (tile_message.next(TileEncoding::LAYERS))
+        while (tile_message.next(Tile_Encoding::LAYERS))
         {
             bool reencode_layer = reencode_tile;
             auto data_pair = tile_message.get_data();
             protozero::pbf_reader layer_message(data_pair);
-            if (!layer_message.next(LayerEncoding::NAME))
+            if (!layer_message.next(Layer_Encoding::NAME))
             {
                 continue;
             }

@@ -7,17 +7,19 @@
 #define MAPNIK_VECTOR_INLINE
 #endif
 
+#include <protozero/pbf_types.hpp>
+
 namespace mapnik
 {
 
 namespace vector_tile_impl
 {
 
-enum TileEncoding {
+enum Tile_Encoding : protozero::pbf_tag_type {
     LAYERS = 3
 };
 
-enum LayerEncoding {
+enum Layer_Encoding : protozero::pbf_tag_type {
     VERSION = 15,
     NAME = 1,
     FEATURES = 2,
@@ -26,7 +28,7 @@ enum LayerEncoding {
     EXTENT = 5
 };
 
-enum FeatureEncoding {
+enum Feature_Encoding : protozero::pbf_tag_type {
     ID = 1,
     TAGS = 2,
     TYPE = 3,
@@ -34,7 +36,7 @@ enum FeatureEncoding {
     RASTER = 5
 };
 
-enum ValueEncoding {
+enum Value_Encoding : protozero::pbf_tag_type {
     STRING = 1,
     FLOAT = 2,
     DOUBLE = 3,

@@ -34,7 +34,7 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size)
     {
         switch (tile_msg.tag())
         {
-            case TileEncoding::LAYERS:
+            case Tile_Encoding::LAYERS:
                 {
                     auto layer_data = tile_msg.get_data();
                     protozero::pbf_reader layer_valid_msg(layer_data);
