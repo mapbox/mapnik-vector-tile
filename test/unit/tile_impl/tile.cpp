@@ -185,6 +185,11 @@ TEST_CASE("Vector tile base class")
 
     SECTION("layer_reader by name works by name in buffer")
     {
+        // Note - if the names of the layer are different
+        // between the layer in the buffer and in the
+        // tile object, `has_layer` will use the one
+        // in the tile object, but `layer_reader` will
+        // use the name in the buffer
         mapnik::vector_tile_impl::tile tile(global_extent);
 
         // Create layer
@@ -192,20 +197,22 @@ TEST_CASE("Vector tile base class")
         layer.set_version(2);
         layer.set_name("buffer name");
 
+        // Add layer to tile
         std::string layer_buffer;
         layer.SerializePartialToString(&layer_buffer);
         tile.append_layer_buffer(layer_buffer.data(), layer_buffer.length(), "layer name");
 
         const std::set<std::string> expected_set{"layer name"};
-        const std::set<std::string> empty_set;
         const std::vector<std::string> expected_vec{"layer name"};
 
+        // Confirm the use of "layer name" in these methods
         CHECK(tile.get_painted_layers() == expected_set);
         CHECK(tile.get_layers() == expected_vec);
         CHECK(tile.get_layers_set() == expected_set);
         CHECK(tile.has_layer("layer name") == true);
         CHECK(tile.has_layer("buffer name") == false);
 
+        // Confirm the use of "buffer name" in this method
         protozero::pbf_reader layer_reader_by_buffer_name;
         bool status_by_buffer_name = tile.layer_reader("buffer name", layer_reader_by_buffer_name);
         CHECK(status_by_buffer_name == true);
@@ -217,5 +224,51 @@ TEST_CASE("Vector tile base class")
         protozero::pbf_reader layer_reader_by_name;
         bool status_by_layer_name = tile.layer_reader("layer name", layer_reader_by_name);
         CHECK(status_by_layer_name == false);
+    }
+
+    SECTION("layer ordering is deterministic")
+    {
+        // Newly added layers from buffers are added to the end of
+        // the tile, and are read from the tile in the same order
+        // as they are added
+        mapnik::vector_tile_impl::tile tile(global_extent);
+
+        // Create layers
+        vector_tile::Tile_Layer layer1, layer2;
+        layer1.set_version(2);
+        layer1.set_name("layer1");
+
+        layer2.set_version(2);
+        layer2.set_name("layer2");
+
+        std::string layer1_buffer, layer2_buffer;
+        layer1.SerializePartialToString(&layer1_buffer);
+        tile.append_layer_buffer(layer1_buffer.data(), layer1_buffer.length(), "layer1");
+
+        layer2.SerializePartialToString(&layer2_buffer);
+        tile.append_layer_buffer(layer2_buffer.data(), layer2_buffer.length(), "layer2");
+
+        const std::vector<std::string> expected_vec{"layer1", "layer2"};
+
+        // Both of the layers are here, in order
+        CHECK(tile.get_layers() == expected_vec);
+        CHECK(tile.has_layer("layer1") == true);
+        CHECK(tile.has_layer("layer2") == true);
+
+        // layer_reader reads them in the same order
+        protozero::pbf_reader layer_reader1, layer_reader2;
+        bool status1 = tile.layer_reader(0, layer_reader1);
+        CHECK(status1 == true);
+        if(layer_reader1.next(1))
+        {
+            CHECK(layer_reader1.get_string() == "layer1");
+        }
+
+        bool status2 = tile.layer_reader(0, layer_reader2);
+        CHECK(status2 == true);
+        if(layer_reader2.next(1))
+        {
+            CHECK(layer_reader2.get_string() == "layer1");
+        }
     }
 }
