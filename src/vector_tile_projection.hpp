@@ -59,7 +59,7 @@ namespace vector_tile_impl
 
     };
 
-    MAPNIK_VECTOR_INLINE mapnik::box2d<double> merc_extent(std::uint32_t tile_size, int x, int y, int z)
+    inline mapnik::box2d<double> merc_extent(std::uint32_t tile_size, int x, int y, int z)
     {
         spherical_mercator merc(tile_size);
         double minx,miny,maxx,maxy;
