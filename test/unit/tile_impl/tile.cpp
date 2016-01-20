@@ -1,4 +1,5 @@
 #include "catch.hpp"
+#include <iostream>
 
 // mapnik vector tile tile class
 #include "vector_tile_tile.hpp"
@@ -70,5 +71,40 @@ TEST_CASE("Vector tile base class")
         mapnik::box2d<double> buffered_extent(0.0, 0.0, 0.0, 0.0);
         CHECK(negative_buffer_tile.get_buffered_extent() == buffered_extent);
         CHECK(negative_buffer_tile.buffer_size() == -4000);
+    }
+
+    SECTION("add bogus layer buffer")
+    {
+        mapnik::vector_tile_impl::tile tile(global_extent);
+        const char *data = "blahblah";
+
+        tile.append_layer_buffer(data, sizeof(data)/sizeof(char), "bogus");
+
+        const std::set<std::string> expected_set{"bogus"};
+        const std::set<std::string> empty_set;
+        const std::vector<std::string> expected_vec{"bogus"};
+
+        CHECK(tile.get_painted_layers() == expected_set);
+        CHECK(tile.get_empty_layers() == empty_set);
+        CHECK(tile.get_layers() == expected_vec);
+        CHECK(tile.get_layers_set() == expected_set);
+        CHECK(tile.has_layer("bogus") == true);
+        CHECK(tile.is_painted() == true);
+        CHECK(tile.is_empty() == false);
+
+        CHECK(tile.size() == 10);
+
+        std::string str;
+        tile.serialize_to_string(str);
+        CHECK(str == "\32\10blahblah");
+
+        std::string buffer(tile.data());
+
+        protozero::pbf_reader read_back(buffer);
+        if (read_back.next(3))
+        {
+            std::string blah_blah = read_back.get_string();
+            CHECK(blah_blah == "blahblah");
+        }
     }
 }
