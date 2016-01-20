@@ -41,10 +41,10 @@ namespace vector_tile_impl
 namespace detail
 {
 
-box2d<double> get_buffered_extent(tile const& t,
-                                  std::uint32_t layer_extent, 
-                                  mapnik::layer const& lay,
-                                  mapnik::Map const & map)
+inline box2d<double> get_buffered_extent(tile const& t,
+                                         std::uint32_t layer_extent, 
+                                         mapnik::layer const& lay,
+                                         mapnik::Map const & map)
 {
     mapnik::box2d<double> ext(t.extent());
     double scale = ext.width() / layer_extent;
@@ -81,10 +81,10 @@ box2d<double> get_buffered_extent(tile const& t,
 
 // change layer extent to the query extent
 // return false if no query is required.
-bool set_query_extent(mapnik::box2d<double> & layer_ext,
-                      mapnik::box2d<double> buffered_ext,
-                      mapnik::projection const& target_proj,
-                      mapnik::projection const& source_proj)
+inline bool set_query_extent(mapnik::box2d<double> & layer_ext,
+                             mapnik::box2d<double> buffered_ext,
+                             mapnik::projection const& target_proj,
+                             mapnik::projection const& source_proj)
 {
     // set up a transform from target to source
     // target == final map (aka tile) projection, usually epsg:3857
@@ -120,11 +120,11 @@ bool set_query_extent(mapnik::box2d<double> & layer_ext,
     return true;
 }
 
-mapnik::query build_query(box2d<double> const& tile_extent,
-                          std::uint32_t layer_extent,
-                          mapnik::box2d<double> const& query_ext,
-                          double scale_denom,
-                          mapnik::datasource_ptr ds)
+inline mapnik::query build_query(box2d<double> const& tile_extent,
+                                 std::uint32_t layer_extent,
+                                 mapnik::box2d<double> const& query_ext,
+                                 double scale_denom,
+                                 mapnik::datasource_ptr ds)
 {
     double qw = tile_extent.width() > 0 ? tile_extent.width() : 1;
     double qh = tile_extent.height() > 0 ? tile_extent.height() : 1;
@@ -139,18 +139,18 @@ mapnik::query build_query(box2d<double> const& tile_extent,
 }
 
 template <typename T>
-void create_geom_feature(T const& vs,
-                         layer_builder & layer,
-                         mapnik::feature_impl const& feature,
-                         mapnik::geometry::geometry<double> const& geom,
-                         mapnik::box2d<int> const& tile_clipping_extent,
-                         mapnik::box2d<double> const& target_clipping_extent,
-                         double simplify_distance,
-                         double area_threshold,
-                         polygon_fill_type fill_type,
-                         bool strictly_simple,
-                         bool multi_polygon_union,
-                         bool process_all_rings)
+inline void create_geom_feature(T const& vs,
+                                layer_builder & layer,
+                                mapnik::feature_impl const& feature,
+                                mapnik::geometry::geometry<double> const& geom,
+                                mapnik::box2d<int> const& tile_clipping_extent,
+                                mapnik::box2d<double> const& target_clipping_extent,
+                                double simplify_distance,
+                                double area_threshold,
+                                polygon_fill_type fill_type,
+                                bool strictly_simple,
+                                bool multi_polygon_union,
+                                bool process_all_rings)
 {
     // TODO possible changes?
     // - no need to create a new skipping_transformer per geometry
@@ -188,20 +188,20 @@ void create_geom_feature(T const& vs,
     geometry_to_feature(new_geom, feature, layer);
 }
 
-tile_layer create_geom_layer(mapnik::datasource_ptr ds,
-                             mapnik::query const& q,
-                             std::string const& layer_name,
-                             std::uint32_t layer_extent,
-                             std::string const& target_proj_srs,
-                             std::string const& source_proj_srs,
-                             mapnik::view_transform const& view_trans,
-                             mapnik::box2d<double> const& buffered_extent,
-                             double simplify_distance,
-                             double area_threshold,
-                             polygon_fill_type fill_type,
-                             bool strictly_simple,
-                             bool multi_polygon_union,
-                             bool process_all_rings)
+inline tile_layer create_geom_layer(mapnik::datasource_ptr ds,
+                                    mapnik::query const& q,
+                                    std::string const& layer_name,
+                                    std::uint32_t layer_extent,
+                                    std::string const& target_proj_srs,
+                                    std::string const& source_proj_srs,
+                                    mapnik::view_transform const& view_trans,
+                                    mapnik::box2d<double> const& buffered_extent,
+                                    double simplify_distance,
+                                    double area_threshold,
+                                    polygon_fill_type fill_type,
+                                    bool strictly_simple,
+                                    bool multi_polygon_union,
+                                    bool process_all_rings)
 {
     // Setup projection
     mapnik::projection target_proj(target_proj_srs, true);
@@ -310,15 +310,15 @@ tile_layer create_geom_layer(mapnik::datasource_ptr ds,
     return layer;
 }
 
-tile_layer create_raster_layer(mapnik::datasource_ptr ds,
-                               mapnik::query const& q,
-                               std::string const& layer_name,
-                               std::uint32_t layer_extent,
-                               std::string const& target_proj_srs,
-                               std::string const& source_proj_srs,
-                               mapnik::view_transform const& view_trans,
-                               std::string const& image_format,
-                               scaling_method_e scaling_method)
+inline tile_layer create_raster_layer(mapnik::datasource_ptr ds,
+                                      mapnik::query const& q,
+                                      std::string const& layer_name,
+                                      std::uint32_t layer_extent,
+                                      std::string const& target_proj_srs,
+                                      std::string const& source_proj_srs,
+                                      mapnik::view_transform const& view_trans,
+                                      std::string const& image_format,
+                                      scaling_method_e scaling_method)
 {
     // Setup projection
     mapnik::projection target_proj(target_proj_srs, true);
@@ -399,10 +399,10 @@ processor::processor(mapnik::Map const& map)
       multi_polygon_union_(false),
       process_all_rings_(false) {}
 
-void processor::update_tile(tile & t,
-                            double scale_denom,
-                            int offset_x,
-                            int offset_y)
+MAPNIK_VECTOR_INLINE void processor::update_tile(tile & t,
+                                                 double scale_denom,
+                                                 int offset_x,
+                                                 int offset_y)
 {
     // Futures
     std::vector<std::future<tile_layer> > lay_vec;

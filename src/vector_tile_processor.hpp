@@ -47,10 +47,10 @@ private:
 public:
     processor(mapnik::Map const& map);
 
-    void update_tile(tile & t,
-                     double scale_denom = 0.0,
-                     int offset_x = 0,
-                     int offset_y = 0);
+    MAPNIK_VECTOR_INLINE void update_tile(tile & t,
+                                          double scale_denom = 0.0,
+                                          int offset_x = 0,
+                                          int offset_y = 0);
 
     merc_tile create_tile(std::uint64_t x,
                           std::uint64_t y,

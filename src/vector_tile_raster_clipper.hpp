@@ -1,6 +1,9 @@
 #ifndef __MAPNIK_VECTOR_TILE_RASTER_CLIPPER_H__
 #define __MAPNIK_VECTOR_TILE_RASTER_CLIPPER_H__
 
+// mapnik-vector-tile
+#include "vector_tile_config.hpp"
+
 // mapnik
 #include <mapnik/box2d.hpp>
 #include <mapnik/image_scaling.hpp>
@@ -45,27 +48,27 @@ public:
                    int start_x,
                    int start_y);
     
-    std::string operator() (mapnik::image_rgba8 & source_data);
+    MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_rgba8 & source_data);
     
-    std::string operator() (mapnik::image_gray8 & source_data);
+    MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray8 & source_data);
 
-    std::string operator() (mapnik::image_gray8s & source_data);
+    MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray8s & source_data);
 
-    std::string operator() (mapnik::image_gray16 & source_data);
+    MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray16 & source_data);
 
-    std::string operator() (mapnik::image_gray16s & source_data);
+    MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray16s & source_data);
 
-    std::string operator() (mapnik::image_gray32 & source_data);
+    MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray32 & source_data);
 
-    std::string operator() (mapnik::image_gray32s & source_data);
+    MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray32s & source_data);
 
-    std::string operator() (mapnik::image_gray32f & source_data);
+    MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray32f & source_data);
     
-    std::string operator() (mapnik::image_gray64 & source_data);
+    MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray64 & source_data);
    
-    std::string operator() (mapnik::image_gray64s & source_data);
+    MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray64s & source_data);
 
-    std::string operator() (mapnik::image_gray64f & source_data);
+    MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray64f & source_data);
 
     std::string operator() (image_null &) const
     {

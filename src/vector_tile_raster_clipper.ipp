@@ -47,7 +47,7 @@ raster_clipper::raster_clipper(mapnik::raster const& source,
 {
 }
 
-std::string raster_clipper::operator() (mapnik::image_rgba8 & source_data)
+MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_rgba8 & source_data)
 {
     mapnik::image_rgba8 data(raster_width_, raster_height_, true, true);
     mapnik::raster target(target_ext_, std::move(data), source_.get_filter_factor());
@@ -95,7 +95,7 @@ std::string raster_clipper::operator() (mapnik::image_rgba8 & source_data)
     return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-std::string raster_clipper::operator() (mapnik::image_gray8 & source_data)
+MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray8 & source_data)
 {
     mapnik::image_gray8 data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -140,7 +140,7 @@ std::string raster_clipper::operator() (mapnik::image_gray8 & source_data)
     return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-std::string raster_clipper::operator() (mapnik::image_gray8s & source_data)
+MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray8s & source_data)
 {
     mapnik::image_gray8s data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -185,7 +185,7 @@ std::string raster_clipper::operator() (mapnik::image_gray8s & source_data)
     return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-std::string raster_clipper::operator() (mapnik::image_gray16 & source_data)
+MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray16 & source_data)
 {
     mapnik::image_gray16 data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -230,7 +230,7 @@ std::string raster_clipper::operator() (mapnik::image_gray16 & source_data)
     return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-std::string raster_clipper::operator() (mapnik::image_gray16s & source_data)
+MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray16s & source_data)
 {
     mapnik::image_gray16s data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -275,7 +275,7 @@ std::string raster_clipper::operator() (mapnik::image_gray16s & source_data)
     return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-std::string raster_clipper::operator() (mapnik::image_gray32 & source_data)
+MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray32 & source_data)
 {
     mapnik::image_gray32 data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -320,7 +320,7 @@ std::string raster_clipper::operator() (mapnik::image_gray32 & source_data)
     return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-std::string raster_clipper::operator() (mapnik::image_gray32s & source_data)
+MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray32s & source_data)
 {
     mapnik::image_gray32s data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -365,7 +365,7 @@ std::string raster_clipper::operator() (mapnik::image_gray32s & source_data)
     return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-std::string raster_clipper::operator() (mapnik::image_gray32f & source_data)
+MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray32f & source_data)
 {
     mapnik::image_gray32f data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -410,7 +410,7 @@ std::string raster_clipper::operator() (mapnik::image_gray32f & source_data)
     return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-std::string raster_clipper::operator() (mapnik::image_gray64 & source_data)
+MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray64 & source_data)
 {
     mapnik::image_gray64 data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -455,7 +455,7 @@ std::string raster_clipper::operator() (mapnik::image_gray64 & source_data)
     return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-std::string raster_clipper::operator() (mapnik::image_gray64s & source_data)
+MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray64s & source_data)
 {
     mapnik::image_gray64s data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());
@@ -500,7 +500,7 @@ std::string raster_clipper::operator() (mapnik::image_gray64s & source_data)
     return mapnik::save_to_string(im_tile, image_format_);    
 }
 
-std::string raster_clipper::operator() (mapnik::image_gray64f & source_data)
+MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray64f & source_data)
 {
     mapnik::image_gray64f data(raster_width_, raster_height_);
     mapnik::raster target(target_ext_, data, source_.get_filter_factor());

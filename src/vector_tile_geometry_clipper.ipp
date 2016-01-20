@@ -48,7 +48,7 @@ ClipperLib::PolyFillType get_angus_fill_type(polygon_fill_type type)
     }
 }
 
-inline MAPNIK_VECTOR_INLINE void process_polynode_branch(ClipperLib::PolyNode* polynode, 
+inline void process_polynode_branch(ClipperLib::PolyNode* polynode, 
                                     mapnik::geometry::multi_polygon<std::int64_t> & mp,
                                     double area_threshold)
 {
