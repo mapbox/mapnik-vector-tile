@@ -122,7 +122,7 @@ TEST_CASE("Vector tile base class")
         bool status = tile.layer_reader(0, layer_reader_by_index);
 
         CHECK(status == true);
-        CHECK_THROWS_AS(layer_reader_by_index.get_string(), protozero::end_of_buffer_exception);
+        CHECK_THROWS_AS(layer_reader_by_index.next(1), protozero::end_of_buffer_exception);
 
         vector_tile::Tile bogus_tile = tile.get_tile();
         CHECK(bogus_tile.layers_size() == 1);
@@ -133,5 +133,47 @@ TEST_CASE("Vector tile base class")
         CHECK(bogus_layer.keys_size() == 0);
         CHECK(bogus_layer.values_size() == 0);
         CHECK(bogus_layer.extent() == 4096);
+    }
+
+    SECTION("Add valid layer")
+    {
+        mapnik::vector_tile_impl::tile tile(global_extent);
+
+        // Create layer
+        vector_tile::Tile_Layer layer;
+        layer.set_version(2);
+        layer.set_name("valid");
+
+        std::string layer_buffer;
+        layer.SerializePartialToString(&layer_buffer);
+        tile.append_layer_buffer(layer_buffer.data(), layer_buffer.length(), "valid");
+
+        const std::set<std::string> expected_set{"valid"};
+        const std::set<std::string> empty_set;
+        const std::vector<std::string> expected_vec{"valid"};
+
+        CHECK(tile.get_painted_layers() == expected_set);
+        CHECK(tile.get_empty_layers() == empty_set);
+        CHECK(tile.get_layers() == expected_vec);
+        CHECK(tile.get_layers_set() == expected_set);
+        CHECK(tile.has_layer("valid") == true);
+        CHECK(tile.is_painted() == true);
+        CHECK(tile.is_empty() == false);
+
+        protozero::pbf_reader layer_reader_by_name;
+        bool status_by_name = tile.layer_reader("valid", layer_reader_by_name);
+        CHECK(status_by_name == true);
+        if(layer_reader_by_name.next(1))
+        {
+            CHECK(layer_reader_by_name.get_string() == "valid");
+        }
+
+        protozero::pbf_reader layer_reader_by_index;
+        bool status_by_index = tile.layer_reader(0, layer_reader_by_index);
+        CHECK(status_by_name == true);
+        if(layer_reader_by_index.next(1))
+        {
+            CHECK(layer_reader_by_index.get_string() == "valid");
+        }
     }
 }
