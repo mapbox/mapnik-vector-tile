@@ -53,14 +53,6 @@ public:
     {
         return z_;
     }
-    
-    mapnik::box2d<double> merc_extent(std::uint32_t tile_size, int x, int y, int z)
-    {
-        spherical_mercator merc(tile_size);
-        double minx,miny,maxx,maxy;
-        merc.xyz(x, y, z, minx, miny, maxx, maxy);
-        return mapnik::box2d<double>(minx,miny,maxx,maxy);
-    }
 };
 
 typedef std::shared_ptr<merc_tile> merc_tile_ptr;
