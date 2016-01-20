@@ -1,5 +1,4 @@
 #include "catch.hpp"
-#include <iostream>
 
 // mapnik vector tile tile class
 #include "vector_tile_tile.hpp"
@@ -76,9 +75,9 @@ TEST_CASE("Vector tile base class")
     SECTION("add bogus layer buffer")
     {
         mapnik::vector_tile_impl::tile tile(global_extent);
-        const char *data = "blahblah";
+        std::string bogus_layer_buffer = "blahblah";
 
-        tile.append_layer_buffer(data, sizeof(data)/sizeof(char), "bogus");
+        tile.append_layer_buffer(bogus_layer_buffer.data(), bogus_layer_buffer.length(), "bogus");
 
         const std::set<std::string> expected_set{"bogus"};
         const std::set<std::string> empty_set;
@@ -100,11 +99,39 @@ TEST_CASE("Vector tile base class")
 
         std::string buffer(tile.data());
 
+        // Check the buffer itself
         protozero::pbf_reader read_back(buffer);
         if (read_back.next(3))
         {
             std::string blah_blah = read_back.get_string();
             CHECK(blah_blah == "blahblah");
         }
+
+        // Check the provided reader
+        protozero::pbf_reader tile_reader = tile.get_reader();
+        if (tile_reader.next(3))
+        {
+            std::string blah_blah = tile_reader.get_string();
+            CHECK(blah_blah == "blahblah");
+        }
+
+        protozero::pbf_reader layer_reader;
+        CHECK_THROWS_AS(tile.layer_reader("bogus", layer_reader), protozero::end_of_buffer_exception);
+
+        protozero::pbf_reader layer_reader_by_index;
+        bool status = tile.layer_reader(0, layer_reader_by_index);
+
+        CHECK(status == true);
+        CHECK_THROWS_AS(layer_reader_by_index.get_string(), protozero::end_of_buffer_exception);
+
+        vector_tile::Tile bogus_tile = tile.get_tile();
+        CHECK(bogus_tile.layers_size() == 1);
+        vector_tile::Tile_Layer bogus_layer = bogus_tile.layers(0);
+        CHECK(bogus_layer.version() == 1);
+        CHECK(bogus_layer.name() == "");
+        CHECK(bogus_layer.features_size() == 0);
+        CHECK(bogus_layer.keys_size() == 0);
+        CHECK(bogus_layer.values_size() == 0);
+        CHECK(bogus_layer.extent() == 4096);
     }
 }
