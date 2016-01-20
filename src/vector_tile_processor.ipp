@@ -476,7 +476,7 @@ void processor::update_tile(tile & t,
 
         if (ds->type() == datasource::Vector)
         {
-            lay_vec.push_back(std::move(std::async(
+            lay_vec.push_back(std::async(
                         //std::launch::deferred, // uncomment to make single threaded  
                         detail::create_geom_layer,
                         ds,
@@ -493,11 +493,11 @@ void processor::update_tile(tile & t,
                         strictly_simple_,
                         multi_polygon_union_,
                         process_all_rings_
-            )));
+            ));
         }
         else // Raster
         {
-            lay_vec.push_back(std::move(std::async(
+            lay_vec.push_back(std::async(
                         //std::launch::deferred, // uncomment to make single threaded  
                         detail::create_raster_layer,
                         ds,
@@ -509,7 +509,7 @@ void processor::update_tile(tile & t,
                         view_trans,
                         image_format_,
                         scaling_method_
-            )));
+            ));
         }
     }
 
