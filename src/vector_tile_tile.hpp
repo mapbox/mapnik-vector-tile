@@ -48,7 +48,7 @@ public:
 
     tile(tile && rhs) = default;
 
-    bool add_layer(tile_layer & layer)
+    bool add_layer(tile_layer const& layer)
     {
         std::string const& new_name = layer.name();
         if (layer.is_empty())
