@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.3
+
+- Fixed compile against latest Mapnik master (variant upgrade)
+
 ## 0.14.2
 
 - Fixed premultiplication bug in raster encoding (#170)
