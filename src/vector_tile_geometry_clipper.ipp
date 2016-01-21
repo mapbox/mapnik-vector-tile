@@ -167,7 +167,7 @@ MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::line_s
         geom_ = mapnik::geometry::geometry_empty();
         return;
     }
-    geom_ = mapnik::geometry::geometry<std::int64_t>(std::move(result));
+    geom_ = std::move(result);
 }
 
 MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom)
@@ -200,7 +200,7 @@ MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::multi_
         geom_ = mapnik::geometry::geometry_empty();
         return;
     }
-    geom_ = mapnik::geometry::geometry<std::int64_t>(std::move(results));
+    geom_ = std::move(results);
 }
 
 MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::polygon<std::int64_t> & geom)
@@ -303,7 +303,7 @@ MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::polygo
         geom_ = mapnik::geometry::geometry_empty();
         return;
     }
-    geom_ = mapnik::geometry::geometry<std::int64_t>(std::move(mp));
+    geom_ = std::move(mp);
 }
 
 MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::multi_polygon<std::int64_t> & geom)
@@ -472,7 +472,7 @@ MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::multi_
         geom_ = mapnik::geometry::geometry_empty();
         return;
     }
-    geom_ = mapnik::geometry::geometry<std::int64_t>(std::move(mp));
+    geom_ = std::move(mp);
 }
 
 } // end ns vector_tile_impl
