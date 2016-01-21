@@ -515,7 +515,11 @@ MAPNIK_VECTOR_INLINE void processor::update_tile(tile & t,
 
     for (auto & lay_future : lay_vec)
     {
-        tile_layer l = lay_future.get();
+        if (!lay_future.valid())
+        {
+            throw std::runtime_error("unexpected invalid async return");
+        }
+        tile_layer & l = lay_future.get();
         t.add_layer(l); 
     }
 }
