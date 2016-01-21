@@ -45,7 +45,17 @@ private:
     bool process_all_rings_;
 
 public:
-    processor(mapnik::Map const& map);
+    processor(mapnik::Map const& map)
+        : m_(map),
+          image_format_("jpeg"),
+          scale_factor_(1.0),
+          area_threshold_(0.1),
+          simplify_distance_(0.0),
+          fill_type_(positive_fill),
+          scaling_method_(SCALING_NEAR),
+          strictly_simple_(true),
+          multi_polygon_union_(false),
+          process_all_rings_(false) {}
 
     MAPNIK_VECTOR_INLINE void update_tile(tile & t,
                                           double scale_denom = 0.0,

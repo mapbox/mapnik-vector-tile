@@ -30,7 +30,16 @@ struct geometry_clipper
                      bool strictly_simple,
                      bool multi_polygon_union,
                      polygon_fill_type fill_type,
-                     bool process_all_rings);
+                     bool process_all_rings) :
+              geom_(geom),
+              tile_clipping_extent_(tile_clipping_extent),
+              area_threshold_(area_threshold),
+              strictly_simple_(strictly_simple),
+              multi_polygon_union_(multi_polygon_union),
+              fill_type_(fill_type),
+              process_all_rings_(process_all_rings)
+    {
+    }
 
     MAPNIK_VECTOR_INLINE void operator() (mapnik::geometry::geometry_empty & geom);
     

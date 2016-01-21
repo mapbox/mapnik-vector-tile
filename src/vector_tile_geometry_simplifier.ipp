@@ -11,11 +11,6 @@ namespace mapnik
 namespace vector_tile_impl 
 {
 
-geometry_simplifier::geometry_simplifier(mapnik::geometry::geometry<std::int64_t> & geom,
-                                         double simplify_distance)
-    : geom_(geom),
-       simplify_distance_(simplify_distance) {}
-
 MAPNIK_VECTOR_INLINE void geometry_simplifier::operator() (mapnik::geometry::geometry_empty &)
 {
 }

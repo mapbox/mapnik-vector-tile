@@ -32,7 +32,7 @@ namespace vector_tile_impl
 namespace detail
 {
 
-ClipperLib::PolyFillType get_angus_fill_type(polygon_fill_type type)
+inline ClipperLib::PolyFillType get_angus_fill_type(polygon_fill_type type)
 {
     switch (type) 
     {
@@ -98,23 +98,6 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
 }
 
 } // end ns detail
-
-geometry_clipper::geometry_clipper(mapnik::geometry::geometry<std::int64_t> & geom,
-                                   mapnik::box2d<int> const& tile_clipping_extent,
-                                   double area_threshold,
-                                   bool strictly_simple,
-                                   bool multi_polygon_union,
-                                   polygon_fill_type fill_type,
-                                   bool process_all_rings) :
-          geom_(geom),
-          tile_clipping_extent_(tile_clipping_extent),
-          area_threshold_(area_threshold),
-          strictly_simple_(strictly_simple),
-          multi_polygon_union_(multi_polygon_union),
-          fill_type_(fill_type),
-          process_all_rings_(process_all_rings)
-{
-}
 
 MAPNIK_VECTOR_INLINE void geometry_clipper::operator() (mapnik::geometry::geometry_empty &)
 {

@@ -387,18 +387,6 @@ inline tile_layer create_raster_layer(mapnik::datasource_ptr ds,
 
 } // end ns detail
 
-processor::processor(mapnik::Map const& map)
-    : m_(map),
-      image_format_("jpeg"),
-      scale_factor_(1.0),
-      area_threshold_(0.1),
-      simplify_distance_(0.0),
-      fill_type_(positive_fill),
-      scaling_method_(SCALING_NEAR),
-      strictly_simple_(true),
-      multi_polygon_union_(false),
-      process_all_rings_(false) {}
-
 MAPNIK_VECTOR_INLINE void processor::update_tile(tile & t,
                                                  double scale_denom,
                                                  int offset_x,
