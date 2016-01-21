@@ -32,28 +32,28 @@ MAPNIK_VECTOR_INLINE void geometry_simplifier::operator() (mapnik::geometry::lin
 {
     mapnik::geometry::line_string<std::int64_t> simplified;
     boost::geometry::simplify(geom, simplified, simplify_distance_);
-    geom_ = mapnik::geometry::geometry<std::int64_t>(std::move(simplified));
+    geom_ = std::move(simplified);
 }
 
 MAPNIK_VECTOR_INLINE void geometry_simplifier::operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom)
 {
     mapnik::geometry::multi_line_string<std::int64_t> simplified;
     boost::geometry::simplify(geom, simplified, simplify_distance_);
-    geom_ = mapnik::geometry::geometry<std::int64_t>(std::move(simplified));
+    geom_ = std::move(simplified);
 }
 
 MAPNIK_VECTOR_INLINE void geometry_simplifier::operator() (mapnik::geometry::polygon<std::int64_t> & geom)
 {
     mapnik::geometry::polygon<std::int64_t> simplified;
     boost::geometry::simplify(geom, simplified, simplify_distance_);
-    geom_ = mapnik::geometry::geometry<std::int64_t>(std::move(simplified));
+    geom_ = std::move(simplified);
 }
 
 MAPNIK_VECTOR_INLINE void geometry_simplifier::operator() (mapnik::geometry::multi_polygon<std::int64_t> & geom)
 {
     mapnik::geometry::multi_polygon<std::int64_t> simplified;
     boost::geometry::simplify(geom, simplified, simplify_distance_);
-    geom_ = mapnik::geometry::geometry<std::int64_t>(std::move(simplified));
+    geom_ = std::move(simplified);
 }
 
 MAPNIK_VECTOR_INLINE void geometry_simplifier::operator() (mapnik::geometry::geometry_collection<std::int64_t> & geom)
