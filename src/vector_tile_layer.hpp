@@ -220,7 +220,7 @@ public:
         return buffer_;
     }
 
-    void build(layer_builder & builder)
+    void build(layer_builder const& builder)
     {
         empty_ = builder.empty;
         painted_ = builder.painted;
