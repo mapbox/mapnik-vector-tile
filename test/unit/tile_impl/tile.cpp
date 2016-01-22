@@ -1,7 +1,13 @@
 #include "catch.hpp"
+#include <memory>
 
 // mapnik vector tile tile class
 #include "vector_tile_tile.hpp"
+
+// mapnik
+#include <mapnik/feature.hpp>
+#include <mapnik/util/file_io.hpp>
+#include <mapnik/json/feature_parser.hpp>
 
 TEST_CASE("Vector tile base class")
 {
@@ -135,7 +141,7 @@ TEST_CASE("Vector tile base class")
         CHECK(bogus_layer.extent() == 4096);
     }
 
-    SECTION("Add valid layer")
+    SECTION("Add valid layer with layer buffer")
     {
         mapnik::vector_tile_impl::tile tile(global_extent);
 
@@ -174,6 +180,84 @@ TEST_CASE("Vector tile base class")
         if(layer_reader_by_index.next(1))
         {
             CHECK(layer_reader_by_index.get_string() == "valid");
+        }
+
+        vector_tile::Tile parsed_tile = tile.get_tile();
+        CHECK(parsed_tile.layers_size() == 1);
+        vector_tile::Tile_Layer parsed_layer = parsed_tile.layers(0);
+        CHECK(parsed_layer.version() == 2);
+        CHECK(parsed_layer.name() == "valid");
+    }
+
+    SECTION("Add valid empty layer with tile_layer")
+    {
+        mapnik::vector_tile_impl::tile tile(global_extent);
+
+        // Create layer
+        mapnik::vector_tile_impl::layer_builder builder("empty", 4096);
+        mapnik::vector_tile_impl::tile_layer layer;
+        layer.build(builder);
+        layer.name("empty");
+
+        CHECK(layer.is_empty() == true);
+        CHECK(layer.name() == "empty");
+
+        tile.add_layer(layer);
+
+        const std::set<std::string> empty_set{"empty"};
+
+        CHECK(tile.get_empty_layers().size() == 1);
+        CHECK(tile.is_painted() == false);
+        CHECK(tile.is_empty() == true);
+    }
+
+    SECTION("Add valid layer with tile_layer")
+    {
+        mapnik::vector_tile_impl::tile tile(global_extent);
+
+        // Create layer builder and add feature
+        mapnik::vector_tile_impl::layer_builder builder("valid", 4096);
+        std::unique_ptr<vector_tile::Tile_Feature> vt_feature(new vector_tile::Tile_Feature());
+
+        // Get geojson file string
+        mapnik::util::file input("./test/data/linestrings_and_point.geojson");
+        std::string geojson(input.data().get(), input.size());
+        auto context = std::make_shared<mapnik::context_type>();
+        auto mapnik_feature = std::make_shared<mapnik::feature_impl>(context, 0);
+        mapnik::json::from_geojson(geojson, *mapnik_feature);
+
+        builder.add_feature(vt_feature, *mapnik_feature);
+
+        // Create layer
+        mapnik::vector_tile_impl::tile_layer layer;
+        layer.build(builder);
+        layer.name("valid");
+
+        // Check properties of layer
+        CHECK(layer.is_empty() == false);
+        CHECK(layer.name() == "valid");
+
+        // Add layer to tile
+        tile.add_layer(layer);
+
+        const std::set<std::string> expected_set{"valid"};
+        const std::set<std::string> empty_set;
+        const std::vector<std::string> expected_vec{"valid"};
+
+        CHECK(tile.get_painted_layers() == expected_set);
+        CHECK(tile.get_empty_layers() == empty_set);
+        CHECK(tile.get_layers() == expected_vec);
+        CHECK(tile.get_layers_set() == expected_set);
+        CHECK(tile.has_layer("valid") == true);
+        CHECK(tile.is_painted() == true);
+        CHECK(tile.is_empty() == false);
+
+        protozero::pbf_reader layer_reader_by_name;
+        bool status_by_name = tile.layer_reader("valid", layer_reader_by_name);
+        CHECK(status_by_name == true);
+        if(layer_reader_by_name.next(1))
+        {
+            CHECK(layer_reader_by_name.get_string() == "valid");
         }
 
         vector_tile::Tile parsed_tile = tile.get_tile();
@@ -270,5 +354,44 @@ TEST_CASE("Vector tile base class")
         {
             CHECK(layer_reader2.get_string() == "layer1");
         }
+    }
+
+    SECTION("adding a valid layer takes name out of empty layers")
+    {
+        mapnik::vector_tile_impl::tile tile(global_extent);
+        tile.add_empty_layer("layer");
+
+        const std::set<std::string> expected_set{"layer"};
+
+        CHECK(tile.get_empty_layers() == expected_set);
+        CHECK(tile.has_layer("layer") == false);
+        CHECK(tile.is_painted() == false);
+        CHECK(tile.is_empty() == true);
+
+        // Create layers
+        vector_tile::Tile_Layer layer;
+        layer.set_version(2);
+        layer.set_name("layer");
+
+        std::string layer_buffer;
+        layer.SerializePartialToString(&layer_buffer);
+        tile.append_layer_buffer(layer_buffer.data(), layer_buffer.length(), "layer");
+
+        const std::set<std::string> empty_set;
+
+        CHECK(tile.get_empty_layers() == empty_set);
+        CHECK(tile.get_painted_layers() == expected_set);
+        CHECK(tile.has_layer("layer") == true);
+        CHECK(tile.is_painted() == true);
+        CHECK(tile.is_empty() == false);
+    }
+
+    SECTION("has same extent works correctly")
+    {
+        mapnik::vector_tile_impl::tile tile1(global_extent);
+        mapnik::vector_tile_impl::tile tile2(global_extent);
+
+        CHECK(tile1.same_extent(tile2) == true);
+        CHECK(tile2.same_extent(tile1) == true);
     }
 }

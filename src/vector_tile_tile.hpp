@@ -214,7 +214,7 @@ public:
         return layers_set_;
     }
 
-    bool same_extent(tile & other)
+    bool same_extent(tile const& other)
     {
         return extent_ == other.extent_;
     }
