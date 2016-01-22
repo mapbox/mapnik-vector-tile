@@ -10,6 +10,7 @@
 #pragma GCC diagnostic pop
 
 #include <iostream>
+#include <fstream>
 
 // mapnik
 #include <mapnik/box2d.hpp>
@@ -82,9 +83,21 @@ int main(int argc, char** argv)
         int y = std::stoi(argv[4]);
 
         std::size_t iterations = 100;
+        std::string output_path = "";
         if (argc > 5)
         {
-            iterations = std::stoi(argv[5]);
+            for (int i = 5; i < argc; i++)
+            {
+                std::string flag = argv[i];
+                if (flag == "-i")
+                {
+                    iterations = std::stoi(argv[i + 1]);
+                }
+                if (flag == "-o")
+                {
+                    output_path = argv[i + 1];
+                }
+            }
         }
 
         std::clog << "z:" << z << " x:" << x << " y:" << y <<  " iterations:" << iterations << "\n";
@@ -108,21 +121,25 @@ int main(int argc, char** argv)
 
         // Create tile 
         unsigned tile_size = 256;
-        vector_tile::Tile tile;
-        mapnik::vector_tile_impl::backend_pbf backend(tile, 16);;
 
         double minx,miny,maxx,maxy;
         xyz(tile_size, x, y, z, minx, miny, maxx, maxy);
         mapnik::box2d<double> bbox(minx,miny,maxx,maxy);
 
-        // Create map to render into tile
-        mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
-        mapnik::layer lyr("layer","+init=epsg:4326");
+
+        // Output buffer
+        std::string output_buffer;
 
         {
             mapnik::progress_timer __stats__(std::clog, std::string("encode tile: ") + geojson);
             for (std::size_t i=0;i<iterations;++i)
             {
+                vector_tile::Tile tile;
+                mapnik::vector_tile_impl::backend_pbf backend(tile, 16);;
+
+                // Create a fresh map to render into a tile
+                mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+                mapnik::layer lyr("layer","+init=epsg:4326");
                 lyr.set_datasource(ds);
                 map.add_layer(lyr);
                 map.zoom_to_box(bbox);
@@ -130,9 +147,20 @@ int main(int argc, char** argv)
                 renderer_type ren(backend,map,m_req);
                 ren.apply();
 
-                std::string buffer;
+                std::string buffer = "";
                 tile.SerializeToString(&buffer);
+                
+                if (i == 0)
+                {
+                    output_buffer = buffer;
+                }
             }
+        }
+
+        if (output_path != "")
+        {
+            std::ofstream out(output_path);
+            out << output_buffer;
         }
     }
     catch (std::exception const& ex)
