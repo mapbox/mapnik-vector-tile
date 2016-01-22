@@ -465,7 +465,7 @@ MAPNIK_VECTOR_INLINE void processor::update_tile(tile & t,
         if (ds->type() == datasource::Vector)
         {
             lay_vec.push_back(std::async(
-                        //std::launch::deferred, // uncomment to make single threaded  
+                        std::launch::deferred, // uncomment to make single threaded  
                         detail::create_geom_layer,
                         ds,
                         q,
@@ -486,7 +486,7 @@ MAPNIK_VECTOR_INLINE void processor::update_tile(tile & t,
         else // Raster
         {
             lay_vec.push_back(std::async(
-                        //std::launch::deferred, // uncomment to make single threaded  
+                        std::launch::deferred, // uncomment to make single threaded  
                         detail::create_raster_layer,
                         ds,
                         q,
