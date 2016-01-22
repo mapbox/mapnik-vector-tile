@@ -109,7 +109,7 @@ int main(int argc, char** argv)
         // Create tile 
         unsigned tile_size = 256;
         vector_tile::Tile tile;
-        mapnik::vector_tile_impl::backend_pbf backend(tile, 1000);;
+        mapnik::vector_tile_impl::backend_pbf backend(tile, 16);;
 
         double minx,miny,maxx,maxy;
         xyz(tile_size, x, y, z, minx, miny, maxx, maxy);
