@@ -13,6 +13,7 @@
 #include <fstream>
 
 // mapnik
+#include <mapnik/global.hpp>
 #include <mapnik/box2d.hpp>
 #include <mapnik/well_known_srs.hpp>
 #include <mapnik/json/geometry_parser.hpp>
@@ -23,10 +24,6 @@
 #include <mapnik/request.hpp>
 
 #include <protozero/pbf_reader.hpp>
-
-#ifndef M_PI
-#define M_PI 3.141592653589793238462643
-#endif
 
 typedef mapnik::vector_tile_impl::backend_pbf backend_type;
 typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
