@@ -107,19 +107,15 @@ TEST_CASE("Vector tile base class")
 
         // Check the buffer itself
         protozero::pbf_reader read_back(buffer);
-        if (read_back.next(3))
-        {
-            std::string blah_blah = read_back.get_string();
-            CHECK(blah_blah == "blahblah");
-        }
+        CHECK(read_back.next(3) == true);
+        std::string blah_blah = read_back.get_string();
+        CHECK(blah_blah == "blahblah");
 
         // Check the provided reader
         protozero::pbf_reader tile_reader = tile.get_reader();
-        if (tile_reader.next(3))
-        {
-            std::string blah_blah = tile_reader.get_string();
-            CHECK(blah_blah == "blahblah");
-        }
+        CHECK(tile_reader.next(3) == true);
+        blah_blah = tile_reader.get_string();
+        CHECK(blah_blah == "blahblah");
 
         protozero::pbf_reader layer_reader;
         CHECK_THROWS_AS(tile.layer_reader("bogus", layer_reader), protozero::end_of_buffer_exception);
@@ -169,18 +165,14 @@ TEST_CASE("Vector tile base class")
         protozero::pbf_reader layer_reader_by_name;
         bool status_by_name = tile.layer_reader("valid", layer_reader_by_name);
         CHECK(status_by_name == true);
-        if(layer_reader_by_name.next(1))
-        {
-            CHECK(layer_reader_by_name.get_string() == "valid");
-        }
+        CHECK(layer_reader_by_name.next(1) == true);
+        CHECK(layer_reader_by_name.get_string() == "valid");
 
         protozero::pbf_reader layer_reader_by_index;
         bool status_by_index = tile.layer_reader(0, layer_reader_by_index);
         CHECK(status_by_index == true);
-        if(layer_reader_by_index.next(1))
-        {
-            CHECK(layer_reader_by_index.get_string() == "valid");
-        }
+        CHECK(layer_reader_by_index.next(1) == true);
+        CHECK(layer_reader_by_index.get_string() == "valid");
 
         vector_tile::Tile parsed_tile = tile.get_tile();
         CHECK(parsed_tile.layers_size() == 1);
@@ -255,16 +247,81 @@ TEST_CASE("Vector tile base class")
         protozero::pbf_reader layer_reader_by_name;
         bool status_by_name = tile.layer_reader("valid", layer_reader_by_name);
         CHECK(status_by_name == true);
-        if(layer_reader_by_name.next(1))
-        {
-            CHECK(layer_reader_by_name.get_string() == "valid");
-        }
+        CHECK(layer_reader_by_name.next(1) == true);
+        CHECK(layer_reader_by_name.get_string() == "valid");
 
         vector_tile::Tile parsed_tile = tile.get_tile();
         CHECK(parsed_tile.layers_size() == 1);
         vector_tile::Tile_Layer parsed_layer = parsed_tile.layers(0);
         CHECK(parsed_layer.version() == 2);
         CHECK(parsed_layer.name() == "valid");
+    }
+
+    SECTION("cannot add the same layer with add_layer")
+    {
+        mapnik::vector_tile_impl::tile tile(global_extent);
+
+        // Add empty layer to tile
+        tile.add_empty_layer("valid");
+        std::set<std::string> empty_set{"valid"};
+        CHECK(tile.get_empty_layers() == empty_set);
+
+        // Create layer builder and add feature
+        mapnik::vector_tile_impl::layer_builder builder("valid", 4096);
+        std::unique_ptr<vector_tile::Tile_Feature> vt_feature(new vector_tile::Tile_Feature());
+
+        // Get geojson file string
+        mapnik::util::file input("./test/data/linestrings_and_point.geojson");
+        std::string geojson(input.data().get(), input.size());
+        auto context = std::make_shared<mapnik::context_type>();
+        auto mapnik_feature = std::make_shared<mapnik::feature_impl>(context, 0);
+        mapnik::json::from_geojson(geojson, *mapnik_feature);
+
+        builder.add_feature(vt_feature, *mapnik_feature);
+
+        // Create layer
+        mapnik::vector_tile_impl::tile_layer layer;
+        layer.build(builder);
+        layer.name("valid");
+
+        // Add layer to tile
+        tile.add_layer(layer);
+        empty_set.clear();
+        CHECK(tile.get_empty_layers() == empty_set);
+    }
+
+    SECTION("add_layer takes layer out of empty layers")
+    {
+        mapnik::vector_tile_impl::tile tile(global_extent);
+
+        // Create layer builder and add feature
+        mapnik::vector_tile_impl::layer_builder builder("valid", 4096);
+        std::unique_ptr<vector_tile::Tile_Feature> vt_feature(new vector_tile::Tile_Feature());
+
+        // Get geojson file string
+        mapnik::util::file input("./test/data/linestrings_and_point.geojson");
+        std::string geojson(input.data().get(), input.size());
+        auto context = std::make_shared<mapnik::context_type>();
+        auto mapnik_feature = std::make_shared<mapnik::feature_impl>(context, 0);
+        mapnik::json::from_geojson(geojson, *mapnik_feature);
+
+        builder.add_feature(vt_feature, *mapnik_feature);
+
+        // Create layer
+        mapnik::vector_tile_impl::tile_layer layer;
+        layer.build(builder);
+        layer.name("valid");
+
+        // Check properties of layer
+        CHECK(layer.is_empty() == false);
+        CHECK(layer.name() == "valid");
+
+        // Add layer to tile
+        bool status1 = tile.add_layer(layer);
+        CHECK(status1 == true);
+
+        bool status2 = tile.add_layer(layer);
+        CHECK(status2 == false);
     }
 
     SECTION("layer_reader by name works by name in buffer")
@@ -300,10 +357,8 @@ TEST_CASE("Vector tile base class")
         protozero::pbf_reader layer_reader_by_buffer_name;
         bool status_by_buffer_name = tile.layer_reader("buffer name", layer_reader_by_buffer_name);
         CHECK(status_by_buffer_name == true);
-        if(layer_reader_by_buffer_name.next(1))
-        {
-            CHECK(layer_reader_by_buffer_name.get_string() == "buffer name");
-        }
+        CHECK(layer_reader_by_buffer_name.next(1) == true);
+        CHECK(layer_reader_by_buffer_name.get_string() == "buffer name");
 
         protozero::pbf_reader layer_reader_by_name;
         bool status_by_layer_name = tile.layer_reader("layer name", layer_reader_by_name);
@@ -343,17 +398,49 @@ TEST_CASE("Vector tile base class")
         protozero::pbf_reader layer_reader1, layer_reader2;
         bool status1 = tile.layer_reader(0, layer_reader1);
         CHECK(status1 == true);
-        if(layer_reader1.next(1))
-        {
-            CHECK(layer_reader1.get_string() == "layer1");
-        }
+        CHECK(layer_reader1.next(1) == true);
+        CHECK(layer_reader1.get_string() == "layer1");
 
-        bool status2 = tile.layer_reader(0, layer_reader2);
+        bool status2 = tile.layer_reader(1, layer_reader2);
         CHECK(status2 == true);
-        if(layer_reader2.next(1))
-        {
-            CHECK(layer_reader2.get_string() == "layer1");
-        }
+        CHECK(layer_reader2.next(1) == true);
+        CHECK(layer_reader2.get_string() == "layer2");
+    }
+
+    SECTION("cannot add same layer buffer twice")
+    {
+        // Newly added layers from buffers are added to the end of
+        // the tile, and are read from the tile in the same order
+        // as they are added
+        mapnik::vector_tile_impl::tile tile(global_extent);
+
+        // Create layers
+        vector_tile::Tile_Layer layer1, layer2;
+        layer1.set_version(2);
+        layer1.set_name("layer");
+
+        layer2.set_version(2);
+        layer2.set_name("layer");
+
+        std::string layer1_buffer, layer2_buffer;
+        layer1.SerializePartialToString(&layer1_buffer);
+        bool status1 = tile.append_layer_buffer(layer1_buffer.data(), layer1_buffer.length(), "layer");
+        CHECK(status1 == true);
+
+        layer2.SerializePartialToString(&layer2_buffer);
+        bool status2 = tile.append_layer_buffer(layer2_buffer.data(), layer2_buffer.length(), "layer");
+        CHECK(status2 == false);
+    }
+
+    SECTION("index out of bounds for layer_reader method")
+    {
+        mapnik::vector_tile_impl::tile tile(global_extent);
+
+        // Read a layer from an empty tile
+        protozero::pbf_reader layer_reader;
+        bool status = tile.layer_reader(0, layer_reader);
+        CHECK(status == false);
+        CHECK(layer_reader.next(1) == false);
     }
 
     SECTION("adding a valid layer takes name out of empty layers")
