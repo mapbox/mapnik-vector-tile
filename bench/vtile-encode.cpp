@@ -13,8 +13,9 @@
 #include <fstream>
 
 // mapnik
-#include <mapnik/global.hpp>
 #include <mapnik/box2d.hpp>
+#include <mapnik/datasource_cache.hpp>
+#include <mapnik/global.hpp>
 #include <mapnik/well_known_srs.hpp>
 #include <mapnik/json/geometry_parser.hpp>
 #include <mapnik/memory_datasource.hpp>
@@ -67,19 +68,13 @@ int main(int argc, char** argv)
             std::clog << "usage: vtile-encode /path/to/geometry.geojson z x y [iterations]\n";
             return -1;
         }
-        std::string geojson(argv[1]);
-        mapnik::util::file input(geojson);
-        if (!input.open())
-        {
-            std::clog << std::string("failed to open ") + geojson << "\n";
-            return -1;
-        }
+        std::string geojson_file(argv[1]);
 
         int z = std::stoi(argv[2]);
         int x = std::stoi(argv[3]);
         int y = std::stoi(argv[4]);
 
-        std::size_t iterations = 100;
+        std::size_t iterations = 1000;
         std::string output_path = "";
         if (argc > 5)
         {
@@ -97,24 +92,34 @@ int main(int argc, char** argv)
             }
         }
 
-        std::clog << "z:" << z << " x:" << x << " y:" << y <<  " iterations:" << iterations << "\n";
+        std::clog << "z:" << z << " x:" << x << " y:" << y <<  " iterations:" << iterations << std::endl;
+
+        mapnik::datasource_cache::instance().register_datasources(MAPNIK_PLUGINDIR);
+        mapnik::parameters params_1;
+        params_1["type"] = "geojson";
+        params_1["file"] = geojson_file;
+        params_1["cache_features"] = "false";
+        auto ds_1 = mapnik::datasource_cache::instance().create(params_1);
+
+        // Query
+        mapnik::box2d<double> query_ext(std::numeric_limits<double>::min(),
+                                        std::numeric_limits<double>::min(),
+                                        std::numeric_limits<double>::max(),
+                                        std::numeric_limits<double>::max());
+        mapnik::query q(query_ext);
+        auto json_fs = ds_1->features(q);
 
         // Create memory datasource from geojson
-        mapnik::geometry::geometry<double> geom;
-        std::string json_string(input.data().get(), input.size());
-        if (!mapnik::json::from_geojson(json_string, geom))
-        {
-            throw std::runtime_error("failed to parse geojson");
-        }
-        mapnik::geometry::correct(geom);
         mapnik::parameters params;
         params["type"] = "memory";
         auto ds = std::make_shared<mapnik::memory_datasource>(params);
-        mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
-        ctx->push("name");
-        mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
-        feature->set_geometry(std::move(geom));
-        ds->push(feature);
+        mapnik::feature_ptr feature = json_fs->next();
+        
+        while (feature)
+        {
+            ds->push(feature);
+            feature = json_fs->next();
+        }
 
         // Create tile 
         unsigned tile_size = 256;
@@ -128,7 +133,7 @@ int main(int argc, char** argv)
         std::string output_buffer;
 
         {
-            mapnik::progress_timer __stats__(std::clog, std::string("encode tile: ") + geojson);
+            mapnik::progress_timer __stats__(std::clog, std::string("encode tile: ") + geojson_file);
             for (std::size_t i=0;i<iterations;++i)
             {
                 vector_tile::Tile tile;
