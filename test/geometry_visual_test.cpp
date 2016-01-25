@@ -7,7 +7,6 @@
 #include "vector_tile_geometry_decoder.hpp"
 
 // mapnik
-#include <mapnik/geometry_correct.hpp>
 #include <mapnik/geometry_is_simple.hpp>
 #include <mapnik/geometry_is_valid.hpp>
 #include <mapnik/geometry_strategy.hpp>
