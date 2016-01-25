@@ -113,12 +113,38 @@ int main(int argc, char** argv)
         mapnik::parameters params;
         params["type"] = "memory";
         auto ds = std::make_shared<mapnik::memory_datasource>(params);
-        mapnik::feature_ptr feature = json_fs->next();
-        
-        while (feature)
+
+        if (!json_fs)
         {
+            // No features in geojson so lets try to process it differently as
+            // it might be a partial geojson and we can use from_geojson
+            mapnik::util::file input(geojson_file);
+            if (!input.open())
+            {
+                std::clog << "failed to open " << geojson_file << std::endl;
+                return -1;
+            }
+            mapnik::geometry::geometry<double> geom;
+            std::string json_string(input.data().get(), input.size());
+            if (!mapnik::json::from_geojson(json_string, geom))
+            {
+                std::clog << "failed to parse geojson" << std::endl;
+                return -1;
+            }
+            mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
+            mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
+            feature->set_geometry(std::move(geom));
             ds->push(feature);
-            feature = json_fs->next();
+        }
+        else
+        {
+            mapnik::feature_ptr feature = json_fs->next();
+        
+            while (feature)
+            {
+                ds->push(feature);
+                feature = json_fs->next();
+            }
         }
 
         // Create tile 
@@ -128,34 +154,38 @@ int main(int argc, char** argv)
         xyz(tile_size, x, y, z, minx, miny, maxx, maxy);
         mapnik::box2d<double> bbox(minx,miny,maxx,maxy);
 
+        // Create a fresh map to render into a tile
+        mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+        mapnik::layer lyr("layer","+init=epsg:4326");
+        lyr.set_datasource(ds);
+        map.add_layer(lyr);
+        map.zoom_to_box(bbox);
 
         // Output buffer
         std::string output_buffer;
+        std::size_t expected_size;
+        {
+            vector_tile::Tile tile;
+            mapnik::vector_tile_impl::backend_pbf backend(tile, 16);
+            mapnik::request m_req(tile_size,tile_size,bbox);
+            renderer_type ren(backend,map,m_req);
+            ren.apply();
+            tile.SerializeToString(&output_buffer);
+            expected_size = output_buffer.size();
+        }
 
         {
             mapnik::progress_timer __stats__(std::clog, std::string("encode tile: ") + geojson_file);
-            for (std::size_t i=0;i<iterations;++i)
+            for (std::size_t i = 0; i < iterations; ++i)
             {
                 vector_tile::Tile tile;
-                mapnik::vector_tile_impl::backend_pbf backend(tile, 16);;
-
-                // Create a fresh map to render into a tile
-                mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
-                mapnik::layer lyr("layer","+init=epsg:4326");
-                lyr.set_datasource(ds);
-                map.add_layer(lyr);
-                map.zoom_to_box(bbox);
+                mapnik::vector_tile_impl::backend_pbf backend(tile, 16);
                 mapnik::request m_req(tile_size,tile_size,bbox);
                 renderer_type ren(backend,map,m_req);
                 ren.apply();
-
-                std::string buffer = "";
+                std::string buffer;
                 tile.SerializeToString(&buffer);
-                
-                if (i == 0)
-                {
-                    output_buffer = buffer;
-                }
+                assert(buffer.size() == expected_size);
             }
         }
 
@@ -167,7 +197,7 @@ int main(int argc, char** argv)
     }
     catch (std::exception const& ex)
     {
-        std::clog << "error: " << ex.what() << "\n";
+        std::clog << "error: " << ex.what() << std::endl;
         return -1;
     }
     return 0;
