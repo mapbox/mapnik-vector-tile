@@ -65,6 +65,22 @@ int main(int argc, char** argv)
             std::clog << "new version: " << layer->version() << std::endl;
         }
 
+        // Recompress
+        if (is_zlib || is_gzip)
+        {
+            if (is_zlib)
+            {
+                std::cout << "message: zlib compressing\n";
+            }
+            else if (is_gzip)
+            {
+                std::cout << "message: gzip compressing\n";
+            }
+            std::string compressed;
+            mapnik::vector_tile_impl::zlib_compress(message,compressed,is_gzip);
+            message = compressed;
+        }
+
         // Write to file
         std::string output;
         tile.SerializeToString(&output);
