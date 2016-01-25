@@ -23,7 +23,9 @@
 
 int main() {
     mapnik::projection merc("+init=epsg:3857",true);
+    mapnik::projection merc2("+init=epsg:4326",true);
     mapnik::proj_transform prj_trans(merc,merc); // no-op
+    mapnik::proj_transform prj_trans2(merc2,merc); // op
     unsigned tile_size = 256;
     mapnik::vector_tile_impl::spherical_mercator merc_tiler(tile_size);
     double minx,miny,maxx,maxy;
@@ -47,6 +49,7 @@ int main() {
     unsigned count = 0;
     unsigned count2 = 0;
     unsigned count3 = 0;
+    unsigned count4 = 0;
     {
         mapnik::vector_tile_impl::vector_tile_strategy vs(tr, 16);
         mapnik::progress_timer __stats__(std::clog, "boost::geometry::transform");
@@ -72,6 +75,26 @@ int main() {
             count2 += poly.size();
         }
         if (count != count2)
+        {
+            std::clog << "tests did not run as expected!\n";
+            return -1;
+        }
+    }
+    {
+        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans2,tr, 16);
+        mapnik::progress_timer __stats__(std::clog, "transform_visitor with reserve with proj op");
+        mapnik::box2d<double> clip_extent(std::numeric_limits<double>::min(),
+                                       std::numeric_limits<double>::min(),
+                                       std::numeric_limits<double>::max(),
+                                       std::numeric_limits<double>::max());
+        mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj> transit(vs, clip_extent);
+        for (unsigned i=0;i<10000;++i)
+        {
+            mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(transit,geom);        
+            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(new_geom);
+            count4 += poly.size();
+        }
+        if (count != count4)
         {
             std::clog << "tests did not run as expected!\n";
             return -1;
