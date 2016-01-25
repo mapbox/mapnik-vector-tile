@@ -21,6 +21,10 @@ Extensive redesign in mapnik-vector-tile to properly support 2.0 of the [Mapbox 
  - Corrected issues with winding order being reversed in some situations when decoding polygons
  - Changed the default configuration values for `processor`
 
+## 0.14.3
+
+- Fixed compile against latest Mapnik master (variant upgrade)
+
 ## 0.14.2
 
 - Fixed premultiplication bug in raster encoding (#170)
