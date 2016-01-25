@@ -181,7 +181,9 @@ int main(int argc, char** argv)
                 vector_tile::Tile tile;
                 mapnik::vector_tile_impl::backend_pbf backend(tile, 16);
                 mapnik::request m_req(tile_size,tile_size,bbox);
-                renderer_type ren(backend,map,m_req);
+                renderer_type ren(backend,map,m_req,1.0,0.0,0.0,0.1,true);
+                ren.set_simplify_distance(5.0);
+                ren.set_fill_type(mapnik::vector_tile_impl::positive_fill);
                 ren.apply();
                 std::string buffer;
                 tile.SerializeToString(&buffer);
