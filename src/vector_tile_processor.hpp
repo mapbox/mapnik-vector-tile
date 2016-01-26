@@ -15,6 +15,9 @@
 #include "vector_tile_tile.hpp"
 #include "vector_tile_merc_tile.hpp"
 
+// std
+#include <future>
+
 namespace mapnik
 {
 
@@ -43,6 +46,7 @@ private:
     bool strictly_simple_;
     bool multi_polygon_union_;
     bool process_all_rings_;
+    std::launch threading_mode_;
 
 public:
     processor(mapnik::Map const& map)
@@ -55,7 +59,8 @@ public:
           scaling_method_(SCALING_NEAR),
           strictly_simple_(true),
           multi_polygon_union_(false),
-          process_all_rings_(false) {}
+          process_all_rings_(false),
+          threading_mode_(std::launch::deferred) {}
 
     MAPNIK_VECTOR_INLINE void update_tile(tile & t,
                                           double scale_denom = 0.0,
@@ -177,6 +182,17 @@ public:
     {
         return image_format_;
     }
+
+    void set_threading_mode(std::launch mode)
+    {
+        threading_mode_ = mode;
+    }
+
+    std::launch set_threading_mode() const
+    {
+        return threading_mode_;
+    }
+
 };
 
 } // end ns vector_tile_impl
