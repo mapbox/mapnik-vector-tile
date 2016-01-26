@@ -65,25 +65,29 @@ int main(int argc, char** argv)
             std::clog << "new version: " << layer->version() << std::endl;
         }
 
+        // Serialize
+        std::string output;
+        tile.SerializeToString(&output);
+
         // Recompress
+        bool gzip = true;
         if (is_zlib || is_gzip)
         {
             if (is_zlib)
             {
+                gzip = false;
                 std::cout << "message: zlib compressing\n";
             }
             else if (is_gzip)
             {
+                gzip = true;
                 std::cout << "message: gzip compressing\n";
             }
             std::string compressed;
-            mapnik::vector_tile_impl::zlib_compress(message,compressed,is_gzip);
-            message = compressed;
+            mapnik::vector_tile_impl::zlib_compress(output,compressed,gzip);
+            output = compressed;
         }
 
-        // Write to file
-        std::string output;
-        tile.SerializeToString(&output);
         std::ofstream file(vtile);
         file << output;
 
