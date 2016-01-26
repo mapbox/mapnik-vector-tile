@@ -64,8 +64,8 @@ void clip_geometry(mapnik::Map const& map,
     
     std::string buffer;
     out_tile.serialize_to_string(buffer);
-    std::string buffer2 = tile.SerializePartialAsString();
-    CHECK(buffer2 == buffer);
+    //std::string buffer2 = tile.SerializePartialAsString();
+    //CHECK(buffer2 == buffer);
     if (!buffer.empty() && tile.layers_size() > 0)
     {
         protozero::pbf_reader tile_reader(buffer);

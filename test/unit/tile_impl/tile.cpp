@@ -207,9 +207,12 @@ TEST_CASE("Vector tile base class")
     {
         mapnik::vector_tile_impl::tile tile(global_extent);
 
+        mapnik::vector_tile_impl::tile_layer layer;
+        layer.name("valid");
         // Create layer builder and add feature
-        mapnik::vector_tile_impl::layer_builder builder("valid", 4096);
-        std::unique_ptr<vector_tile::Tile_Feature> vt_feature(new vector_tile::Tile_Feature());
+        mapnik::vector_tile_impl::layer_builder_pbf builder("valid", 4096, layer.get_data());
+        std::string feature_str;
+        protozero::pbf_writer feature_writer(feature_str);
 
         // Get geojson file string
         mapnik::util::file input("./test/data/linestrings_and_point.geojson");
@@ -218,12 +221,10 @@ TEST_CASE("Vector tile base class")
         auto mapnik_feature = std::make_shared<mapnik::feature_impl>(context, 0);
         mapnik::json::from_geojson(geojson, *mapnik_feature);
 
-        builder.add_feature(vt_feature, *mapnik_feature);
+        builder.add_feature(feature_str, feature_writer, *mapnik_feature);
 
         // Create layer
-        mapnik::vector_tile_impl::tile_layer layer;
         layer.build(builder);
-        layer.name("valid");
 
         // Check properties of layer
         CHECK(layer.is_empty() == false);

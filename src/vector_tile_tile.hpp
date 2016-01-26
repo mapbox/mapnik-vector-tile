@@ -69,7 +69,8 @@ public:
                 return false;
             }
             layers_.push_back(new_name);
-            buffer_.append(layer.get_data());
+            protozero::pbf_writer tile_writer(buffer_);
+            tile_writer.add_message(Tile_Encoding::LAYERS, layer.get_data());
             auto itr = empty_layers_.find(new_name);
             if (itr != empty_layers_.end())
             {

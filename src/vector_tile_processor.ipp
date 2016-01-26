@@ -160,9 +160,9 @@ inline tile_layer create_geom_layer(mapnik::datasource_ptr ds,
     // target == final map (aka tile) projection, usually epsg:3857
     // source == projection of the data being queried
     mapnik::proj_transform prj_trans(target_proj, source_proj);
-    layer_builder builder(layer_name, layer_extent);
     tile_layer layer;
     layer.name(layer_name);
+    layer_builder_pbf builder(layer_name, layer_extent, layer.get_data());
 
     // query for the features
     mapnik::featureset_ptr features = ds->features(q);
@@ -179,7 +179,7 @@ inline tile_layer create_geom_layer(mapnik::datasource_ptr ds,
         return layer;
     }
     
-    using encoding_process = mapnik::vector_tile_impl::geometry_to_feature_visitor;
+    using encoding_process = mapnik::vector_tile_impl::geometry_to_feature_pbf_visitor;
     using clipping_process = mapnik::vector_tile_impl::geometry_clipper<encoding_process>;
     if (simplify_distance > 0)
     {
@@ -337,9 +337,9 @@ inline tile_layer create_raster_layer(mapnik::datasource_ptr ds,
     // target == final map (aka tile) projection, usually epsg:3857
     // source == projection of the data being queried
     mapnik::proj_transform prj_trans(target_proj, source_proj);
-    layer_builder builder(layer_name, layer_extent);
     tile_layer layer;
     layer.name(layer_name);
+    layer_builder_pbf builder(layer_name, layer_extent, layer.get_data());
 
     // query for the features
     mapnik::featureset_ptr features = ds->features(q);
