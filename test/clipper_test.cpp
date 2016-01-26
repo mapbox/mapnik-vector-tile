@@ -120,8 +120,12 @@ TEST_CASE("vector_tile_strategy2 -- invalid mercator coord in interior ring")
                                    std::numeric_limits<double>::min(),
                                    std::numeric_limits<double>::max(),
                                    std::numeric_limits<double>::max());
-    mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj> skipping_transformer(vs, clip_extent);
-    mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(skipping_transformer,geom);
+    mapnik::vector_tile_impl::geom_out_visitor<int64_t> out_geom;
+    mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj,
+                                                mapnik::vector_tile_impl::geom_out_visitor<int64_t> > 
+                                           skipping_transformer(vs, clip_extent, out_geom);
+    mapnik::util::apply_visitor(skipping_transformer,geom);
+    mapnik::geometry::geometry<std::int64_t> new_geom = out_geom.geom;
     REQUIRE( new_geom.is<mapnik::geometry::polygon<std::int64_t>>() );
     auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);
     for (auto const& pt : poly.exterior_ring)

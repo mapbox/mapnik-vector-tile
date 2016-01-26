@@ -11,7 +11,6 @@
 
 // mapnik-vector-tile
 #include "vector_tile_config.hpp"
-#include "vector_tile_geometry_clipper.hpp"
 #include "vector_tile_tile.hpp"
 #include "vector_tile_merc_tile.hpp"
 
@@ -20,6 +19,14 @@ namespace mapnik
 
 namespace vector_tile_impl
 {
+
+enum polygon_fill_type : std::uint8_t {
+    even_odd_fill = 0, 
+    non_zero_fill, 
+    positive_fill, 
+    negative_fill,
+    polygon_fill_type_max
+};
 
 /*
   This processor combines concepts from mapnik's

@@ -94,23 +94,48 @@ struct vector_tile_strategy_proj
     view_transform const& tr_;
 };
 
-// TODO - avoid creating degenerate polygons when first/last point of ring is skipped
-template <typename TransformType>
-struct transform_visitor {
+template <typename T>
+struct geom_out_visitor
+{
+    mapnik::geometry::geometry<T> geom;
 
-    transform_visitor(TransformType const& tr, box2d<double> const& target_clipping_extent) :
+    template <typename T1>
+    void operator() (T1 const& g)
+    {
+        geom = mapnik::geometry::geometry<T>(g);
+    }
+};
+
+// TODO - avoid creating degenerate polygons when first/last point of ring is skipped
+template <typename TransformType, typename NextProcessor>
+struct transform_visitor
+{
+    TransformType const& tr_;
+    NextProcessor & next_;
+    box2d<double> const& target_clipping_extent_;
+
+    transform_visitor(TransformType const& tr, 
+                      box2d<double> const& target_clipping_extent,
+                      NextProcessor & next) :
       tr_(tr),
+      next_(next),
       target_clipping_extent_(target_clipping_extent) {}
 
-    inline mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::point<double> const& geom)
+    inline void operator() (mapnik::geometry::point<double> const& geom)
     {
-        if (!target_clipping_extent_.intersects(geom.x,geom.y)) return mapnik::geometry::geometry_empty(); 
+        if (!target_clipping_extent_.intersects(geom.x,geom.y))
+        {
+            return;
+        }
         mapnik::geometry::point<std::int64_t> new_geom;
-        if (!tr_.apply(geom,new_geom)) return mapnik::geometry::geometry_empty();
-        return new_geom;
+        if (!tr_.apply(geom,new_geom))
+        {
+            return;
+        }
+        return next_(new_geom);
     }
 
-    inline mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::multi_point<double> const& geom)
+    inline void operator() (mapnik::geometry::multi_point<double> const& geom)
     {
         mapnik::geometry::multi_point<std::int64_t> new_geom;
         new_geom.reserve(geom.size());
@@ -122,16 +147,19 @@ struct transform_visitor {
                 new_geom.push_back(std::move(pt2));
             }
         }
-        if (new_geom.empty()) return mapnik::geometry::geometry_empty();
-        return new_geom;
+        if (new_geom.empty())
+        {
+            return;
+        }
+        return next_(new_geom);
     }
 
-    inline mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::line_string<double> const& geom)
+    inline void operator() (mapnik::geometry::line_string<double> const& geom)
     {
         mapnik::box2d<double> geom_bbox = mapnik::geometry::envelope(geom);
         if (!target_clipping_extent_.intersects(geom_bbox)) 
         {
-            return mapnik::geometry::geometry_empty();
+            return;
         }
         mapnik::geometry::line_string<std::int64_t> new_geom;
         new_geom.reserve(geom.size());
@@ -143,10 +171,10 @@ struct transform_visitor {
                 new_geom.push_back(std::move(pt2));
             }
         }
-        return new_geom;
+        return next_(new_geom);
     }
 
-    inline mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::multi_line_string<double> const& geom)
+    inline void operator() (mapnik::geometry::multi_line_string<double> const& geom)
     {
         mapnik::geometry::multi_line_string<std::int64_t> new_geom;
         new_geom.reserve(geom.size());
@@ -166,16 +194,19 @@ struct transform_visitor {
             }
             new_geom.push_back(std::move(new_line));
         }
-        if (new_geom.empty()) return mapnik::geometry::geometry_empty();
-        return new_geom;
+        if (new_geom.empty())
+        {
+            return;
+        }
+        return next_(new_geom);
     }
 
-    inline mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::polygon<double> const& geom)
+    inline void operator() (mapnik::geometry::polygon<double> const& geom)
     {
         mapnik::box2d<double> ext_bbox = mapnik::geometry::envelope(geom);
         if (!target_clipping_extent_.intersects(ext_bbox))
         {
-            return mapnik::geometry::geometry_empty();
+            return;
         }
         mapnik::geometry::polygon<std::int64_t> new_geom;
         new_geom.exterior_ring.reserve(geom.exterior_ring.size());
@@ -206,10 +237,10 @@ struct transform_visitor {
             }
             new_geom.interior_rings.push_back(std::move(new_ring));
         }
-        return new_geom;
+        return next_(new_geom);
     }
 
-    inline mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::multi_polygon<double> const& geom)
+    inline void operator() (mapnik::geometry::multi_polygon<double> const& geom)
     {
         mapnik::geometry::multi_polygon<std::int64_t> new_geom;
         new_geom.reserve(geom.size());
@@ -251,27 +282,25 @@ struct transform_visitor {
             }
             new_geom.push_back(std::move(new_poly));
         }
-        if (new_geom.empty()) return mapnik::geometry::geometry_empty();
-        return new_geom;
+        if (new_geom.empty())
+        {
+            return;
+        }
+        return next_(new_geom);
     }
 
-    inline mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::geometry_collection<double> const& geom)
+    inline void operator() (mapnik::geometry::geometry_collection<double> const& geom)
     {
-        mapnik::geometry::geometry_collection<std::int64_t> new_geom;
-        new_geom.reserve(geom.size());
         for (auto const& g : geom)
         {
-            new_geom.push_back(mapnik::util::apply_visitor((*this), g));
+            mapnik::util::apply_visitor((*this), g);
         }
-        return new_geom;
      }
 
-    inline mapnik::geometry::geometry<std::int64_t> operator() (mapnik::geometry::geometry_empty const& geom)
+    inline void operator() (mapnik::geometry::geometry_empty const&)
     {
-        return geom;
+        return;
     }
-    TransformType const& tr_;
-    box2d<double> const& target_clipping_extent_;
 };
 
 }
