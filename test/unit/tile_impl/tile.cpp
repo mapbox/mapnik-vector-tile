@@ -190,14 +190,13 @@ TEST_CASE("Vector tile base class")
         CHECK(parsed_layer.version() == 2);
         CHECK(parsed_layer.name() == "valid");
     }
-
+/*
     SECTION("Add valid empty layer with tile_layer")
     {
         mapnik::vector_tile_impl::tile tile(global_extent);
 
         // Create layer
         mapnik::vector_tile_impl::tile_layer layer;
-        layer.name("empty");
         mapnik::vector_tile_impl::layer_builder_pbf builder("empty", 4096, layer.get_data());
         layer.build(builder);
 
@@ -334,7 +333,7 @@ TEST_CASE("Vector tile base class")
         bool status2 = tile.add_layer(layer);
         CHECK(status2 == false);
     }
-
+*/
     SECTION("layer_reader by name works by name in buffer")
     {
         // Note - if the names of the layer are different
