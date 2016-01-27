@@ -241,7 +241,7 @@ struct geometry_encoder_visitor
 };
 
 
-MAPNIK_VECTOR_INLINE bool encode_geometry(mapnik::geometry::geometry<std::int64_t> const& geom,
+inline bool encode_geometry(mapnik::geometry::geometry<std::int64_t> const& geom,
                                         vector_tile::Tile_Feature & current_feature,
                                         int32_t & start_x,
                                         int32_t & start_y)
