@@ -210,6 +210,46 @@ inline bool encode_geometry(mapnik::geometry::multi_polygon<std::int64_t> const&
     return success;
 }
 
+struct geometry_encoder_visitor
+{
+    vector_tile::Tile_Feature & feature_;
+    int32_t & x_;
+    int32_t & y_;
+
+    geometry_encoder_visitor(vector_tile::Tile_Feature & feature,
+                    int32_t & x,
+                    int32_t & y) 
+            : feature_(feature),
+              x_(x),
+              y_(y) {}
+
+    bool operator() (mapnik::geometry::geometry_empty const&)
+    {
+        return false;
+    }
+
+    bool operator() (mapnik::geometry::geometry_collection<std::int64_t> const&)
+    {
+        throw std::runtime_error("Geometry collections can not be encoded as they may contain different geometry types");
+    }
+
+    template <typename T>
+    bool operator() (T const& geom)
+    {
+        return encode_geometry(geom, feature_, x_, y_);
+    }
+};
+
+
+inline bool encode_geometry(mapnik::geometry::geometry<std::int64_t> const& geom,
+                                        vector_tile::Tile_Feature & current_feature,
+                                        int32_t & start_x,
+                                        int32_t & start_y)
+{
+    geometry_encoder_visitor ap(current_feature, start_x, start_y);
+    return mapnik::util::apply_visitor(ap, geom);
+}
+
 }} // end ns
 
 #endif // __MAPNIK_VECTOR_TILE_GEOMETRY_ENCODER_H__
