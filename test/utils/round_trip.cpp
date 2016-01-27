@@ -13,6 +13,13 @@
 // std
 #include <exception>
 
+// libprotobuf
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#include "vector_tile.pb.h"
+#pragma GCC diagnostic pop
+
 namespace test_utils
 {
 
@@ -47,25 +54,36 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     ren.set_fill_type(fill_type);
     ren.set_multi_polygon_union(mpu);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(bbox, tile_size);
-    vector_tile::Tile tile = out_tile.get_tile();
     
-    if (tile.layers_size() != 1)
+    if (out_tile.get_layers().size() != 1)
     {
         std::stringstream s;
-        s << "expected 1 layer in `round_trip` found " << tile.layers_size();
+        s << "expected 1 layer in `round_trip` found " << out_tile.get_layers().size();
         throw std::runtime_error(s.str());
     }
-    vector_tile::Tile_Layer const& layer = tile.layers(0);
-    if (layer.features_size() != 1)
-    {
-        std::stringstream s;
-        s << "expected 1 feature in `round_trip` found " << layer.features_size();
-        throw std::runtime_error(s.str());
-    }
-    vector_tile::Tile_Feature const& f = layer.features(0);
 
-    mapnik::vector_tile_impl::Geometry<double> geoms(f, 0, 0, 1000, -1000);
-    return mapnik::vector_tile_impl::decode_geometry(geoms, f.type(), 2);
+    protozero::pbf_reader layer_reader;
+    out_tile.layer_reader(0, layer_reader);
+    if (!layer_reader.next(mapnik::vector_tile_impl::Layer_Encoding::FEATURES))
+    {
+        throw std::runtime_error("Expected at least one feature in layer");
+    }
+    protozero::pbf_reader feature_reader = layer_reader.get_message();
+    int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN; 
+    std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
+    while (feature_reader.next())
+    {
+        if (feature_reader.tag() == mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY)
+        {
+            geom_itr = feature_reader.get_packed_uint32();
+        }
+        else if (feature_reader.tag() == mapnik::vector_tile_impl::Feature_Encoding::TYPE)
+        {
+            geometry_type = feature_reader.get_enum();
+        }
+    }
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, 0, 0, 1000, -1000);
+    return mapnik::vector_tile_impl::decode_geometry(geoms, geometry_type, 2);
 }
 
 } // end ns

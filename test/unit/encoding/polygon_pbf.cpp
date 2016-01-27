@@ -1,10 +1,13 @@
 #include "catch.hpp"
 
 // mapnik vector tile
-#include "vector_tile_geometry_encoder.hpp"
+#include "vector_tile_geometry_encoder_pbf.hpp"
 
 // mapnik
 #include <mapnik/geometry.hpp>
+
+// protozero
+#include <protozero/pbf_writer.hpp>
 
 // libprotobuf
 #pragma GCC diagnostic push
@@ -14,10 +17,10 @@
 #pragma GCC diagnostic pop
 
 //
-// Unit tests for geometry encoding of polygons
+// Unit tests for geometry encoding pbf of polygons
 //
 
-TEST_CASE("encoding simple polygon")
+TEST_CASE("encoding pbf simple polygon")
 {
     mapnik::geometry::polygon<std::int64_t> p0;
     p0.exterior_ring.add_coord(0,0);
@@ -28,8 +31,11 @@ TEST_CASE("encoding simple polygon")
     
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(p0, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(p0, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
     
     // MoveTo, ParameterInteger, ParameterInteger
@@ -55,7 +61,7 @@ TEST_CASE("encoding simple polygon")
     CHECK(feature.geometry(10) == 15);
 }
 
-TEST_CASE("encoding simple polygon -- geometry")
+TEST_CASE("encoding pbf simple polygon -- geometry")
 {
     mapnik::geometry::polygon<std::int64_t> p0;
     p0.exterior_ring.add_coord(0,0);
@@ -67,8 +73,11 @@ TEST_CASE("encoding simple polygon -- geometry")
     
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(geom, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(geom, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
     
     // MoveTo, ParameterInteger, ParameterInteger
@@ -94,7 +103,7 @@ TEST_CASE("encoding simple polygon -- geometry")
     CHECK(feature.geometry(10) == 15);
 }
 
-TEST_CASE("encoding simple polygon with hole")
+TEST_CASE("encoding pbf simple polygon with hole")
 {
     mapnik::geometry::polygon<std::int64_t> p0;
     p0.exterior_ring.add_coord(0,0);
@@ -112,8 +121,11 @@ TEST_CASE("encoding simple polygon with hole")
 
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(p0, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(p0, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
     
     // MoveTo, ParameterInteger, ParameterInteger
@@ -160,18 +172,21 @@ TEST_CASE("encoding simple polygon with hole")
     CHECK(feature.geometry(21) == 15);
 }
 
-TEST_CASE("encoding empty polygon")
+TEST_CASE("encoding pbf empty polygon")
 {
     mapnik::geometry::polygon<std::int64_t> p;
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry(p, feature, x, y));
-    REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
+    REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry_pbf(p, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
+    REQUIRE(!feature.has_type());
     REQUIRE(feature.geometry_size() == 0);
 }
 
-TEST_CASE("encoding multi polygons with holes")
+TEST_CASE("encoding pbf multi polygons with holes")
 {
     mapnik::geometry::multi_polygon<std::int64_t> mp;
     {
@@ -210,8 +225,11 @@ TEST_CASE("encoding multi polygons with holes")
 
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(mp, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(mp, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
     
     // MoveTo, ParameterInteger, ParameterInteger
@@ -300,7 +318,7 @@ TEST_CASE("encoding multi polygons with holes")
     CHECK(feature.geometry(43) == 15);
 }
 
-TEST_CASE("encoding multi polygons with holes -- geometry type")
+TEST_CASE("encoding pbf multi polygons with holes -- geometry type")
 {
     mapnik::geometry::multi_polygon<std::int64_t> mp;
     {
@@ -340,8 +358,11 @@ TEST_CASE("encoding multi polygons with holes -- geometry type")
 
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(geom, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(geom, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
     
     // MoveTo, ParameterInteger, ParameterInteger
@@ -430,18 +451,21 @@ TEST_CASE("encoding multi polygons with holes -- geometry type")
     CHECK(feature.geometry(43) == 15);
 }
 
-TEST_CASE("encoding empty multi polygon")
+TEST_CASE("encoding pbf empty multi polygon")
 {
     mapnik::geometry::multi_polygon<std::int64_t> mp;
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry(mp, feature, x, y));
-    REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
+    REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry_pbf(mp, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
+    REQUIRE(!feature.has_type());
     REQUIRE(feature.geometry_size() == 0);
 }
 
-TEST_CASE("encoding polygon with degenerate exterior ring full of repeated points")
+TEST_CASE("encoding pbf polygon with degenerate exterior ring full of repeated points")
 {
     mapnik::geometry::polygon<std::int64_t> p0;
     // invalid exterior ring
@@ -456,13 +480,16 @@ TEST_CASE("encoding polygon with degenerate exterior ring full of repeated point
 
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry(p0, feature, x, y));
-    REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
+    REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry_pbf(p0, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
+    REQUIRE(!feature.has_type());
     CHECK(feature.geometry_size() == 0);
 }
 
-TEST_CASE("encoding polygon with degenerate exterior ring")
+TEST_CASE("encoding pbf polygon with degenerate exterior ring")
 {
     mapnik::geometry::polygon<std::int64_t> p0;
     // invalid exterior ring
@@ -471,13 +498,16 @@ TEST_CASE("encoding polygon with degenerate exterior ring")
 
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry(p0, feature, x, y));
-    REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
+    REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry_pbf(p0, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
+    REQUIRE(!feature.has_type());
     CHECK(feature.geometry_size() == 0);
 }
 
-TEST_CASE("encoding polygon with degenerate exterior ring and interior ring")
+TEST_CASE("encoding pbf polygon with degenerate exterior ring and interior ring")
 {
     mapnik::geometry::polygon<std::int64_t> p0;
     // invalid exterior ring
@@ -496,13 +526,16 @@ TEST_CASE("encoding polygon with degenerate exterior ring and interior ring")
     // the entire polygon to be culled.
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry(p0, feature, x, y));
-    REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
+    REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry_pbf(p0, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
+    REQUIRE(!feature.has_type());
     CHECK(feature.geometry_size() == 0);
 }
 
-TEST_CASE("encoding polygon with valid exterior ring but degenerate interior ring")
+TEST_CASE("encoding pbf polygon with valid exterior ring but degenerate interior ring")
 {
     mapnik::geometry::polygon<std::int64_t> p0;
     p0.exterior_ring.add_coord(0,0);
@@ -518,8 +551,11 @@ TEST_CASE("encoding polygon with valid exterior ring but degenerate interior rin
 
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(p0, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(p0, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
     
     // MoveTo, ParameterInteger, ParameterInteger

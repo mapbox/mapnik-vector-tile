@@ -14,16 +14,6 @@ TEST_CASE("encode and decode point")
     "move_to(0,0)\n"
     );
 
-    SECTION("libprotobuf decoder VT Spec v1") 
-    {
-        CHECK(compare(g,1) == expected);
-    }
-
-    SECTION("libprotobuf decoder VT Spec v2") 
-    {
-        CHECK(compare(g,2) == expected);
-    }
-    
     SECTION("protozero decoder VT Spec v1") 
     {
         CHECK(compare_pbf(g,1) == expected);
@@ -46,16 +36,6 @@ TEST_CASE( "encode and decode multipoint" )
     "move_to(1,1)\n"
     "move_to(2,2)\n"
     );
-    
-    SECTION("libprotobuf decoder VT Spec v1") 
-    {
-        CHECK(compare(g,1) == expected);
-    }
-
-    SECTION("libprotobuf decoder VT Spec v2") 
-    {
-        CHECK(compare(g,2) == expected);
-    }
     
     SECTION("protozero decoder VT Spec v1") 
     {
@@ -84,16 +64,6 @@ TEST_CASE( "encode and decode linestring" )
     "line_to(100,100)\n"
     );
 
-    SECTION("libprotobuf decoder VT Spec v1") 
-    {
-        CHECK(compare(g,1) == expected);
-    }
-
-    SECTION("libprotobuf decoder VT Spec v2") 
-    {
-        CHECK(compare(g,2) == expected);
-    }
-    
     SECTION("protozero decoder VT Spec v1") 
     {
         CHECK(compare_pbf(g,1) == expected);
@@ -131,16 +101,6 @@ TEST_CASE( "encode and decode multi_line_string" )
     "line_to(-100,-100)\n"
     );
 
-    SECTION("libprotobuf decoder VT Spec v1") 
-    {
-        CHECK(compare(g,1) == expected);
-    }
-
-    SECTION("libprotobuf decoder VT Spec v2") 
-    {
-        CHECK(compare(g,2) == expected);
-    }
-    
     SECTION("protozero decoder VT Spec v1") 
     {
         CHECK(compare_pbf(g,1) == expected);
@@ -166,16 +126,6 @@ TEST_CASE( "encode and decode polygon" )
     "close_path(0,0)\n"
     );
 
-    SECTION("libprotobuf decoder VT Spec v1") 
-    {
-        CHECK(compare(g,1) == expected);
-    }
-
-    SECTION("libprotobuf decoder VT Spec v2") 
-    {
-        CHECK(compare(g,2) == expected);
-    }
-    
     SECTION("protozero decoder VT Spec v1") 
     {
         CHECK(compare_pbf(g,1) == expected);

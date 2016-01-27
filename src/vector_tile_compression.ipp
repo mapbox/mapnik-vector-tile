@@ -31,8 +31,9 @@ void zlib_decompress(const char * data, std::size_t size, std::string & output)
         int ret = inflate(&inflate_s, Z_FINISH);
         if (ret != Z_STREAM_END && ret != Z_OK && ret != Z_BUF_ERROR)
         {
+            std::string error_msg = inflate_s.msg;
             inflateEnd(&inflate_s);
-            throw std::runtime_error(inflate_s.msg);
+            throw std::runtime_error(error_msg);
         }
 
         length += (2 * size - inflate_s.avail_out);
@@ -61,7 +62,6 @@ void zlib_compress(const char * data, std::size_t size, std::string & output, bo
     }
     if (deflateInit2(&deflate_s, level, Z_DEFLATED, windowsBits, 8, strategy) != Z_OK)
     {
-        deflateEnd(&deflate_s);
         throw std::runtime_error("deflate init failed");
     }
     deflate_s.next_in = (Bytef *)data;

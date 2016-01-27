@@ -15,14 +15,21 @@
 #include "vector_tile_strategy.hpp"
 #include "vector_tile_projection.hpp"
 #include "vector_tile_geometry_decoder.hpp"
-#include "vector_tile_datasource.hpp"
 #include "vector_tile_datasource_pbf.hpp"
 #include "protozero/pbf_reader.hpp"
 
 // boost
 #include <boost/optional/optional_io.hpp>
 
+// std
 #include <fstream>
+
+// libprotobuf
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#include "vector_tile.pb.h"
+#pragma GCC diagnostic pop
 
 TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
 {
@@ -51,10 +58,13 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
         CHECK(1 == layer2.version());
         CHECK(23 == layer2.features_size());
 
+        protozero::pbf_reader tile_reader(uncompressed);
+        REQUIRE(tile_reader.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS));
+        protozero::pbf_reader layer_reader = tile_reader.get_message();
         mapnik::layer lyr2("water",map.srs());
-        std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
-                                        mapnik::vector_tile_impl::tile_datasource>(
-                                            layer2,0,0,0);
+        std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
+                                        mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                            layer_reader,0,0,0);
         ds->set_envelope(bbox);
         CHECK( ds->type() == mapnik::datasource::Vector );
         CHECK( ds->get_geometry_type() == mapnik::datasource_geometry_t::Collection );
@@ -130,9 +140,12 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
         CHECK(2 == layer2.version());
 
         mapnik::layer lyr2("water",map.srs());
-        std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
-                                        mapnik::vector_tile_impl::tile_datasource>(
-                                            layer2,0,0,0);
+        protozero::pbf_reader tile_reader(buffer2);
+        REQUIRE(tile_reader.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS));
+        protozero::pbf_reader layer_reader = tile_reader.get_message();
+        std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
+                                        mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                            layer_reader,0,0,0);
         ds->set_envelope(bbox);
         CHECK( ds->type() == mapnik::datasource::Vector );
         CHECK( ds->get_geometry_type() == mapnik::datasource_geometry_t::Collection );

@@ -6,8 +6,8 @@
 #include <mapnik/geometry_transform.hpp>
 
 // mapnik-vector-tile
-#include "vector_tile_geometry_encoder.hpp"
-#include "vector_tile_datasource.hpp"
+#include "vector_tile_geometry_encoder_pbf.hpp"
+#include "vector_tile_datasource_pbf.hpp"
 
 // vector tile
 #pragma GCC diagnostic push
@@ -34,10 +34,16 @@ TEST_CASE("encoding multi line string and check output datasource")
     
     vector_tile::Tile tile;
     vector_tile::Tile_Layer * t_layer = tile.add_layers();
+    t_layer->set_name("layer");
+    t_layer->set_version(2);
+    t_layer->set_extent(4096);
     vector_tile::Tile_Feature * t_feature = t_layer->add_features();
     std::int32_t x = 0;
     std::int32_t y = 0;
-    CHECK(mapnik::vector_tile_impl::encode_geometry(geom, *t_feature, x, y));
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
+    CHECK(mapnik::vector_tile_impl::encode_geometry_pbf(geom, feature_writer, x, y));
+    t_feature->ParseFromString(feature_str);
 
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
@@ -60,7 +66,12 @@ TEST_CASE("encoding multi line string and check output datasource")
     mapnik::featureset_ptr fs;
     mapnik::feature_ptr f_ptr;
 
-    mapnik::vector_tile_impl::tile_datasource ds(layer,0,0,0);
+    std::string buffer;
+    tile.SerializeToString(&buffer);
+    protozero::pbf_reader pbf_tile(buffer);
+    pbf_tile.next();
+    protozero::pbf_reader layer2 = pbf_tile.get_message();
+    mapnik::vector_tile_impl::tile_datasource_pbf ds(layer2,0,0,0);
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     fs = ds.features(mapnik::query(bbox));
     f_ptr = fs->next();
@@ -94,7 +105,10 @@ TEST_CASE("encoding and decoding with datasource simple polygon")
     vector_tile::Tile_Feature * t_feature = t_layer->add_features();
     std::int32_t x = 0;
     std::int32_t y = 0;
-    CHECK(mapnik::vector_tile_impl::encode_geometry(geom2, *t_feature, x, y));
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
+    CHECK(mapnik::vector_tile_impl::encode_geometry_pbf(geom2, feature_writer, x, y));
+    t_feature->ParseFromString(feature_str);
     
     // test results
     REQUIRE(1 == tile.layers_size());

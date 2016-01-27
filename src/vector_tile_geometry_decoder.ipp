@@ -1,10 +1,3 @@
-//libprotobuf
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#include "vector_tile.pb.h"
-#pragma GCC diagnostic pop
-
 //protozero
 #include <protozero/pbf_reader.hpp>
 
@@ -620,214 +613,6 @@ void decode_polygons(mapnik::geometry::geometry<T1> & geom,
 } // end ns detail
 
 template <typename T>
-Geometry<T>::Geometry(vector_tile::Tile_Feature const& f,
-                      value_type tile_x, 
-                      value_type tile_y,
-                      double scale_x, 
-                      double scale_y)
-    : f_(f),
-      scale_x_(scale_x),
-      scale_y_(scale_y),
-      k(0),
-      geoms_(f_.geometry_size()),
-      x(tile_x), 
-      y(tile_y),
-      ox(0), 
-      oy(0),
-      length(0),
-      cmd(move_to)
-{
-    #if defined(DEBUG)
-    already_had_error = false;
-    #endif
-}
-
-template <typename T>
-typename Geometry<T>::command Geometry<T>::point_next(value_type & rx, value_type & ry)
-{
-    if (length == 0)
-    {
-        if (k < geoms_)
-        {
-            uint32_t cmd_length = static_cast<uint32_t>(f_.geometry(k++));
-            cmd = cmd_length & 0x7;
-            length = cmd_length >> 3;
-            if (cmd == move_to)
-            {
-                if (length == 0 || k + (length * 2) > geoms_)
-                {
-                    throw std::runtime_error("Vector Tile has geometry with MOVETO command that is not followed by a proper number of parameters");
-                }
-            }
-            else
-            {
-                if (cmd == line_to)
-                {
-                    throw std::runtime_error("Vector Tile has POINT type geometry with a LINETO command.");
-                }
-                else if (cmd == close)
-                {
-                    throw std::runtime_error("Vector Tile has POINT type geometry with a CLOSE command.");
-                }
-                else
-                {
-                    throw std::runtime_error("Vector Tile has POINT type geometry with an unknown command.");
-                }
-            }
-        }
-        else
-        {
-            return end;
-        }
-    }
-
-    --length;
-    int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
-    int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
-    detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
-    rx = x;
-    ry = y;
-    return move_to;
-}
-
-template <typename T>
-typename Geometry<T>::command Geometry<T>::line_next(value_type & rx, 
-                                                     value_type & ry, 
-                                                     bool skip_lineto_zero)
-{
-    if (length == 0)
-    {
-        if (k < geoms_)
-        {
-            uint32_t cmd_length = static_cast<uint32_t>(f_.geometry(k++));
-            cmd = cmd_length & 0x7;
-            length = cmd_length >> 3;
-
-            if (cmd == move_to)
-            {
-                if (length != 1 || k + 2 > geoms_)
-                {
-                    throw std::runtime_error("Vector Tile has LINESTRING with a MOVETO command that is given more then one pair of parameters or not enough parameters are provided");
-                }
-                --length;
-                int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
-                int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
-                detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
-                rx = x;
-                ry = y;
-                return move_to;
-            }
-            else if (cmd == line_to)
-            {
-                if (length == 0 || k + (length * 2) > geoms_)
-                {
-                    throw std::runtime_error("Vector Tile has geometry with LINETO command that is not followed by a proper number of parameters");
-                }
-            }
-            else
-            {
-                if (cmd == close)
-                {
-                    throw std::runtime_error("Vector Tile has LINESTRING type geometry with a CLOSE command.");
-                }
-                else
-                {
-                    throw std::runtime_error("Vector Tile has LINESTRING type geometry with an unknown command.");
-                }
-            }
-        }
-        else
-        {
-            return end;
-        }
-    }
-
-    --length;
-    int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
-    int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
-    if (skip_lineto_zero && dx == 0 && dy == 0)
-    {
-        // We are going to skip this vertex as the point doesn't move call line_next again
-        return line_next(rx,ry,true);
-    }
-    detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
-    rx = x;
-    ry = y;
-    return line_to;
-}
-
-template <typename T>
-typename Geometry<T>::command Geometry<T>::ring_next(value_type & rx, 
-                                                     value_type & ry, 
-                                                     bool skip_lineto_zero)
-{
-    if (length == 0)
-    {
-        if (k < geoms_)
-        {
-            uint32_t cmd_length = static_cast<uint32_t>(f_.geometry(k++));
-            cmd = cmd_length & 0x7;
-            length = cmd_length >> 3;
-
-            if (cmd == move_to)
-            {
-                if (length != 1 || k + 2 > geoms_)
-                {
-                    throw std::runtime_error("Vector Tile has POLYGON with a MOVETO command that is given more then one pair of parameters or not enough parameters are provided");
-                }
-                --length;
-                int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
-                int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
-                detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
-                rx = x;
-                ry = y;
-                ox = x;
-                oy = y;
-                return move_to;
-            }
-            else if (cmd == line_to)
-            {
-                if (length == 0 || k + (length * 2) > geoms_)
-                {
-                    throw std::runtime_error("Vector Tile has geometry with LINETO command that is not followed by a proper number of parameters");
-                }
-            }
-            else if (cmd == close)
-            {
-                // Just set length in case a close command provides an invalid number here.
-                // While we could throw because V2 of the spec declares it incorrect, this is not
-                // difficult to fix and has no effect on the results.
-                length = 0;
-                rx = ox;
-                ry = oy;
-                return close;
-            }
-            else
-            {
-                throw std::runtime_error("Vector Tile has POLGYON type geometry with an unknown command.");
-            }
-        }
-        else
-        {
-            return end;
-        }
-    }
-
-    --length;
-    int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
-    int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(f_.geometry(k++)));
-    if (skip_lineto_zero && dx == 0 && dy == 0)
-    {
-        // We are going to skip this vertex as the point doesn't move call ring_next again
-        return ring_next(rx, ry, true);
-    }
-    detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
-    rx = x;
-    ry = y;
-    return line_to;
-}
-
-template <typename T>
 GeometryPBF<T>::GeometryPBF(pbf_itr const& geo_iterator,
                             value_type tile_x, 
                             value_type tile_y,
@@ -1066,17 +851,17 @@ MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_g
     mapnik::geometry::geometry<value_type> geom; // output geometry
     switch (geom_type)
     {
-    case vector_tile::Tile_GeomType_POINT:
+    case Geometry_Type::POINT:
     {
         detail::decode_point<T>(geom, paths, bbox);
         break;
     }
-    case vector_tile::Tile_GeomType_LINESTRING:
+    case Geometry_Type::LINESTRING:
     {
         detail::decode_linestring<T>(geom, paths, bbox, version);
         break;
     }
-    case vector_tile::Tile_GeomType_POLYGON:
+    case Geometry_Type::POLYGON:
     {
         std::vector<mapnik::geometry::linear_ring<value_type> > rings;
         detail::read_rings<T>(rings, paths, bbox, version);
@@ -1090,7 +875,7 @@ MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_g
         }
         break;
     }
-    case vector_tile::Tile_GeomType_UNKNOWN:
+    case Geometry_Type::UNKNOWN:
     default:
     {
         // This was changed to not throw as unknown according to v2 of spec can simply be ignored and doesn't require

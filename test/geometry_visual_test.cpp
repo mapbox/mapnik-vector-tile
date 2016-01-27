@@ -9,29 +9,23 @@
 // mapnik
 #include <mapnik/geometry_is_simple.hpp>
 #include <mapnik/geometry_is_valid.hpp>
-#include <mapnik/geometry_strategy.hpp>
-#include <mapnik/geometry_transform.hpp>
 #include <mapnik/json/geometry_parser.hpp>
 #include <mapnik/save_map.hpp>
 #include <mapnik/util/file_io.hpp>
 #include <mapnik/util/fs.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
-#include <mapnik/view_strategy.hpp>
 
 // boost
 #include <boost/filesystem/operations.hpp>
 
 // test utils
-#include "encoding_util.hpp"
 #include "test_utils.hpp"
 #include "geometry_equal.hpp"
 
 // std
 #include <cmath>
-#include <iostream>
 #include <fstream>
 #include <sstream>
-//#include <functional>
 
 // protozero
 #include <protozero/pbf_reader.hpp>
@@ -58,72 +52,57 @@ void clip_geometry(mapnik::Map const& map,
     ren.set_multi_polygon_union(mpu);
     
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(bbox, tile_size, buffer_size);
-    vector_tile::Tile tile = out_tile.get_tile();
-    mapnik::geometry::geometry<double> geom4326;
     mapnik::geometry::geometry<double> geom4326_pbf;
     
     std::string buffer;
     out_tile.serialize_to_string(buffer);
-    std::string buffer2 = tile.SerializePartialAsString();
-    CHECK(buffer2 == buffer);
-    if (!buffer.empty() && tile.layers_size() > 0)
+    if (!buffer.empty())
     {
         protozero::pbf_reader tile_reader(buffer);
-        if(!tile_reader.next(3))
+        if(!tile_reader.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
         {
             throw std::runtime_error("tile buffer contains no layer!");
         }
         protozero::pbf_reader layer_reader = tile_reader.get_message();
-        vector_tile::Tile_Layer const& layer = tile.layers(0);
-        if (layer.features_size() > 0)
+        if (layer_reader.next(mapnik::vector_tile_impl::Layer_Encoding::FEATURES))
         {
-            if (!layer_reader.next(2))
-            {
-                throw std::runtime_error("layer buffer contains no features!");
-            }
             protozero::pbf_reader feature_reader = layer_reader.get_message();
-            int32_t geometry_type = 0; // vector_tile::Tile_GeomType_UNKNOWN
+            int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN; 
             std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
             while (feature_reader.next())
             {
-                if (feature_reader.tag() == 4)
+                if (feature_reader.tag() == mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY)
                 {
                     geom_itr = feature_reader.get_packed_uint32();
                 }
-                else if (feature_reader.tag() == 3)
+                else if (feature_reader.tag() == mapnik::vector_tile_impl::Feature_Encoding::TYPE)
                 {
                     geometry_type = feature_reader.get_enum();
                 }
             }
-            vector_tile::Tile_Feature const& f = layer.features(0);
             double sx = static_cast<double>(tile_size) / bbox.width();
             double sy = static_cast<double>(tile_size) / bbox.height();
             double i_x = bbox.minx();
             double i_y = bbox.maxy();
-            mapnik::vector_tile_impl::Geometry<double> geoms(f, i_x, i_y, 1.0 * sx, -1.0 * sy);
-            geom4326 = mapnik::vector_tile_impl::decode_geometry(geoms, f.type(), 2);
-            //mapnik::vector_tile_impl::Geometry<double> geoms2(f, 0.0, 0.0, 1.0, 1.0);
-            //geom4326 = std::move(mapnik::vector_tile_impl::decode_geometry(geoms2, f.type(), 2));
             
             mapnik::vector_tile_impl::GeometryPBF<double> geoms2_pbf(geom_itr, i_x, i_y, 1.0 * sx, -1.0 * sy);
             geom4326_pbf = mapnik::vector_tile_impl::decode_geometry(geoms2_pbf, geometry_type, 2);
             //mapnik::vector_tile_impl::GeometryPBF<double> geoms2_pbf(geom_itr, 0.0, 0.0, 1.0, 1.0);
             //geom4326_pbf = std::move(mapnik::vector_tile_impl::decode_geometry(geoms2_pbf, geometry_type, 2));
             
-            assert_g_equal(geom4326, geom4326_pbf);
             std::string reason;
             std::string is_valid = "false";
             std::string is_simple = "false";
-            if (mapnik::geometry::is_valid(geom4326, reason))
+            if (mapnik::geometry::is_valid(geom4326_pbf, reason))
             {
                 is_valid = "true";
             }
-            if (mapnik::geometry::is_simple(geom4326))
+            if (mapnik::geometry::is_simple(geom4326_pbf))
             {
                 is_simple = "true";
             }
             unsigned int n_err = 0;
-            mapnik::util::to_geojson(geojson_string,geom4326);
+            mapnik::util::to_geojson(geojson_string,geom4326_pbf);
 
             geojson_string = geojson_string.substr(0, geojson_string.size()-1);
             geojson_string += ",\"properties\":{\"is_valid\":"+is_valid+", \"is_simple\":"+is_simple+", \"message\":\""+reason+"\"}}";
@@ -178,7 +157,7 @@ void clip_geometry(mapnik::Map const& map,
         CHECK(expected_string == geojson_string);
         if (mapnik::json::from_geojson(expected_string, geom_expected))
         {
-            assert_g_equal(geom_expected, geom4326);
+            assert_g_equal(geom_expected, geom4326_pbf);
         }
     }
 }

@@ -11,7 +11,6 @@
 
 // mapnik-vector-tile
 #include "vector_tile_config.hpp"
-#include "vector_tile_geometry_clipper.hpp"
 #include "vector_tile_tile.hpp"
 #include "vector_tile_merc_tile.hpp"
 

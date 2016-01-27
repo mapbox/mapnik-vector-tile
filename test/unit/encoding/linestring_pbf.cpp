@@ -1,10 +1,13 @@
 #include "catch.hpp"
 
 // mapnik vector tile
-#include "vector_tile_geometry_encoder.hpp"
+#include "vector_tile_geometry_encoder_pbf.hpp"
 
 // mapnik
 #include <mapnik/geometry.hpp>
+
+// protozero
+#include <protozero/pbf_writer.hpp>
 
 // libprotobuf
 #pragma GCC diagnostic push
@@ -20,7 +23,7 @@
 // Unit tests for geometry encoding of linestrings
 //
 
-TEST_CASE("encode simple line_string")
+TEST_CASE("encode pbf simple line_string")
 {
     mapnik::geometry::line_string<std::int64_t> line;
     line.add_coord(10,10);
@@ -29,8 +32,11 @@ TEST_CASE("encode simple line_string")
     
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(line, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(line, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_LINESTRING);
     
     // MoveTo, ParameterInteger, ParameterInteger
@@ -50,7 +56,7 @@ TEST_CASE("encode simple line_string")
     CHECK(feature.geometry(7) == 20);
 }
 
-TEST_CASE("encode simple line_string -- geometry type")
+TEST_CASE("encode pbf simple line_string -- geometry type")
 {
     mapnik::geometry::line_string<std::int64_t> line;
     line.add_coord(10,10);
@@ -60,8 +66,11 @@ TEST_CASE("encode simple line_string -- geometry type")
     
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(geom, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(geom, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_LINESTRING);
     
     // MoveTo, ParameterInteger, ParameterInteger
@@ -81,7 +90,7 @@ TEST_CASE("encode simple line_string -- geometry type")
     CHECK(feature.geometry(7) == 20);
 }
 
-TEST_CASE("encode overlapping line_string")
+TEST_CASE("encode pbf overlapping line_string")
 {
     mapnik::geometry::line_string<std::int64_t> line;
     line.add_coord(10,10);
@@ -90,8 +99,11 @@ TEST_CASE("encode overlapping line_string")
     
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(line, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(line, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_LINESTRING);
     
     // MoveTo, ParameterInteger, ParameterInteger
@@ -111,7 +123,7 @@ TEST_CASE("encode overlapping line_string")
     CHECK(feature.geometry(7) == 19);
 }
 
-TEST_CASE("encode line_string with repeated points")
+TEST_CASE("encode pbf line_string with repeated points")
 {
     mapnik::geometry::line_string<std::int64_t> line;
     line.add_coord(10,10);
@@ -126,8 +138,11 @@ TEST_CASE("encode line_string with repeated points")
     
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(line, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(line, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_LINESTRING);
     
     // All of the repeated points should be removed resulting in the following:
@@ -148,7 +163,7 @@ TEST_CASE("encode line_string with repeated points")
     CHECK(feature.geometry(7) == 20);
 }
 
-TEST_CASE("encode degenerate line_string")
+TEST_CASE("encode pbf degenerate line_string")
 {
     mapnik::geometry::line_string<std::int64_t> line;
     line.add_coord(10,10);
@@ -156,14 +171,17 @@ TEST_CASE("encode degenerate line_string")
     // since the line is degenerate the whole line should be culled during encoding
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry(line, feature, x, y));
-    REQUIRE(feature.type() == vector_tile::Tile_GeomType_LINESTRING);
+    REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry_pbf(line, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
+    REQUIRE(!feature.has_type());
     
     CHECK(feature.geometry_size() == 0);
 }
 
-TEST_CASE("encode degenerate line_string all repeated points")
+TEST_CASE("encode pbf degenerate line_string all repeated points")
 {
     mapnik::geometry::line_string<std::int64_t> line;
     line.add_coord(10,10);
@@ -174,13 +192,16 @@ TEST_CASE("encode degenerate line_string all repeated points")
     // since the line is degenerate the whole line should be culled during encoding
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry(line, feature, x, y));
-    REQUIRE(feature.type() == vector_tile::Tile_GeomType_LINESTRING);
+    REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry_pbf(line, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
+    REQUIRE(!feature.has_type());
     CHECK(feature.geometry_size() == 0);
 }
 
-TEST_CASE("encode incredibly large segments")
+TEST_CASE("encode pbf incredibly large segments")
 {
     // This is a test case added that is known to completely break the logic
     // within the encoder. 
@@ -192,8 +213,11 @@ TEST_CASE("encode incredibly large segments")
 
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(line, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(line, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_LINESTRING);
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
@@ -212,7 +236,7 @@ TEST_CASE("encode incredibly large segments")
     CHECK(feature.geometry(7) == 2);
 }
 
-TEST_CASE("encode simple multi_line_string")
+TEST_CASE("encode pbf simple multi_line_string")
 {
     mapnik::geometry::multi_line_string<std::int64_t> g;
     mapnik::geometry::line_string<std::int64_t> l1;
@@ -227,8 +251,11 @@ TEST_CASE("encode simple multi_line_string")
 
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(g, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(g, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_LINESTRING);
     
     // MoveTo, ParameterInteger, ParameterInteger
@@ -258,7 +285,7 @@ TEST_CASE("encode simple multi_line_string")
     CHECK(feature.geometry(13) == 9);
 }
 
-TEST_CASE("encode simple multi_line_string -- geometry type")
+TEST_CASE("encode pbf simple multi_line_string -- geometry type")
 {
     mapnik::geometry::multi_line_string<std::int64_t> g;
     mapnik::geometry::line_string<std::int64_t> l1;
@@ -274,8 +301,11 @@ TEST_CASE("encode simple multi_line_string -- geometry type")
 
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(geom, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(geom, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_LINESTRING);
     
     // MoveTo, ParameterInteger, ParameterInteger
@@ -305,7 +335,7 @@ TEST_CASE("encode simple multi_line_string -- geometry type")
     CHECK(feature.geometry(13) == 9);
 }
 
-TEST_CASE("encode multi_line_string with repeated points")
+TEST_CASE("encode pbf multi_line_string with repeated points")
 {
     mapnik::geometry::multi_line_string<std::int64_t> g;
     mapnik::geometry::line_string<std::int64_t> l1;
@@ -330,8 +360,11 @@ TEST_CASE("encode multi_line_string with repeated points")
 
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(g, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(g, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_LINESTRING);
     
     // Repeated commands should be removed points should be as follows:
@@ -362,7 +395,7 @@ TEST_CASE("encode multi_line_string with repeated points")
     CHECK(feature.geometry(13) == 9);
 }
 
-TEST_CASE("encode multi_line_string with two degenerate linestrings")
+TEST_CASE("encode pbf multi_line_string with two degenerate linestrings")
 {
     mapnik::geometry::multi_line_string<std::int64_t> g;
     mapnik::geometry::line_string<std::int64_t> l1;
@@ -383,8 +416,11 @@ TEST_CASE("encode multi_line_string with two degenerate linestrings")
     // points and therefore is too small
     std::int32_t x = 0;
     std::int32_t y = 0;
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
     vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(g, feature, x, y));
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(g, feature_writer, x, y));
+    feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_LINESTRING);
     
     // MoveTo, ParameterInteger, ParameterInteger

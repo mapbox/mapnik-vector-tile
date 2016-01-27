@@ -71,11 +71,15 @@ int main()
                                        std::numeric_limits<double>::min(),
                                        std::numeric_limits<double>::max(),
                                        std::numeric_limits<double>::max());
-        mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj> transit(vs, clip_extent);
+        mapnik::vector_tile_impl::geom_out_visitor<std::int64_t> out_geom;
+        mapnik::vector_tile_impl::transform_visitor<
+                    mapnik::vector_tile_impl::vector_tile_strategy_proj,
+                    mapnik::vector_tile_impl::geom_out_visitor<std::int64_t>
+                                    > transit(vs, clip_extent, out_geom);
         for (unsigned i=0;i<10000;++i)
         {
-            mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(transit,geom);        
-            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(new_geom);
+            mapnik::util::apply_visitor(transit,geom);        
+            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(out_geom.geom);
             count2 += poly.size();
         }
         if (count != count2)
@@ -91,11 +95,15 @@ int main()
                                        std::numeric_limits<double>::min(),
                                        std::numeric_limits<double>::max(),
                                        std::numeric_limits<double>::max());
-        mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj> transit(vs, clip_extent);
+        mapnik::vector_tile_impl::geom_out_visitor<std::int64_t> out_geom;
+        mapnik::vector_tile_impl::transform_visitor<
+                    mapnik::vector_tile_impl::vector_tile_strategy_proj,
+                    mapnik::vector_tile_impl::geom_out_visitor<std::int64_t>
+                                    > transit(vs, clip_extent, out_geom);
         for (unsigned i=0;i<10000;++i)
         {
-            mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(transit,geom);        
-            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(new_geom);
+            mapnik::util::apply_visitor(transit,geom);        
+            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(out_geom.geom);
             count4 += poly.size();
         }
         if (count != count4)
@@ -111,11 +119,15 @@ int main()
                                        std::numeric_limits<double>::min(),
                                        std::numeric_limits<double>::max(),
                                        std::numeric_limits<double>::max());
-        mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy> transit(vs, clip_extent);
+        mapnik::vector_tile_impl::geom_out_visitor<std::int64_t> out_geom;
+        mapnik::vector_tile_impl::transform_visitor<
+                    mapnik::vector_tile_impl::vector_tile_strategy,
+                    mapnik::vector_tile_impl::geom_out_visitor<std::int64_t>
+                                    > transit(vs, clip_extent, out_geom);
         for (unsigned i=0;i<10000;++i)
         {
-            mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(transit,geom);
-            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(new_geom);
+            mapnik::util::apply_visitor(transit,geom);
+            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(out_geom.geom);
             count3 += poly.size();
         }
         if (count != count3)
