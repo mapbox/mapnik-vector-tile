@@ -202,6 +202,7 @@ struct layer_builder_pbf
     typedef std::map<std::string, unsigned> keys_container;
     typedef std::unordered_map<mapnik::value, unsigned> values_container;
 
+    std::string feature_str;
     keys_container keys;
     values_container values;
     protozero::pbf_writer layer_writer;
@@ -209,7 +210,8 @@ struct layer_builder_pbf
     bool painted;
 
     layer_builder_pbf(std::string const & name, std::uint32_t extent, std::string & layer_buffer)
-        : keys(),
+        : feature_str(),
+          keys(),
           values(),
           layer_writer(layer_buffer),
           empty(true),
@@ -225,8 +227,13 @@ struct layer_builder_pbf
         painted = true;
     }
 
-    void add_feature(std::string & feature_str,
-                     protozero::pbf_writer & feature_writer, 
+    protozero::pbf_writer get_feature_writer()
+    {
+        feature_str.clear();
+        return protozero::pbf_writer(feature_str);
+    }
+
+    void add_feature(protozero::pbf_writer & feature_writer, 
                      mapnik::feature_impl const& mapnik_feature)
 
     {

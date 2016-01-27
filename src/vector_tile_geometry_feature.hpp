@@ -39,10 +39,9 @@ inline void raster_to_feature(std::string const& buffer,
                               mapnik::feature_impl const& mapnik_feature,
                               layer_builder_pbf & builder)
 {
-    std::string feature_str;
-    protozero::pbf_writer feature_writer(feature_str);
+    protozero::pbf_writer feature_writer = builder.get_feature_writer();
     feature_writer.add_string(Feature_Encoding::RASTER, buffer);
-    builder.add_feature(feature_str, feature_writer, mapnik_feature);
+    builder.add_feature(feature_writer, mapnik_feature);
 }
 
 struct geometry_to_feature_visitor
@@ -102,12 +101,11 @@ struct geometry_to_feature_pbf_visitor
     {
         std::int32_t x = 0;
         std::int32_t y = 0;
-        std::string feature_str;
-        protozero::pbf_writer feature_writer(feature_str);
+        protozero::pbf_writer feature_writer = builder_.get_feature_writer();
         if (encode_geometry_pbf(geom, feature_writer, x, y))
         {
             // Releasing the pointer is important here because the layer will take over ownership!
-            builder_.add_feature(feature_str, feature_writer, mapnik_feature_);
+            builder_.add_feature(feature_writer, mapnik_feature_);
         }
     }
 
