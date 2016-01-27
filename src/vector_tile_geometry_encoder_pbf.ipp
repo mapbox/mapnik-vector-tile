@@ -21,7 +21,7 @@ namespace vector_tile_impl
 namespace detail_pbf
 {
 
-std::size_t geometry_size(mapnik::geometry::polygon<std::int64_t> const& poly)
+inline std::size_t geometry_size(mapnik::geometry::polygon<std::int64_t> const& poly)
 {
     std::size_t s = poly.exterior_ring.size();
     for (auto const& ring : poly.interior_rings)
@@ -31,7 +31,7 @@ std::size_t geometry_size(mapnik::geometry::polygon<std::int64_t> const& poly)
     return s;
 }
 
-std::size_t geometry_size(mapnik::geometry::multi_polygon<std::int64_t> const& mp)
+inline std::size_t geometry_size(mapnik::geometry::multi_polygon<std::int64_t> const& mp)
 {
     std::size_t s = 0;
     for (auto const& poly : mp)
@@ -41,7 +41,7 @@ std::size_t geometry_size(mapnik::geometry::multi_polygon<std::int64_t> const& m
     return s;
 }
 
-std::size_t geometry_size(mapnik::geometry::multi_line_string<std::int64_t> const& mls)
+inline std::size_t geometry_size(mapnik::geometry::multi_line_string<std::int64_t> const& mls)
 {
     std::size_t s = 0;
     for (auto const& ls : mls)
