@@ -62,7 +62,6 @@ void zlib_compress(const char * data, std::size_t size, std::string & output, bo
     }
     if (deflateInit2(&deflate_s, level, Z_DEFLATED, windowsBits, 8, strategy) != Z_OK)
     {
-        deflateEnd(&deflate_s);
         throw std::runtime_error("deflate init failed");
     }
     deflate_s.next_in = (Bytef *)data;
