@@ -25,23 +25,30 @@
 // boost
 #include <boost/optional/optional_io.hpp>
 
-// vector output api
+// mapnik-vector-tile
 #include "vector_tile_compression.hpp"
 #include "vector_tile_processor.hpp"
 #include "vector_tile_projection.hpp"
 #include "vector_tile_geometry_decoder.hpp"
-#include "vector_tile_geometry_encoder.hpp"
-
-// vector input api
+#include "vector_tile_geometry_encoder_pbf.hpp"
 #include "vector_tile_datasource_pbf.hpp"
 
+//protozero
 #include "protozero/pbf_reader.hpp"
 
+//std
 #include <string>
 #include <fstream>
 #include <streambuf>
 
-TEST_CASE( "pbf vector tile input")
+// libprotobuf
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#include "vector_tile.pb.h"
+#pragma GCC diagnostic pop
+
+TEST_CASE("pbf vector tile input")
 {
     unsigned tile_size = 4096;
     mapnik::Map map(256,256,"+init=epsg:3857");
@@ -52,7 +59,8 @@ TEST_CASE( "pbf vector tile input")
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     // serialize to message
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
@@ -135,7 +143,8 @@ TEST_CASE("pbf vector tile datasource")
     CHECK(out_tile.is_empty() == false);
     
     // check that vector tile contains proper information
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
@@ -225,8 +234,12 @@ TEST_CASE("pbf encoding multi line")
     vector_tile::Tile_Feature * t_feature = t_layer->add_features();
     std::int32_t x = 0;
     std::int32_t y = 0;
-    CHECK(mapnik::vector_tile_impl::encode_geometry(geom, *t_feature, x, y));
-    
+
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
+    CHECK(mapnik::vector_tile_impl::encode_geometry_pbf(geom, feature_writer, x, y));
+    t_feature->ParseFromString(feature_str);
+
     std::string buffer;
     tile.SerializeToString(&buffer);
     REQUIRE(1 == tile.layers_size());
@@ -308,7 +321,8 @@ TEST_CASE("pbf decoding some truncated buffers")
     CHECK(out_tile.is_empty() == false);
     
     // Now check that the tile is correct.
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -360,7 +374,8 @@ TEST_CASE("pbf vector tile from simplified geojson")
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
     
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -439,7 +454,8 @@ TEST_CASE("pbf raster tile output -- should be able to overzoom raster")
         // Update the tile
         ren.update_tile(out_tile);
     }
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     // Done creating test data, now test created tile
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
@@ -540,7 +556,8 @@ TEST_CASE("pbf vector tile from linestring geojson")
     CHECK(out_tile.is_empty() == false);
 
     // Now check that the tile is correct.
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());

@@ -25,7 +25,14 @@
 // mapnik-vector-tile
 #include "vector_tile_processor.hpp"
 #include "vector_tile_geometry_decoder.hpp"
-#include "vector_tile_datasource.hpp"
+#include "vector_tile_datasource_pbf.hpp"
+
+// libprotobuf
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#include "vector_tile.pb.h"
+#pragma GCC diagnostic pop
 
 TEST_CASE("vector tile from simplified geojson")
 {
@@ -41,7 +48,8 @@ TEST_CASE("vector tile from simplified geojson")
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
     
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -54,8 +62,25 @@ TEST_CASE("vector tile from simplified geojson")
     double tile_x = -0.5 * mapnik::EARTH_CIRCUMFERENCE + x * resolution;
     double tile_y =  0.5 * mapnik::EARTH_CIRCUMFERENCE - y * resolution;
     double scale = static_cast<double>(layer.extent())/resolution;
-    mapnik::vector_tile_impl::Geometry<double> geoms(f,tile_x, tile_y,scale,-1*scale);
-    auto geom = mapnik::vector_tile_impl::decode_geometry(geoms,f.type(),2);
+    protozero::pbf_reader layer_reader;
+    out_tile.layer_reader(0, layer_reader);
+    REQUIRE(layer_reader.next(mapnik::vector_tile_impl::Layer_Encoding::FEATURES));
+    protozero::pbf_reader feature_reader = layer_reader.get_message();
+    int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN; 
+    std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
+    while (feature_reader.next())
+    {
+        if (feature_reader.tag() == mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY)
+        {
+            geom_itr = feature_reader.get_packed_uint32();
+        }
+        else if (feature_reader.tag() == mapnik::vector_tile_impl::Feature_Encoding::TYPE)
+        {
+            geometry_type = feature_reader.get_enum();
+        }
+    }
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, tile_x, tile_y, scale, -1*scale);
+    auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, geometry_type, 2);
 
     unsigned int n_err = 0;
     mapnik::projection wgs84("+init=epsg:4326",true);
@@ -88,7 +113,8 @@ TEST_CASE("vector tile transform -- should not throw on coords outside merc rang
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
     
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
 
     // serialize to message
     std::string buffer;
@@ -106,9 +132,12 @@ TEST_CASE("vector tile transform -- should not throw on coords outside merc rang
     CHECK(3 == layer2.features(0).type());
 
     mapnik::layer lyr2("layer",map.srs());
-    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds2 = std::make_shared<
-                                    mapnik::vector_tile_impl::tile_datasource>(
-                                        layer2,0,0,0);
+
+    protozero::pbf_reader layer_reader;
+    out_tile.layer_reader(0, layer_reader);
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds2 = std::make_shared<
+                                    mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                        layer_reader,0,0,0);
     //ds2->set_envelope(bbox);
     CHECK( ds2->type() == mapnik::datasource::Vector );
     CHECK( ds2->get_geometry_type() == mapnik::datasource_geometry_t::Collection );
@@ -163,7 +192,8 @@ TEST_CASE("vector tile transform2 -- should not throw reprojected data from loca
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
     
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
 
     // serialize to message
     std::string buffer;
@@ -179,9 +209,11 @@ TEST_CASE("vector tile transform2 -- should not throw reprojected data from loca
     CHECK(2 == layer2.features_size());
 
     mapnik::layer lyr2("layer",map.srs());
-    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds2 = std::make_shared<
-                                    mapnik::vector_tile_impl::tile_datasource>(
-                                        layer2,0,0,0);
+    protozero::pbf_reader layer_reader;
+    out_tile.layer_reader(0, layer_reader);
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds2 = std::make_shared<
+                                    mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                        layer_reader,0,0,0);
     ds2->set_envelope(bbox);
     CHECK( ds2->type() == mapnik::datasource::Vector );
     CHECK( ds2->get_geometry_type() == mapnik::datasource_geometry_t::Collection );

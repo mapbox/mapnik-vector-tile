@@ -24,7 +24,7 @@
 // Unit tests for geometry decoding of points
 //
 
-TEST_CASE( "decode simple point")
+TEST_CASE("decode simple point")
 {
     vector_tile::Tile_Feature feature;
     feature.set_type(vector_tile::Tile_GeomType_POINT);
@@ -33,55 +33,29 @@ TEST_CASE( "decode simple point")
     feature.add_geometry(protozero::encode_zigzag32(5));
     feature.add_geometry(protozero::encode_zigzag32(5));
     
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-        
-        SECTION("VT Spec v1") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(5 5)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(5 5)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+    SECTION("VT Spec v1") 
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POINT(5 5)");
+        CHECK( geom.is<mapnik::geometry::point<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2") 
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-
-        SECTION("VT Spec v1") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(5 5)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(5 5)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POINT(5 5)");
+        CHECK( geom.is<mapnik::geometry::point<double> >() );
     }
 }
 
-TEST_CASE( "decode simple negative point")
+TEST_CASE("decode simple negative point")
 {
     vector_tile::Tile_Feature feature;
     feature.set_type(vector_tile::Tile_GeomType_POINT);
@@ -90,55 +64,29 @@ TEST_CASE( "decode simple negative point")
     feature.add_geometry(protozero::encode_zigzag32(-5));
     feature.add_geometry(protozero::encode_zigzag32(-5));
     
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-        
-        SECTION("VT Spec v1") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(-5 -5)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(-5 -5)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+    SECTION("VT Spec v1") 
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POINT(-5 -5)");
+        CHECK( geom.is<mapnik::geometry::point<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2") 
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-
-        SECTION("VT Spec v1") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(-5 -5)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(-5 -5)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POINT(-5 -5)");
+        CHECK( geom.is<mapnik::geometry::point<double> >() );
     }
 }
 
-TEST_CASE( "point with delta of max int32")
+TEST_CASE("point with delta of max int32")
 {
     vector_tile::Tile_Feature feature;
     feature.set_type(vector_tile::Tile_GeomType_POINT);
@@ -147,55 +95,29 @@ TEST_CASE( "point with delta of max int32")
     feature.add_geometry(protozero::encode_zigzag32(max_32t));
     feature.add_geometry(protozero::encode_zigzag32(max_32t));
     
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-        
-        SECTION("VT Spec v1") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(2147483647 2147483647)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(2147483647 2147483647)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+    SECTION("VT Spec v1") 
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POINT(2147483647 2147483647)");
+        CHECK( geom.is<mapnik::geometry::point<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2") 
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-
-        SECTION("VT Spec v1") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(2147483647 2147483647)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(2147483647 2147483647)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POINT(2147483647 2147483647)");
+        CHECK( geom.is<mapnik::geometry::point<double> >() );
     }
 }
 
-TEST_CASE( "point with delta of min int32")
+TEST_CASE("point with delta of min int32")
 {
     vector_tile::Tile_Feature feature;
     feature.set_type(vector_tile::Tile_GeomType_POINT);
@@ -204,55 +126,29 @@ TEST_CASE( "point with delta of min int32")
     feature.add_geometry(protozero::encode_zigzag32(min_32t));
     feature.add_geometry(protozero::encode_zigzag32(min_32t));
     
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-        
-        SECTION("VT Spec v1") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(-2147483648 -2147483648)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(-2147483648 -2147483648)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+    SECTION("VT Spec v1") 
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POINT(-2147483648 -2147483648)");
+        CHECK( geom.is<mapnik::geometry::point<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2") 
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-
-        SECTION("VT Spec v1") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(-2147483648 -2147483648)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(-2147483648 -2147483648)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POINT(-2147483648 -2147483648)");
+        CHECK( geom.is<mapnik::geometry::point<double> >() );
     }
 }
 
-TEST_CASE( "point with delta of min int32 + 1")
+TEST_CASE("point with delta of min int32 + 1")
 {
     vector_tile::Tile_Feature feature;
     feature.set_type(vector_tile::Tile_GeomType_POINT);
@@ -261,55 +157,29 @@ TEST_CASE( "point with delta of min int32 + 1")
     feature.add_geometry(protozero::encode_zigzag32(min_32t));
     feature.add_geometry(protozero::encode_zigzag32(min_32t));
     
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-        
-        SECTION("VT Spec v1") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(-2147483647 -2147483647)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(-2147483647 -2147483647)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+    SECTION("VT Spec v1") 
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POINT(-2147483647 -2147483647)");
+        CHECK( geom.is<mapnik::geometry::point<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2") 
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-
-        SECTION("VT Spec v1") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(-2147483647 -2147483647)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POINT(-2147483647 -2147483647)");
-            CHECK( geom.is<mapnik::geometry::point<double> >() );
-        }
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POINT(-2147483647 -2147483647)");
+        CHECK( geom.is<mapnik::geometry::point<double> >() );
     }
 }
 
-TEST_CASE("degenerate point with close command" )
+TEST_CASE("degenerate point with close command")
 {
     vector_tile::Tile_Feature feature;
     feature.set_type(vector_tile::Tile_GeomType_POINT);
@@ -321,39 +191,21 @@ TEST_CASE("degenerate point with close command" )
     // Close Path
     feature.add_geometry(15); // close_path
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     
-        SECTION("VT Spec v1") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
-        }
+    SECTION("VT Spec v1") 
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2") 
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-        
-        SECTION("VT Spec v1") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
     }
 }
 
-TEST_CASE( "degenerate point with lineto command" )
+TEST_CASE("degenerate point with lineto command")
 {
     vector_tile::Tile_Feature feature;
     feature.set_type(vector_tile::Tile_GeomType_POINT);
@@ -366,39 +218,21 @@ TEST_CASE( "degenerate point with lineto command" )
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
 
-    SECTION("libprotobuf decoder")
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+    
+    SECTION("VT Spec v1") 
     {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-        
-        SECTION("VT Spec v1") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2") 
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-        
-        SECTION("VT Spec v1") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
     }
 }
 
-TEST_CASE( "degenerate point with moveto with out enough parameters" )
+TEST_CASE("degenerate point with moveto with out enough parameters")
 {
     vector_tile::Tile_Feature feature;
     feature.set_type(vector_tile::Tile_GeomType_POINT);
@@ -406,39 +240,21 @@ TEST_CASE( "degenerate point with moveto with out enough parameters" )
     feature.add_geometry(9); // move_to | (1 << 3)
     feature.add_geometry(protozero::encode_zigzag32(1));
 
-    SECTION("libprotobuf decoder")
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+    
+    SECTION("VT Spec v1") 
     {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-        
-        SECTION("VT Spec v1") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2") 
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-        
-        SECTION("VT Spec v1") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
     }
 }
 
-TEST_CASE( "degenerate point with moveto with out enough parameters - case 2" )
+TEST_CASE("degenerate point with moveto with out enough parameters - case 2")
 {
     vector_tile::Tile_Feature feature;
     feature.set_type(vector_tile::Tile_GeomType_POINT);
@@ -447,39 +263,21 @@ TEST_CASE( "degenerate point with moveto with out enough parameters - case 2" )
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
 
-    SECTION("libprotobuf decoder")
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+    
+    SECTION("VT Spec v1") 
     {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-        
-        SECTION("VT Spec v1") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2") 
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-        
-        SECTION("VT Spec v1") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
     }
 }
 
-TEST_CASE( "degenerate point with moveto with command count of zero" )
+TEST_CASE("degenerate point with moveto with command count of zero")
 {
     vector_tile::Tile_Feature feature;
     feature.set_type(vector_tile::Tile_GeomType_POINT);
@@ -488,39 +286,21 @@ TEST_CASE( "degenerate point with moveto with command count of zero" )
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
 
-    SECTION("libprotobuf decoder")
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+    
+    SECTION("VT Spec v1") 
     {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-        
-        SECTION("VT Spec v1") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2") 
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-        
-        SECTION("VT Spec v1") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
     }
 }
 
-TEST_CASE( "degenerate point with invalid command" )
+TEST_CASE("degenerate point with invalid command")
 {
     vector_tile::Tile_Feature feature;
     feature.set_type(vector_tile::Tile_GeomType_POINT);
@@ -529,39 +309,21 @@ TEST_CASE( "degenerate point with invalid command" )
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
 
-    SECTION("libprotobuf decoder")
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+    
+    SECTION("VT Spec v1") 
     {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-        
-        SECTION("VT Spec v1") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2") 
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-        
-        SECTION("VT Spec v1") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1));
-        }
-
-        SECTION("VT Spec v2") 
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2));
     }
 }
 
-TEST_CASE( "multipoint with three movetos with command count 1" )
+TEST_CASE("multipoint with three movetos with command count 1")
 {
     // While this is not the proper way to encode two movetwos we want to make sure
     // that it still works properly in the decoder.
@@ -580,50 +342,24 @@ TEST_CASE( "multipoint with three movetos with command count 1" )
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-        
-        SECTION("VT Spec v1") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
-            CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
-            CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
-        }
+    SECTION("VT Spec v2") 
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
+        CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v1") 
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-
-        SECTION("VT Spec v2") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
-            CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
-        }
-
-        SECTION("VT Spec v1") 
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
-            CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
-        }
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POINT, 1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "MULTIPOINT(1 1,2 2,3 3)");
+        CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
     }
 }

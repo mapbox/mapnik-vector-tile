@@ -20,14 +20,6 @@ namespace mapnik
 namespace vector_tile_impl
 {
 
-enum polygon_fill_type : std::uint8_t {
-    even_odd_fill = 0, 
-    non_zero_fill, 
-    positive_fill, 
-    negative_fill,
-    polygon_fill_type_max
-};
-
 /*
   This processor combines concepts from mapnik's
   feature_style_processor and agg_renderer. It

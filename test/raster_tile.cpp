@@ -6,8 +6,9 @@
 
 // vector output api
 #include "vector_tile_processor.hpp"
-#include "vector_tile_datasource.hpp"
+#include "vector_tile_datasource_pbf.hpp"
 
+// mapnik
 #include <mapnik/util/fs.hpp>
 #include <mapnik/datasource_cache.hpp>
 #include <mapnik/agg_renderer.hpp>
@@ -16,6 +17,13 @@
 #include <mapnik/image_util.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/raster.hpp>
+
+// libprotobuf
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#include "vector_tile.pb.h"
+#pragma GCC diagnostic pop
 
 #include <sstream>
 #include <fstream>
@@ -50,7 +58,8 @@ TEST_CASE("raster tile output 1")
     
     // Request the tile
     mapnik::vector_tile_impl::merc_tile out_tile = ren.create_tile(_x, _y, _z, tile_size, buffer_size);
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     
     // Test that tile is correct
     CHECK(1 == tile.layers_size());
@@ -69,7 +78,8 @@ TEST_CASE("raster tile output 1")
     if (!mapnik::util::exists("test/fixtures/expected-2.jpeg"))
     {
         std::ofstream file("test/fixtures/expected-2.jpeg", std::ios::out|std::ios::trunc|std::ios::binary);
-        if (!file) {
+        if (!file)
+        {
             throw std::runtime_error("could not write image");
         }
         file << ras_buffer;
@@ -122,9 +132,11 @@ TEST_CASE("raster tile output 1")
         CHECK(expected_image_size == f2.raster().size());
     }
     mapnik::layer lyr2("layer",map2.srs());
-    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds2 = std::make_shared<
-                                    mapnik::vector_tile_impl::tile_datasource>(
-                                        layer2,_x,_y,_z);
+    protozero::pbf_reader layer_reader;
+    out_tile.layer_reader(0, layer_reader);
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds2 = std::make_shared<
+                                    mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                        layer_reader,_x,_y,_z);
     lyr2.set_datasource(ds2);
     lyr2.add_style("style");
     map2.add_layer(lyr2);
@@ -178,7 +190,8 @@ TEST_CASE("raster tile output 2")
         // Update the tile
         ren.update_tile(out_tile);
     }
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     // Done creating test data, now test created tile
     CHECK(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
@@ -240,9 +253,11 @@ TEST_CASE("raster tile output 2")
     mapnik::Map map2(256,256,"+init=epsg:3857");
     map2.set_buffer_size(1024);
     mapnik::layer lyr2("layer",map2.srs());
-    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds2 = std::make_shared<
-                                    mapnik::vector_tile_impl::tile_datasource>(
-                                        layer2,0,0,0);
+    protozero::pbf_reader layer_reader;
+    out_tile.layer_reader(0, layer_reader);
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds2 = std::make_shared<
+                                    mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                        layer_reader,0,0,0);
     lyr2.set_datasource(ds2);
     lyr2.add_style("style");
     map2.add_layer(lyr2);
@@ -293,7 +308,8 @@ TEST_CASE("raster tile output 3 -- should be able to round trip image with alpha
         // Update the tile
         ren.update_tile(out_tile);
     }
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     // Done creating test data, now test created tile
 
 /*
@@ -342,10 +358,12 @@ TEST_CASE("raster tile output 3 -- should be able to round trip image with alpha
     // Now actually re-render to trigger the raster being passed through the processor
     // and confirm raster still looks correct
     {
+        protozero::pbf_reader layer_reader;
+        out_tile.layer_reader(0, layer_reader);
         // create datasource wrapping raster
-        std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
-                                        mapnik::vector_tile_impl::tile_datasource>(
-                                            tile.layers(0),0,0,0);
+        std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
+                                        mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                            layer_reader,0,0,0);
         // before rendering let's query the raster directly to ensure
         // the datasource returns it correctly.
         mapnik::query q(bbox);
@@ -378,7 +396,8 @@ TEST_CASE("raster tile output 3 -- should be able to round trip image with alpha
         // Update the tile
         mapnik::vector_tile_impl::tile new_tile = ren.create_tile(0, 0, 0, tile_size); //, buffer_size);
         
-        vector_tile::Tile round_tripped_tile = new_tile.get_tile();
+        vector_tile::Tile round_tripped_tile;
+        round_tripped_tile.ParseFromString(new_tile.get_buffer());
 
         REQUIRE(1 == round_tripped_tile.layers_size());
         vector_tile::Tile_Layer const& layer = round_tripped_tile.layers(0);

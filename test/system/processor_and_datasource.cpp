@@ -1,7 +1,7 @@
 #include "catch.hpp"
 
 // mapnik-vector-tile
-#include "vector_tile_datasource.hpp"
+#include "vector_tile_datasource_pbf.hpp"
 #include "vector_tile_processor.hpp"
 
 // mapnik
@@ -13,6 +13,13 @@
 
 // test utils
 #include "test_utils.hpp"
+
+// libprotobuf
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#include "vector_tile.pb.h"
+#pragma GCC diagnostic pop
 
 // boost
 #include <boost/optional/optional_io.hpp>
@@ -39,7 +46,8 @@ TEST_CASE("vector tile output -- simple two points")
     CHECK(out_tile.is_empty() == false);
 
     // Now check that the tile is correct.
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -65,7 +73,8 @@ TEST_CASE("vector tile output -- empty tile")
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
     CHECK(out_tile.is_painted() == false);
     CHECK(out_tile.is_empty() == true);
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     CHECK(0 == tile.layers_size());
     std::string buffer;
     out_tile.serialize_to_string(buffer);
@@ -99,7 +108,8 @@ TEST_CASE("vector tile output -- layers outside extent")
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(custom_bbox, tile_size);
     CHECK(out_tile.is_painted() == false);
     CHECK(out_tile.is_empty() == true);
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     CHECK(0 == tile.layers_size());
     std::string buffer;
     out_tile.serialize_to_string(buffer);
@@ -130,7 +140,8 @@ TEST_CASE("vector tile output is empty -- degenerate geometries")
     // Check output
     CHECK(out_tile.is_painted() == false);
     CHECK(out_tile.is_empty() == true);
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     CHECK(0 == tile.layers_size());
     std::string buffer;
     out_tile.serialize_to_string(buffer);
@@ -171,9 +182,11 @@ TEST_CASE("vector tile render simple point")
     mapnik::layer lyr2("layer",map.srs());
     
     // Create datasource from tile.
-    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource> ds = std::make_shared<
-                                    mapnik::vector_tile_impl::tile_datasource>(
-                                        layer2,0,0,0);
+    protozero::pbf_reader layer_reader;
+    out_tile.layer_reader(0, layer_reader);
+    std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds = std::make_shared<
+                                    mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                        layer_reader,0,0,0);
     CHECK( ds->type() == mapnik::datasource::Vector );
     CHECK( ds->get_geometry_type() == mapnik::datasource_geometry_t::Collection );
     
@@ -235,7 +248,8 @@ TEST_CASE("vector tile datasource -- should filter features outside extent")
     CHECK(out_tile.is_empty() == false);
     
     // check that vector tile contains proper information
-    vector_tile::Tile tile = out_tile.get_tile();
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -249,7 +263,9 @@ TEST_CASE("vector tile datasource -- should filter features outside extent")
     
     // now actually start the meat of the test
     // create a datasource from the vector tile
-    mapnik::vector_tile_impl::tile_datasource ds(layer,0,0,0);
+    protozero::pbf_reader layer_reader;
+    out_tile.layer_reader(0, layer_reader);
+    mapnik::vector_tile_impl::tile_datasource_pbf ds(layer_reader,0,0,0);
 
     // ensure we can query single feature
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);

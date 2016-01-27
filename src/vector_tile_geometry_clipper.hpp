@@ -14,13 +14,6 @@
 // http://www.angusj.com/delphi/clipper.php
 #include "clipper.hpp"
 
-// libprotobuf
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#include "vector_tile.pb.h"
-#pragma GCC diagnostic pop
-
 // boost
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"

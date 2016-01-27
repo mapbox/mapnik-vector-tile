@@ -42,51 +42,25 @@ TEST_CASE("decode simple polygon")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
+        CHECK( geom.is<mapnik::geometry::polygon<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
-
-        SECTION("VT Spec v2")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
+        CHECK( geom.is<mapnik::geometry::polygon<double> >() );
     }
 }
 
@@ -111,51 +85,25 @@ TEST_CASE("decode simple polygon - int64 decode")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<std::int64_t> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<std::int64_t> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<std::int64_t> geoms = feature_to_pbf_geometry<std::int64_t>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<std::int64_t> >() );
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
+        CHECK( geom.is<mapnik::geometry::polygon<std::int64_t> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<std::int64_t> geoms = feature_to_pbf_geometry<std::int64_t>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<std::int64_t> >() );
-        }
-
-        SECTION("VT Spec v2")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<std::int64_t> >() );
-        }
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
+        CHECK( geom.is<mapnik::geometry::polygon<std::int64_t> >() );
     }
 }
 
@@ -199,51 +147,25 @@ TEST_CASE("decode simple polygon with hole")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
+        CHECK( geom.is<mapnik::geometry::polygon<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
-
-        SECTION("VT Spec v2")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
+        CHECK( geom.is<mapnik::geometry::polygon<double> >() );
     }
 }
 
@@ -287,51 +209,25 @@ TEST_CASE("decode simple multipolygon")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
-            CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
-            CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
+        CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
-            CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
-        }
-
-        SECTION("VT Spec v2")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
-            CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
-        }
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
+        CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
     }
 }
 
@@ -377,43 +273,21 @@ TEST_CASE("decode polygon with hole where winding orders are reversed.")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2));
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
+        CHECK( geom.is<mapnik::geometry::polygon<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2));
     }
 }
 
@@ -493,51 +367,25 @@ TEST_CASE("decode simple multi polygon with hole")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)),((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)))");
-            CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)),((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)))");
-            CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)),((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)))");
+        CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)),((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)))");
-            CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
-        }
-
-        SECTION("VT Spec v2")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)),((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)))");
-            CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
-        }
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "MULTIPOLYGON(((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)),((0 0,0 10,-10 10,-10 0,0 0),(-7 7,-3 7,-3 3,-7 3,-7 7)))");
+        CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
     }
 }
 
@@ -616,43 +464,21 @@ TEST_CASE("decode multi polygon with holes - first ring invalid")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "MULTIPOLYGON(((-7 7,-7 3,-3 3,-3 7,-7 7),(0 0,-10 0,-10 10,0 10,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
-            CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2));
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "MULTIPOLYGON(((-7 7,-7 3,-3 3,-3 7,-7 7),(0 0,-10 0,-10 10,0 10,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
+        CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "MULTIPOLYGON(((-7 7,-7 3,-3 3,-3 7,-7 7),(0 0,-10 0,-10 10,0 10,0 0)),((-7 7,-7 3,-3 3,-3 7,-7 7)))");
-            CHECK( geom.is<mapnik::geometry::multi_polygon<double> >() );
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2));
     }
 }
 
@@ -680,43 +506,21 @@ TEST_CASE("decode simple polygon -- incorrect exterior winding order")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 10,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 10,0 0))");
+        CHECK( geom.is<mapnik::geometry::polygon<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 10,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -729,35 +533,17 @@ TEST_CASE("decode polygon - only moveto")
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
-
-    SECTION("protozero decoder")
-    {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-        
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -772,37 +558,18 @@ TEST_CASE("decode polygon - only moveto and close")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        CHECK( geom.is<mapnik::geometry::geometry_empty>() );
     }
-
-    SECTION("protozero decoder")
-    {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
-        }
-        
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -819,35 +586,17 @@ TEST_CASE("decode polygon - only moveto and close followed by close")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
-
-    SECTION("protozero decoder")
-    {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-        
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -866,35 +615,17 @@ TEST_CASE("decode polygon - only moveto and close followed by lineto")
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
-
-    SECTION("protozero decoder")
-    {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-        
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -913,35 +644,17 @@ TEST_CASE("decode polygon - only moveto and close followed by lineto -- delta ze
     feature.add_geometry(protozero::encode_zigzag32(0));
     feature.add_geometry(protozero::encode_zigzag32(0));
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
-
-    SECTION("protozero decoder")
-    {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-        
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -972,43 +685,21 @@ TEST_CASE("decode polygon - moveto and close followed by real polygon")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
+        CHECK( geom.is<mapnik::geometry::polygon<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1025,35 +716,17 @@ TEST_CASE("decode polygon - only moveto and lineto")
     feature.add_geometry(protozero::encode_zigzag32(10));
     feature.add_geometry(protozero::encode_zigzag32(0));
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
-
-    SECTION("protozero decoder")
-    {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-        
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1086,35 +759,17 @@ TEST_CASE("decode polygon - moveto and lineto followed by real polygon")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1134,37 +789,18 @@ TEST_CASE("decode polygon - only moveto lineto and close")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        CHECK( geom.is<mapnik::geometry::geometry_empty>() );
     }
-
-    SECTION("protozero decoder")
-    {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
-        }
-        
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1185,35 +821,17 @@ TEST_CASE("decode polygon - only moveto, lineto, and close followed by close")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
-
-    SECTION("protozero decoder")
-    {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-        
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1235,36 +853,18 @@ TEST_CASE("decode polygon - only moveto, lineto, and close followed by lineto")
     feature.add_geometry((1 << 3u) | 2u);
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
-
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
-    }
-
-    SECTION("protozero decoder")
-    {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
         
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
+
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
+    }
+    
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1287,35 +887,17 @@ TEST_CASE("decode polygon - only moveto, lineto, and close followed by lineto --
     feature.add_geometry(protozero::encode_zigzag32(0));
     feature.add_geometry(protozero::encode_zigzag32(0));
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
-
-    SECTION("protozero decoder")
-    {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-        
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1350,43 +932,21 @@ TEST_CASE("decode polygon - moveto lineto and close followed by real polygon")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
+        CHECK( geom.is<mapnik::geometry::polygon<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,0 10,-10 10,-10 0,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1408,37 +968,18 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - both delta z
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        CHECK( geom.is<mapnik::geometry::geometry_empty>() );
     }
-
-    SECTION("protozero decoder")
-    {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
-        }
-        
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1461,37 +1002,18 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - both delta z
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        CHECK( geom.is<mapnik::geometry::geometry_empty>() );
     }
-
-    SECTION("protozero decoder")
-    {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
-        }
-        
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1514,37 +1036,18 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - first delta 
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        CHECK( geom.is<mapnik::geometry::geometry_empty>() );
     }
-
-    SECTION("protozero decoder")
-    {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
-        }
-        
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1567,37 +1070,18 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - second delta
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        CHECK( geom.is<mapnik::geometry::geometry_empty>() );
     }
-
-    SECTION("protozero decoder")
-    {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
     
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            CHECK( geom.is<mapnik::geometry::geometry_empty>() );
-        }
-        
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1620,51 +1104,25 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - lineto two c
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
+        CHECK( geom.is<mapnik::geometry::polygon<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
-
-        SECTION("VT Spec v2")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
+        CHECK( geom.is<mapnik::geometry::polygon<double> >() );
     }
 }
 
@@ -1685,51 +1143,25 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - lineto one c
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+    SECTION("VT Spec v1")
+    {
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
+        CHECK( geom.is<mapnik::geometry::polygon<double> >() );
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),1);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
-
-        SECTION("VT Spec v2")
-        {
-            auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
-            std::string wkt0;
-            CHECK( test_utils::to_wkt(wkt0,geom) );
-            CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
-            CHECK( geom.is<mapnik::geometry::polygon<double> >() );
-        }
+        auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, feature.type(),2);
+        std::string wkt0;
+        CHECK( test_utils::to_wkt(wkt0,geom) );
+        CHECK( wkt0 == "POLYGON((0 0,10 0,10 10,0 0))");
+        CHECK( geom.is<mapnik::geometry::polygon<double> >() );
     }
 }
 
@@ -1754,35 +1186,17 @@ TEST_CASE("decode polygon -- moveto command count zero")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1807,35 +1221,17 @@ TEST_CASE("decode polygon -- moveto command count two")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1862,35 +1258,17 @@ TEST_CASE("decode polygon -- lineto command count 0")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1915,35 +1293,17 @@ TEST_CASE("decode polygon -- lineto command count 2 when it should be 3")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -1968,35 +1328,17 @@ TEST_CASE("decode polygon -- lineto command count 4 when it should be 3")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -2026,35 +1368,17 @@ TEST_CASE("decode polygon -- close is first command")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -2084,35 +1408,17 @@ TEST_CASE("decode polygon -- extra close command")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -2144,35 +1450,17 @@ TEST_CASE("decode polygon -- lineto is first command -- delta zero")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -2201,35 +1489,17 @@ TEST_CASE("decode polygon -- lineto is first command")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -2261,35 +1531,17 @@ TEST_CASE("decode polygon -- lineto is last command -- delta zero")
     feature.add_geometry(protozero::encode_zigzag32(0));
     feature.add_geometry(protozero::encode_zigzag32(0));
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -2318,35 +1570,17 @@ TEST_CASE("decode polygon -- lineto is last command")
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }
 
@@ -2372,34 +1606,16 @@ TEST_CASE("decode polygon -- has invalid command first")
     // Close
     feature.add_geometry(15);
 
-    SECTION("libprotobuf decoder")
-    {
-        mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
 
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
     }
 
-    SECTION("protozero decoder")
+    SECTION("VT Spec v2")
     {
-        std::string feature_string = feature.SerializeAsString();
-        mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    
-        SECTION("VT Spec v1")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 1));
-        }
-
-        SECTION("VT Spec v2")
-        {
-            CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
-        }
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry(geoms, vector_tile::Tile_GeomType_POLYGON, 2));
     }
 }

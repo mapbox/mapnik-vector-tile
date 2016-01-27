@@ -11,8 +11,6 @@
 #include "vector_tile.pb.h"
 #pragma GCC diagnostic pop
 
-std::string compare(mapnik::geometry::geometry<std::int64_t> const& g, unsigned version);
-
 std::string compare_pbf(mapnik::geometry::geometry<std::int64_t> const& g, unsigned version);
 
 #endif // __MAPNIK_VECTOR_TILE_TEST_ENCODING_UTIL_H__

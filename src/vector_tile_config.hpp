@@ -58,6 +58,14 @@ enum Geometry_Type : std::uint8_t
     POLYGON = 3
 };
 
+enum polygon_fill_type : std::uint8_t {
+    even_odd_fill = 0, 
+    non_zero_fill, 
+    positive_fill, 
+    negative_fill,
+    polygon_fill_type_max
+};
+
 } // end ns vector_tile_impl
 
 } // end ns mapnik

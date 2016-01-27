@@ -2,7 +2,7 @@
 
 // mapnik vector tile
 #include "vector_tile_geometry_decoder.hpp"
-#include "vector_tile_geometry_encoder.hpp"
+#include "vector_tile_geometry_encoder_pbf.hpp"
 
 // mapnik
 #include <mapnik/vertex.hpp>
@@ -55,25 +55,28 @@ std::string decode_to_path_string(mapnik::geometry::geometry<T> const& g)
     return out;
 }
 
-std::string compare(mapnik::geometry::geometry<std::int64_t> const& g, unsigned version)
-{
-    std::int32_t x = 0;
-    std::int32_t y = 0;
-    vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(g, feature, x, y));
-    mapnik::vector_tile_impl::Geometry<double> geoms(feature,0.0,0.0,1.0,1.0);
-    auto g2 = mapnik::vector_tile_impl::decode_geometry(geoms,feature.type(),version);
-    return decode_to_path_string(g2);
-}
-
 std::string compare_pbf(mapnik::geometry::geometry<std::int64_t> const& g, unsigned version)
 {
     std::int32_t x = 0;
     std::int32_t y = 0;
-    vector_tile::Tile_Feature feature;
-    REQUIRE(mapnik::vector_tile_impl::encode_geometry(g, feature, x, y));
-    std::string feature_string = feature.SerializeAsString();
-    mapnik::vector_tile_impl::GeometryPBF<double> geoms = feature_to_pbf_geometry<double>(feature_string);
-    auto g2 = mapnik::vector_tile_impl::decode_geometry(geoms,feature.type(),version);
+    std::string feature_str;
+    protozero::pbf_writer feature_writer(feature_str);
+    REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(g, feature_writer, x, y));
+    protozero::pbf_reader feature_reader(feature_str);
+    int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN; 
+    std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
+    while (feature_reader.next())
+    {
+        if (feature_reader.tag() == mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY)
+        {
+            geom_itr = feature_reader.get_packed_uint32();
+        }
+        else if (feature_reader.tag() == mapnik::vector_tile_impl::Feature_Encoding::TYPE)
+        {
+            geometry_type = feature_reader.get_enum();
+        }
+    }
+    mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, 0.0, 0.0, 1.0, 1.0);
+    auto g2 = mapnik::vector_tile_impl::decode_geometry(geoms, geometry_type, version);
     return decode_to_path_string(g2);
 }

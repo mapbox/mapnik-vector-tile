@@ -11,7 +11,6 @@
 // std
 #include <cstdlib>
 #include <cmath>
-#include <iostream>
 
 namespace mapnik
 {

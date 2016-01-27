@@ -3,21 +3,26 @@
 
 // mapnik-vector-tile
 #include "vector_tile_config.hpp"
-#include "vector_tile_layer.hpp"
 
 //protozero
 #include <protozero/pbf_reader.hpp>
-#include <protozero/pbf_writer.hpp>
+
+// mapnik
+#include <mapnik/box2d.hpp>
 
 // std
 #include <set>
 #include <string>
+#include <vector>
 
 namespace mapnik
 {
 
 namespace vector_tile_impl
 {
+
+// fwd declare
+class tile_layer;
 
 class tile
 {
@@ -48,37 +53,7 @@ public:
 
     tile(tile && rhs) = default;
 
-    bool add_layer(tile_layer const& layer)
-    {
-        std::string const& new_name = layer.name();
-        if (layer.is_empty())
-        {
-            empty_layers_.insert(new_name);
-            if (layer.is_painted())
-            {
-                painted_layers_.insert(new_name);
-            }
-        }
-        else
-        {
-            painted_layers_.insert(new_name);
-            auto p = layers_set_.insert(new_name);
-            if (!p.second)
-            {
-                // Layer already in tile
-                return false;
-            }
-            layers_.push_back(new_name);
-            protozero::pbf_writer tile_writer(buffer_);
-            tile_writer.add_message(Tile_Encoding::LAYERS, layer.get_data());
-            auto itr = empty_layers_.find(new_name);
-            if (itr != empty_layers_.end())
-            {
-                empty_layers_.erase(itr);
-            }
-        }
-        return true;
-    }
+    MAPNIK_VECTOR_INLINE bool add_layer(tile_layer const& layer);
 
     void add_empty_layer(std::string const& name)
     {
@@ -93,6 +68,11 @@ public:
     std::size_t size() const
     {
         return buffer_.size();
+    }
+
+    std::string const& get_buffer() const
+    {
+        return buffer_;
     }
 
     double scale() const
@@ -133,13 +113,6 @@ public:
         str = buffer_;
     }
 
-    vector_tile::Tile get_tile() const
-    {
-        vector_tile::Tile t;
-        t.ParseFromString(buffer_);
-        return t;
-    }
-
     bool is_painted() const
     {
         return !painted_layers_.empty();
@@ -175,25 +148,7 @@ public:
         buffer_size_ = val;
     }
 
-    bool append_layer_buffer(const char * data, std::size_t size, std::string const& name)
-    {
-        painted_layers_.insert(name);
-        auto p = layers_set_.insert(name);
-        if (!p.second)
-        {
-            // Layer already in tile
-            return false;
-        }
-        layers_.push_back(name);
-        protozero::pbf_writer writer(buffer_);
-        writer.add_message(3, data, size);
-        auto itr = empty_layers_.find(name);
-        if (itr != empty_layers_.end())
-        {
-            empty_layers_.erase(itr);
-        }
-        return true;
-    }
+    MAPNIK_VECTOR_INLINE bool append_layer_buffer(const char * data, std::size_t size, std::string const& name);
 
     std::set<std::string> const& get_painted_layers() const
     {
@@ -215,7 +170,7 @@ public:
         return layers_set_;
     }
 
-    bool same_extent(tile const& other)
+    bool same_extent(tile const& other) const
     {
         return extent_ == other.extent_;
     }
@@ -240,44 +195,17 @@ public:
         return protozero::pbf_reader(buffer_.data(), buffer_.size());
     }
 
-    bool layer_reader(std::string const& name, protozero::pbf_reader & layer_msg) const
-    {
-        protozero::pbf_reader item(buffer_.data(), buffer_.size());
-        while (item.next(Tile_Encoding::LAYERS))
-        {
-            layer_msg = item.get_message();
-            protozero::pbf_reader lay(layer_msg);
-            while (lay.next(Layer_Encoding::NAME))
-            {
-                if (lay.get_string() == name)
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+    MAPNIK_VECTOR_INLINE bool layer_reader(std::string const& name, protozero::pbf_reader & layer_msg) const;
 
-    bool layer_reader(std::size_t index, protozero::pbf_reader & layer_msg) const
-    {
-        protozero::pbf_reader item(buffer_.data(), buffer_.size());
-        std::size_t idx = 0;
-        while (item.next(Tile_Encoding::LAYERS))
-        {
-            if (idx == index)
-            {
-                layer_msg = item.get_message();
-                return true;
-            }
-            ++idx;
-            item.skip();
-        }
-        return false;
-    }
+    MAPNIK_VECTOR_INLINE bool layer_reader(std::size_t index, protozero::pbf_reader & layer_msg) const;
 };
 
 } // end ns vector_tile_impl
 
 } // end ns mapnik
+
+#if !defined(MAPNIK_VECTOR_TILE_LIBRARY)
+#include "vector_tile_tile.ipp"
+#endif
 
 #endif // __MAPNIK_VECTOR_TILE_TILE_H__

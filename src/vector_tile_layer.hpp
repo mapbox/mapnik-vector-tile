@@ -1,17 +1,12 @@
 #ifndef __MAPNIK_VECTOR_TILE_LAYER_H__
 #define __MAPNIK_VECTOR_TILE_LAYER_H__
 
+// mapnik-vector-tile
+#include "vector_tile_config.hpp"
+
 // mapnik
 #include <mapnik/feature.hpp>
-#include <mapnik/util/variant.hpp>
 #include <mapnik/value.hpp>
-
-// libprotobuf
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#include "vector_tile.pb.h"
-#pragma GCC diagnostic pop
 
 // protozero
 #include <protozero/pbf_writer.hpp>
@@ -25,177 +20,6 @@ namespace mapnik
 
 namespace vector_tile_impl
 {
-
-namespace detail
-{
-
-struct to_tile_value
-{
-public:
-    to_tile_value(vector_tile::Tile_Value * value):
-        value_(value) {}
-
-    void operator () ( value_integer val ) const
-    {
-        // TODO: figure out shortest varint encoding.
-        value_->set_int_value(val);
-    }
-
-    void operator () ( mapnik::value_bool val ) const
-    {
-        value_->set_bool_value(val);
-    }
-
-    void operator () ( mapnik::value_double val ) const
-    {
-        // TODO: Figure out how we can encode 32 bit floats in some cases.
-        value_->set_double_value(val);
-    }
-
-    void operator () ( mapnik::value_unicode_string const& val ) const
-    {
-        std::string str;
-        to_utf8(val, str);
-        value_->set_string_value(str.data(), str.length());
-    }
-
-    void operator () ( mapnik::value_null const& /*val*/ ) const
-    {
-        // do nothing
-    }
-private:
-    vector_tile::Tile_Value * value_;
-};
-
-struct to_tile_value_pbf
-{
-public:
-    to_tile_value_pbf(protozero::pbf_writer & value):
-        value_(value) {}
-
-    void operator () ( value_integer val ) const
-    {
-        // TODO: figure out shortest varint encoding.
-        value_.add_int64(Value_Encoding::INT,val);
-    }
-
-    void operator () ( mapnik::value_bool val ) const
-    {
-        value_.add_bool(Value_Encoding::BOOL,val);
-    }
-
-    void operator () ( mapnik::value_double val ) const
-    {
-        // TODO: Figure out how we can encode 32 bit floats in some cases.
-        value_.add_double(Value_Encoding::DOUBLE, val);
-    }
-
-    void operator () ( mapnik::value_unicode_string const& val ) const
-    {
-        std::string str;
-        to_utf8(val, str);
-        value_.add_string(Value_Encoding::STRING, str);
-    }
-
-    void operator () ( mapnik::value_null const& /*val*/ ) const
-    {
-        // do nothing
-    }
-private:
-    protozero::pbf_writer & value_;
-};
-
-} // end ns detail
-
-struct layer_builder
-{
-    typedef std::map<std::string, unsigned> keys_container;
-    typedef std::unordered_map<mapnik::value, unsigned> values_container;
-
-    vector_tile::Tile tile;
-    vector_tile::Tile_Layer * layer;
-    keys_container keys;
-    values_container values;
-    bool empty;
-    bool painted;
-
-    layer_builder(std::string const & name, std::uint32_t extent)
-        : tile(), 
-          layer(tile.add_layers()),
-          keys(),
-          values(),
-          empty(true),
-          painted(false)
-    {
-        layer->set_name(name);
-        layer->set_extent(extent);
-        layer->set_version(2);
-    }
-
-    void make_painted()
-    {
-        painted = true;
-    }
-
-    void add_feature(std::unique_ptr<vector_tile::Tile_Feature> & vt_feature, 
-                     mapnik::feature_impl const& mapnik_feature)
-
-    {
-        // Feature id should be unique from mapnik so we should comply with
-        // the following wording of the specification:
-        // "the value of the (feature) id SHOULD be unique among the features of the parent layer."
-
-        // note that feature.id is signed int64_t so we are casting.
-        vt_feature->set_id(static_cast<std::uint64_t>(mapnik_feature.id()));
-
-        // Mapnik features can not have more then one value for
-        // a single key. Therefore, we do not have to check if
-        // key already exists in the feature as we insert each
-        // key value pair into the feature. 
-        feature_kv_iterator itr = mapnik_feature.begin();
-        feature_kv_iterator end = mapnik_feature.end();
-        for (; itr!=end; ++itr)
-        {
-            std::string const& name = std::get<0>(*itr);
-            mapnik::value const& val = std::get<1>(*itr);
-            if (!val.is_null())
-            {
-                // Insert the key index
-                keys_container::const_iterator key_itr = keys.find(name);
-                if (key_itr == keys.end())
-                {
-                    // The key doesn't exist yet in the dictionary.
-                    layer->add_keys(name.c_str(), name.length());
-                    size_t index = keys.size();
-                    keys.emplace(name, index);
-                    vt_feature->add_tags(index);
-                }
-                else
-                {
-                    vt_feature->add_tags(key_itr->second);
-                }
-
-                // Insert the value index
-                values_container::const_iterator val_itr = values.find(val);
-                if (val_itr == values.end())
-                {
-                    // The value doesn't exist yet in the dictionary.
-                    detail::to_tile_value visitor(layer->add_values());
-                    mapnik::util::apply_visitor(visitor, val);
-                    size_t index = values.size();
-                    values.emplace(val, index);
-                    vt_feature->add_tags(index);
-                }
-                else
-                {
-                    vt_feature->add_tags(val_itr->second);
-                }
-            }
-        }
-        layer->mutable_features()->AddAllocated(vt_feature.release());
-        empty = false;
-    }
-};
 
 struct layer_builder_pbf
 {
@@ -233,72 +57,8 @@ struct layer_builder_pbf
         return protozero::pbf_writer(feature_str);
     }
 
-    void add_feature(protozero::pbf_writer & feature_writer, 
-                     mapnik::feature_impl const& mapnik_feature)
-
-    {
-        // Feature id should be unique from mapnik so we should comply with
-        // the following wording of the specification:
-        // "the value of the (feature) id SHOULD be unique among the features of the parent layer."
-
-        // note that feature.id is signed int64_t so we are casting.
-        feature_writer.add_uint64(Feature_Encoding::ID, static_cast<std::uint64_t>(mapnik_feature.id()));
-        
-        {
-            protozero::packed_field_uint32 tags(feature_writer, Feature_Encoding::TAGS);
-            // Mapnik features can not have more then one value for
-            // a single key. Therefore, we do not have to check if
-            // key already exists in the feature as we insert each
-            // key value pair into the feature. 
-            feature_kv_iterator itr = mapnik_feature.begin();
-            feature_kv_iterator end = mapnik_feature.end();
-            for (; itr!=end; ++itr)
-            {
-                std::string const& name = std::get<0>(*itr);
-                mapnik::value const& val = std::get<1>(*itr);
-                if (!val.is_null())
-                {
-                    // Insert the key index
-                    keys_container::const_iterator key_itr = keys.find(name);
-                    if (key_itr == keys.end())
-                    {
-                        // The key doesn't exist yet in the dictionary.
-                        layer_writer.add_string(Layer_Encoding::KEYS, name);
-                        size_t index = keys.size();
-                        keys.emplace(name, index);
-                        tags.add_element(index);
-                    }
-                    else
-                    {
-                        tags.add_element(key_itr->second);
-                    }
-
-                    // Insert the value index
-                    values_container::const_iterator val_itr = values.find(val);
-                    if (val_itr == values.end())
-                    {
-                        // The value doesn't exist yet in the dictionary.
-                        {
-                            std::string value_str;
-                            protozero::pbf_writer value_writer(value_str);
-                            detail::to_tile_value_pbf visitor(value_writer);
-                            mapnik::util::apply_visitor(visitor, val);
-                            layer_writer.add_message(Layer_Encoding::VALUES, value_str);
-                        }
-                        size_t index = values.size();
-                        values.emplace(val, index);
-                        tags.add_element(index);
-                    }
-                    else
-                    {
-                        tags.add_element(val_itr->second);
-                    }
-                }
-            }
-        }
-        layer_writer.add_message(Layer_Encoding::FEATURES, feature_str);
-        empty = false;
-    }
+    MAPNIK_VECTOR_INLINE void add_feature(protozero::pbf_writer & feature_writer, 
+                                          mapnik::feature_impl const& mapnik_feature);
 };
 
 class tile_layer
@@ -370,23 +130,19 @@ public:
         return buffer_;
     }
 
-    void build(layer_builder const& builder)
-    {
-        empty_ = builder.empty;
-        painted_ = builder.painted;
-        builder.tile.SerializeToString(&buffer_);
-    }
-    
     void build(layer_builder_pbf const& builder)
     {
         empty_ = builder.empty;
         painted_ = builder.painted;
     }
-
 };
 
 } // end ns vector_tile_impl
 
 } // end ns mapnik
+
+#if !defined(MAPNIK_VECTOR_TILE_LIBRARY)
+#include "vector_tile_layer.ipp"
+#endif
 
 #endif // __MAPNIK_VECTOR_TILE_LAYER_H__
