@@ -34,8 +34,7 @@
 #include "vector_tile.pb.h"
 #pragma GCC diagnostic pop
 
-//TEST_CASE("vector tile from simplified geojson")
-TEST_CASE("v")
+TEST_CASE("vector tile from simplified geojson")
 {
     unsigned tile_size = 256 * 1000;
     mapnik::Map map(256,256,"+init=epsg:3857");

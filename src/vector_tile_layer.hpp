@@ -113,6 +113,7 @@ public:
           empty_(true),
           painted_(false)
     {
+        buffer_.reserve(35);
     }
 
 
