@@ -169,7 +169,7 @@ public:
         boost::optional<int> layer_buffer_size = lay.buffer_size();
         if (layer_buffer_size) // if layer overrides buffer size, use this value to compute buffered extent
         {
-            buffer_padding *= *layer_buffer_size;
+            buffer_padding *= (*layer_buffer_size) * 16.0;
         }
         else
         {
