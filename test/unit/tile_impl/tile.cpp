@@ -34,9 +34,10 @@ TEST_CASE("Vector tile base class")
         CHECK(str == "");
         CHECK(default_tile.is_painted() == false);
         CHECK(default_tile.is_empty() == true);
-
+        
+        mapnik::box2d<double> global_buffered_extent(-21289852.6142133139073849,-21289852.6142133139073849,21289852.6142133139073849,21289852.6142133139073849);
         CHECK(default_tile.extent() == global_extent);
-        CHECK(default_tile.get_buffered_extent() == global_extent);
+        CHECK(default_tile.get_buffered_extent() == global_buffered_extent);
         CHECK(default_tile.tile_size() == 4096);
 
         CHECK(default_tile.get_painted_layers().empty() == true);
@@ -53,16 +54,17 @@ TEST_CASE("Vector tile base class")
 
     SECTION("construction with zero tile_size")
     {
-        mapnik::vector_tile_impl::tile zero_size_tile(global_extent, 0);
+        mapnik::vector_tile_impl::tile zero_size_tile(global_extent, 0, 0);
 
         CHECK(zero_size_tile.tile_size() == 0);
         CHECK(std::abs(zero_size_tile.scale() - 40075016.6855780035) < 0.00001);
+        CHECK(zero_size_tile.extent() == global_extent);
         CHECK(zero_size_tile.get_buffered_extent() == global_extent);
     }
 
     SECTION("construction with negative tile_size")
     {
-        mapnik::vector_tile_impl::tile negative_size_tile(global_extent, -1);
+        mapnik::vector_tile_impl::tile negative_size_tile(global_extent, -1, 0);
 
         CHECK(negative_size_tile.tile_size() == 4294967295);
         CHECK(std::abs(negative_size_tile.scale() - 0.0093306919) < 0.0000001);

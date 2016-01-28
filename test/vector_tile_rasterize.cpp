@@ -122,7 +122,7 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
     // now `tile` should contain all the data
     std::string buffer2;
     out_tile.serialize_to_string(buffer2);
-    CHECK(2776 == buffer2.size());
+    CHECK(2835 == buffer2.size());
 
     std::ofstream stream_out("./test/data/0.0.0.vector-b.mvt",std::ios_base::out|std::ios_base::binary);
     stream_out << buffer2;

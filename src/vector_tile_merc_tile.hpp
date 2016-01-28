@@ -22,7 +22,7 @@ public:
               std::uint32_t y,
               std::uint32_t z,
               std::uint32_t tile_size = 4096,
-              std::int32_t buffer_size = 0)
+              std::int32_t buffer_size = 128)
         : tile(merc_extent(tile_size, x, y, z), tile_size, buffer_size),
           x_(x),
           y_(y),

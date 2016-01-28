@@ -39,7 +39,7 @@ private:
 public:
     tile(mapnik::box2d<double> const& extent,
          std::uint32_t tile_size = 4096,
-         std::int32_t buffer_size = 0)
+         std::int32_t buffer_size = 128)
         : buffer_(),
           painted_layers_(),
           empty_layers_(),
