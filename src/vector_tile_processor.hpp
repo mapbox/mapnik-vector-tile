@@ -50,12 +50,12 @@ private:
 public:
     processor(mapnik::Map const& map)
         : m_(map),
-          image_format_("jpeg"),
+          image_format_("webp"),
           scale_factor_(1.0),
           area_threshold_(0.1),
           simplify_distance_(0.0),
           fill_type_(positive_fill),
-          scaling_method_(SCALING_NEAR),
+          scaling_method_(SCALING_BILINEAR),
           strictly_simple_(true),
           multi_polygon_union_(false),
           process_all_rings_(false),
