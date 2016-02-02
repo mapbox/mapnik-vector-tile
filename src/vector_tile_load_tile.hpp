@@ -14,6 +14,7 @@
 
 //protozero
 #include <protozero/pbf_reader.hpp>
+#include <protozero/pbf_writer.hpp>
 
 // std
 #include <set>
@@ -110,6 +111,20 @@ void merge_from_compressed_buffer(merc_tile & t, const char * data, std::size_t 
     {
         return merge_from_buffer(t, data, size); 
     }
+}
+
+void add_image_buffer_as_tile_layer(merc_tile & t, std::string const& layer_name, const char * data, std::size_t size)
+{
+    std::string layer_buffer;
+    protozero::pbf_writer layer_writer(layer_buffer);
+    layer_writer.add_uint32(Layer_Encoding::VERSION, 2);
+    layer_writer.add_string(Layer_Encoding::NAME, layer_name);
+    layer_writer.add_uint32(Layer_Encoding::EXTENT, 4096);
+    {
+        protozero::pbf_writer feature_writer(layer_writer, Layer_Encoding::FEATURES);
+        feature_writer.add_bytes(Feature_Encoding::RASTER, data, size);
+    }
+    t.append_layer_buffer(layer_buffer.data(), layer_buffer.size(), layer_name);
 }
 
 } // end ns vector_tile_impl
