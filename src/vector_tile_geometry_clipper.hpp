@@ -16,9 +16,7 @@
 
 // boost
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wshadow"
+#include <mapnik/warning_ignore.hpp>
 #include <boost/geometry/algorithms/intersection.hpp>
 #include <boost/geometry/algorithms/unique.hpp>
 #pragma GCC diagnostic pop
