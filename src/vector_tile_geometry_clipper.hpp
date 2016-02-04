@@ -285,7 +285,7 @@ public:
 
         ClipperLib::PolyTree polygons;
         ClipperLib::PolyFillType fill_type = detail::get_angus_fill_type(fill_type_);
-        clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, fill_type);
+        clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, ClipperLib::pftEvenOdd);
         clipper.Clear();
         
         mapnik::geometry::multi_polygon<std::int64_t> mp;
@@ -385,7 +385,7 @@ public:
                 return;
             }
             ClipperLib::PolyTree polygons;
-            clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, fill_type);
+            clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, ClipperLib::pftEvenOdd);
             clipper.Clear();
             
             for (auto * polynode : polygons.Childs)
@@ -450,7 +450,7 @@ public:
                     return;
                 }
                 ClipperLib::PolyTree polygons;
-                clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, fill_type);
+                clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, ClipperLib::pftEvenOdd);
                 clipper.Clear();
                 
                 for (auto * polynode : polygons.Childs)
