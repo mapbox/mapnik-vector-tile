@@ -42,6 +42,7 @@ int main(int argc, char** argv)
         int y = std::stoi(argv[4]);
 
         std::size_t iterations = 1000;
+        std::size_t layer_count = 1;
         std::string output_path = "";
         if (argc > 5)
         {
@@ -51,6 +52,10 @@ int main(int argc, char** argv)
                 if (flag == "-i")
                 {
                     iterations = std::stoi(argv[i + 1]);
+                }
+                if (flag == "-l")
+                {
+                    layer_count = std::stoi(argv[i + 1]);
                 }
                 if (flag == "-o")
                 {
@@ -122,9 +127,14 @@ int main(int argc, char** argv)
 
         // Create a fresh map to render into a tile
         mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
-        mapnik::layer lyr("layer","+init=epsg:4326");
-        lyr.set_datasource(ds);
-        map.add_layer(lyr);
+        while (layer_count > 0)
+        {
+            std::string layer_name = "layer" + std::to_string(layer_count);
+            mapnik::layer lyr("layer","+init=epsg:4326");
+            lyr.set_datasource(ds);
+            map.add_layer(lyr);
+            --layer_count;
+        }
         map.zoom_to_box(bbox);
 
         // Output buffer
