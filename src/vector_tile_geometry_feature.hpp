@@ -22,9 +22,13 @@ inline void raster_to_feature(std::string const& buffer,
                               mapnik::feature_impl const& mapnik_feature,
                               layer_builder_pbf & builder)
 {
-    protozero::pbf_writer feature_writer = builder.get_feature_writer();
+    std::vector<std::uint32_t> feature_tags;
+    protozero::pbf_writer layer_writer = builder.add_feature(mapnik_feature, feature_tags);
+    protozero::pbf_writer feature_writer(layer_writer, Layer_Encoding::FEATURES);
+    feature_writer.add_uint64(Feature_Encoding::ID, static_cast<std::uint64_t>(mapnik_feature.id()));
     feature_writer.add_string(Feature_Encoding::RASTER, buffer);
-    builder.add_feature(feature_writer, mapnik_feature);
+    feature_writer.add_packed_uint32(Feature_Encoding::TAGS, feature_tags.begin(), feature_tags.end());
+    builder.make_not_empty();
 }
 
 struct geometry_to_feature_pbf_visitor
@@ -47,11 +51,22 @@ struct geometry_to_feature_pbf_visitor
     {
         std::int32_t x = 0;
         std::int32_t y = 0;
-        protozero::pbf_writer feature_writer = builder_.get_feature_writer();
-        if (encode_geometry_pbf(geom, feature_writer, x, y))
+        bool success = false;
+        std::vector<std::uint32_t> feature_tags;
+        protozero::pbf_writer layer_writer = builder_.add_feature(mapnik_feature_, feature_tags);
         {
-            // Releasing the pointer is important here because the layer will take over ownership!
-            builder_.add_feature(feature_writer, mapnik_feature_);
+            protozero::pbf_writer feature_writer(layer_writer, Layer_Encoding::FEATURES);
+            success = encode_geometry_pbf(geom, feature_writer, x, y);
+            if (success)
+            {
+                feature_writer.add_uint64(Feature_Encoding::ID, static_cast<std::uint64_t>(mapnik_feature_.id()));
+                feature_writer.add_packed_uint32(Feature_Encoding::TAGS, feature_tags.begin(), feature_tags.end());
+                builder_.make_not_empty();
+            }
+        }   
+        if (!success)
+        {
+            layer_writer.rollback();
         }
     }
 

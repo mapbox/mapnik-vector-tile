@@ -35,21 +35,20 @@ struct layer_builder_pbf
     typedef std::map<std::string, unsigned> keys_container;
     typedef std::unordered_map<mapnik::value, unsigned> values_container;
 
-    std::string feature_str;
     keys_container keys;
     values_container values;
-    protozero::pbf_writer layer_writer;
+    std::string & layer_buffer;
     bool empty;
     bool painted;
 
-    layer_builder_pbf(std::string const & name, std::uint32_t extent, std::string & layer_buffer)
-        : feature_str(),
-          keys(),
+    layer_builder_pbf(std::string const & name, std::uint32_t extent, std::string & _layer_buffer)
+        : keys(),
           values(),
-          layer_writer(layer_buffer),
+          layer_buffer(_layer_buffer),
           empty(true),
           painted(false)
     {
+        protozero::pbf_writer layer_writer(layer_buffer);
         layer_writer.add_uint32(Layer_Encoding::VERSION, 2);
         layer_writer.add_string(Layer_Encoding::NAME, name);
         layer_writer.add_uint32(Layer_Encoding::EXTENT, extent);
@@ -60,14 +59,13 @@ struct layer_builder_pbf
         painted = true;
     }
 
-    protozero::pbf_writer get_feature_writer()
+    void make_not_empty()
     {
-        feature_str.clear();
-        return protozero::pbf_writer(feature_str);
+        empty = false;
     }
 
-    MAPNIK_VECTOR_INLINE void add_feature(protozero::pbf_writer & feature_writer, 
-                                          mapnik::feature_impl const& mapnik_feature);
+    MAPNIK_VECTOR_INLINE protozero::pbf_writer add_feature(mapnik::feature_impl const& mapnik_feature,
+                                                           std::vector<std::uint32_t> & feature_tags);
 };
 
 class tile_layer
@@ -113,7 +111,6 @@ public:
           empty_(true),
           painted_(false)
     {
-        buffer_.reserve(35);
     }
 
 

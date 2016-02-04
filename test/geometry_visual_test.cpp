@@ -79,6 +79,10 @@ void clip_geometry(mapnik::Map const& map,
                 {
                     geometry_type = feature_reader.get_enum();
                 }
+                else
+                {
+                    feature_reader.skip();
+                }
             }
             double sx = static_cast<double>(tile_size) / bbox.width();
             double sy = static_cast<double>(tile_size) / bbox.height();

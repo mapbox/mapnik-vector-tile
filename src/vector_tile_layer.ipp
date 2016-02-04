@@ -59,71 +59,65 @@ private:
 
 } // end ns detail
 
-MAPNIK_VECTOR_INLINE void layer_builder_pbf::add_feature(protozero::pbf_writer & feature_writer, 
-                                                         mapnik::feature_impl const& mapnik_feature)
+MAPNIK_VECTOR_INLINE protozero::pbf_writer layer_builder_pbf::add_feature(mapnik::feature_impl const& mapnik_feature,
+                                                                          std::vector<std::uint32_t> & feature_tags)
 
 {
+    protozero::pbf_writer layer_writer(layer_buffer);
     // Feature id should be unique from mapnik so we should comply with
     // the following wording of the specification:
     // "the value of the (feature) id SHOULD be unique among the features of the parent layer."
 
     // note that feature.id is signed int64_t so we are casting.
-    feature_writer.add_uint64(Feature_Encoding::ID, static_cast<std::uint64_t>(mapnik_feature.id()));
     
+    // Mapnik features can not have more then one value for
+    // a single key. Therefore, we do not have to check if
+    // key already exists in the feature as we insert each
+    // key value pair into the feature. 
+    feature_kv_iterator itr = mapnik_feature.begin();
+    feature_kv_iterator end = mapnik_feature.end();
+    for (; itr!=end; ++itr)
     {
-        protozero::packed_field_uint32 tags(feature_writer, Feature_Encoding::TAGS);
-        // Mapnik features can not have more then one value for
-        // a single key. Therefore, we do not have to check if
-        // key already exists in the feature as we insert each
-        // key value pair into the feature. 
-        feature_kv_iterator itr = mapnik_feature.begin();
-        feature_kv_iterator end = mapnik_feature.end();
-        for (; itr!=end; ++itr)
+        std::string const& name = std::get<0>(*itr);
+        mapnik::value const& val = std::get<1>(*itr);
+        if (!val.is_null())
         {
-            std::string const& name = std::get<0>(*itr);
-            mapnik::value const& val = std::get<1>(*itr);
-            if (!val.is_null())
+            // Insert the key index
+            keys_container::const_iterator key_itr = keys.find(name);
+            if (key_itr == keys.end())
             {
-                // Insert the key index
-                keys_container::const_iterator key_itr = keys.find(name);
-                if (key_itr == keys.end())
-                {
-                    // The key doesn't exist yet in the dictionary.
-                    layer_writer.add_string(Layer_Encoding::KEYS, name);
-                    size_t index = keys.size();
-                    keys.emplace(name, index);
-                    tags.add_element(index);
-                }
-                else
-                {
-                    tags.add_element(key_itr->second);
-                }
+                // The key doesn't exist yet in the dictionary.
+                layer_writer.add_string(Layer_Encoding::KEYS, name);
+                size_t index = keys.size();
+                keys.emplace(name, index);
+                feature_tags.push_back(index);
+            }
+            else
+            {
+                feature_tags.push_back(key_itr->second);
+            }
 
-                // Insert the value index
-                values_container::const_iterator val_itr = values.find(val);
-                if (val_itr == values.end())
+            // Insert the value index
+            values_container::const_iterator val_itr = values.find(val);
+            if (val_itr == values.end())
+            {
+                // The value doesn't exist yet in the dictionary.
                 {
-                    // The value doesn't exist yet in the dictionary.
-                    {
-                        std::string value_str;
-                        protozero::pbf_writer value_writer(value_str);
-                        detail::to_tile_value_pbf visitor(value_writer);
-                        mapnik::util::apply_visitor(visitor, val);
-                        layer_writer.add_message(Layer_Encoding::VALUES, value_str);
-                    }
-                    size_t index = values.size();
-                    values.emplace(val, index);
-                    tags.add_element(index);
+                    protozero::pbf_writer value_writer(layer_writer, Layer_Encoding::VALUES);
+                    detail::to_tile_value_pbf visitor(value_writer);
+                    mapnik::util::apply_visitor(visitor, val);
                 }
-                else
-                {
-                    tags.add_element(val_itr->second);
-                }
+                size_t index = values.size();
+                values.emplace(val, index);
+                feature_tags.push_back(index);
+            }
+            else
+            {
+                feature_tags.push_back(val_itr->second);
             }
         }
     }
-    layer_writer.add_message(Layer_Encoding::FEATURES, feature_str);
-    empty = false;
+    return layer_writer;
 }
 
 } // end ns vector_tile_impl
