@@ -44,6 +44,7 @@ int main(int argc, char** argv)
         std::size_t iterations = 1000;
         std::size_t layer_count = 1;
         std::string output_path = "";
+        std::string layer_projection = "4326";
         if (argc > 5)
         {
             for (int i = 5; i < argc; i++)
@@ -60,6 +61,10 @@ int main(int argc, char** argv)
                 if (flag == "-o")
                 {
                     output_path = argv[i + 1];
+                }
+                if (flag == "-p")
+                {
+                    layer_projection = argv[i + 1];
                 }
             }
         }
@@ -130,7 +135,8 @@ int main(int argc, char** argv)
         while (layer_count > 0)
         {
             std::string layer_name = "layer" + std::to_string(layer_count);
-            mapnik::layer lyr("layer","+init=epsg:4326");
+            std::string layer_proj = "+init=epsg:" + layer_projection;
+            mapnik::layer lyr(layer_name, layer_proj);
             lyr.set_datasource(ds);
             map.add_layer(lyr);
             --layer_count;
