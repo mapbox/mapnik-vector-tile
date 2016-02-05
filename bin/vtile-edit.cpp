@@ -24,11 +24,22 @@ int main(int argc, char** argv)
             return -1;
         }
 
-        unsigned version = 1;
-        std::string flag = argv[2];
-        if (flag == "--set-version")
+        unsigned version = 0;
+        bool clean_empty = false;
+        if (argc > 2)
         {
-            version = std::stoi(argv[3]);
+            for (int i = 2; i < argc; i++)
+            {
+                std::string flag = argv[i];
+                if (flag == "--set-version")
+                {
+                    version = std::stoi(argv[i + 1]);
+                }
+                if (flag == "--clean-empty")
+                {
+                    clean_empty = true;
+                }
+            }
         }
 
         std::string message(input.data().get(), input.size());
@@ -57,12 +68,33 @@ int main(int argc, char** argv)
         {
             auto layer = tile.mutable_layers(j);
             std::clog << "layer: " << layer->name() << std::endl;
-            std::clog << "old version: " << layer->version() << std::endl;
-            if (version != layer->version())
+            if (version != 0)
             {
-                layer->set_version(version);
+                std::clog << "old version: " << layer->version() << std::endl;
+                if (version != layer->version())
+                {
+                    layer->set_version(version);
+                }
+                std::clog << "new version: " << layer->version() << std::endl;
             }
-            std::clog << "new version: " << layer->version() << std::endl;
+            if (clean_empty)
+            {
+                std::clog << "Cleaning empty features" << std::endl;
+                for (int i = 0; i < layer->features_size(); ++i)
+                {
+                    auto feature = layer->mutable_features(i);
+                    if (feature->geometry_size() == 0 && !feature->has_raster())
+                    {
+                        layer->mutable_features()->DeleteSubrange(i,1);
+                        --i;
+                    }
+                }
+                if (layer->features_size() == 0) 
+                {
+                    tile.mutable_layers()->DeleteSubrange(j,1);
+                    --j;
+                }
+            }
         }
 
         // Serialize
