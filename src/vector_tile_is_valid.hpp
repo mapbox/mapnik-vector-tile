@@ -37,7 +37,7 @@ enum validity_error : std::uint8_t
 
 };
 
-std::string validity_error_to_string(validity_error err)
+inline std::string validity_error_to_string(validity_error err)
 {
     switch (err)
     {
@@ -78,7 +78,7 @@ std::string validity_error_to_string(validity_error err)
     }
 }
 
-void validity_error_to_string(std::set<validity_error> & errors, std::string & out)
+inline void validity_error_to_string(std::set<validity_error> & errors, std::string & out)
 {
     if (errors.empty())
     {
@@ -93,7 +93,7 @@ void validity_error_to_string(std::set<validity_error> & errors, std::string & o
     out.append(err.str());
 }
 
-void feature_is_valid(protozero::pbf_reader & feature_msg, std::set<validity_error> & errors)
+inline void feature_is_valid(protozero::pbf_reader & feature_msg, std::set<validity_error> & errors)
 {
     bool has_geom = false;
     bool has_raster = false;
@@ -150,7 +150,7 @@ void feature_is_valid(protozero::pbf_reader & feature_msg, std::set<validity_err
     }
 }
 
-void value_is_valid(protozero::pbf_reader & value_msg, std::set<validity_error> & errors)
+inline void value_is_valid(protozero::pbf_reader & value_msg, std::set<validity_error> & errors)
 {
     bool has_value = false;
     while (value_msg.next())
@@ -183,7 +183,7 @@ void value_is_valid(protozero::pbf_reader & value_msg, std::set<validity_error> 
     }
 }
 
-void layer_is_valid(protozero::pbf_reader & layer_msg, 
+inline void layer_is_valid(protozero::pbf_reader & layer_msg, 
                     std::set<validity_error> & errors, 
                     std::string & layer_name,
                     std::uint32_t & version)
@@ -257,7 +257,7 @@ void layer_is_valid(protozero::pbf_reader & layer_msg,
 // does not check all items in line with the v2 spec. For
 // example does does not check validity of geometry. It also does not 
 // verify that all feature attributes are valid.
-void tile_is_valid(protozero::pbf_reader & tile_msg, std::set<validity_error> & errors)
+inline void tile_is_valid(protozero::pbf_reader & tile_msg, std::set<validity_error> & errors)
 {
     std::set<std::string> layer_names_set;
     try
@@ -292,7 +292,7 @@ void tile_is_valid(protozero::pbf_reader & tile_msg, std::set<validity_error> & 
     }
 }
 
-void tile_is_valid(std::string const& tile, std::set<validity_error> & errors)
+inline void tile_is_valid(std::string const& tile, std::set<validity_error> & errors)
 {
     protozero::pbf_reader tile_msg(tile);
     tile_is_valid(tile_msg, errors);
