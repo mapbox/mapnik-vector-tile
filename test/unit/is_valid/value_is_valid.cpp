@@ -4,7 +4,6 @@
 #include "vector_tile_is_valid.hpp"
 
 // protozero
-#include <protozero/pbf_reader.hpp>
 #include <protozero/pbf_writer.hpp>
 
 #include "vector_tile.pb.h"
