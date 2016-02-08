@@ -79,7 +79,46 @@ TEST_CASE( "valid geometry feature" )
     CHECK(errs.empty() == true);
 }
 
-TEST_CASE( "valid geometry feature" )
+TEST_CASE( "invalid odd number of tags" )
+{
+    std::string buffer;
+    vector_tile::Tile_Feature feature;
+    error_set_T errs;
+
+    // Add geometry to make it valid
+    feature.set_type(vector_tile::Tile_GeomType::Tile_GeomType_POINT);
+    feature.add_geometry(9); // move_to | (1 << 3)
+    feature.add_geometry(protozero::encode_zigzag32(5));
+    feature.add_geometry(protozero::encode_zigzag32(5));
+
+    feature.add_tags(1);
+
+    feature.SerializeToString(&buffer);
+    protozero::pbf_reader pbf_feature(buffer);
+
+    feature_is_valid(pbf_feature, errs);
+
+    CHECK(errs.empty() == false);
+    CHECK(errs.count(mapnik::vector_tile_impl::validity_error::FEATURE_HAS_ODD_TAG_NUMBER) == 1);
+}
+
+TEST_CASE( "geometry feature with invalid type" )
+{
+    std::string buffer;
+    error_set_T errs;
+
+    protozero::pbf_writer pbf_message(buffer);
+    pbf_message.add_uint32(3, 4);
+
+    protozero::pbf_reader pbf_feature(buffer);
+
+    feature_is_valid(pbf_feature, errs);
+
+    CHECK(errs.empty() == false);
+    CHECK(errs.count(mapnik::vector_tile_impl::validity_error::FEATURE_HAS_INVALID_GEOM_TYPE) == 1);
+}
+
+TEST_CASE( "invalid feature with geometry and raster" )
 {
     std::string buffer;
     vector_tile::Tile_Feature feature;
@@ -90,10 +129,29 @@ TEST_CASE( "valid geometry feature" )
     feature.add_geometry(protozero::encode_zigzag32(5));
     feature.add_geometry(protozero::encode_zigzag32(5));
 
+    feature.set_raster("raster-blaster");
+
     feature.SerializeToString(&buffer);
     protozero::pbf_reader pbf_feature(buffer);
 
     feature_is_valid(pbf_feature, errs);
 
-    CHECK(errs.empty() == true);
+    CHECK(errs.empty() == false);
+    CHECK(errs.count(mapnik::vector_tile_impl::validity_error::FEATURE_MULTIPLE_GEOM) == 1);
+}
+
+TEST_CASE( "invalid unknown tag in feature" )
+{
+    std::string buffer;
+    error_set_T errs;
+
+    protozero::pbf_writer pbf_message(buffer);
+    pbf_message.add_string(8, "unknown field");
+
+    protozero::pbf_reader pbf_value(buffer);
+
+    feature_is_valid(pbf_value, errs);
+
+    CHECK(errs.empty() == false);
+    CHECK(errs.count(mapnik::vector_tile_impl::validity_error::FEATURE_HAS_UNKNOWN_TAG) == 1);
 }
