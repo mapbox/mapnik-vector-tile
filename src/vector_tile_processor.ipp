@@ -350,7 +350,7 @@ MAPNIK_VECTOR_INLINE void processor::update_tile(tile & t,
             }
         }
 
-        for (auto & lay_future : future_layers)
+        for (auto && lay_future : future_layers)
         {
             if (!lay_future.valid())
             {

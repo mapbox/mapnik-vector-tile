@@ -74,6 +74,7 @@ int main(int argc, char** argv)
                     auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(layer,x,y,z);
                     mapnik::query q(ds->get_tile_extent());
                     auto fs = ds->features(q);
+                    if (!fs) continue;
                     while (fs->next()) {
                         ++feature_count;
                     }

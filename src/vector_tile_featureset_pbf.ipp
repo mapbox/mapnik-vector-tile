@@ -256,24 +256,61 @@ feature_ptr tile_featureset_pbf<Filter>::next()
         {
             if (!has_geometry_type)
             {
-                throw std::runtime_error("Vector Tile has a feature that does not define the required geometry type.");
+                if (version_ == 1)
+                {
+                    continue;
+                }
+                else
+                {
+                    throw std::runtime_error("Vector Tile has a feature that does not define the required geometry type.");
+                }
             }
-            mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, tile_x_,tile_y_,scale_,-1*scale_);
-            mapnik::geometry::geometry<double> geom = decode_geometry(geoms, geometry_type, version_, filter_.box_);
-            if (geom.is<mapnik::geometry::geometry_empty>())
+            if (version_ != 1)
             {
-                continue;
+                mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, tile_x_,tile_y_,scale_,-1*scale_);
+                mapnik::geometry::geometry<double> geom = decode_geometry(geoms, geometry_type, version_, filter_.box_);
+                if (geom.is<mapnik::geometry::geometry_empty>())
+                {
+                    continue;
+                }
+                #if defined(DEBUG)
+                mapnik::box2d<double> envelope = mapnik::geometry::envelope(geom);
+                if (!filter_.pass(envelope))
+                {
+                    MAPNIK_LOG_ERROR(tile_featureset_pbf) << "tile_featureset_pbf: filter:pass should not get here";
+                    continue;
+                }
+                #endif
+                feature->set_geometry(std::move(geom));
+                return feature;
             }
-            #if defined(DEBUG)
-            mapnik::box2d<double> envelope = mapnik::geometry::envelope(geom);
-            if (!filter_.pass(envelope))
+            else
             {
-                MAPNIK_LOG_ERROR(tile_featureset_pbf) << "tile_featureset_pbf: filter:pass should not get here";
-                continue;
+                try
+                {
+                    mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, tile_x_,tile_y_,scale_,-1*scale_);
+                    mapnik::geometry::geometry<double> geom = decode_geometry(geoms, geometry_type, version_, filter_.box_);
+                    if (geom.is<mapnik::geometry::geometry_empty>())
+                    {
+                        continue;
+                    }
+                    #if defined(DEBUG)
+                    mapnik::box2d<double> envelope = mapnik::geometry::envelope(geom);
+                    if (!filter_.pass(envelope))
+                    {
+                        MAPNIK_LOG_ERROR(tile_featureset_pbf) << "tile_featureset_pbf: filter:pass should not get here";
+                        continue;
+                    }
+                    #endif
+                    feature->set_geometry(std::move(geom));
+                }
+                catch (std::exception& e)
+                {
+                    // For v1 any invalid geometry errors lets just skip the feature
+                    continue;
+                }
+                return feature;
             }
-            #endif
-            feature->set_geometry(std::move(geom));
-            return feature;
         }
         else if (version_ != 1)
         {
