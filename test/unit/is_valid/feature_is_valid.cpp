@@ -79,29 +79,6 @@ TEST_CASE( "valid geometry feature" )
     CHECK(errs.empty() == true);
 }
 
-TEST_CASE( "invalid odd number of tags" )
-{
-    std::string buffer;
-    vector_tile::Tile_Feature feature;
-    error_set_T errs;
-
-    // Add geometry to make it valid
-    feature.set_type(vector_tile::Tile_GeomType::Tile_GeomType_POINT);
-    feature.add_geometry(9); // move_to | (1 << 3)
-    feature.add_geometry(protozero::encode_zigzag32(5));
-    feature.add_geometry(protozero::encode_zigzag32(5));
-
-    feature.add_tags(1);
-
-    feature.SerializeToString(&buffer);
-    protozero::pbf_reader pbf_feature(buffer);
-
-    feature_is_valid(pbf_feature, errs);
-
-    CHECK(errs.empty() == false);
-    CHECK(errs.count(mapnik::vector_tile_impl::validity_error::FEATURE_HAS_ODD_TAG_NUMBER) == 1);
-}
-
 TEST_CASE( "geometry feature with invalid type" )
 {
     std::string buffer;

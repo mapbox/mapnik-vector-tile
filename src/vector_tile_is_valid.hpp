@@ -33,7 +33,6 @@ enum validity_error : std::uint8_t
     FEATURE_NO_GEOM_TYPE,
     FEATURE_HAS_INVALID_GEOM_TYPE,
     FEATURE_HAS_UNKNOWN_TAG,
-    FEATURE_HAS_ODD_TAG_NUMBER,
     INVALID_PBF_BUFFER
 };
 
@@ -71,8 +70,6 @@ inline std::string validity_error_to_string(validity_error err)
             return "Vector Tile Feature message has an invalid geometry type";
         case FEATURE_HAS_UNKNOWN_TAG:
             return "Vector Tile Feature message has an unknown tag";
-        case FEATURE_HAS_ODD_TAG_NUMBER:
-            return "Vector Tile Feature has odd number of tags";
         case INVALID_PBF_BUFFER:
             return "Buffer is not encoded as a valid PBF";
         default:
@@ -100,7 +97,6 @@ inline void feature_is_valid(protozero::pbf_reader & feature_msg, std::set<valid
     bool has_geom = false;
     bool has_raster = false;
     bool has_type = false;
-    std::uint32_t tag_count = 0;
     while (feature_msg.next())
     {
         switch (feature_msg.tag())
@@ -110,7 +106,6 @@ inline void feature_is_valid(protozero::pbf_reader & feature_msg, std::set<valid
                 break;
             case Feature_Encoding::TAGS: // tags
                 feature_msg.get_packed_uint32();
-                tag_count++;
                 break;
             case Feature_Encoding::TYPE: // geom type
                 {
@@ -151,10 +146,6 @@ inline void feature_is_valid(protozero::pbf_reader & feature_msg, std::set<valid
     if (has_geom && !has_type)
     {
         errors.insert(FEATURE_NO_GEOM_TYPE);
-    }
-    if (tag_count % 2 != 0)
-    {
-        errors.insert(FEATURE_HAS_ODD_TAG_NUMBER);
     }
 }
 
