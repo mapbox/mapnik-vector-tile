@@ -27,7 +27,6 @@ public:
 
     void operator () ( value_integer val ) const
     {
-        // TODO: figure out shortest varint encoding.
         value_.add_int64(Value_Encoding::INT,val);
     }
 
@@ -38,8 +37,15 @@ public:
 
     void operator () ( mapnik::value_double val ) const
     {
-        // TODO: Figure out how we can encode 32 bit floats in some cases.
-        value_.add_double(Value_Encoding::DOUBLE, val);
+        float fval = static_cast<float>(val);
+        if (val == static_cast<double>(fval))
+        {
+            value_.add_float(Value_Encoding::FLOAT, fval);
+        }
+        else
+        {
+            value_.add_double(Value_Encoding::DOUBLE, val);
+        }
     }
 
     void operator () ( mapnik::value_unicode_string const& val ) const

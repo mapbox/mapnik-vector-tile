@@ -64,7 +64,7 @@ TEST_CASE("pbf vector tile input")
     // serialize to message
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(151 == buffer.size());
+    CHECK(147 == buffer.size());
     // now create new objects
     mapnik::Map map2(256,256,"+init=epsg:3857");
     vector_tile::Tile tile2;

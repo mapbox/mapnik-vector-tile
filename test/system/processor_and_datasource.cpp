@@ -58,10 +58,10 @@ TEST_CASE("vector tile output -- simple two points")
     CHECK(9 == f.geometry(0));
     CHECK(4096 == f.geometry(1));
     CHECK(4096 == f.geometry(2));
-    CHECK(194 == tile.ByteSize());
+    CHECK(190 == tile.ByteSize());
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(194 == buffer.size());
+    CHECK(190 == buffer.size());
 }
 
 TEST_CASE("vector tile output -- empty tile")
@@ -165,7 +165,7 @@ TEST_CASE("vector tile render simple point")
     out_tile.serialize_to_string(buffer);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    CHECK(151 == buffer.size());
+    CHECK(147 == buffer.size());
 
     // create a new vector tile from the buffer
     vector_tile::Tile tile2;
