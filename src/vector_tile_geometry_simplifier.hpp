@@ -43,28 +43,40 @@ struct geometry_simplifier
     void operator() (mapnik::geometry::line_string<std::int64_t> & geom)
     {
         mapnik::geometry::line_string<std::int64_t> simplified;
-        boost::geometry::simplify(geom, simplified, simplify_distance_);
+        boost::geometry::simplify<
+                mapnik::geometry::line_string<std::int64_t>,
+                std::int64_t>
+                (geom, simplified, simplify_distance_);
         next_(simplified);
     }
 
     void operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom)
     {
         mapnik::geometry::multi_line_string<std::int64_t> simplified;
-        boost::geometry::simplify(geom, simplified, simplify_distance_);
+        boost::geometry::simplify<
+                mapnik::geometry::multi_line_string<std::int64_t>,
+                std::int64_t>
+                (geom, simplified, simplify_distance_);
         next_(simplified);
     }
 
     void operator() (mapnik::geometry::polygon<std::int64_t> & geom)
     {
         mapnik::geometry::polygon<std::int64_t> simplified;
-        boost::geometry::simplify(geom, simplified, simplify_distance_);
+        boost::geometry::simplify<
+                mapnik::geometry::polygon<std::int64_t>,
+                std::int64_t>
+                (geom, simplified, simplify_distance_);
         next_(simplified);
     }
 
     void operator() (mapnik::geometry::multi_polygon<std::int64_t> & geom)
     {
         mapnik::geometry::multi_polygon<std::int64_t> simplified;
-        boost::geometry::simplify(geom, simplified, simplify_distance_);
+        boost::geometry::simplify<
+                mapnik::geometry::multi_polygon<std::int64_t>,
+                std::int64_t>
+                (geom, simplified, simplify_distance_);
         next_(simplified);
     }
 
