@@ -43,15 +43,33 @@ public:
     {
         return x_;
     }
+
+    void x(std::uint32_t x)
+    {
+        x_ = x;
+        extent_ = merc_extent(tile_size_, x_, y_, z_);
+    }
     
     std::uint32_t y() const
     {
         return y_;
     }
     
+    void y(std::uint32_t y)
+    {
+        y_ = y;
+        extent_ = merc_extent(tile_size_, x_, y_, z_);
+    }
+    
     std::uint32_t z() const
     {
         return z_;
+    }
+    
+    void z(std::uint32_t z)
+    {
+        z_ = z;
+        extent_ = merc_extent(tile_size_, x_, y_, z_);
     }
 };
 

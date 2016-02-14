@@ -26,7 +26,7 @@ class tile_layer;
 
 class tile
 {
-private:
+protected:
     std::string buffer_;
     std::set<std::string> painted_layers_;
     std::set<std::string> empty_layers_;
