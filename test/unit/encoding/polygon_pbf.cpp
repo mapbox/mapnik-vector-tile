@@ -182,7 +182,8 @@ TEST_CASE("encoding pbf empty polygon")
     vector_tile::Tile_Feature feature;
     REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry_pbf(p, feature_writer, x, y));
     feature.ParseFromString(feature_str);
-    REQUIRE(!feature.has_type());
+    REQUIRE(feature.has_type());
+    CHECK(feature.type() == vector_tile::Tile_GeomType_POLYGON);
     REQUIRE(feature.geometry_size() == 0);
 }
 
@@ -461,7 +462,8 @@ TEST_CASE("encoding pbf empty multi polygon")
     vector_tile::Tile_Feature feature;
     REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry_pbf(mp, feature_writer, x, y));
     feature.ParseFromString(feature_str);
-    REQUIRE(!feature.has_type());
+    REQUIRE(feature.has_type());
+    CHECK(feature.type() == vector_tile::Tile_GeomType_POLYGON);
     REQUIRE(feature.geometry_size() == 0);
 }
 
@@ -485,7 +487,8 @@ TEST_CASE("encoding pbf polygon with degenerate exterior ring full of repeated p
     vector_tile::Tile_Feature feature;
     REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry_pbf(p0, feature_writer, x, y));
     feature.ParseFromString(feature_str);
-    REQUIRE(!feature.has_type());
+    REQUIRE(feature.has_type());
+    CHECK(feature.type() == vector_tile::Tile_GeomType_POLYGON);
     CHECK(feature.geometry_size() == 0);
 }
 
@@ -503,7 +506,8 @@ TEST_CASE("encoding pbf polygon with degenerate exterior ring")
     vector_tile::Tile_Feature feature;
     REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry_pbf(p0, feature_writer, x, y));
     feature.ParseFromString(feature_str);
-    REQUIRE(!feature.has_type());
+    REQUIRE(feature.has_type());
+    CHECK(feature.type() == vector_tile::Tile_GeomType_POLYGON);
     CHECK(feature.geometry_size() == 0);
 }
 
@@ -531,7 +535,8 @@ TEST_CASE("encoding pbf polygon with degenerate exterior ring and interior ring"
     vector_tile::Tile_Feature feature;
     REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry_pbf(p0, feature_writer, x, y));
     feature.ParseFromString(feature_str);
-    REQUIRE(!feature.has_type());
+    REQUIRE(feature.has_type());
+    CHECK(feature.type() == vector_tile::Tile_GeomType_POLYGON);
     CHECK(feature.geometry_size() == 0);
 }
 
