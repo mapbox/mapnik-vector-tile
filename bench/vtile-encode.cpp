@@ -32,7 +32,7 @@ int main(int argc, char** argv)
     {
         if (argc < 4)
         {
-            std::clog << "usage: vtile-encode /path/to/geometry.geojson z x y [iterations]\n";
+            std::clog << "usage: vtile-encode /path/to/geometry.geojson z x y [-i iterations] [-l layer_count] [-o output_file] [-p epsg_code]\n";
             return -1;
         }
         std::string geojson_file(argv[1]);

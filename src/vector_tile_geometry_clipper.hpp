@@ -138,6 +138,9 @@ public:
 
     void operator() (mapnik::geometry::multi_point<std::int64_t> & geom)
     {
+        // Here we remove repeated points from multi_point
+        auto last = std::unique(geom.begin(), geom.end());
+        geom.erase(last, geom.end());
         next_(geom);
     }
 
