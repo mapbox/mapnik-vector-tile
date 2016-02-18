@@ -94,6 +94,7 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size)
     ren.set_multi_polygon_union(true);
     ren.set_fill_type(mapnik::vector_tile_impl::even_odd_fill);
     ren.set_process_all_rings(true);
+    //ren.set_simplify_distance(4.0);
     ren.update_tile(t);
     t.buffer_size(prev_buffer_size);
 }
