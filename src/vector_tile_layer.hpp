@@ -254,7 +254,7 @@ public:
         }
         double qw = tile_extent_bbox.width() > 0 ? tile_extent_bbox.width() : 1;
         double qh = tile_extent_bbox.height() > 0 ? tile_extent_bbox.height() : 1;
-        mapnik::query::resolution_type res(layer_extent_ / qw, layer_extent_ / qh);
+        mapnik::query::resolution_type res(static_cast<double>(image_size) / qw, static_cast<double>(image_size) / qh);
         mapnik::query q(query_extent, res, scale_denom, tile_extent_bbox);
         if (ds_)
         {
