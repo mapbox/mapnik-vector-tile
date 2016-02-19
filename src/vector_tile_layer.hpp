@@ -92,7 +92,6 @@ public:
                mapnik::box2d<double> const& tile_extent_bbox,
                std::uint32_t tile_size,
                std::int32_t buffer_size,
-               std::uint32_t image_size,
                double scale_factor,
                double scale_denom,
                int offset_x,
@@ -105,9 +104,9 @@ public:
           buffer_(),
           name_(lay.name()),
           layer_extent_(calc_extent(tile_size)),
-          target_buffered_extent_(calc_target_buffered_extent(tile_extent_bbox, buffer_size, image_size, lay, map)),
+          target_buffered_extent_(calc_target_buffered_extent(tile_extent_bbox, buffer_size, lay, map)),
           source_buffered_extent_(calc_source_buffered_extent()),
-          query_(calc_query(scale_factor, scale_denom, image_size, tile_extent_bbox, lay)),
+          query_(calc_query(scale_factor, scale_denom, tile_extent_bbox, lay)),
           view_trans_(layer_extent_, layer_extent_, tile_extent_bbox, offset_x, offset_y),
           empty_(true),
           painted_(false)
@@ -158,7 +157,6 @@ public:
 
     mapnik::box2d<double> calc_target_buffered_extent(mapnik::box2d<double> const& tile_extent_bbox,
                                                std::int32_t buffer_size,
-                                               std::uint32_t image_size,
                                                mapnik::layer const& lay,
                                                mapnik::Map const& map) const
     {
@@ -168,7 +166,14 @@ public:
         boost::optional<int> layer_buffer_size = lay.buffer_size();
         if (layer_buffer_size) // if layer overrides buffer size, use this value to compute buffered extent
         {
-            buffer_padding *= (*layer_buffer_size) * (static_cast<double>(layer_extent_) / static_cast<double>(image_size));
+            if (!ds_ || ds_->type() == datasource::Vector)
+            {
+                buffer_padding *= (*layer_buffer_size) * (static_cast<double>(layer_extent_) / VT_LEGACY_IMAGE_SIZE);
+            }
+            else
+            {
+                buffer_padding *= (*layer_buffer_size) * (static_cast<double>(layer_extent_));
+            }
         }
         else
         {
@@ -208,14 +213,13 @@ public:
 
     mapnik::query calc_query(double scale_factor,
                              double scale_denom,
-                             std::uint32_t image_size,
                              mapnik::box2d<double> const& tile_extent_bbox,
                              mapnik::layer const& lay)
     {
         // Adjust the scale denominator if required
         if (scale_denom <= 0.0)
         {
-            double scale = tile_extent_bbox.width() / static_cast<double>(image_size);
+            double scale = tile_extent_bbox.width() / VT_LEGACY_IMAGE_SIZE;
             scale_denom = mapnik::scale_denominator(scale, target_proj_.is_geographic());
         }
         scale_denom *= scale_factor;
@@ -254,7 +258,17 @@ public:
         }
         double qw = tile_extent_bbox.width() > 0 ? tile_extent_bbox.width() : 1;
         double qh = tile_extent_bbox.height() > 0 ? tile_extent_bbox.height() : 1;
-        mapnik::query::resolution_type res(static_cast<double>(image_size) / qw, static_cast<double>(image_size) / qh);
+        if (!ds_ || ds_->type() == datasource::Vector)
+        {
+            qw = VT_LEGACY_IMAGE_SIZE / qw;
+            qh = VT_LEGACY_IMAGE_SIZE / qh;
+        }
+        else
+        {
+            qw = static_cast<double>(layer_extent_) / qw;
+            qh = static_cast<double>(layer_extent_) / qh;
+        }
+        mapnik::query::resolution_type res(qw, qh);
         mapnik::query q(query_extent, res, scale_denom, tile_extent_bbox);
         if (ds_)
         {

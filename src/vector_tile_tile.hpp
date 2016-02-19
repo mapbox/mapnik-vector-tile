@@ -35,13 +35,11 @@ protected:
     mapnik::box2d<double> extent_;
     std::uint32_t tile_size_;
     std::int32_t buffer_size_;
-    std::uint32_t image_size_;
 
 public:
     tile(mapnik::box2d<double> const& extent,
          std::uint32_t tile_size = 4096,
-         std::int32_t buffer_size = 128,
-         std::uint32_t image_size = 256)
+         std::int32_t buffer_size = 128)
         : buffer_(),
           painted_layers_(),
           empty_layers_(),
@@ -49,8 +47,7 @@ public:
           layers_(),
           extent_(extent),
           tile_size_(tile_size),
-          buffer_size_(buffer_size),
-          image_size_(image_size) {}
+          buffer_size_(buffer_size) {}
 
     tile(tile const& rhs) = default;
 
@@ -139,16 +136,6 @@ public:
     void tile_size(std::uint32_t val)
     {
         tile_size_ = val;
-    }
-
-    std::uint32_t image_size() const
-    {
-        return image_size_;
-    }
-
-    void image_size(std::uint32_t val)
-    {
-        image_size_ = val;
     }
 
     std::int32_t buffer_size() const

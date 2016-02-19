@@ -9,6 +9,8 @@
 
 #include <protozero/pbf_types.hpp>
 
+#define VT_LEGACY_IMAGE_SIZE 256.0
+
 namespace mapnik
 {
 
