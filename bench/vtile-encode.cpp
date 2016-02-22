@@ -43,6 +43,7 @@ int main(int argc, char** argv)
 
         std::size_t iterations = 1000;
         std::size_t layer_count = 1;
+        std::size_t layer_extent = 4096;
         std::string output_path = "";
         std::string layer_projection = "4326";
         if (argc > 5)
@@ -65,6 +66,10 @@ int main(int argc, char** argv)
                 if (flag == "-p")
                 {
                     layer_projection = argv[i + 1];
+                }
+                if (flag == "-e")
+                {
+                    layer_extent = std::stoi(argv[i + 1]);
                 }
             }
         }
@@ -125,7 +130,7 @@ int main(int argc, char** argv)
         }
 
         // Create tile 
-        unsigned tile_size = 4096;
+        unsigned tile_size = layer_extent;
         int buffer_size = 0;
 
         mapnik::box2d<double> bbox = mapnik::vector_tile_impl::merc_extent(tile_size, x, y, z);
