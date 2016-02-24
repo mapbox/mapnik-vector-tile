@@ -1,7 +1,6 @@
 #include <mapnik/timer.hpp>
 #include <mapnik/util/file_io.hpp>
 #include "vector_tile_datasource_pbf.hpp"
-#include "vector_tile_datasource.hpp"
 #include "vector_tile_compression.hpp"
 
 #pragma GCC diagnostic push
@@ -21,7 +20,7 @@ int main(int argc, char** argv)
 
         if (argc < 4)
         {
-            std::clog << "usage: vtile-decode /path/to/tile.vector.pbf z x y [iterations]\n";
+            std::clog << "usage: vtile-decode /path/to/tile.vector.mvt z x y [iterations]\n";
             return -1;
         }
         std::string vtile(argv[1]);
@@ -72,45 +71,24 @@ int main(int argc, char** argv)
                 while (tile.next(3)) {
                     ++layer_count;
                     protozero::pbf_reader layer = tile.get_message();
-                    auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(layer,x,y,z,256);
+                    auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(layer,x,y,z);
                     mapnik::query q(ds->get_tile_extent());
                     auto fs = ds->features(q);
+                    if (!fs) continue;
                     while (fs->next()) {
                         ++feature_count;
                     }
                 }
             }
         }
-
-
-        std::size_t feature_count2 = 0;
-        std::size_t layer_count2 = 0;
+        
+        if (feature_count == 0)
         {
-            mapnik::progress_timer __stats__(std::clog, std::string("decode as datasource: ") + vtile);
-            vector_tile::Tile tiledata;
-            tiledata.ParseFromString(message);
-            for (std::size_t i=0;i<iterations;++i)
-            {
-                for (int j=0;j<tiledata.layers_size(); ++j)
-                {
-                    ++layer_count2;
-                    auto const& layer = tiledata.layers(j);
-                    auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource>(layer,x,y,z,256);
-                    mapnik::query q(ds->get_tile_extent());
-                    auto fs = ds->features(q);
-                    while (fs->next()) {
-                        ++feature_count2;
-                    }                    
-                }
-            }
-        }
-        if (feature_count!= feature_count2) {
-            std::clog << "error: tile datasource impl did not return same # of features " << feature_count << " vs " << feature_count2 << "\n";
-            return -1;
-        } else if (feature_count == 0) {
             std::clog << "error: no features processed\n";
             return -1;
-        } else {
+        }
+        else
+        {
             std::clog << "processed " << feature_count << " features\n";
         }
     }

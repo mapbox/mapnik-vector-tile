@@ -1,7 +1,7 @@
 #include <mapnik/timer.hpp>
 #include <mapnik/util/file_io.hpp>
-#include "vector_tile_backend_pbf.hpp"
 #include "vector_tile_processor.hpp"
+#include "vector_tile_projection.hpp"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -26,46 +26,13 @@
 
 #include <protozero/pbf_reader.hpp>
 
-typedef mapnik::vector_tile_impl::backend_pbf backend_type;
-typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
-
-void from_pixels(double shift, double & x, double & y)
-{
-    double b = shift/2.0;
-    x = (x - b)/(shift/360.0);
-    double g = (y - b)/-(shift/(2 * M_PI));
-    y = mapnik::R2D * (2.0 * std::atan(std::exp(g)) - mapnik::M_PI_by2);
-}
-
-void xyz(int tile_size,
-    int x,
-    int y,
-    int z,
-    double & minx,
-    double & miny,
-    double & maxx,
-    double & maxy)
-{
-    minx = x * tile_size;
-    miny = (y + 1.0) * tile_size;
-    maxx = (x + 1.0) * tile_size;
-    maxy = y * tile_size;
-    double shift = std::pow(2.0,z) * tile_size;
-    from_pixels(shift,minx,miny);
-    from_pixels(shift,maxx,maxy);
-    mapnik::lonlat2merc(&minx,&miny,1);
-    mapnik::lonlat2merc(&maxx,&maxy,1);
-}
-
-
 int main(int argc, char** argv)
 {
     try
     {
-
         if (argc < 4)
         {
-            std::clog << "usage: vtile-encode /path/to/geometry.geojson z x y [iterations]\n";
+            std::clog << "usage: vtile-encode /path/to/geometry.geojson z x y [-i iterations] [-l layer_count] [-o output_file] [-p epsg_code]\n";
             return -1;
         }
         std::string geojson_file(argv[1]);
@@ -75,7 +42,10 @@ int main(int argc, char** argv)
         int y = std::stoi(argv[4]);
 
         std::size_t iterations = 1000;
+        std::size_t layer_count = 1;
+        std::size_t layer_extent = 4096;
         std::string output_path = "";
+        std::string layer_projection = "4326";
         if (argc > 5)
         {
             for (int i = 5; i < argc; i++)
@@ -85,9 +55,21 @@ int main(int argc, char** argv)
                 {
                     iterations = std::stoi(argv[i + 1]);
                 }
+                if (flag == "-l")
+                {
+                    layer_count = std::stoi(argv[i + 1]);
+                }
                 if (flag == "-o")
                 {
                     output_path = argv[i + 1];
+                }
+                if (flag == "-p")
+                {
+                    layer_projection = argv[i + 1];
+                }
+                if (flag == "-e")
+                {
+                    layer_extent = std::stoi(argv[i + 1]);
                 }
             }
         }
@@ -148,48 +130,45 @@ int main(int argc, char** argv)
         }
 
         // Create tile 
-        unsigned tile_size = 256;
+        unsigned tile_size = layer_extent;
+        int buffer_size = 0;
 
-        double minx,miny,maxx,maxy;
-        xyz(tile_size, x, y, z, minx, miny, maxx, maxy);
-        mapnik::box2d<double> bbox(minx,miny,maxx,maxy);
+        mapnik::box2d<double> bbox = mapnik::vector_tile_impl::merc_extent(tile_size, x, y, z);
 
         // Create a fresh map to render into a tile
         mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
-        mapnik::layer lyr("layer","+init=epsg:4326");
-        lyr.set_datasource(ds);
-        map.add_layer(lyr);
+        while (layer_count > 0)
+        {
+            std::string layer_name = "layer" + std::to_string(layer_count);
+            std::string layer_proj = "+init=epsg:" + layer_projection;
+            mapnik::layer lyr(layer_name, layer_proj);
+            lyr.set_datasource(ds);
+            map.add_layer(lyr);
+            --layer_count;
+        }
         map.zoom_to_box(bbox);
 
         // Output buffer
         std::string output_buffer;
         std::size_t expected_size;
         {
-            vector_tile::Tile tile;
-            mapnik::vector_tile_impl::backend_pbf backend(tile, 16);
-            mapnik::request m_req(tile_size,tile_size,bbox);
-            renderer_type ren(backend,map,m_req,1.0,0.0,0.0,0.1,true);
+            mapnik::vector_tile_impl::tile a_tile(bbox, tile_size, buffer_size);
+            mapnik::vector_tile_impl::processor ren(map);
             ren.set_simplify_distance(5.0);
-            ren.set_fill_type(mapnik::vector_tile_impl::positive_fill);
-            ren.apply();
-            tile.SerializeToString(&output_buffer);
-            expected_size = output_buffer.size();
+            ren.update_tile(a_tile);
+            a_tile.serialize_to_string(output_buffer);
+            expected_size = a_tile.size();
         }
 
         {
             mapnik::progress_timer __stats__(std::clog, std::string("encode tile: ") + geojson_file);
             for (std::size_t i = 0; i < iterations; ++i)
             {
-                vector_tile::Tile tile;
-                mapnik::vector_tile_impl::backend_pbf backend(tile, 16);
-                mapnik::request m_req(tile_size,tile_size,bbox);
-                renderer_type ren(backend,map,m_req,1.0,0.0,0.0,0.1,true);
+                mapnik::vector_tile_impl::tile a_tile(bbox, tile_size, buffer_size);
+                mapnik::vector_tile_impl::processor ren(map);
                 ren.set_simplify_distance(5.0);
-                ren.set_fill_type(mapnik::vector_tile_impl::positive_fill);
-                ren.apply();
-                std::string buffer;
-                tile.SerializeToString(&buffer);
-                assert(buffer.size() == expected_size);
+                ren.update_tile(a_tile);
+                assert(a_tile.size() == expected_size);
             }
         }
 

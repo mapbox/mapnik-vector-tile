@@ -1,32 +1,37 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cmath>
-#include <mapnik/util/fs.hpp>
-#include <mapnik/projection.hpp>
-#include <mapnik/geometry_transform.hpp>
-#include <mapnik/util/geometry_to_geojson.hpp>
-#include <mapnik/geometry_correct.hpp>
-#include <mapnik/util/file_io.hpp>
-#include <mapnik/save_map.hpp>
-#include <mapnik/geometry_reprojection.hpp>
-#include <mapnik/geometry_strategy.hpp>
-#include <mapnik/proj_strategy.hpp>
-#include <mapnik/view_strategy.hpp>
-#include <mapnik/geometry_is_valid.hpp>
-#include <mapnik/geometry_is_simple.hpp>
-
+// catch
 #include "catch.hpp"
-#include "encoding_util.hpp"
-#include "test_utils.hpp"
+
+// mapnik-vector-tile
 #include "vector_tile_strategy.hpp"
 #include "vector_tile_processor.hpp"
-#include "vector_tile_backend_pbf.hpp"
-#include "vector_tile_projection.hpp"
 #include "vector_tile_geometry_decoder.hpp"
+
+// mapnik
+#include <mapnik/geometry_is_simple.hpp>
+#include <mapnik/geometry_is_valid.hpp>
+#include <mapnik/json/geometry_parser.hpp>
+#include <mapnik/save_map.hpp>
+#include <mapnik/util/file_io.hpp>
+#include <mapnik/util/fs.hpp>
+#include <mapnik/util/geometry_to_geojson.hpp>
+
+// boost
 #include <boost/filesystem/operations.hpp>
 
-void clip_geometry(std::string const& file,
+// test utils
+#include "test_utils.hpp"
+#include "geometry_equal.hpp"
+
+// std
+#include <cmath>
+#include <fstream>
+#include <sstream>
+
+// protozero
+#include <protozero/pbf_reader.hpp>
+
+void clip_geometry(mapnik::Map const& map,
+                   std::string const& file,
                    mapnik::box2d<double> const& bbox,
                    int simplify_distance,
                    bool strictly_simple,
@@ -34,74 +39,86 @@ void clip_geometry(std::string const& file,
                    bool mpu,
                    bool process_all)
 {
-    typedef mapnik::vector_tile_impl::backend_pbf backend_type;
-    typedef mapnik::vector_tile_impl::processor<backend_type> renderer_type;
-    typedef vector_tile::Tile tile_type;
+    unsigned tile_size = 4096;
+    int buffer_size = 0;
     std::string geojson_string;
-    std::shared_ptr<mapnik::memory_datasource> ds = testing::build_geojson_ds(file);
-    tile_type tile;
-    backend_type backend(tile,1000);
-
-    mapnik::Map map(256,256,"+init=epsg:4326");
-    mapnik::layer lyr("layer","+init=epsg:4326");
-    lyr.set_datasource(ds);
-    map.add_layer(lyr);
-    map.zoom_to_box(bbox);
-    mapnik::request m_req(map.width(),map.height(),map.get_current_extent());
-    renderer_type ren(
-        backend,
-        map,
-        m_req,
-        1.0,
-        0,
-        0,
-        0.1,
-        strictly_simple
-    );
+    
+    mapnik::vector_tile_impl::processor ren(map);
+    // TODO - test these booleans https://github.com/mapbox/mapnik-vector-tile/issues/165
+    ren.set_strictly_simple(strictly_simple);
     ren.set_simplify_distance(simplify_distance);
     ren.set_fill_type(fill_type);
-    // TODO - test these booleans https://github.com/mapbox/mapnik-vector-tile/issues/165
     ren.set_process_all_rings(process_all);
     ren.set_multi_polygon_union(mpu);
-    ren.apply();
+    
+    mapnik::vector_tile_impl::tile out_tile = ren.create_tile(bbox, tile_size, buffer_size);
+    mapnik::geometry::geometry<double> geom4326_pbf;
+    
     std::string buffer;
-    tile.SerializeToString(&buffer);
-    if (buffer.size() > 0 && tile.layers_size() > 0 && tile.layers_size() != false)
+    out_tile.serialize_to_string(buffer);
+    if (!buffer.empty())
     {
-        vector_tile::Tile_Layer const& layer = tile.layers(0);
-        if (layer.features_size() != false)
+        protozero::pbf_reader tile_reader(buffer);
+        if(!tile_reader.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
         {
-            vector_tile::Tile_Feature const& f = layer.features(0);
-            mapnik::vector_tile_impl::Geometry<double> geoms(f,0.0,0.0,32.0,32.0);
-            mapnik::geometry::geometry<double> geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms,f.type());
-            mapnik::geometry::scale_strategy ss(1.0/32.0);
-            mapnik::view_transform vt(256, 256, bbox);
-            mapnik::unview_strategy uvs(vt);
-            using sg_type = strategy_group_first<mapnik::geometry::scale_strategy, mapnik::unview_strategy >;
-            sg_type sg(ss, uvs);
-            mapnik::geometry::geometry<double> geom4326 = transform<double>(geom, sg);
+            throw std::runtime_error("tile buffer contains no layer!");
+        }
+        protozero::pbf_reader layer_reader = tile_reader.get_message();
+        if (layer_reader.next(mapnik::vector_tile_impl::Layer_Encoding::FEATURES))
+        {
+            protozero::pbf_reader feature_reader = layer_reader.get_message();
+            int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN; 
+            std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
+            while (feature_reader.next())
+            {
+                if (feature_reader.tag() == mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY)
+                {
+                    geom_itr = feature_reader.get_packed_uint32();
+                }
+                else if (feature_reader.tag() == mapnik::vector_tile_impl::Feature_Encoding::TYPE)
+                {
+                    geometry_type = feature_reader.get_enum();
+                }
+                else
+                {
+                    feature_reader.skip();
+                }
+            }
+            double sx = static_cast<double>(tile_size) / bbox.width();
+            double sy = static_cast<double>(tile_size) / bbox.height();
+            double i_x = bbox.minx();
+            double i_y = bbox.maxy();
+            
+            mapnik::vector_tile_impl::GeometryPBF<double> geoms2_pbf(geom_itr, i_x, i_y, 1.0 * sx, -1.0 * sy);
+            geom4326_pbf = mapnik::vector_tile_impl::decode_geometry(geoms2_pbf, geometry_type, 2);
+            //mapnik::vector_tile_impl::GeometryPBF<double> geoms2_pbf(geom_itr, 0.0, 0.0, 1.0, 1.0);
+            //geom4326_pbf = std::move(mapnik::vector_tile_impl::decode_geometry(geoms2_pbf, geometry_type, 2));
+            
             std::string reason;
             std::string is_valid = "false";
             std::string is_simple = "false";
-            if (mapnik::geometry::is_valid(geom4326, reason))
+            if (mapnik::geometry::is_valid(geom4326_pbf, reason))
+            {
                 is_valid = "true";
-            if (mapnik::geometry::is_simple(geom4326))
+            }
+            if (mapnik::geometry::is_simple(geom4326_pbf))
+            {
                 is_simple = "true";
-
+            }
             unsigned int n_err = 0;
-            mapnik::util::to_geojson(geojson_string,geom4326);
+            mapnik::util::to_geojson(geojson_string,geom4326_pbf);
 
             geojson_string = geojson_string.substr(0, geojson_string.size()-1);
             geojson_string += ",\"properties\":{\"is_valid\":"+is_valid+", \"is_simple\":"+is_simple+", \"message\":\""+reason+"\"}}";
         }
         else
         {
-            geojson_string = "{\"type\": \"Feature\", \"coordinates\":null, \"properties\":{\"message\":\"Tile layer had no features\"}}";
+            geojson_string = "{\"type\": \"Point\", \"coordinates\":[], \"properties\":{\"message\":\"Tile layer had no features\"}}";
         }
     }
     else
     {
-        geojson_string = "{\"type\": \"Feature\", \"coordinates\":null, \"properties\":{\"message\":\"Tile had no layers\"}}";
+        geojson_string = "{\"type\": \"Point\", \"coordinates\":[], \"properties\":{\"message\":\"Tile had no layers\"}}";
     }
 
     std::string fixture_name = mapnik::util::basename(file);
@@ -137,11 +154,15 @@ void clip_geometry(std::string const& file,
         mapnik::util::file input(file_path);
         if (!input.open())
         {
-            throw std::runtime_error("failed to open geojson");
+            throw std::runtime_error("failed to open test geojson");
         }
-        mapnik::geometry::geometry<double> geom;
         std::string expected_string(input.data().get(), input.size());
+        mapnik::geometry::geometry<double> geom_expected;
         CHECK(expected_string == geojson_string);
+        if (mapnik::json::from_geojson(expected_string, geom_expected))
+        {
+            assert_g_equal(geom_expected, geom4326_pbf);
+        }
     }
 }
 
@@ -223,9 +244,8 @@ mapnik::box2d<double> zoomed_out(mapnik::box2d<double> const& bbox)
     return new_bbox;
 }
 
-TEST_CASE( "geometries", "should reproject, clip, and simplify")
+TEST_CASE("geometries visual tests")
 {
-
     std::vector<std::string> geometries = mapnik::util::list_directory("./test/geometry-test-data/input");
     std::vector<std::string> benchmarks = mapnik::util::list_directory("./test/geometry-test-data/benchmark");
     if (std::getenv("BENCHMARK") != nullptr)
@@ -234,8 +254,12 @@ TEST_CASE( "geometries", "should reproject, clip, and simplify")
     }
     for (std::string const& file: geometries)
     {
-        std::shared_ptr<mapnik::memory_datasource> ds = testing::build_geojson_ds(file);
+        mapnik::datasource_ptr ds = testing::build_geojson_fs_ds(file);
         mapnik::box2d<double> bbox = ds->envelope();
+        mapnik::Map map(256, 256, "+init=epsg:4326");
+        mapnik::layer lyr("layer","+init=epsg:4326");
+        lyr.set_datasource(ds);
+        map.add_layer(lyr);
         for (int simplification_distance : std::vector<int>({0, 4, 8}))
         {
             for (bool strictly_simple : std::vector<bool>({false, true}))
@@ -245,19 +269,19 @@ TEST_CASE( "geometries", "should reproject, clip, and simplify")
                 types.emplace_back(mapnik::vector_tile_impl::non_zero_fill);
                 types.emplace_back(mapnik::vector_tile_impl::positive_fill); 
                 types.emplace_back(mapnik::vector_tile_impl::negative_fill);
-                for (auto type : types)
+                for (auto const& type : types)
                 {
                     for (bool mpu : std::vector<bool>({false, true}))
                     {
                         for (bool process_all : std::vector<bool>({false, true}))
                         {
-                            clip_geometry(file, bbox, simplification_distance, strictly_simple, type, mpu, process_all);
-                            clip_geometry(file, middle_fifty(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
-                            clip_geometry(file, top_left(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
-                            clip_geometry(file, top_right(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
-                            clip_geometry(file, bottom_left(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
-                            clip_geometry(file, bottom_right(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
-                            clip_geometry(file, zoomed_out(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
+                            clip_geometry(map, file, bbox, simplification_distance, strictly_simple, type, mpu, process_all);
+                            clip_geometry(map, file, middle_fifty(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
+                            clip_geometry(map, file, top_left(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
+                            clip_geometry(map, file, top_right(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
+                            clip_geometry(map, file, bottom_left(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
+                            clip_geometry(map, file, bottom_right(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
+                            clip_geometry(map, file, zoomed_out(bbox), simplification_distance, strictly_simple, type, mpu, process_all);
                         }
                     }
                 }

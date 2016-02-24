@@ -141,7 +141,9 @@
       ],
       "include_dirs": [
         "../src",
-        '../deps/protozero/include'
+        '../deps/protozero/include',
+        '../test',
+        '../test/utils'
       ]
     },
     {
@@ -193,7 +195,7 @@
       ]
     },
     {
-      "target_name": "vtile-geometry-encode",
+      "target_name": "vtile-edit",
       'dependencies': [ 'mapnik_vector_tile_impl' ],
       "type": "executable",
       "defines": [
@@ -201,7 +203,7 @@
         "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
       ],
       "sources": [
-        "../bench/vtile-geometry-encode.cpp"
+        "../bin/vtile-edit.cpp"
       ],
       "include_dirs": [
         "../src",

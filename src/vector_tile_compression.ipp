@@ -1,7 +1,14 @@
-#include <stdexcept>
+// zlib
 #include <zlib.h>
 
-namespace mapnik { namespace vector_tile_impl {
+// std
+#include <stdexcept>
+
+namespace mapnik
+{
+
+namespace vector_tile_impl 
+{
 
 // decodes both zlib and gzip
 // http://stackoverflow.com/a/1838702/2333354
@@ -22,8 +29,11 @@ void zlib_decompress(const char * data, std::size_t size, std::string & output)
         inflate_s.avail_out = 2 * size;
         inflate_s.next_out = (Bytef *)(output.data() + length);
         int ret = inflate(&inflate_s, Z_FINISH);
-        if (ret != Z_STREAM_END && ret != Z_OK && ret != Z_BUF_ERROR) {
-            throw std::runtime_error(inflate_s.msg);
+        if (ret != Z_STREAM_END && ret != Z_OK && ret != Z_BUF_ERROR)
+        {
+            std::string error_msg = inflate_s.msg;
+            inflateEnd(&inflate_s);
+            throw std::runtime_error(error_msg);
         }
 
         length += (2 * size - inflate_s.avail_out);
@@ -52,7 +62,7 @@ void zlib_compress(const char * data, std::size_t size, std::string & output, bo
     }
     if (deflateInit2(&deflate_s, level, Z_DEFLATED, windowsBits, 8, strategy) != Z_OK)
     {
-        throw std::runtime_error("deflate failed");
+        throw std::runtime_error("deflate init failed");
     }
     deflate_s.next_in = (Bytef *)data;
     deflate_s.avail_in = size;
@@ -62,10 +72,11 @@ void zlib_compress(const char * data, std::size_t size, std::string & output, bo
         output.resize(length + increase);
         deflate_s.avail_out = increase;
         deflate_s.next_out = (Bytef *)(output.data() + length);
-        int ret = deflate(&deflate_s, Z_FINISH);
-        if (ret != Z_STREAM_END && ret != Z_OK && ret != Z_BUF_ERROR) {
-            throw std::runtime_error(deflate_s.msg);
-        }
+        // From http://www.zlib.net/zlib_how.html
+        // "deflate() has a return value that can indicate errors, yet we do not check it here. 
+        // Why not? Well, it turns out that deflate() can do no wrong here."
+        // Basically only possible error is from deflateInit not working properly
+        deflate(&deflate_s, Z_FINISH);
         length += (increase - deflate_s.avail_out);
     } while (deflate_s.avail_out == 0);
     deflateEnd(&deflate_s);
@@ -77,4 +88,6 @@ void zlib_compress(std::string const& input, std::string & output, bool gzip, in
     zlib_compress(input.data(),input.size(),output,gzip,level,strategy);
 }
 
-}}
+} // end ns vector_tile_impl
+
+} // end ns mapnik

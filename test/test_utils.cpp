@@ -1,3 +1,5 @@
+#include "test_utils.hpp"
+
 // mapnik
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
@@ -20,9 +22,11 @@
 #include <string>
 #include <memory>
 
-namespace testing {
+namespace testing
+{
 
-std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool second) {
+std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool second)
+{
     mapnik::parameters params;
     params["type"] = "memory";
     std::shared_ptr<mapnik::memory_datasource> ds = std::make_shared<mapnik::memory_datasource>(params);
@@ -41,7 +45,8 @@ std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool seco
     feature->put_new("boolf",false);
     feature->set_geometry(mapnik::geometry::point<double>(x,y));
     ds->push(feature);
-    if (second) {
+    if (second)
+    {
         ctx->push("name2");
         mapnik::feature_ptr feature2(mapnik::feature_factory::create(ctx,1));
         feature2->put("name",tr.transcode("null island"));
@@ -52,7 +57,8 @@ std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool seco
     return ds;
 }
 
-std::shared_ptr<mapnik::memory_datasource> build_geojson_ds(std::string const& geojson_file) {
+std::shared_ptr<mapnik::memory_datasource> build_geojson_ds(std::string const& geojson_file)
+{
     mapnik::util::file input(geojson_file);
     if (!input.open())
     {
@@ -76,7 +82,8 @@ std::shared_ptr<mapnik::memory_datasource> build_geojson_ds(std::string const& g
     return ds;
 }
 
-std::shared_ptr<mapnik::datasource> build_geojson_fs_ds(std::string const& geojson_file) {
+mapnik::datasource_ptr build_geojson_fs_ds(std::string const& geojson_file)
+{
     mapnik::parameters params;
     params["type"] = "geojson";
     params["file"] = geojson_file;
@@ -84,7 +91,8 @@ std::shared_ptr<mapnik::datasource> build_geojson_fs_ds(std::string const& geojs
     return mapnik::datasource_cache::instance().create(params);
 }
 
-mapnik::geometry::geometry<double> read_geojson(std::string const& geojson_file) {
+mapnik::geometry::geometry<double> read_geojson(std::string const& geojson_file)
+{
     mapnik::util::file input(geojson_file);
     if (!input.open())
     {
@@ -120,6 +128,5 @@ unsigned compare_images(mapnik::image_rgba8 const& src1,
     mapnik::image_rgba8 const& src2 = mapnik::util::get<mapnik::image_rgba8>(image_2);
     return mapnik::compare(src1,src2,threshold,alpha);
 }
-
 
 } // end ns

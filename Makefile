@@ -1,8 +1,8 @@
 MAPNIK_PLUGINDIR := $(shell mapnik-config --input-plugins)
 BUILDTYPE ?= Release
 
-CLIPPER_REVISION=7484da1
-PROTOZERO_REVISION=v1.0.0
+CLIPPER_REVISION=7484da1e7caf3250aa091925518f4fac91c05784
+PROTOZERO_REVISION=3868dfd6bd7ae393818ab1268fdd7bdcea2a9f0a
 GYP_REVISION=3464008
 
 all: libvtile
@@ -16,7 +16,7 @@ all: libvtile
 ./deps/clipper:
 	git clone https://github.com/mapnik/clipper.git -b r496-mapnik ./deps/clipper && cd ./deps/clipper && git checkout $(CLIPPER_REVISION) && ./cpp/fix_members.sh
 
-build/Makefile: ./deps/gyp ./deps/clipper ./deps/protozero gyp/build.gyp test/*cpp
+build/Makefile: ./deps/gyp ./deps/clipper ./deps/protozero gyp/build.gyp test/*
 	deps/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(MAPNIK_PLUGINDIR)\" -Goutput_dir=. --generator-output=./build -f make
 
 libvtile: build/Makefile Makefile

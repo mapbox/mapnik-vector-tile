@@ -8,6 +8,6 @@ fi
 
 echo $PROJ_LIB
 ls $PROJ_LIB/
-make -j${JOBS} test BUILDTYPE=${BUILDTYPE:-Release} V=1
+make -j${JOBS:-1} test BUILDTYPE=${BUILDTYPE:-Release} V=1
 
 set +e +u

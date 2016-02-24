@@ -14,8 +14,8 @@ install: tileinfo
 	chmod +x /usr/local/bin/tileinfo
 
 test:
-	./tileinfo ../data/14_8716_8015.vector.pbf
-	./tileinfo ../data/14_2620_6331.vector.pbf.z
+	./tileinfo ../data/14_8716_8015.vector.mvt
+	./tileinfo ../data/14_2620_6331.vector.mvt.z
 
 clean:
 	@rm -f ./tileinfo

@@ -21,7 +21,8 @@
 
 */
 
-int main() {
+int main() 
+{
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::projection merc2("+init=epsg:4326",true);
     mapnik::proj_transform prj_trans(merc,merc); // no-op
@@ -31,7 +32,10 @@ int main() {
     double minx,miny,maxx,maxy;
     merc_tiler.xyz(9664,20435,15,minx,miny,maxx,maxy);
     mapnik::box2d<double> z15_extent(minx,miny,maxx,maxy);
-    mapnik::view_transform tr(tile_size,tile_size,z15_extent,0,0);
+    unsigned path_multiplier = 16;
+    mapnik::view_transform tr(tile_size * path_multiplier,
+                              tile_size * path_multiplier,
+                              z15_extent,0,0);
     std::string geojson_file("./test/data/poly.geojson");
     mapnik::util::file input(geojson_file);
     if (!input.open())
@@ -51,7 +55,7 @@ int main() {
     unsigned count3 = 0;
     unsigned count4 = 0;
     {
-        mapnik::vector_tile_impl::vector_tile_strategy vs(tr, 16);
+        mapnik::vector_tile_impl::vector_tile_strategy vs(tr);
         mapnik::progress_timer __stats__(std::clog, "boost::geometry::transform");
         for (unsigned i=0;i<10000;++i)
         {
@@ -61,17 +65,21 @@ int main() {
         }
     }
     {
-        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans,tr, 16);
+        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans,tr);
         mapnik::progress_timer __stats__(std::clog, "transform_visitor with reserve with proj no-op");
         mapnik::box2d<double> clip_extent(std::numeric_limits<double>::min(),
                                        std::numeric_limits<double>::min(),
                                        std::numeric_limits<double>::max(),
                                        std::numeric_limits<double>::max());
-        mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj> transit(vs, clip_extent);
+        mapnik::vector_tile_impl::geom_out_visitor<std::int64_t> out_geom;
+        mapnik::vector_tile_impl::transform_visitor<
+                    mapnik::vector_tile_impl::vector_tile_strategy_proj,
+                    mapnik::vector_tile_impl::geom_out_visitor<std::int64_t>
+                                    > transit(vs, clip_extent, out_geom);
         for (unsigned i=0;i<10000;++i)
         {
-            mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(transit,geom);        
-            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(new_geom);
+            mapnik::util::apply_visitor(transit,geom);        
+            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(out_geom.geom);
             count2 += poly.size();
         }
         if (count != count2)
@@ -81,17 +89,21 @@ int main() {
         }
     }
     {
-        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans2,tr, 16);
+        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans2,tr);
         mapnik::progress_timer __stats__(std::clog, "transform_visitor with reserve with proj op");
         mapnik::box2d<double> clip_extent(std::numeric_limits<double>::min(),
                                        std::numeric_limits<double>::min(),
                                        std::numeric_limits<double>::max(),
                                        std::numeric_limits<double>::max());
-        mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj> transit(vs, clip_extent);
+        mapnik::vector_tile_impl::geom_out_visitor<std::int64_t> out_geom;
+        mapnik::vector_tile_impl::transform_visitor<
+                    mapnik::vector_tile_impl::vector_tile_strategy_proj,
+                    mapnik::vector_tile_impl::geom_out_visitor<std::int64_t>
+                                    > transit(vs, clip_extent, out_geom);
         for (unsigned i=0;i<10000;++i)
         {
-            mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(transit,geom);        
-            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(new_geom);
+            mapnik::util::apply_visitor(transit,geom);        
+            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(out_geom.geom);
             count4 += poly.size();
         }
         if (count != count4)
@@ -101,17 +113,21 @@ int main() {
         }
     }
     {
-        mapnik::vector_tile_impl::vector_tile_strategy vs(tr, 16);
+        mapnik::vector_tile_impl::vector_tile_strategy vs(tr);
         mapnik::progress_timer __stats__(std::clog, "transform_visitor with reserve with no proj function call overhead");
         mapnik::box2d<double> clip_extent(std::numeric_limits<double>::min(),
                                        std::numeric_limits<double>::min(),
                                        std::numeric_limits<double>::max(),
                                        std::numeric_limits<double>::max());
-        mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy> transit(vs, clip_extent);
+        mapnik::vector_tile_impl::geom_out_visitor<std::int64_t> out_geom;
+        mapnik::vector_tile_impl::transform_visitor<
+                    mapnik::vector_tile_impl::vector_tile_strategy,
+                    mapnik::vector_tile_impl::geom_out_visitor<std::int64_t>
+                                    > transit(vs, clip_extent, out_geom);
         for (unsigned i=0;i<10000;++i)
         {
-            mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(transit,geom);
-            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(new_geom);
+            mapnik::util::apply_visitor(transit,geom);
+            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(out_geom.geom);
             count3 += poly.size();
         }
         if (count != count3)

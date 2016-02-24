@@ -2,7 +2,6 @@
 #include <iostream>
 #include <mapnik/projection.hpp>
 #include <mapnik/geometry_transform.hpp>
-//#include <mapnik/util/geometry_to_geojson.hpp>
 
 #include "vector_tile_strategy.hpp"
 #include "vector_tile_projection.hpp"
@@ -11,17 +10,22 @@
 #include "catch.hpp"
 #include "clipper.hpp"
 
-TEST_CASE( "vector_tile_strategy", "should not overflow" ) {
+TEST_CASE("vector_tile_strategy -- should not overflow")
+{
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::proj_transform prj_trans(merc,merc); // no-op
-    unsigned tile_size = 256;
+    unsigned tile_size = 4096;
     mapnik::vector_tile_impl::spherical_mercator merc_tiler(tile_size);
     double minx,miny,maxx,maxy;
     merc_tiler.xyz(9664,20435,15,minx,miny,maxx,maxy);
     mapnik::box2d<double> z15_extent(minx,miny,maxx,maxy);
-    mapnik::view_transform tr(tile_size,tile_size,z15_extent,0,0);
     {
-        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans, tr, 16);
+        mapnik::view_transform tr(tile_size,
+                                  tile_size,
+                                  z15_extent,
+                                  0,
+                                  0);
+        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans, tr);
         // even an invalid point is not expected to result in values beyond hirange
         mapnik::geometry::point<double> g(-20037508.342789*2.0,-20037508.342789*2.0);
         mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(g, vs);
@@ -41,8 +45,12 @@ TEST_CASE( "vector_tile_strategy", "should not overflow" ) {
     g.exterior_ring.add_coord(minx,miny);
     {
         // absurdly large but still should not result in values beyond hirange
-        double path_multiplier = 100000000000.0;
-        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans, tr, path_multiplier);
+        mapnik::view_transform tr(std::numeric_limits<int>::max(),
+                                  std::numeric_limits<int>::max(),
+                                  z15_extent,
+                                  0,
+                                  0);
+        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans, tr);
         mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(g, vs);
         REQUIRE( new_geom.is<mapnik::geometry::polygon<std::int64_t>>() );
         auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);
@@ -56,10 +64,19 @@ TEST_CASE( "vector_tile_strategy", "should not overflow" ) {
             REQUIRE( (-pt.y < ClipperLib::hiRange) );
         }
     }
+    /*
+     * This test was originally something that would require an
+     * exception for situations where scaling would cause an out of range
+     * situation, however, scaling was removed and the view transform
+     * is the limited to an int32 in range currently within mapnik.
     {
         // expected to trigger values above hirange
-        double path_multiplier = 1000000000000.0;
-        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans, tr, path_multiplier);
+        mapnik::view_transform tr(std::numeric_limits<int>::max(),
+                                  std::numeric_limits<int>::max(),
+                                  z15_extent,
+                                  0,
+                                  0);
+        mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans, tr);
         CHECK_THROWS( mapnik::geometry::transform<std::int64_t>(g, vs) );
         mapnik::box2d<double> clip_extent(std::numeric_limits<double>::min(),
                                        std::numeric_limits<double>::min(),
@@ -79,26 +96,36 @@ TEST_CASE( "vector_tile_strategy", "should not overflow" ) {
             REQUIRE( (-pt.y < ClipperLib::hiRange) );
         }
     }
+     */
 }
 
-TEST_CASE( "vector_tile_strategy2", "invalid mercator coord in interior ring" ) {
+TEST_CASE("vector_tile_strategy2 -- invalid mercator coord in interior ring")
+{
     mapnik::geometry::geometry<double> geom = testing::read_geojson("./test/data/invalid-interior-ring.json");
     mapnik::projection longlat("+init=epsg:4326",true);
     mapnik::proj_transform prj_trans(longlat,longlat); // no-op
-    unsigned tile_size = 256;
+    unsigned tile_size = 4096;
     mapnik::vector_tile_impl::spherical_mercator merc_tiler(tile_size);
     double minx,miny,maxx,maxy;
     merc_tiler.xyz(9664,20435,15,minx,miny,maxx,maxy);
     mapnik::box2d<double> z15_extent(minx,miny,maxx,maxy);
-    mapnik::view_transform tr(tile_size,tile_size,z15_extent,0,0);
-    mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans, tr, 16);
+    mapnik::view_transform tr(tile_size,
+                              tile_size,
+                              z15_extent,
+                              0,
+                              0);
+    mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans, tr);
     CHECK_THROWS( mapnik::geometry::transform<std::int64_t>(geom, vs) );
     mapnik::box2d<double> clip_extent(std::numeric_limits<double>::min(),
                                    std::numeric_limits<double>::min(),
                                    std::numeric_limits<double>::max(),
                                    std::numeric_limits<double>::max());
-    mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj> skipping_transformer(vs, clip_extent);
-    mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::util::apply_visitor(skipping_transformer,geom);
+    mapnik::vector_tile_impl::geom_out_visitor<int64_t> out_geom;
+    mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj,
+                                                mapnik::vector_tile_impl::geom_out_visitor<int64_t> > 
+                                           skipping_transformer(vs, clip_extent, out_geom);
+    mapnik::util::apply_visitor(skipping_transformer,geom);
+    mapnik::geometry::geometry<std::int64_t> new_geom = out_geom.geom;
     REQUIRE( new_geom.is<mapnik::geometry::polygon<std::int64_t>>() );
     auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);
     for (auto const& pt : poly.exterior_ring)
@@ -124,7 +151,8 @@ TEST_CASE( "vector_tile_strategy2", "invalid mercator coord in interior ring" ) 
     }
 }
 
-TEST_CASE( "clipper IntPoint", "should accept 64bit values" ) {
+TEST_CASE("clipper IntPoint -- should accept 64bit values")
+{
     std::int64_t x = 4611686018427387903;
     std::int64_t y = 4611686018427387903;
     auto x0 = std::numeric_limits<std::int64_t>::max();
@@ -149,7 +177,8 @@ TEST_CASE( "clipper IntPoint", "should accept 64bit values" ) {
     CHECK( (pt != pt3) );
 }
 
-TEST_CASE( "clipper AddPath 1", "should not throw within range coords" ) {
+TEST_CASE("clipper AddPath 1", "should not throw within range coords")
+{
     ClipperLib::Clipper clipper;
     ClipperLib::Path clip_box; // actually mapnik::geometry::line_string<std::int64_t>
     // values that should just barely work since they are one below the
@@ -166,7 +195,8 @@ TEST_CASE( "clipper AddPath 1", "should not throw within range coords" ) {
     CHECK( clipper.AddPath(clip_box,ClipperLib::ptClip,true) );
 }
 
-TEST_CASE( "clipper AddPath 2", "should throw on out of range coords" ) {
+TEST_CASE("clipper AddPath 2 -- should throw on out of range coords")
+{
     ClipperLib::Clipper clipper;
     ClipperLib::Path clip_box; // actually mapnik::geometry::line_string<std::int64_t>
     auto x0 = std::numeric_limits<std::int64_t>::min()+1;
@@ -189,8 +219,8 @@ TEST_CASE( "clipper AddPath 2", "should throw on out of range coords" ) {
     }        
 }
 
-TEST_CASE( "clipper polytree error" ) {
-
+TEST_CASE("clipper polytree error")
+{
     // http://sourceforge.net/p/polyclipping/bugs/132/
     ClipperLib::Clipper clipper;
     ClipperLib::Paths polygons;
@@ -241,6 +271,4 @@ TEST_CASE( "clipper polytree error" ) {
     REQUIRE(solution.Childs[0]->Childs.size() == 1);
     REQUIRE(solution.Childs[0]->Childs[0]->Childs.size() == 1);
     REQUIRE(solution.Childs[0]->Childs[0]->Childs[0]->Childs.size() == 0);
-
 }
-

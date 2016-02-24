@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.0.0
+
+Extensive redesign in mapnik-vector-tile to properly support 2.0 of the [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec/). A large number of changes have occured but a summary of these changes can be described as:
+
+ - Removed `backend_pbf`
+ - Changed `processor` interface
+ - Removed requirement on libprotobuf `Tile` class when using the library.
+ - Created new `tile` and `merc_tile` class 
+ - Added different processing logic for v1 and v2 decoding
+ - Solved several small bugs around decoding and encoding
+ - Added many more exceptions around the processing of invalid tiles.
+ - Added `load_tile` and `composite` headers
+ - Organized tests directory and added many more tests
+ - Removed the concept of `is_solid`
+ - Removed the concept of `path_multiplier`
+ - Fixed bugs in `empty` concept.
+ - `tile_size` is now directly related to the layer `extent`
+ - Encoding no longer allows repeated points in lines and polygons
+ - Corrected issues with winding order being reversed in some situations when decoding polygons
+ - Changed the default configuration values for `processor`
+
 ## 0.14.3
 
 - Fixed compile against latest Mapnik master (variant upgrade)
