@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- Updated to protozero v1.3.0
+
 ## 1.0.0
 
 Extensive redesign in mapnik-vector-tile to properly support 2.0 of the [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec/). A large number of changes have occured but a summary of these changes can be described as:
