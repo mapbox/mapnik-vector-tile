@@ -7,7 +7,7 @@
 #define MAPNIK_VECTOR_INLINE
 #endif
 
-#include <protozero/pbf_types.hpp>
+#include <protozero/types.hpp>
 
 #define VT_LEGACY_IMAGE_SIZE 256.0
 
