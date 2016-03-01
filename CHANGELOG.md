@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+
+- Added more errors and checks to `vector_tile_is_valid.hpp`
+
 ## 1.0.1
 
 - Updated to protozero v1.3.0

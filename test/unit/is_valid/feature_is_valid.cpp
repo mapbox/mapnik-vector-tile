@@ -114,7 +114,7 @@ TEST_CASE( "invalid feature with geometry and raster" )
     feature_is_valid(pbf_feature, errs);
 
     CHECK(errs.empty() == false);
-    CHECK(errs.count(mapnik::vector_tile_impl::validity_error::FEATURE_MULTIPLE_GEOM) == 1);
+    CHECK(errs.count(mapnik::vector_tile_impl::validity_error::FEATURE_RASTER_AND_GEOM) == 1);
 }
 
 TEST_CASE( "invalid unknown tag in feature" )
