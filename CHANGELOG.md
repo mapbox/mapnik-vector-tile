@@ -3,7 +3,8 @@
 ## 1.0.3
 
 - Updated the version of clipper after a bug was found in clipper that would result in invalid polygons where interior rings were outside another exterior ring.
-- Fixed a bug in bench/vtile-encode
+- Fixed a bug in `bench/vtile-encode.cpp`
+- Fixed an issue with mapnik core no longer having `to_utf8` in the same directory in `vector_tile_layer.ipp`
 
 ## 1.0.2
 
