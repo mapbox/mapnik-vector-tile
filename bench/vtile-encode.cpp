@@ -84,8 +84,8 @@ int main(int argc, char** argv)
         auto ds_1 = mapnik::datasource_cache::instance().create(params_1);
 
         // Query
-        mapnik::box2d<double> query_ext(std::numeric_limits<double>::min(),
-                                        std::numeric_limits<double>::min(),
+        mapnik::box2d<double> query_ext(std::numeric_limits<double>::lowest(),
+                                        std::numeric_limits<double>::lowest(),
                                         std::numeric_limits<double>::max(),
                                         std::numeric_limits<double>::max());
         mapnik::query q(query_ext);
