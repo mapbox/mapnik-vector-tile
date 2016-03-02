@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3
+
+- Updated the version of clipper after a bug was found in clipper that would result in invalid polygons where interior rings were outside another exterior ring.
+- Fixed a bug in bench/vtile-encode
+
 ## 1.0.2
 
 - Added more errors and checks to `vector_tile_is_valid.hpp`
