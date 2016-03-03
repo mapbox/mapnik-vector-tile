@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.3
+
+- Updated the version of clipper after a bug was found in clipper that would result in invalid polygons where interior rings were outside another exterior ring.
+- Fixed a bug in `bench/vtile-encode.cpp`
+- Fixed an issue with mapnik core no longer having `to_utf8` in the same directory in `vector_tile_layer.ipp`
+
+## 1.0.2
+
+- Added more errors and checks to `vector_tile_is_valid.hpp`
+
+## 1.0.1
+
+- Updated to protozero v1.3.0
+
 ## 1.0.0
 
 Extensive redesign in mapnik-vector-tile to properly support 2.0 of the [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec/). A large number of changes have occured but a summary of these changes can be described as:

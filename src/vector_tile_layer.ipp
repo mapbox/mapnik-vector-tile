@@ -2,6 +2,7 @@
 #include <mapnik/feature.hpp>
 #include <mapnik/util/variant.hpp>
 #include <mapnik/value.hpp>
+#include <mapnik/unicode.hpp>
 
 // protozero
 #include <protozero/pbf_writer.hpp>
