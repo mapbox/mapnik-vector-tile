@@ -13,7 +13,7 @@ if [[ ${COVERAGE} == true ]]; then
         export PYTHONPATH=$(pwd)/mason_packages/.link/lib/python/site-packages
     fi
     ./mason_packages/.link/bin/cpp-coveralls \
-        --build-root build \
+        --build-root . \
         --gcov-options '\-lp' \
         --exclude dependencies/protozero \
         --include src \
