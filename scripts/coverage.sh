@@ -15,7 +15,10 @@ if [[ ${COVERAGE} == true ]]; then
     ./mason_packages/.link/bin/cpp-coveralls \
         --build-root build \
         --gcov-options '\-lp' \
-        --exclude deps/protozero \
+        --exclude dependencies/protozero \
+        --include src \
+        --include dependencies/clipper/cpp/clipper.hpp \
+        --include dependencies/clipper/cpp/clipper.cpp \
         --exclude bin \
         --exclude examples \
         --exclude deps \

@@ -7,17 +7,17 @@ GYP_REVISION=3464008
 
 all: libvtile
 
-./deps/gyp:
-	git clone https://chromium.googlesource.com/external/gyp.git ./deps/gyp && cd ./deps/gyp && git checkout $(GYP_REVISION)
+./dependencies/gyp:
+	git clone https://chromium.googlesource.com/external/gyp.git ./dependencies/gyp && cd ./dependencies/gyp && git checkout $(GYP_REVISION)
 
-./deps/protozero:
-	git clone https://github.com/mapbox/protozero.git ./deps/protozero && cd ./deps/protozero && git checkout $(PROTOZERO_REVISION)
+./dependencies/protozero:
+	git clone https://github.com/mapbox/protozero.git ./dependencies/protozero && cd ./dependencies/protozero && git checkout $(PROTOZERO_REVISION)
 
-./deps/clipper:
-	git clone https://github.com/mapnik/clipper.git -b r496-mapnik ./deps/clipper && cd ./deps/clipper && git checkout $(CLIPPER_REVISION) && ./cpp/fix_members.sh
+./dependencies/clipper:
+	git clone https://github.com/mapnik/clipper.git -b r496-mapnik ./dependencies/clipper && cd ./dependencies/clipper && git checkout $(CLIPPER_REVISION) && ./cpp/fix_members.sh
 
-build/Makefile: ./deps/gyp ./deps/clipper ./deps/protozero gyp/build.gyp test/*
-	deps/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(MAPNIK_PLUGINDIR)\" -Goutput_dir=. --generator-output=./build -f make
+build/Makefile: ./dependencies/gyp ./dependencies/clipper ./dependencies/protozero gyp/build.gyp test/*
+	dependencies/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(MAPNIK_PLUGINDIR)\" -Goutput_dir=. --generator-output=./build -f make
 
 libvtile: build/Makefile Makefile
 	@$(MAKE) -C build/ BUILDTYPE=$(BUILDTYPE) V=$(V)
@@ -36,8 +36,8 @@ testpack:
 
 clean:
 	rm -rf ./build
-	rm -rf ./deps/protozero
-	rm -rf ./deps/clipper
+	rm -rf ./dependencies/protozero
+	rm -rf ./dependencies/clipper
 
 .PHONY: test
 

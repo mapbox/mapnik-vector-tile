@@ -42,7 +42,7 @@
       ],
       'include_dirs': [
         '<(SHARED_INTERMEDIATE_DIR)/',
-        '../deps/protozero/include'
+        '../dependencies/protozero/include'
       ],
       'cflags_cc' : [
           '-D_THREAD_SAFE',
@@ -61,7 +61,7 @@
       'direct_dependent_settings': {
         'include_dirs': [
           '<(SHARED_INTERMEDIATE_DIR)/',
-          '../deps/protozero/include'
+          '../dependencies/protozero/include'
         ],
         'libraries':[
           '-lprotobuf-lite'
@@ -83,7 +83,7 @@
       "type": "static_library",
       "sources": [
         "<!@(find ../src/ -name '*.cpp')",
-        "../deps/clipper/cpp/clipper.cpp"
+        "../dependencies/clipper/cpp/clipper.cpp"
       ],
       'defines' : [
         "<@(common_defines)"
@@ -92,8 +92,8 @@
           '<!@(mapnik-config --cflags)'
       ],
       'include_dirs': [
-        '../deps/protozero/include',
-        '../deps/clipper/cpp'
+        '../dependencies/protozero/include',
+        '../dependencies/clipper/cpp'
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS':[
@@ -103,8 +103,8 @@
       'direct_dependent_settings': {
         'include_dirs': [
           '<(SHARED_INTERMEDIATE_DIR)/',
-          '../deps/protozero/include',
-          '../deps/clipper/cpp'
+          '../dependencies/protozero/include',
+          '../dependencies/clipper/cpp'
         ],
         'defines' : [
           "<@(common_defines)"
@@ -141,7 +141,7 @@
       ],
       "include_dirs": [
         "../src",
-        '../deps/protozero/include',
+        '../dependencies/protozero/include',
         '../test',
         '../test/utils'
       ]
@@ -159,7 +159,7 @@
       ],
       "include_dirs": [
         "../src",
-        '../deps/protozero/include'
+        '../dependencies/protozero/include'
       ]
     },
     {
@@ -175,7 +175,7 @@
       ],
       "include_dirs": [
         "../src",
-        '../deps/protozero/include'
+        '../dependencies/protozero/include'
       ]
     },
     {
@@ -191,7 +191,7 @@
       ],
       "include_dirs": [
         "../src",
-        '../deps/protozero/include'
+        '../dependencies/protozero/include'
       ]
     },
     {
@@ -207,7 +207,7 @@
       ],
       "include_dirs": [
         "../src",
-        '../deps/protozero/include'
+        '../dependencies/protozero/include'
       ]
     },
     {
