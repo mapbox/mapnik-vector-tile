@@ -63,11 +63,11 @@ struct geometry_to_feature_pbf_visitor
                 feature_writer.add_packed_uint32(Feature_Encoding::TAGS, feature_tags.begin(), feature_tags.end());
                 builder_.make_not_empty();
             }
+            else
+            {
+                feature_writer.rollback();
+            }
         }   
-        if (!success)
-        {
-            layer_writer.rollback();
-        }
     }
 
     void operator() (mapnik::geometry::geometry_collection<std::int64_t> const& collection)
