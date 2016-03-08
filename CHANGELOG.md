@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.4
+
+- Updated the version of the clipper again, fixing more problems with intersections.
+- Fixed bug in `vector_tile_geometry_feature.hpp` that was causing a segfault.
+
 ## 1.0.3
 
 - Updated the version of clipper after a bug was found in clipper that would result in invalid polygons where interior rings were outside another exterior ring.
