@@ -101,7 +101,7 @@ int main(int argc, char** argv)
             // No features in geojson so lets try to process it differently as
             // it might be a partial geojson and we can use from_geojson
             mapnik::util::file input(geojson_file);
-            if (!input.open())
+            if (!input.is_open())
             {
                 std::clog << "failed to open " << geojson_file << std::endl;
                 return -1;
