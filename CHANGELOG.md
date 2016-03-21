@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.5
+
+- Several updates to the version of the clipper used. 
+- Removed the code and its requirements in `vector_tile_geometry_intersects.hpp` as it is no longer used.
+
 ## 1.0.4
 
 - Updated the version of the clipper again, fixing more problems with intersections.
