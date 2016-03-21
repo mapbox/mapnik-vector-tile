@@ -1,7 +1,6 @@
 // mapnik-vector-tile
 #include "vector_tile_geometry_clipper.hpp"
 #include "vector_tile_geometry_feature.hpp"
-#include "vector_tile_geometry_intersects.hpp"
 #include "vector_tile_geometry_simplifier.hpp"
 #include "vector_tile_raster_clipper.hpp"
 #include "vector_tile_strategy.hpp"
