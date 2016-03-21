@@ -19,4 +19,5 @@ gyp
 test
 CONTRIBUTING.md
 bootstrap.sh
+bin
 bench
