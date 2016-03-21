@@ -26,7 +26,7 @@ test/geometry-test-data:
 	git submodule update --init
 
 test: libvtile test/geometry-test-data
-	./build/$(BUILDTYPE)/tests
+	DYLD_LIBRARY_PATH=$(MVT_LIBRARY_PATH) ./build/$(BUILDTYPE)/tests
 
 testpack:
 	rm -f ./*tgz

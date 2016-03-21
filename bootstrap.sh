@@ -51,6 +51,9 @@ function setup_runtime_settings() {
     export GDAL_DATA=${MASON_LINKED_ABS}/share/gdal
     if [[ $(uname -s) == 'Darwin' ]]; then
         export DYLD_LIBRARY_PATH=$(pwd)/mason_packages/.link/lib:${DYLD_LIBRARY_PATH}
+        # OS X > 10.11 blocks DYLD_LIBRARY_PATH so we pass along using a
+        # differently named variable
+        export MVT_LIBRARY_PATH=${DYLD_LIBRARY_PATH}
     else
         export LD_LIBRARY_PATH=$(pwd)/mason_packages/.link/lib:${LD_LIBRARY_PATH}
     fi
