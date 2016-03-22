@@ -6,8 +6,6 @@ set -o pipefail
 COVERAGE=${COVERAGE:-false}
 
 if [[ ${COVERAGE} == true ]]; then
-    easy_install --user --upgrade pip
-    export PATH="${HOME}/Library/Python/2.7/bin:${PATH}"
 
     PYTHONUSERBASE=$(pwd)/mason_packages/.link pip install --user cpp-coveralls
     if [[ $(uname -s) == 'Linux' ]]; then
