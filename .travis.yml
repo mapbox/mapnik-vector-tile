@@ -1,41 +1,37 @@
-language: c
+language: generic
 
 git:
   depth: 10
 
-sudo: false
+cache:
+  directories:
+  - $HOME/.ccache
+
+env:
+  global:
+   - CCACHE_TEMPDIR=/tmp/.ccache-temp
+   - CCACHE_COMPRESS=1
 
 matrix:
   include:
-    # Broken: https://github.com/mapbox/mapnik-vector-tile/issues/103
-    #- os: linux
-    #  compiler: gcc
-    #  env: JOBS=2 CXX=g++-4.9
-    #  addons:
-    #    apt:
-    #      sources: ['ubuntu-toolchain-r-test']
-    #      packages: ['g++-4.9']
     - os: linux
+      sudo: false
       compiler: clang
-      env: JOBS=10 CXX=clang++-3.5
+      env: JOBS=10 CXX="ccache clang++-3.5 -Qunused-arguments"
       sudo: false
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test','llvm-toolchain-precise-3.5']
           packages: ['clang-3.5']
     - os: linux
+      sudo: false
       compiler: clang
-      env: JOBS=10 CXX=clang++-3.5 BUILDTYPE=Debug
+      env: JOBS=10 CXX="ccache clang++-3.5 -Qunused-arguments" COVERAGE=true BUILDTYPE=Debug
       sudo: false
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test','llvm-toolchain-precise-3.5']
-          packages: ['clang-3.5']
-    - os: osx
-      compiler: clang
-      env: JOBS=10 COVERAGE=true BUILDTYPE=Debug
-      # https://docs.travis-ci.com/user/languages/objective-c/#Supported-OS-X-iOS-SDK-versions
-      osx_image: xcode7 # upgrades clang from 6 -> 7
+          packages: ['clang-3.5', 'llvm-3.5-dev']
     - os: osx
       compiler: clang
       env: JOBS=10

@@ -27,6 +27,7 @@ function install() {
 ICU_VERSION="55.1"
 
 function install_mason_deps() {
+    install ccache 3.2.4
     install mapnik latest
     install protobuf 2.6.1
     install freetype 2.6
