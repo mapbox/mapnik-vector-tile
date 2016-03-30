@@ -2,6 +2,7 @@
 #include <mapnik/version.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/value_types.hpp>
+#include <mapnik/unicode.hpp>
 #include <mapnik/util/variant.hpp>
 
 // vector tile

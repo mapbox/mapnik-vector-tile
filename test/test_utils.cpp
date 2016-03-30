@@ -9,6 +9,7 @@
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/unicode.hpp>
 #include <mapnik/geometry.hpp>
+#include <mapnik/geometry_correct.hpp>
 #include <mapnik/datasource.hpp>
 #include <mapnik/load_map.hpp>
 #include <mapnik/memory_datasource.hpp>
