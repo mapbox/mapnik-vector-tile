@@ -33,7 +33,7 @@ int main() {
     mapnik::view_transform tr(tile_size,tile_size,z15_extent,0,0);
     std::string geojson_file("./test/data/poly.geojson");
     mapnik::util::file input(geojson_file);
-    if (!input.open())
+    if (!input.is_open())
     {
         throw std::runtime_error("failed to open geojson");
     }

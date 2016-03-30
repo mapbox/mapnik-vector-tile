@@ -26,7 +26,7 @@ int main(int argc, char** argv)
         }
         std::string vtile(argv[1]);
         mapnik::util::file input(vtile);
-        if (!input.open())
+        if (!input.is_open())
         {
             std::clog << std::string("failed to open ") + vtile << "\n";
             return -1;
