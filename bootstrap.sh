@@ -24,7 +24,7 @@ function install() {
 ICU_VERSION="55.1"
 
 function install_mason_deps() {
-    install mapnik 3.0.10
+    install mapnik latest
     install protobuf 2.6.1
     install freetype 2.6
     install harfbuzz 0.9.40
