@@ -94,6 +94,10 @@ namespace mapnik { namespace vector_tile_impl {
 
                 ++itr_;
                 int32_t geometry_type = 0; // vector_tile::Tile_GeomType_UNKNOWN
+                bool has_geometry = false;
+                bool has_raster = false;
+                std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
+                std::pair<const char*, protozero::pbf_length_type> image_buffer;
                 while (f.next())
                 {
                     switch(f.tag())
@@ -163,73 +167,14 @@ namespace mapnik { namespace vector_tile_impl {
                             break;
                         case 5:
                             {
-                            auto image_buffer = f.get_data();
-                            std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(image_buffer.first, image_buffer.second));
-                            if (reader.get())
-                            {
-                                int image_width = reader->width();
-                                int image_height = reader->height();
-                                if (image_width > 0 && image_height > 0)
-                                {
-                                    mapnik::view_transform t(image_width, image_height, tile_extent_, 0, 0);
-                                    box2d<double> intersect = tile_extent_.intersect(unbuffered_query_);
-                                    box2d<double> ext = t.forward(intersect);
-                                    if (ext.width() > 0.5 && ext.height() > 0.5 )
-                                    {
-                                        // select minimum raster containing whole ext
-                                        int x_off = static_cast<int>(std::floor(ext.minx() +.5));
-                                        int y_off = static_cast<int>(std::floor(ext.miny() +.5));
-                                        int end_x = static_cast<int>(std::floor(ext.maxx() +.5));
-                                        int end_y = static_cast<int>(std::floor(ext.maxy() +.5));
-
-                                        // clip to available data
-                                        if (x_off < 0)
-                                            x_off = 0;
-                                        if (y_off < 0)
-                                            y_off = 0;
-                                        if (end_x > image_width)
-                                            end_x = image_width;
-                                        if (end_y > image_height)
-                                            end_y = image_height;
-                                        int width = end_x - x_off;
-                                        int height = end_y - y_off;
-                                        box2d<double> feature_raster_extent(x_off,
-                                                                            y_off,
-                                                                            x_off + width,
-                                                                            y_off + height);
-                                        intersect = t.backward(feature_raster_extent);
-                                        double filter_factor = 1.0;
-                                        mapnik::image_any data = reader->read(x_off, y_off, width, height);
-                                        mapnik::raster_ptr raster = std::make_shared<mapnik::raster>(intersect,
-                                                                      data,
-                                                                      filter_factor
-                                                                      );
-                                        feature->set_raster(raster);
-                                        return feature;
-                                    }
-                                }
-                            }
+                            has_raster = true;
+                            image_buffer = f.get_data();
                           }
                             break;
                         case 4:
                             {
-                                auto geom_itr = f.get_packed_uint32();
-                                mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, tile_x_,tile_y_,scale_,-1*scale_);
-                                mapnik::geometry::geometry<double> geom = decode_geometry<double>(geoms, geometry_type, filter_.box_);
-                                if (geom.is<mapnik::geometry::geometry_empty>())
-                                {
-                                    continue;
-                                }
-                                #if defined(DEBUG)
-                                mapnik::box2d<double> envelope = mapnik::geometry::envelope(geom);
-                                if (!filter_.pass(envelope))
-                                {
-                                    MAPNIK_LOG_ERROR(tile_datasource_pbf) << "tile_datasource_pbf: filter:pass should not get here";
-                                    continue;
-                                }
-                                #endif
-                                feature->set_geometry(std::move(geom));
-                                return feature;
+                                has_geometry = true;
+                                geom_itr = f.get_packed_uint32();
                             }
                             break;
                         default:
@@ -240,8 +185,74 @@ namespace mapnik { namespace vector_tile_impl {
                             //        want to just blindly follow the bytes, so we have made the decision
                             //        to abort cleanly, rather than doing GIGO.
                             throw std::runtime_error("unknown field type " + std::to_string(f.tag()) +" in feature");
-
                     }
+                }
+                if (has_raster)
+                {
+                    std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(image_buffer.first, image_buffer.second));
+                    if (reader.get())
+                    {
+                        int image_width = reader->width();
+                        int image_height = reader->height();
+                        if (image_width > 0 && image_height > 0)
+                        {
+                            mapnik::view_transform t(image_width, image_height, tile_extent_, 0, 0);
+                            box2d<double> intersect = tile_extent_.intersect(unbuffered_query_);
+                            box2d<double> ext = t.forward(intersect);
+                            if (ext.width() > 0.5 && ext.height() > 0.5 )
+                            {
+                                // select minimum raster containing whole ext
+                                int x_off = static_cast<int>(std::floor(ext.minx() +.5));
+                                int y_off = static_cast<int>(std::floor(ext.miny() +.5));
+                                int end_x = static_cast<int>(std::floor(ext.maxx() +.5));
+                                int end_y = static_cast<int>(std::floor(ext.maxy() +.5));
+
+                                // clip to available data
+                                if (x_off < 0)
+                                    x_off = 0;
+                                if (y_off < 0)
+                                    y_off = 0;
+                                if (end_x > image_width)
+                                    end_x = image_width;
+                                if (end_y > image_height)
+                                    end_y = image_height;
+                                int width = end_x - x_off;
+                                int height = end_y - y_off;
+                                box2d<double> feature_raster_extent(x_off,
+                                                                    y_off,
+                                                                    x_off + width,
+                                                                    y_off + height);
+                                intersect = t.backward(feature_raster_extent);
+                                double filter_factor = 1.0;
+                                mapnik::image_any data = reader->read(x_off, y_off, width, height);
+                                mapnik::raster_ptr raster = std::make_shared<mapnik::raster>(intersect,
+                                                              data,
+                                                              filter_factor
+                                                              );
+                                feature->set_raster(raster);
+                                return feature;
+                            }
+                        }
+                    }
+                }
+                else if (has_geometry)
+                {
+                    mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, tile_x_,tile_y_,scale_,-1*scale_);
+                    mapnik::geometry::geometry<double> geom = decode_geometry<double>(geoms, geometry_type, filter_.box_);
+                    if (geom.is<mapnik::geometry::geometry_empty>())
+                    {
+                        continue;
+                    }
+                    #if defined(DEBUG)
+                    mapnik::box2d<double> envelope = mapnik::geometry::envelope(geom);
+                    if (!filter_.pass(envelope))
+                    {
+                        MAPNIK_LOG_ERROR(tile_datasource_pbf) << "tile_datasource_pbf: filter:pass should not get here";
+                        continue;
+                    }
+                    #endif
+                    feature->set_geometry(std::move(geom));
+                    return feature;
                 }
             }
             return feature_ptr();
