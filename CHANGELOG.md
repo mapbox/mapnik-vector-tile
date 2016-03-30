@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.4
+
+- Fixed the implicit assumption of tags coming before geometries
+
 ## 0.14.3
 
 - Fixed compile against latest Mapnik master (variant upgrade)
