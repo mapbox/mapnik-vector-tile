@@ -135,7 +135,7 @@ void clip_geometry(std::string const& file,
     else
     {
         mapnik::util::file input(file_path);
-        if (!input.open())
+        if (!input.is_open())
         {
             throw std::runtime_error("failed to open geojson");
         }
