@@ -342,7 +342,7 @@ inline void layer_is_valid(protozero::pbf_reader & layer_msg,
             }
         }
     }
-    catch (...)
+    catch (std::exception const&)
     {
         errors.insert(INVALID_PBF_BUFFER);   
     }
@@ -442,7 +442,7 @@ inline void tile_is_valid(protozero::pbf_reader & tile_msg,
             }
         }
     }
-    catch (...)
+    catch (std::exception const&)
     {
         errors.insert(INVALID_PBF_BUFFER);
     }
