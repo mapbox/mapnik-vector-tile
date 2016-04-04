@@ -30,7 +30,7 @@ namespace vector_tile_impl
 
 void merge_from_buffer(merc_tile & t, const char * data, std::size_t size)
 {
-    using ds_ptr = std::unique_ptr<mapnik::vector_tile_impl::tile_datasource_pbf>;
+    using ds_ptr = std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf>;
     protozero::pbf_reader tile_msg(data, size);
     std::vector<ds_ptr> ds_vec;
     while (tile_msg.next())
@@ -59,7 +59,7 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size)
                     {
                         // v1 tiles will be converted to v2
                         protozero::pbf_reader layer_msg(layer_data);
-                        ds_vec.push_back(std::make_unique<mapnik::vector_tile_impl::tile_datasource_pbf>(
+                        ds_vec.push_back(std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
                                     layer_msg,
                                     t.x(),
                                     t.y(),
