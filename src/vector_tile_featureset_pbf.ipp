@@ -125,7 +125,7 @@ feature_ptr tile_featureset_pbf<Filter>::next()
         bool has_geometry_type = false;
         std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
         bool has_raster = false;
-        std::pair<const char*, protozero::pbf_length_type> image_buffer;
+        std::unique_ptr<mapnik::image_reader> reader;
         while (f.next())
         {
             switch(f.tag())
@@ -176,16 +176,19 @@ feature_ptr tile_featureset_pbf<Filter>::next()
                     }
                     break;
                 case 5:
-                    if (has_geometry)
                     {
-                        throw std::runtime_error("Vector Tile has a feature with a geometry and a raster, it must have only one of them");
+                        if (has_geometry)
+                        {
+                            throw std::runtime_error("Vector Tile has a feature with a geometry and a raster, it must have only one of them");
+                        }
+                        if (has_raster)
+                        {
+                            throw std::runtime_error("Vector Tile has a feature with multiple raster fields, it must have only one of them");
+                        }
+                        has_raster = true;
+                        auto image_buffer = f.get_data();
+                        reader = std::unique_ptr<mapnik::image_reader>(mapnik::get_image_reader(image_buffer.first, image_buffer.second));
                     }
-                    if (has_raster)
-                    {
-                        throw std::runtime_error("Vector Tile has a feature with multiple raster fields, it must have only one of them");
-                    }
-                    has_raster = true;
-                    image_buffer = f.get_data();
                     break;
                 case 4:
                     if (has_raster)
@@ -206,7 +209,6 @@ feature_ptr tile_featureset_pbf<Filter>::next()
         }
         if (has_raster)
         {
-            std::unique_ptr<mapnik::image_reader> reader(mapnik::get_image_reader(image_buffer.first, image_buffer.second));
             if (reader.get())
             {
                 int image_width = reader->width();
