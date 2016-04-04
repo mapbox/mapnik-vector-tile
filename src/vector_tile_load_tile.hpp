@@ -55,7 +55,7 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size)
                     }
                     if (version == 1)
                     {
-                        // v1 tiles will be convereted to v2
+                        // v1 tiles will be converted to v2
                         protozero::pbf_reader layer_msg(layer_data);
                         ds_vec.push_back(std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
                                     layer_msg,
