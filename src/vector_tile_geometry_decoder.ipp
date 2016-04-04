@@ -208,7 +208,7 @@ void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom
         {
             break;
         } 
-        // else we are gauranteed it is a moveto
+        // else we are guaranteed it is a moveto
         x0 = x1;
         y0 = y1;
     }
@@ -264,7 +264,7 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<typename T::value_type
         {
             if (cmd == T::close && version == 1)
             {
-                // Version 1 of the specification we were not clear on the command requirements for polygons
+                // Version 1 of the specification was not clear on the command requirements for polygons
                 // lets just to recover from this situation.
                 cmd = paths.ring_next(x0, y0, false);
                 if (cmd == T::end)
@@ -297,7 +297,7 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<typename T::value_type
         {
             if (cmd == T::close && version == 1)
             {
-                // Version 1 of the specification we were not clear on the command requirements for polygons
+                // Version 1 of the specification was not clear on the command requirements for polygons
                 // lets just to recover from this situation.
                 cmd = paths.ring_next(x0, y0, false);
                 if (cmd == T::end)
@@ -780,7 +780,7 @@ typename GeometryPBF<T>::command GeometryPBF<T>::ring_next(value_type & rx,
                     throw std::runtime_error("Vector Tile has POLYGON with a MOVETO command that is given more then one pair of parameters or not enough parameters are provided");
                 }
                 --length;
-                // It is possible for the next to lines to throw because we can not check the length
+                // It is possible for the next two lines to throw because we can not check the length
                 // of the buffer to ensure that it is long enough.
                 // If an exception occurs it will likely be a end_of_buffer_exception with the text:
                 // "end of buffer exception"
