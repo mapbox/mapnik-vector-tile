@@ -28,7 +28,7 @@ namespace mapnik
 namespace vector_tile_impl
 {
 
-void merge_from_buffer(merc_tile & t, const char * data, std::size_t size)
+void merge_from_buffer(merc_tile & t, const char * data, std::size_t size, bool upgrade = false)
 {
     using ds_ptr = std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf>;
     protozero::pbf_reader tile_msg(data, size);
@@ -55,7 +55,7 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size)
                     {
                         continue;
                     }
-                    if (version == 1)
+                    if (version == 1 && upgrade)
                     {
                         // v1 tiles will be converted to v2
                         protozero::pbf_reader layer_msg(layer_data);
@@ -101,18 +101,18 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size)
     t.buffer_size(prev_buffer_size);
 }
 
-void merge_from_compressed_buffer(merc_tile & t, const char * data, std::size_t size)
+void merge_from_compressed_buffer(merc_tile & t, const char * data, std::size_t size, bool upgrade = false)
 {
     if (mapnik::vector_tile_impl::is_gzip_compressed(data,size) ||
         mapnik::vector_tile_impl::is_zlib_compressed(data,size))
     {
         std::string decompressed;
         mapnik::vector_tile_impl::zlib_decompress(data, size, decompressed);
-        return merge_from_buffer(t, decompressed.data(), decompressed.size());
+        return merge_from_buffer(t, decompressed.data(), decompressed.size(), upgrade);
     }
     else
     {
-        return merge_from_buffer(t, data, size); 
+        return merge_from_buffer(t, data, size, upgrade);
     }
 }
 
