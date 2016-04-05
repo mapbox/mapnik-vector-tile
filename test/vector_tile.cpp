@@ -96,7 +96,7 @@ TEST_CASE("vector tile from simplified geojson")
     CHECK( mapnik::util::to_geojson(geojson_string,projected_geom) );
     std::string geojson_file = "./test/data/simplified_geometry.geojson";
     mapnik::util::file input(geojson_file);
-    if (input.is_open())
+    if (input.open())
     {
         std::string json_string(input.data().get(), input.size());
         CHECK (geojson_string == json_string);

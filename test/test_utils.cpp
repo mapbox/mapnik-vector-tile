@@ -61,7 +61,7 @@ std::shared_ptr<mapnik::memory_datasource> build_ds(double x,double y, bool seco
 std::shared_ptr<mapnik::memory_datasource> build_geojson_ds(std::string const& geojson_file)
 {
     mapnik::util::file input(geojson_file);
-    if (!input.is_open())
+    if (!input.open())
     {
         throw std::runtime_error("failed to open geojson");
     }
@@ -95,7 +95,7 @@ mapnik::datasource_ptr build_geojson_fs_ds(std::string const& geojson_file)
 mapnik::geometry::geometry<double> read_geojson(std::string const& geojson_file)
 {
     mapnik::util::file input(geojson_file);
-    if (!input.is_open())
+    if (!input.open())
     {
         throw std::runtime_error("failed to open geojson");
     }
