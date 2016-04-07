@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.6
+
+- Removed boost simplification and implemented custom douglas peucker for big speed boost.
+- Updated the version of the clipper used. 
+
 ## 1.0.5
 
 - Several updates to the version of the clipper used. 

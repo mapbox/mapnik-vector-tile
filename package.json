@@ -1,6 +1,6 @@
 {
     "name": "mapnik-vector-tile",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "Mapnik Vector Tile API",
     "main": "./package.json",
     "repository"   :  {
