@@ -40,7 +40,7 @@ struct geometry_simplifier
 
     void operator() (mapnik::geometry::line_string<std::int64_t> & geom)
     {
-        if (geom.size() <= 2 || simplify_distance_ <= 0.0)
+        if (geom.size() <= 2)
         {
             next_(geom);
         }
@@ -54,10 +54,6 @@ struct geometry_simplifier
 
     void operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom)
     {
-        if (simplify_distance_ <= 0.0)
-        {
-            return next_(geom);
-        }
         mapnik::geometry::multi_line_string<std::int64_t> simplified;
         for (auto const & g : geom)
         {
@@ -77,12 +73,8 @@ struct geometry_simplifier
 
     void operator() (mapnik::geometry::polygon<std::int64_t> & geom)
     {
-        if (simplify_distance_ <= 0.0)
-        {
-            return next_(geom);
-        }
         mapnik::geometry::polygon<std::int64_t> simplified;
-        if (geom.exterior_ring.size() <= 3)
+        if (geom.exterior_ring.size() <= 4)
         {
             simplified.exterior_ring = geom.exterior_ring;
         }
@@ -92,7 +84,7 @@ struct geometry_simplifier
         }
         for (auto const & g : geom.interior_rings)
         {
-            if (g.size() <= 3)
+            if (g.size() <= 4)
             {
                 simplified.interior_rings.push_back(g);
             }
@@ -108,16 +100,11 @@ struct geometry_simplifier
 
     void operator() (mapnik::geometry::multi_polygon<std::int64_t> & multi_geom)
     {
-        if (simplify_distance_ <= 0.0)
-        {
-            return next_(multi_geom);
-
-        } 
         mapnik::geometry::multi_polygon<std::int64_t> simplified_multi;
         for (auto const & geom : multi_geom)
         {
             mapnik::geometry::polygon<std::int64_t> simplified;
-            if (geom.exterior_ring.size() <= 3)
+            if (geom.exterior_ring.size() <= 4)
             {
                 simplified.exterior_ring = geom.exterior_ring;
             }
@@ -127,7 +114,7 @@ struct geometry_simplifier
             }
             for (auto const & g : geom.interior_rings)
             {
-                if (g.size() <= 3)
+                if (g.size() <= 4)
                 {
                     simplified.interior_rings.push_back(g);
                 }
