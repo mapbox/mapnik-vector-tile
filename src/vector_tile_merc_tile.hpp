@@ -32,7 +32,7 @@ public:
 
     merc_tile(merc_tile && rhs) = default;
     
-    bool same_extent(merc_tile & other)
+    bool same_extent(merc_tile const& other)
     {
         return x_ == other.x_ &&
                y_ == other.y_ &&
