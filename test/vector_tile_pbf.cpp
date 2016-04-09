@@ -522,32 +522,32 @@ TEST_CASE("pbf raster tile output -- should be able to overzoom raster")
 
 TEST_CASE("Check that we throw on various valid-but-we-don't-handle PBF encoded files")
 {
-    std::vector<std::string> filenames = {"test/data/tile_with_extra_feature_field.pbf",
-                                          "test/data/tile_with_extra_layer_fields.pbf",
-                                          "test/data/tile_with_invalid_layer_value_type.pbf",
-                                          "test/data/tile_with_unexpected_geomtype.pbf"};
+    std::vector<std::string> filenames = {"test/data/tile_with_extra_feature_field.mvt",
+                                          "test/data/tile_with_extra_layer_fields.mvt",
+                                          "test/data/tile_with_invalid_layer_value_type.mvt",
+                                          "test/data/tile_with_unexpected_geomtype.mvt"};
 
     for (auto const& f : filenames)
     {
-      CHECK_THROWS({
         std::ifstream t(f);
+        REQUIRE(t.is_open());
         std::string buffer((std::istreambuf_iterator<char>(t)),
-                            std::istreambuf_iterator<char>());
-
-        mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
-        unsigned tile_size = 4096;
-          protozero::pbf_reader pbf_tile(buffer);
-          pbf_tile.next();
-          protozero::pbf_reader layer2 = pbf_tile.get_message();
-          mapnik::vector_tile_impl::tile_datasource_pbf ds(layer2,0,0,0);
-          mapnik::featureset_ptr fs;
-          mapnik::feature_ptr f_ptr;
-          fs = ds.features(mapnik::query(bbox));
-          f_ptr = fs->next();
-          while (f_ptr != mapnik::feature_ptr()) {
+                        std::istreambuf_iterator<char>());
+        CHECK_THROWS({
+            mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
+            unsigned tile_size = 4096;
+              protozero::pbf_reader pbf_tile(buffer);
+              pbf_tile.next();
+              protozero::pbf_reader layer2 = pbf_tile.get_message();
+              mapnik::vector_tile_impl::tile_datasource_pbf ds(layer2,0,0,0);
+              mapnik::featureset_ptr fs;
+              mapnik::feature_ptr f_ptr;
+              fs = ds.features(mapnik::query(bbox));
               f_ptr = fs->next();
-          }
-      });
+              while (f_ptr != mapnik::feature_ptr()) {
+                  f_ptr = fs->next();
+              }
+        });
    }
 
 }
