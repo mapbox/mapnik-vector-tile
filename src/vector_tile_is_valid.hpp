@@ -27,7 +27,7 @@ enum validity_error : std::uint8_t
     LAYER_HAS_MULTIPLE_EXTENT,
     LAYER_HAS_MULTIPLE_VERSION,
     LAYER_HAS_NO_FEATURES,
-    LAYER_HAS_INVALID_VERSION,
+    LAYER_HAS_UNSUPPORTED_VERSION,
     LAYER_HAS_RASTER_AND_VECTOR,
     LAYER_HAS_UNKNOWN_TAG,
     VALUE_MULTIPLE_VALUES,
@@ -67,8 +67,8 @@ inline std::string validity_error_to_string(validity_error err)
             return "Vector Tile Layer message has no features";
         case LAYER_HAS_MULTIPLE_VERSION:
             return "Vector Tile Layer message has multiple version tags";
-        case LAYER_HAS_INVALID_VERSION:
-            return "Vector Tile Layer message has an invalid version";
+        case LAYER_HAS_UNSUPPORTED_VERSION:
+            return "Vector Tile Layer message has an unsupported version";
         case LAYER_HAS_RASTER_AND_VECTOR:
             return "Vector Tile Layer contains raster and vector features";
         case LAYER_HAS_UNKNOWN_TAG:
@@ -271,8 +271,6 @@ inline void value_is_valid(protozero::pbf_reader & value_msg, std::set<validity_
 
 inline void layer_is_valid(protozero::pbf_reader & layer_msg, 
                     std::set<validity_error> & errors, 
-                    std::string & layer_name,
-                    std::uint32_t & version,
                     std::uint64_t & point_feature_count,
                     std::uint64_t & line_feature_count,
                     std::uint64_t & polygon_feature_count,
@@ -295,7 +293,7 @@ inline void layer_is_valid(protozero::pbf_reader & layer_msg,
                         errors.insert(LAYER_HAS_MULTIPLE_NAME);
                     }
                     contains_a_name = true;
-                    layer_name = layer_msg.get_string();
+                    layer_msg.skip();
                     break;
                 case Layer_Encoding::FEATURES:
                     {
@@ -333,7 +331,7 @@ inline void layer_is_valid(protozero::pbf_reader & layer_msg,
                         errors.insert(LAYER_HAS_MULTIPLE_VERSION);
                     }
                     contains_a_version = true;
-                    version = layer_msg.get_uint32();
+                    layer_msg.skip();
                     break;
                 default:
                     errors.insert(LAYER_HAS_UNKNOWN_TAG);
@@ -350,24 +348,18 @@ inline void layer_is_valid(protozero::pbf_reader & layer_msg,
     {
         errors.insert(LAYER_HAS_NO_NAME);
     }
-    if (version > 2 || version == 0)
-    {
-        errors.insert(LAYER_HAS_INVALID_VERSION);
-    }
-    if (!contains_an_extent && version != 1)
+    if (!contains_an_extent)
     {
         errors.insert(LAYER_HAS_NO_EXTENT);
     }
-    if (!contains_a_feature && version != 1)
+    if (!contains_a_feature)
     {
         errors.insert(LAYER_HAS_NO_FEATURES);
     }
 }
 
 inline void layer_is_valid(protozero::pbf_reader & layer_msg, 
-                           std::set<validity_error> & errors, 
-                           std::string & layer_name,
-                           std::uint32_t & version)
+                           std::set<validity_error> & errors)
 {
 
     std::uint64_t point_feature_count = 0;
@@ -376,15 +368,14 @@ inline void layer_is_valid(protozero::pbf_reader & layer_msg,
     std::uint64_t unknown_feature_count = 0;
     std::uint64_t raster_feature_count = 0;
     return layer_is_valid(layer_msg, 
-                          errors, 
-                          layer_name, 
-                          version,
+                          errors,
                           point_feature_count,
                           line_feature_count,
                           polygon_feature_count,
                           unknown_feature_count,
                           raster_feature_count);
 }
+
 
 } // end ns vector_tile_impl
 
