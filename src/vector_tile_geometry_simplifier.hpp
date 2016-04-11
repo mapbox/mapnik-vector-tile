@@ -7,7 +7,7 @@
 
 // mapnik
 #include <mapnik/geometry.hpp>
-#include <mapnik/geometry_adapters.hpp>
+#include <mapnik/geometry/boost_geometry_adapters.hpp>
 
 namespace mapnik
 {
