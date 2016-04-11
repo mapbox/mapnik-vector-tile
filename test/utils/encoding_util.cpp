@@ -7,12 +7,13 @@
 // mapnik
 #include <mapnik/vertex.hpp>
 #include <mapnik/geometry.hpp>
-#include <mapnik/geometry_adapters.hpp>
 #include <mapnik/vertex_processor.hpp>
 
 // test utils
 #include "encoding_util.hpp"
 #include "decoding_util.hpp"
+
+#include <iostream>
 
 using namespace mapnik::geometry;
 
