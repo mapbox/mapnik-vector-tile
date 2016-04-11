@@ -102,12 +102,6 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size, bool 
                                         t.z(),
                                         true));
                     }
-                    else if (validate && version != 1)
-                    {
-                        std::ostringstream s;
-                        s << "Unable to upgrade version '" << version << "' data, only version 1 is upgradeable";
-                        throw std::runtime_error(s.str());
-                    }
                     else
                     {
                         t.append_layer_buffer(layer_data.first, layer_data.second, layer_name);
