@@ -50,3 +50,7 @@ before_script:
 script:
  # make sure tileinfo command works
  - ./build/${BUILDTYPE:-Release}/tileinfo examples/data/14_2620_6331.vector.mvt.z
+
+notifications:
+  slack:
+    secure: eP79cXpZ3zyVarMooLYi75C5XBS65SJkf12h25hLDmoaQD+aX0u3+/hivE3jxi8KI8v1Izpzf06aCGHL1lx/xXGg2uuiM6dtZTou1mJJ4oFsxzOJFfLXhsUO1+qXkJJG1xoaLpbSdX/y+2dfe0xKTm4zAlluj2DvwZO+R9djLGM=
