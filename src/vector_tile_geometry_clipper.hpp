@@ -8,7 +8,7 @@
 // mapnik
 #include <mapnik/box2d.hpp>
 #include <mapnik/geometry.hpp>
-#include <mapnik/geometry_adapters.hpp>
+#include <mapnik/geometry/boost_geometry_adapters.hpp>
 
 // angus clipper
 // http://www.angusj.com/delphi/clipper.php
