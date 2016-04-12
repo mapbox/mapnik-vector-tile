@@ -1,5 +1,11 @@
 # Changelog
 
+
+## 1.1.0
+
+- Changed defaults for `merge_from_buffer`. Now the tile loading API does not auto-upgrade from v1->v2 or validate by default.
+  The `upgrade` and `validate` behavior are now options to `merge_from_buffer` and `merge_from_compressed_buffer`
+
 ## 1.0.6
 
 - Removed boost simplification and implemented custom douglas peucker for big speed boost.
