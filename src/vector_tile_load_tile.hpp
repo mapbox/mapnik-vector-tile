@@ -7,6 +7,7 @@
 #include "vector_tile_tile.hpp"
 #include "vector_tile_datasource_pbf.hpp"
 #include "vector_tile_is_valid.hpp"
+#include "vector_tile_processor.hpp"
 
 // mapnik
 #include <mapnik/map.hpp>
@@ -28,7 +29,29 @@ namespace mapnik
 namespace vector_tile_impl
 {
 
-void merge_from_buffer(merc_tile & t, const char * data, std::size_t size)
+std::pair<std::string,std::uint32_t> get_layer_name_and_version(protozero::pbf_reader & layer_msg)
+{
+    std::string name;
+    std::uint32_t version = 1;
+    while (layer_msg.next())
+    {
+        switch (layer_msg.tag())
+        {
+            case Layer_Encoding::NAME:
+                name = layer_msg.get_string();
+                break;
+            case Layer_Encoding::VERSION:
+                version = layer_msg.get_uint32();;
+                break;
+            default:
+                layer_msg.skip();
+                break;
+        }
+    }
+    return std::make_pair(name,version);
+}
+
+void merge_from_buffer(merc_tile & t, const char * data, std::size_t size, bool validate = false, bool upgrade = false)
 {
     using ds_ptr = std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf>;
     protozero::pbf_reader tile_msg(data, size);
@@ -40,31 +63,44 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size)
             case Tile_Encoding::LAYERS:
                 {
                     auto layer_data = tile_msg.get_data();
-                    protozero::pbf_reader layer_valid_msg(layer_data);
-                    std::set<validity_error> errors;             
-                    std::string layer_name;
-                    std::uint32_t version = 1;
-                    layer_is_valid(layer_valid_msg, errors, layer_name, version);
-                    if (!errors.empty())
-                    {   
-                        std::string layer_errors;
-                        validity_error_to_string(errors, layer_errors);
-                        throw std::runtime_error(layer_errors);
+                    protozero::pbf_reader layer_props_msg(layer_data);
+                    auto layer_info = get_layer_name_and_version(layer_props_msg);
+                    std::string const& layer_name = layer_info.first;
+                    std::uint32_t version = layer_info.second;
+                    if (validate)
+                    {
+                        std::set<validity_error> errors;
+                        if (version < 1 || version > 2)
+                        {
+                            errors.insert(LAYER_HAS_UNSUPPORTED_VERSION);
+                        }
+                        if (t.has_layer(layer_name))
+                        {
+                            errors.insert(TILE_REPEATED_LAYER_NAMES);
+                        }
+                        protozero::pbf_reader layer_valid_msg(layer_data);
+                        layer_is_valid(layer_valid_msg, errors);
+                        if (!errors.empty())
+                        {
+                            std::string layer_errors;
+                            validity_error_to_string(errors, layer_errors);
+                            throw std::runtime_error(layer_errors);
+                        }
                     }
-                    if (t.has_layer(layer_name))
+                    else if (layer_name.empty() || t.has_layer(layer_name))
                     {
                         continue;
                     }
-                    if (version == 1)
+                    if (upgrade && version == 1)
                     {
-                        // v1 tiles will be converted to v2
-                        protozero::pbf_reader layer_msg(layer_data);
-                        ds_vec.push_back(std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
-                                    layer_msg,
-                                    t.x(),
-                                    t.y(),
-                                    t.z(),
-                                    true));
+                            // v1 tiles will be converted to v2
+                            protozero::pbf_reader layer_msg(layer_data);
+                            ds_vec.push_back(std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
+                                        layer_msg,
+                                        t.x(),
+                                        t.y(),
+                                        t.z(),
+                                        true));
                     }
                     else
                     {
@@ -90,7 +126,7 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size)
         ds->set_envelope(t.get_buffered_extent());
         mapnik::layer lyr(ds->get_name(), "+init=epsg:3857");
         lyr.set_datasource(ds);
-        map.add_layer(lyr);
+        map.add_layer(std::move(lyr));
     }
     mapnik::vector_tile_impl::processor ren(map);
     ren.set_multi_polygon_union(true);
@@ -101,18 +137,18 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size)
     t.buffer_size(prev_buffer_size);
 }
 
-void merge_from_compressed_buffer(merc_tile & t, const char * data, std::size_t size)
+void merge_from_compressed_buffer(merc_tile & t, const char * data, std::size_t size, bool validate = false, bool upgrade = false)
 {
     if (mapnik::vector_tile_impl::is_gzip_compressed(data,size) ||
         mapnik::vector_tile_impl::is_zlib_compressed(data,size))
     {
         std::string decompressed;
         mapnik::vector_tile_impl::zlib_decompress(data, size, decompressed);
-        return merge_from_buffer(t, decompressed.data(), decompressed.size());
+        return merge_from_buffer(t, decompressed.data(), decompressed.size(), validate, upgrade);
     }
     else
     {
-        return merge_from_buffer(t, data, size); 
+        return merge_from_buffer(t, data, size, validate, upgrade);
     }
 }
 
