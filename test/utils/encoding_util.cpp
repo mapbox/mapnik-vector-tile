@@ -76,6 +76,10 @@ std::string compare_pbf(mapnik::geometry::geometry<std::int64_t> const& g, unsig
         {
             geometry_type = feature_reader.get_enum();
         }
+        else
+        {
+            feature_reader.skip();
+        }
     }
     mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, 0.0, 0.0, 1.0, 1.0);
     auto g2 = mapnik::vector_tile_impl::decode_geometry(geoms, geometry_type, version);

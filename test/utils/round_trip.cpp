@@ -81,6 +81,10 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
         {
             geometry_type = feature_reader.get_enum();
         }
+        else
+        {
+            feature_reader.skip();
+        }
     }
     mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, 0, 0, 1000, -1000);
     return mapnik::vector_tile_impl::decode_geometry(geoms, geometry_type, 2);

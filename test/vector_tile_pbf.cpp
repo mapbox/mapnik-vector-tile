@@ -292,7 +292,12 @@ TEST_CASE( "pbf decoding empty buffer", "should throw exception" ) {
     protozero::pbf_reader pbf_tile(buffer);
     pbf_tile.next();
     protozero::pbf_reader layer2;
+#if defined(DNDEBUG)
+    // throws in release mode
     REQUIRE_THROWS(layer2 = pbf_tile.get_message());
+#else
+    // aborts in protozero in debug mode
+#endif
 }
 
 TEST_CASE( "pbf decoding garbage buffer", "should throw exception" ) {
@@ -300,7 +305,12 @@ TEST_CASE( "pbf decoding garbage buffer", "should throw exception" ) {
     protozero::pbf_reader pbf_tile(buffer);
     REQUIRE_THROWS_AS(pbf_tile.next(), protozero::unknown_pbf_wire_type_exception);
     protozero::pbf_reader layer2;
+#if defined(DNDEBUG)
+    // throws in release mode
     REQUIRE_THROWS(layer2 = pbf_tile.get_message());
+#else
+    // aborts in protozero in debug mode
+#endif
 }
 
 

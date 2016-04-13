@@ -82,6 +82,10 @@ TEST_CASE("vector tile from simplified geojson")
         {
             geometry_type = feature_reader.get_enum();
         }
+        else
+        {
+            feature_reader.skip();
+        }
     }
     mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, tile_x, tile_y, scale, -1*scale);
     auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, geometry_type, 2);
