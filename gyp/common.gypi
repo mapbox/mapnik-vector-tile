@@ -117,7 +117,24 @@
                     "defines": [
                         "DEBUG"
                     ],
+                    'defines!': [
+                      'NDEBUG'
+                    ],
+                    'cflags_cc!': [
+                      '-O3',
+                      '-O2',
+                      '-O1',
+                      '-Os',
+                      '-DNDEBUG'
+                    ],
                     "xcode_settings": {
+                        'OTHER_CPLUSPLUSFLAGS!': [
+                          '-O3',
+                          '-O2',
+                          '-O1',
+                          '-Os',
+                          '-DNDEBUG'
+                        ],
                         "GCC_OPTIMIZATION_LEVEL": "0",
                         "GCC_GENERATE_DEBUGGING_SYMBOLS": "YES",
                         "OTHER_CPLUSPLUSFLAGS": [ "-Wall", "-Wextra", "-pedantic", "-g", "-O0" ]
