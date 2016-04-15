@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.1
+
+- Corrected for numerical precision issue when using decoder where it was incorrectly considering very small triangles as having zero area.
 
 ## 1.1.0
 
