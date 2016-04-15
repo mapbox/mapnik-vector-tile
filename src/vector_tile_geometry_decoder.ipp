@@ -4,7 +4,6 @@
 //mapnik
 #include <mapnik/box2d.hpp>
 #include <mapnik/geometry.hpp>
-#include <mapnik/util/is_clockwise.hpp>
 #if defined(DEBUG)
 #include <mapnik/debug.hpp>
 #endif
@@ -22,6 +21,20 @@ namespace vector_tile_impl
 
 namespace detail
 {
+
+template <typename T>
+bool ring_is_clockwise(T const& ring)
+{
+    long double area = 0.0;
+    std::size_t num_points = ring.size();
+    for (std::size_t i = 0; i < num_points; ++i)
+    {
+        auto const& p0 = ring[i];
+        auto const& p1 = ring[(i + 1) % num_points];
+        area += static_cast<long double>(p0.x) * static_cast<long double>(p1.y) - static_cast<long double>(p0.y) * static_cast<long double>(p1.x);
+    }
+    return (area < 0.0) ? true : false;
+}
 
 template <typename value_type>
 inline void move_cursor(value_type & x, value_type & y, std::int32_t dx, std::int32_t dy, double scale_x_, double scale_y_)
@@ -425,7 +438,7 @@ void decode_polygons(mapnik::geometry::geometry<T1> & geom,
         
         // We are going to check if the current ring is clockwise, keeping in mind that
         // the orientation could have flipped due to scaling.
-        if (mapnik::util::is_clockwise(*rings_itr))
+        if (ring_is_clockwise(*rings_itr))
         {
             if (scaling_reversed_orientation)
             {
@@ -483,7 +496,7 @@ void decode_polygons(mapnik::geometry::geometry<T1> & geom,
             }
             if (first)
             {
-                first_is_clockwise = mapnik::util::is_clockwise(*rings_itr);
+                first_is_clockwise = ring_is_clockwise(*rings_itr);
                 // first ring always exterior and sets all future winding order
                 multi_poly.emplace_back();
                 if (first_is_clockwise)
@@ -494,7 +507,7 @@ void decode_polygons(mapnik::geometry::geometry<T1> & geom,
                 multi_poly.back().set_exterior_ring(std::move(*rings_itr));
                 first = false;
             }
-            else if (first_is_clockwise == mapnik::util::is_clockwise(*rings_itr))
+            else if (first_is_clockwise == ring_is_clockwise(*rings_itr))
             {
                 // hit a new exterior ring, so start a new polygon
                 multi_poly.emplace_back(); // start new polygon
@@ -544,7 +557,7 @@ void decode_polygons(mapnik::geometry::geometry<T1> & geom,
 
             if (first)
             {
-                if (mapnik::util::is_clockwise(*rings_itr))
+                if (ring_is_clockwise(*rings_itr))
                 {
                     if (scaling_reversed_orientation)
                     {
@@ -565,7 +578,7 @@ void decode_polygons(mapnik::geometry::geometry<T1> & geom,
                 multi_poly.back().set_exterior_ring(std::move(*rings_itr));
                 first = false;
             }
-            else if (mapnik::util::is_clockwise(*rings_itr)) // interior ring
+            else if (ring_is_clockwise(*rings_itr)) // interior ring
             {
                 if (scaling_reversed_orientation)
                 {
