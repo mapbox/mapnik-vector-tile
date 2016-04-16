@@ -25,13 +25,18 @@ namespace detail
 template <typename T>
 bool ring_is_clockwise(T const& ring)
 {
-    long double area = 0.0;
+    double area = 0.0;
     std::size_t num_points = ring.size();
+    if (num_points < 3)
+    {
+        return false;
+    }
+    auto const& p0 = ring[0];
     for (std::size_t i = 0; i < num_points; ++i)
     {
-        auto const& p0 = ring[i];
-        auto const& p1 = ring[(i + 1) % num_points];
-        area += static_cast<long double>(p0.x) * static_cast<long double>(p1.y) - static_cast<long double>(p0.y) * static_cast<long double>(p1.x);
+        auto const& p1 = ring[i];
+        auto const& p2 = ring[(i + 1) % num_points];
+        area += ((p1.x - p0.x) * (p2.y - p0.y)) - ((p1.y - p0.y) * (p2.x - p0.x));
     }
     return (area < 0.0) ? true : false;
 }
