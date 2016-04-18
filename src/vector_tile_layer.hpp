@@ -145,7 +145,14 @@ public:
         auto ds_extent = ds_->params().template get<mapnik::value_integer>("vector_layer_extent");
         if (ds_extent)
         {
-            layer_extent = *ds_extent;
+            if (ds_->type() == datasource::Vector)
+            {
+                layer_extent = *ds_extent;
+            }
+            else
+            {
+                layer_extent = 256;
+            }
         }
         if (layer_extent == 0)
         {
