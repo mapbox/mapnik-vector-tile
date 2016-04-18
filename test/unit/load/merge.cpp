@@ -85,7 +85,7 @@ TEST_CASE( "merge_from_compressed_buffer - raster" )
             std::string const& layer_name = layer_info.first;
             std::uint32_t version = layer_info.second;
             CHECK(layer_name == "layer");
-            CHECK(version == 1);
+            CHECK(version == 2);
             std::set<mapnik::vector_tile_impl::validity_error> errors;
             protozero::pbf_reader layer_valid_msg(layer_data);
             layer_is_valid(layer_valid_msg, errors);
