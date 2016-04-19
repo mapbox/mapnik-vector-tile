@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0
+
+- Big overhaul to the interface around the vector tile decoder
+- Slight performance increase in decoder
+- Fixed a bug around throwing on incorrect winding order incorrectly when the exterior ring in a polygon was dropped by its extent but an interior ring was included.
+
 ## 1.1.2
 
 - Fix performance regression when passing raster through vector tile
