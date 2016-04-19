@@ -89,10 +89,8 @@ void clip_geometry(mapnik::Map const& map,
             double i_x = bbox.minx();
             double i_y = bbox.maxy();
             
-            mapnik::vector_tile_impl::GeometryPBF<double> geoms2_pbf(geom_itr, i_x, i_y, 1.0 * sx, -1.0 * sy);
-            geom4326_pbf = mapnik::vector_tile_impl::decode_geometry(geoms2_pbf, geometry_type, 2);
-            //mapnik::vector_tile_impl::GeometryPBF<double> geoms2_pbf(geom_itr, 0.0, 0.0, 1.0, 1.0);
-            //geom4326_pbf = std::move(mapnik::vector_tile_impl::decode_geometry(geoms2_pbf, geometry_type, 2));
+            mapnik::vector_tile_impl::GeometryPBF geoms2_pbf(geom_itr);
+            geom4326_pbf = mapnik::vector_tile_impl::decode_geometry<double>(geoms2_pbf, geometry_type, 2, i_x, i_y, 1.0 * sx, -1.0 * sy);
             
             std::string reason;
             std::string is_valid = "false";

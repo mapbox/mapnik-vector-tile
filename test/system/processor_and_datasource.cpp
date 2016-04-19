@@ -253,7 +253,7 @@ TEST_CASE("vector tile datasource -- should filter features outside extent")
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
-    CHECK(1 == layer.features_size());
+    REQUIRE(1 == layer.features_size());
     vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
     CHECK(3 == f.geometry_size());
@@ -273,7 +273,7 @@ TEST_CASE("vector tile datasource -- should filter features outside extent")
     fs = ds.features(mapnik::query(bbox));
     mapnik::feature_ptr feat = fs->next();
     // Check that feature is not empty.
-    CHECK(feat != mapnik::feature_ptr());
+    REQUIRE(feat != mapnik::feature_ptr());
     CHECK(feat->size() == 0);
     // Check that this was the only feature so next should be empty
     CHECK(fs->next() == mapnik::feature_ptr());

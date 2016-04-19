@@ -149,7 +149,7 @@ TEST_CASE( "extent of a tile effects the scale of features" )
         mapnik::featureset_ptr featureset = ds.features(q);
         REQUIRE(featureset);
         mapnik::feature_ptr feature = featureset->next();
-
+        REQUIRE(feature);
         std::string wkt0;
         mapnik::util::to_wkt(wkt0, feature->get_geometry());
         CHECK(wkt0 == "POINT(-19988588.6446867 19988588.6446867)");
@@ -167,7 +167,7 @@ TEST_CASE( "extent of a tile effects the scale of features" )
         mapnik::featureset_ptr featureset = ds.features(q);
         REQUIRE(featureset);
         mapnik::feature_ptr feature = featureset->next();
-
+        REQUIRE(feature);
         std::string wkt0;
         mapnik::util::to_wkt(wkt0, feature->get_geometry());
         CHECK(wkt0 == "POINT(-19939668.9465842 19939668.9465842)");

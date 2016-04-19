@@ -22,53 +22,60 @@ namespace vector_tile_impl
 namespace detail
 {
 
-template <typename T>
-bool ring_is_clockwise(T const& ring)
+template <typename value_type>
+inline double calculate_segment_area(value_type const x0, value_type const y0, value_type const x1, value_type const y1)
 {
-    std::size_t num_points = ring.size();
-    if (num_points < 3)
-    {
-        return false;
-    }
-    double area = 0.0;
-    double orig_x = ring[0].x;
-    double orig_y = ring[0].y;
-    for (std::size_t i = 0; i < num_points; ++i)
-    {
-        auto const& p0 = ring[i];
-        auto const& p1 = ring[(i + 1) % num_points];
-        double x0 = p0.x - orig_x;
-        double y0 = p0.y - orig_y;
-        double x1 = p1.x - orig_x;
-        double y1 = p1.y - orig_y;
-        area += x0 * y1 - x1 * y0;
-    }
-    return (area < 0.0) ? true : false;
+    return (static_cast<double>(x0) * static_cast<double>(y1)) - (static_cast<double>(y0) * static_cast<double>(x1));
+}
+
+inline bool area_is_clockwise(double area)
+{
+    return (area < 0.0);
 }
 
 template <typename value_type>
-inline void move_cursor(value_type & x, value_type & y, std::int32_t dx, std::int32_t dy, double scale_x_, double scale_y_)
+inline bool scaling_reversed_orientation(value_type const scale_x_, value_type const scale_y_)
 {
-    x += static_cast<value_type>(std::round(static_cast<double>(dx) / scale_x_));
-    y += static_cast<value_type>(std::round(static_cast<double>(dy) / scale_y_));
+    return (scale_x_ * scale_y_) < 0;
+}
+
+template <typename value_type>
+inline void move_cursor(value_type & x, value_type & y, std::int32_t dx, std::int32_t dy)
+{
+    x += static_cast<value_type>(dx);
+    y += static_cast<value_type>(dy);
+}
+
+
+template <typename value_type>
+inline value_type get_point_value(value_type const val, 
+                                  double const scale_val,
+                                  double const tile_loc)
+{
+    return (tile_loc + static_cast<value_type>(std::round(static_cast<double>(val) / scale_val)));
 }
 
 template <>
-inline void move_cursor<double>(double & x, double & y, std::int32_t dx, std::int32_t dy, double scale_x_, double scale_y_)
+inline double get_point_value<double>(double const val, 
+                                      double const scale_val,
+                                      double const tile_loc)
 {
-    x += static_cast<double>(dx) / scale_x_;
-    y += static_cast<double>(dy) / scale_y_;
+    return tile_loc + (val / scale_val);
 }
 
-template <typename T>
-void decode_point(mapnik::geometry::geometry<typename T::value_type> & geom, 
-                  T & paths, 
+template <typename geom_value_type>
+void decode_point(mapnik::geometry::geometry<geom_value_type> & geom, 
+                  GeometryPBF & paths, 
+                  geom_value_type const tile_x,
+                  geom_value_type const tile_y,
+                  double const scale_x,
+                  double const scale_y,
                   mapnik::box2d<double> const& bbox)
 {
-    using value_type = typename T::value_type;
-    typename T::command cmd;
-    value_type x1, y1;
-    mapnik::geometry::multi_point<value_type> mp;
+    typename GeometryPBF::command cmd;
+    using pbf_value_type = GeometryPBF::value_type;
+    pbf_value_type x1, y1;
+    mapnik::geometry::multi_point<geom_value_type> mp;
     #if defined(DEBUG)
     std::uint32_t previous_len = 0;
     #endif
@@ -76,12 +83,14 @@ void decode_point(mapnik::geometry::geometry<typename T::value_type> & geom,
     while (true)
     {
         cmd = paths.point_next(x1, y1);
-        if (cmd == T::end)
+        geom_value_type x1_ = get_point_value<geom_value_type>(x1, scale_x, tile_x);
+        geom_value_type y1_ = get_point_value<geom_value_type>(y1, scale_y, tile_y);
+        if (cmd == GeometryPBF::end)
         {
-            geom = std::move(mapnik::geometry::geometry_empty());
+            geom = mapnik::geometry::geometry_empty();
             return;
         } 
-        else if (bbox.intersects(x1,y1))
+        else if (bbox.intersects(x1_, y1_))
         {
             #if defined(DEBUG)
             if (previous_len <= paths.get_length() && !paths.already_had_error)
@@ -92,11 +101,11 @@ void decode_point(mapnik::geometry::geometry<typename T::value_type> & geom,
             previous_len = paths.get_length();
             #endif
             mp.reserve(paths.get_length() + 1);
-            mp.emplace_back(x1,y1);
+            mp.emplace_back(x1_, y1_);
             break;
         }
     }
-    while ((cmd = paths.point_next(x1, y1)) != T::end)
+    while ((cmd = paths.point_next(x1, y1)) != GeometryPBF::end)
     {
         #if defined(DEBUG)
         if (previous_len <= paths.get_length() && !paths.already_had_error)
@@ -111,16 +120,18 @@ void decode_point(mapnik::geometry::geometry<typename T::value_type> & geom,
         // perfect, but when some points are thrown out we will allocate more than needed
         // the "all points intersect" case I think is going to be more common/important
         // however worth a future look to see if the "some or few points intersect" can be optimized
-        if (!bbox.intersects(x1,y1))
+        geom_value_type x1_ = get_point_value<geom_value_type>(x1, scale_x, tile_x);
+        geom_value_type y1_ = get_point_value<geom_value_type>(y1, scale_y, tile_y);
+        if (!bbox.intersects(x1_, y1_))
         {
             continue;
         }
-        mp.emplace_back(x1,y1);
+        mp.emplace_back(x1_, y1_);
     }
     std::size_t num_points = mp.size();
     if (num_points == 0)
     {
-        geom = std::move(mapnik::geometry::geometry_empty());
+        geom = mapnik::geometry::geometry_empty();
     }
     else if (num_points == 1)
     {
@@ -133,28 +144,34 @@ void decode_point(mapnik::geometry::geometry<typename T::value_type> & geom,
     }
 }
 
-template <typename T>
-void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom, 
-                       T & paths, 
+template <typename geom_value_type>
+void decode_linestring(mapnik::geometry::geometry<geom_value_type> & geom, 
+                       GeometryPBF & paths,
+                       geom_value_type const tile_x,
+                       geom_value_type const tile_y,
+                       double scale_x,
+                       double scale_y,
                        mapnik::box2d<double> const& bbox,
                        unsigned version)
 {
-    using value_type = typename T::value_type;
-    typename T::command cmd;
-    value_type x0, y0;
-    value_type x1, y1;
-    mapnik::geometry::multi_line_string<value_type> multi_line;
+    using pbf_value_type = GeometryPBF::value_type;
+    typename GeometryPBF::command cmd;
+    pbf_value_type x0, y0;
+    pbf_value_type x1, y1;
+    geom_value_type x0_, y0_;
+    geom_value_type x1_, y1_;
+    mapnik::geometry::multi_line_string<geom_value_type> multi_line;
     #if defined(DEBUG)
     std::uint32_t previous_len = 0;
     #endif
     mapnik::box2d<double> part_env;
     cmd = paths.line_next(x0, y0, false);
-    if (cmd == T::end)
+    if (cmd == GeometryPBF::end)
     {
-        geom = std::move(mapnik::geometry::geometry_empty());
+        geom = mapnik::geometry::geometry_empty();
         return;
     }
-    else if (cmd != T::move_to)
+    else if (cmd != GeometryPBF::move_to)
     {
         throw std::runtime_error("Vector Tile has LINESTRING type geometry where the first command is not MOVETO.");
     }
@@ -162,9 +179,9 @@ void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom
     while (true)
     {
         cmd = paths.line_next(x1, y1, true);
-        if (cmd != T::line_to)
+        if (cmd != GeometryPBF::line_to)
         {
-            if (cmd == T::move_to)
+            if (cmd == GeometryPBF::move_to)
             {
                 if (version == 1)
                 {
@@ -180,7 +197,7 @@ void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom
                     throw std::runtime_error("Vector Tile has LINESTRING type geometry with repeated MOVETO commands.");
                 }
             }
-            else //cmd == T::end
+            else //cmd == GeometryPBF::end
             {   
                 if (version == 1)
                 {
@@ -201,18 +218,24 @@ void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom
         // reserve prior
         line.reserve(paths.get_length() + 2);
         // add moveto command position
-        line.add_coord(x0, y0);
-        part_env.init(x0, y0, x0, y0);
+        x0_ = get_point_value<geom_value_type>(x0, scale_x, tile_x);
+        y0_ = get_point_value<geom_value_type>(y0, scale_y, tile_y);
+        line.add_coord(x0_, y0_);
+        part_env.init(x0_, y0_, x0_, y0_);
         // add first lineto
-        line.add_coord(x1, y1);
-        part_env.expand_to_include(x1, y1);
+        x1_ = get_point_value<geom_value_type>(x1, scale_x, tile_x);
+        y1_ = get_point_value<geom_value_type>(y1, scale_y, tile_y);
+        line.add_coord(x1_, y1_);
+        part_env.expand_to_include(x1_, y1_);
         #if defined(DEBUG)
         previous_len = paths.get_length();
         #endif
-        while ((cmd = paths.line_next(x1, y1, true)) == T::line_to)
+        while ((cmd = paths.line_next(x1, y1, true)) == GeometryPBF::line_to)
         {
-            line.add_coord(x1, y1);
-            part_env.expand_to_include(x1, y1);
+            x1_ = get_point_value<geom_value_type>(x1, scale_x, tile_x);
+            y1_ = get_point_value<geom_value_type>(y1, scale_y, tile_y);
+            line.add_coord(x1_, y1_);
+            part_env.expand_to_include(x1_, y1_);
             #if defined(DEBUG)
             if (previous_len <= paths.get_length() && !paths.already_had_error)
             {
@@ -227,7 +250,7 @@ void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom
             // remove last linestring
             multi_line.pop_back();
         }
-        if (cmd == T::end)
+        if (cmd == GeometryPBF::end)
         {
             break;
         } 
@@ -239,7 +262,7 @@ void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom
     std::size_t num_lines = multi_line.size();
     if (num_lines == 0)
     {
-        geom = std::move(mapnik::geometry::geometry_empty());
+        geom = mapnik::geometry::geometry_empty();
     }
     else if (num_lines == 1)
     {
@@ -248,6 +271,10 @@ void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom
         {
             geom = std::move(*itr);
         }
+        else
+        {
+            geom = mapnik::geometry::geometry_empty();
+        }
     }
     else if (num_lines > 1)
     {
@@ -255,27 +282,41 @@ void decode_linestring(mapnik::geometry::geometry<typename T::value_type> & geom
     }
 }
 
-template <typename T>
-void read_rings(std::vector<mapnik::geometry::linear_ring<typename T::value_type> > & rings,
-                T & paths, 
-                mapnik::box2d<double> const& bbox,
-                unsigned version)
+template <typename geom_value_type>
+void decode_polygon(mapnik::geometry::geometry<geom_value_type> & geom,
+                    GeometryPBF & paths, 
+                    geom_value_type const tile_x,
+                    geom_value_type const tile_y,
+                    double scale_x,
+                    double scale_y,
+                    mapnik::box2d<double> const& bbox,
+                    unsigned version)
 {
-    using value_type = typename T::value_type;
-    typename T::command cmd;
-    value_type x0, y0;
-    value_type x1, y1;
-    value_type x2, y2;
+    typename GeometryPBF::command cmd;
+    using pbf_value_type = GeometryPBF::value_type;
+    pbf_value_type x0, y0;
+    pbf_value_type x1, y1;
+    pbf_value_type x2, y2;
+    geom_value_type x0_, y0_;
+    geom_value_type x1_, y1_;
+    geom_value_type x2_, y2_;
     #if defined(DEBUG)
     std::uint32_t previous_len;
     #endif
+    double ring_area = 0.0;
+    bool first_ring = true;
+    bool first_ring_is_clockwise = false;
+    bool last_exterior_not_included = false;
+    std::vector<mapnik::geometry::linear_ring<geom_value_type> > rings;
+    std::vector<bool> rings_exterior;
     mapnik::box2d<double> part_env;
     cmd = paths.ring_next(x0, y0, false);
-    if (cmd == T::end)
+    if (cmd == GeometryPBF::end)
     {
+        geom = mapnik::geometry::geometry_empty();
         return;
     }
-    else if (cmd != T::move_to)
+    else if (cmd != GeometryPBF::move_to)
     {
         throw std::runtime_error("Vector Tile has POLYGON type geometry where the first command is not MOVETO.");
     }
@@ -283,26 +324,26 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<typename T::value_type
     while (true)
     {
         cmd = paths.ring_next(x1, y1, true);
-        if (cmd != T::line_to)
+        if (cmd != GeometryPBF::line_to)
         {
-            if (cmd == T::close && version == 1)
+            if (cmd == GeometryPBF::close && version == 1)
             {
                 // Version 1 of the specification was not clear on the command requirements for polygons
                 // lets just to recover from this situation.
                 cmd = paths.ring_next(x0, y0, false);
-                if (cmd == T::end)
+                if (cmd == GeometryPBF::end)
                 {
                     break;
                 }
-                else if (cmd == T::move_to)
+                else if (cmd == GeometryPBF::move_to)
                 {
                     continue;
                 }
-                else if (cmd == T::close)
+                else if (cmd == GeometryPBF::close)
                 {
                     throw std::runtime_error("Vector Tile has POLYGON type geometry where a CLOSE is followed by a CLOSE.");
                 }
-                else // cmd == T::line_to
+                else // cmd == GeometryPBF::line_to
                 {
                     throw std::runtime_error("Vector Tile has POLYGON type geometry where a CLOSE is followed by a LINETO.");
                 }
@@ -316,26 +357,26 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<typename T::value_type
         previous_len = paths.get_length();
         #endif
         cmd = paths.ring_next(x2, y2, true);
-        if (cmd != T::line_to)
+        if (cmd != GeometryPBF::line_to)
         {
-            if (cmd == T::close && version == 1)
+            if (cmd == GeometryPBF::close && version == 1)
             {
                 // Version 1 of the specification was not clear on the command requirements for polygons
                 // lets just to recover from this situation.
                 cmd = paths.ring_next(x0, y0, false);
-                if (cmd == T::end)
+                if (cmd == GeometryPBF::end)
                 {
                     break;
                 }
-                else if (cmd == T::move_to)
+                else if (cmd == GeometryPBF::move_to)
                 {
                     continue;
                 }
-                else if (cmd == T::close)
+                else if (cmd == GeometryPBF::close)
                 {
                     throw std::runtime_error("Vector Tile has POLYGON type geometry where a CLOSE is followed by a CLOSE.");
                 }
-                else // cmd == T::line_to
+                else // cmd == GeometryPBF::line_to
                 {
                     throw std::runtime_error("Vector Tile has POLYGON type geometry where a CLOSE is followed by a LINETO.");
                 }
@@ -351,14 +392,24 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<typename T::value_type
         // reserve prior
         ring.reserve(paths.get_length() + 4);
         // add moveto command position
-        ring.add_coord(x0, y0);
-        part_env.init(x0, y0, x0, y0);
+        x0_ = get_point_value<geom_value_type>(x0, scale_x, tile_x);
+        y0_ = get_point_value<geom_value_type>(y0, scale_y, tile_y);
+        ring.add_coord(x0_, y0_);
+        part_env.init(x0_, y0_, x0_, y0_);
         // add first lineto
-        ring.add_coord(x1, y1);
-        part_env.expand_to_include(x1, y1);
+        x1_ = get_point_value<geom_value_type>(x1, scale_x, tile_x);
+        y1_ = get_point_value<geom_value_type>(y1, scale_y, tile_y);
+        ring.add_coord(x1_, y1_);
+        part_env.expand_to_include(x1_, y1_);
+        ring_area += calculate_segment_area(x0, y0, x1, y1);
         // add second lineto
-        ring.add_coord(x2, y2);
-        part_env.expand_to_include(x2, y2);
+        x2_ = get_point_value<geom_value_type>(x2, scale_x, tile_x);
+        y2_ = get_point_value<geom_value_type>(y2, scale_y, tile_y);
+        ring.add_coord(x2_, y2_);
+        part_env.expand_to_include(x2_, y2_);
+        ring_area += calculate_segment_area(x1, y1, x2, y2);
+        x1 = x2;
+        y1 = y2;
         #if defined(DEBUG)
         if (previous_len <= paths.get_length() && !paths.already_had_error)
         {
@@ -367,10 +418,15 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<typename T::value_type
         }
         previous_len = paths.get_length();
         #endif
-        while ((cmd = paths.ring_next(x1, y1, true)) == T::line_to)
+        while ((cmd = paths.ring_next(x2, y2, true)) == GeometryPBF::line_to)
         {
-            ring.add_coord(x1,y1);
-            part_env.expand_to_include(x1,y1);
+            x2_ = get_point_value<geom_value_type>(x2, scale_x, tile_x);
+            y2_ = get_point_value<geom_value_type>(y2, scale_y, tile_y);
+            ring.add_coord(x2_, y2_);
+            part_env.expand_to_include(x2_, y2_);
+            ring_area += calculate_segment_area(x1, y1, x2, y2);
+            x1 = x2;
+            y1 = y2;
             #if defined(DEBUG)
             if (previous_len <= paths.get_length() && !paths.already_had_error)
             {
@@ -381,271 +437,126 @@ void read_rings(std::vector<mapnik::geometry::linear_ring<typename T::value_type
             #endif
         }
         // Make sure we are now on a close command
-        if (cmd != T::close)
+        if (cmd != GeometryPBF::close)
         {
             throw std::runtime_error("Vector Tile has POLYGON type geometry with a ring not closed by a CLOSE command.");
         }
-        if (ring.back().x != x0 || ring.back().y != y0)
+        if (ring.back().x != x0_ || ring.back().y != y0_)
         {
             // If the previous lineto didn't already close the polygon (WHICH IT SHOULD NOT)
             // close out the polygon ring.
-            ring.add_coord(x0,y0);
+            ring.add_coord(x0_, y0_);
+            ring_area += calculate_segment_area(x1, y1, x0, y0);
         }
-
-        if (!bbox.intersects(part_env))
+        if (ring.size() > 3)
         {
-            // remove last linestring
+            if (first_ring)
+            {
+                first_ring_is_clockwise = area_is_clockwise(ring_area);
+                if (version != 1 && first_ring_is_clockwise)
+                {
+                    throw std::runtime_error("Vector Tile has POLYGON with first ring clockwise. It is not valid according to v2 of VT spec.");
+                }
+                first_ring = false;
+            }
+            bool is_exterior = (first_ring_is_clockwise == area_is_clockwise(ring_area));
+            if ((!is_exterior && last_exterior_not_included) || !bbox.intersects(part_env))
+            {
+                // remove last linestring
+                if (is_exterior)
+                {
+                    last_exterior_not_included = true;
+                }
+                rings.pop_back();
+            }
+            else
+            {
+                if (is_exterior)
+                {
+                    last_exterior_not_included = false;
+                }
+                rings_exterior.push_back(is_exterior);
+            }
+        }
+        else
+        {
             rings.pop_back();
         }
+        ring_area = 0.0;  
 
         cmd = paths.ring_next(x0, y0, false);
-        if (cmd == T::end)
+        if (cmd == GeometryPBF::end)
         {
             break;
         }
-        else if (cmd != T::move_to)
+        else if (cmd != GeometryPBF::move_to)
         {
-            if (cmd == T::close)
+            if (cmd == GeometryPBF::close)
             {
                 throw std::runtime_error("Vector Tile has POLYGON type geometry where a CLOSE is followed by a CLOSE.");
             }
-            else // cmd == T::line_to
+            else // cmd == GeometryPBF::line_to
             {
                 throw std::runtime_error("Vector Tile has POLYGON type geometry where a CLOSE is followed by a LINETO.");
             }
         }
     }
-}
 
-template <typename T1, typename T2>
-void decode_polygons(mapnik::geometry::geometry<T1> & geom, 
-                     T2 && rings, 
-                     unsigned version, 
-                     bool scaling_reversed_orientation)
-{
-    using value_type = T1;
+    if (rings.size() == 0)
+    {   
+        geom = mapnik::geometry::geometry_empty();
+        return;
+    }
+    std::size_t i = 0;
+    bool reverse_rings = (scaling_reversed_orientation(scale_x, scale_y) != first_ring_is_clockwise);
     auto rings_itr = std::make_move_iterator(rings.begin());
     auto rings_end = std::make_move_iterator(rings.end());
-    std::size_t num_rings = rings.size();
-    if (num_rings == 0)
+    mapnik::geometry::multi_polygon<geom_value_type> multi_poly;
+    while (rings_itr != rings_end)
     {
-        geom = std::move(mapnik::geometry::geometry_empty());
-    }
-    else if (num_rings == 1)
-    {
-        if (rings_itr->size() < 4)
+        multi_poly.emplace_back();
+        auto & poly = multi_poly.back();
+        if (reverse_rings)
         {
-            if (version == 1)
-            {
-                geom = std::move(mapnik::geometry::geometry_empty());
-                return;
-            }
-            else
-            {
-                throw std::runtime_error("Vector Tile has POLYGON has ring with too few points. It is not valid according to v2 of VT spec.");
-            }
+            std::reverse(rings_itr->begin(), rings_itr->end());
         }
-        
-        // We are going to check if the current ring is clockwise, keeping in mind that
-        // the orientation could have flipped due to scaling.
-        if (ring_is_clockwise(*rings_itr))
-        {
-            if (scaling_reversed_orientation)
-            {
-                // Because the way we scaled changed the orientation of the ring (most likely due to a flipping of axis)
-                // we now have an exterior ring that clockwise. Internally in mapnik we want this to be counter clockwise
-                // so we must flip this.
-                std::reverse(rings_itr->begin(), rings_itr->end());
-            }
-            else
-            {
-                if (version == 1)
-                {
-                    std::reverse(rings_itr->begin(), rings_itr->end());
-                }
-                else
-                {
-                    throw std::runtime_error("Vector Tile has POLYGON with first ring clockwise. It is not valid according to v2 of VT spec.");
-                }
-            }
-        }
-        else if (scaling_reversed_orientation) // ring is counter clockwise
-        {
-            // ring is counter clockwise but scaling reversed it.
-            // this means in the vector tile it is incorrectly orientated.
-            if (version == 1)
-            {
-                std::reverse(rings_itr->begin(), rings_itr->end());
-            }
-            else
-            {
-                throw std::runtime_error("Vector Tile has POLYGON with first ring clockwise. It is not valid according to v2 of VT spec.");
-            }
-        }
-        // else ring is counter clockwise and scaling didn't reverse orientation.
-
-        // return the single polygon without interior rings
-        mapnik::geometry::polygon<value_type> poly;
         poly.set_exterior_ring(std::move(*rings_itr));
-        geom = std::move(poly);
-    }
-    else if (version == 1)
-    {
-        // Version 1 didn't specify the winding order, so we are forced
-        // to do a best guess. This means assuming the first ring is an exterior
-        // ring and then basing all winding order off that. For this we can
-        // ignore if the scaling reversed the orientation.
-        mapnik::geometry::multi_polygon<value_type> multi_poly;
-        bool first = true;
-        bool first_is_clockwise = false;
-        for (; rings_itr != rings_end; ++rings_itr)
+        ++rings_itr;
+        ++i;
+        while (rings_itr != rings_end)
         {
-            if (rings_itr->size() < 4)
+            if (rings_exterior[i])
             {
-                continue;
+                break;
             }
-            if (first)
+            if (reverse_rings)
             {
-                first_is_clockwise = ring_is_clockwise(*rings_itr);
-                // first ring always exterior and sets all future winding order
-                multi_poly.emplace_back();
-                if (first_is_clockwise)
-                {
-                    // Going into mapnik we want the outer ring to be CCW
-                    std::reverse(rings_itr->begin(), rings_itr->end());
-                }
-                multi_poly.back().set_exterior_ring(std::move(*rings_itr));
-                first = false;
+                std::reverse(rings_itr->begin(), rings_itr->end());
             }
-            else if (first_is_clockwise == ring_is_clockwise(*rings_itr))
-            {
-                // hit a new exterior ring, so start a new polygon
-                multi_poly.emplace_back(); // start new polygon
-                if (first_is_clockwise)
-                {
-                    // Going into mapnik we want the outer ring to be CCW,
-                    // since first winding order was CW, we need to reverse
-                    // these rings.
-                    std::reverse(rings_itr->begin(), rings_itr->end());
-                }
-                multi_poly.back().set_exterior_ring(std::move(*rings_itr));
-            }
-            else
-            {
-                if (first_is_clockwise)
-                {
-                    // Going into mapnik we want the inner ring to be CW,
-                    // since first winding order of the outer ring CW, we
-                    // need to reverse these rings as they are CCW.
-                    std::reverse(rings_itr->begin(), rings_itr->end());
-                }
-                multi_poly.back().add_hole(std::move(*rings_itr));
-            }
-        }
-        
-        auto num_poly = multi_poly.size();
-        if (num_poly == 1)
-        {
-            auto itr = std::make_move_iterator(multi_poly.begin());
-            geom = std::move(*itr);
-        }
-        else
-        {
-            geom = std::move(multi_poly);
+            poly.add_hole(std::move(*rings_itr));
+            ++rings_itr;
+            ++i;
         }
     }
-    else // if (version == 2)
-    {
-        mapnik::geometry::multi_polygon<value_type> multi_poly;
-        bool first = true;
-        for (; rings_itr != rings_end; ++rings_itr)
-        {
-            if (rings_itr->size() < 4)
-            {
-                throw std::runtime_error("Vector Tile has POLYGON has ring with too few points. It is not valid according to v2 of VT spec.");
-            }
 
-            if (first)
-            {
-                if (ring_is_clockwise(*rings_itr))
-                {
-                    if (scaling_reversed_orientation)
-                    {
-                        // Need to reverse ring so that it is proper going into mapnik.
-                        // as mapnik needs CCW exterior rings
-                        std::reverse(rings_itr->begin(), rings_itr->end());
-                    }
-                    else
-                    {
-                        throw std::runtime_error("Vector Tile has POLYGON with first ring clockwise. It is not valid according to v2 of VT spec.");
-                    }
-                } 
-                else if (scaling_reversed_orientation)
-                {
-                    throw std::runtime_error("Vector Tile has POLYGON with first ring clockwise. It is not valid according to v2 of VT spec.");
-                }
-                multi_poly.emplace_back();
-                multi_poly.back().set_exterior_ring(std::move(*rings_itr));
-                first = false;
-            }
-            else if (ring_is_clockwise(*rings_itr)) // interior ring
-            {
-                if (scaling_reversed_orientation)
-                {
-                    // This is an exterior ring but needs to be reversed.
-                    std::reverse(rings_itr->begin(), rings_itr->end());
-                    multi_poly.emplace_back(); // start new polygon
-                    multi_poly.back().set_exterior_ring(std::move(*rings_itr));
-                }
-                else
-                {
-                    // this is an interior ring
-                    multi_poly.back().add_hole(std::move(*rings_itr));
-                }
-            }
-            else 
-            {
-                if (scaling_reversed_orientation)
-                {
-                    // This is interior ring and it must be reversed.
-                    std::reverse(rings_itr->begin(), rings_itr->end());
-                    multi_poly.back().add_hole(std::move(*rings_itr));
-                }
-                else
-                {
-                    // hit a new exterior ring, so start a new polygon
-                    multi_poly.emplace_back(); // start new polygon
-                    multi_poly.back().set_exterior_ring(std::move(*rings_itr));
-                }
-            }
-        }
-        
-        auto num_poly = multi_poly.size();
-        if (num_poly == 1)
-        {
-            auto itr = std::make_move_iterator(multi_poly.begin());
-            geom = std::move(*itr);
-        }
-        else
-        {
-            geom = std::move(multi_poly);
-        }
+    auto num_poly = multi_poly.size();
+    if (num_poly == 1)
+    {
+        auto itr = std::make_move_iterator(multi_poly.begin());
+        geom = std::move(*itr);
+    }
+    else
+    {
+        geom = std::move(multi_poly);
     }
 }
 
 } // end ns detail
 
-template <typename T>
-GeometryPBF<T>::GeometryPBF(pbf_itr const& geo_iterator,
-                            value_type tile_x, 
-                            value_type tile_y,
-                            double scale_x, 
-                            double scale_y)
+GeometryPBF::GeometryPBF(pbf_itr const& geo_iterator)
     : geo_iterator_(geo_iterator),
-      scale_x_(scale_x),
-      scale_y_(scale_y),
-      x(tile_x),
-      y(tile_y),
+      x(0),
+      y(0),
       ox(0), 
       oy(0),
       length(0),
@@ -656,8 +567,7 @@ GeometryPBF<T>::GeometryPBF(pbf_itr const& geo_iterator,
     #endif
 }
 
-template <typename T>
-typename GeometryPBF<T>::command GeometryPBF<T>::point_next(value_type & rx, value_type & ry)
+typename GeometryPBF::command GeometryPBF::point_next(value_type & rx, value_type & ry)
 {
     if (length == 0) 
     {
@@ -703,16 +613,15 @@ typename GeometryPBF<T>::command GeometryPBF<T>::point_next(value_type & rx, val
     // While this error message is not verbose a try catch here would slow down processing.
     int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
     int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
-    detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
+    detail::move_cursor(x, y, dx, dy);
     rx = x;
     ry = y;
     return move_to;
 }
 
-template <typename T>
-typename GeometryPBF<T>::command GeometryPBF<T>::line_next(value_type & rx, 
-                                                           value_type & ry, 
-                                                           bool skip_lineto_zero)
+typename GeometryPBF::command GeometryPBF::line_next(value_type & rx, 
+                                                     value_type & ry, 
+                                                     bool skip_lineto_zero)
 {
     if (length == 0)
     {
@@ -735,7 +644,7 @@ typename GeometryPBF<T>::command GeometryPBF<T>::line_next(value_type & rx,
                 // While this error message is not verbose a try catch here would slow down processing.
                 int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
                 int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
-                detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
+                detail::move_cursor(x, y, dx, dy);
                 rx = x;
                 ry = y;
                 return move_to;
@@ -778,16 +687,15 @@ typename GeometryPBF<T>::command GeometryPBF<T>::line_next(value_type & rx,
         // We are going to skip this vertex as the point doesn't move call line_next again
         return line_next(rx, ry, true);
     }
-    detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
+    detail::move_cursor(x, y, dx, dy);
     rx = x;
     ry = y;
     return line_to;
 }
 
-template <typename T>
-typename GeometryPBF<T>::command GeometryPBF<T>::ring_next(value_type & rx, 
-                                                           value_type & ry, 
-                                                           bool skip_lineto_zero)
+typename GeometryPBF::command GeometryPBF::ring_next(value_type & rx, 
+                                                     value_type & ry, 
+                                                     bool skip_lineto_zero)
 {
     if (length == 0)
     {
@@ -810,7 +718,7 @@ typename GeometryPBF<T>::command GeometryPBF<T>::ring_next(value_type & rx,
                 // While this error message is not verbose a try catch here would slow down processing.
                 int32_t dx = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
                 int32_t dy = protozero::decode_zigzag32(static_cast<uint32_t>(*geo_iterator_.first++));
-                detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
+                detail::move_cursor(x, y, dx, dy);
                 rx = x;
                 ry = y;
                 ox = x;
@@ -858,66 +766,66 @@ typename GeometryPBF<T>::command GeometryPBF<T>::ring_next(value_type & rx,
         // We are going to skip this vertex as the point doesn't move call ring_next again
         return ring_next(rx, ry, true);
     }
-    detail::move_cursor(x, y, dx, dy, scale_x_, scale_y_);
+    detail::move_cursor(x, y, dx, dy);
     rx = x;
     ry = y;
     return line_to;
 }
 
-template <typename T>
-MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_geometry(T & paths, 
-                                                                   int32_t geom_type, 
-                                                                   unsigned version,
-                                                                   mapnik::box2d<double> const& bbox)
+template <typename value_type>
+MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<value_type> decode_geometry(GeometryPBF & paths, 
+                                                                            int32_t geom_type, 
+                                                                            unsigned version,
+                                                                            value_type tile_x,
+                                                                            value_type tile_y,
+                                                                            double scale_x,
+                                                                            double scale_y,
+                                                                            mapnik::box2d<double> const& bbox)
 {
-    using value_type = typename T::value_type;
     mapnik::geometry::geometry<value_type> geom; // output geometry
     switch (geom_type)
     {
-    case Geometry_Type::POINT:
-    {
-        detail::decode_point<T>(geom, paths, bbox);
-        break;
-    }
-    case Geometry_Type::LINESTRING:
-    {
-        detail::decode_linestring<T>(geom, paths, bbox, version);
-        break;
-    }
-    case Geometry_Type::POLYGON:
-    {
-        std::vector<mapnik::geometry::linear_ring<value_type> > rings;
-        detail::read_rings<T>(rings, paths, bbox, version);
-        if (rings.empty())
+        case Geometry_Type::POINT:
         {
-            geom = std::move(mapnik::geometry::geometry_empty());
+            detail::decode_point<value_type>(geom, paths, tile_x, tile_y, scale_x, scale_y, bbox);
+            break;
         }
-        else
+        case Geometry_Type::LINESTRING:
         {
-            detail::decode_polygons(geom, rings, version, paths.scaling_reversed_orientation());
+            detail::decode_linestring<value_type>(geom, paths, tile_x, tile_y, scale_x, scale_y, bbox, version);
+            break;
         }
-        break;
+        case Geometry_Type::POLYGON:
+        {
+            detail::decode_polygon<value_type>(geom, paths, tile_x, tile_y, scale_x, scale_y, bbox, version);
+            break;
+        }
+        case Geometry_Type::UNKNOWN:
+        default:
+        {
+            // This was changed to not throw as unknown according to v2 of spec can simply be ignored and doesn't require
+            // it failing the processing
+            geom = mapnik::geometry::geometry_empty();
+            break;
+        }
     }
-    case Geometry_Type::UNKNOWN:
-    default:
-    {
-        // This was changed to not throw as unknown according to v2 of spec can simply be ignored and doesn't require
-        // it failing the processing
-        geom = std::move(mapnik::geometry::geometry_empty());
-        break;
-    }
-    }
-    return std::move(geom);
+    return geom;
 }
 
-template <typename T>
-MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_geometry(T & paths, int32_t geom_type, unsigned version)
+template <typename value_type>
+MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<value_type> decode_geometry(GeometryPBF & paths, 
+                                                                            int32_t geom_type, 
+                                                                            unsigned version,
+                                                                            value_type tile_x,
+                                                                            value_type tile_y,
+                                                                            double scale_x,
+                                                                            double scale_y)
 {
     mapnik::box2d<double> bbox(std::numeric_limits<double>::lowest(),
                                std::numeric_limits<double>::lowest(),
                                std::numeric_limits<double>::max(),
                                std::numeric_limits<double>::max());
-    return decode_geometry(paths, geom_type, version, bbox);
+    return decode_geometry<value_type>(paths, geom_type, version, tile_x, tile_y, scale_x, scale_y, bbox);
 }
 
 } // end ns vector_tile_impl
