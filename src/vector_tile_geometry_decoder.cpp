@@ -7,13 +7,21 @@ namespace mapnik
 namespace vector_tile_impl
 {
 
-// Geometry classes
-template class GeometryPBF<double>;
-template class GeometryPBF<std::int64_t>;
-
 // decode geometry
-template mapnik::geometry::geometry<double> decode_geometry(GeometryPBF<double> & paths, int32_t geom_type, unsigned version);
-template mapnik::geometry::geometry<std::int64_t> decode_geometry(GeometryPBF<std::int64_t> & paths, int32_t geom_type, unsigned version);
+template mapnik::geometry::geometry<double> decode_geometry<double>(GeometryPBF & paths, 
+                                                                    int32_t geom_type, 
+                                                                    unsigned version,
+                                                                    double tile_x,
+                                                                    double tile_y,
+                                                                    double scale_x, 
+                                                                    double scale_y);
+template mapnik::geometry::geometry<std::int64_t> decode_geometry<std::int64_t>(GeometryPBF & paths, 
+                                                                                int32_t geom_type, 
+                                                                                unsigned version,
+                                                                                std::int64_t tile_x,
+                                                                                std::int64_t tile_y,
+                                                                                double scale_x, 
+                                                                                double scale_y);
 
 } // end ns vector_tile_impl
 

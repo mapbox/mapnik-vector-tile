@@ -170,14 +170,14 @@ TEST_CASE("pbf vector tile datasource")
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     fs = ds.features(mapnik::query(bbox));
     mapnik::feature_ptr feat = fs->next();
-    CHECK(feat != mapnik::feature_ptr());
+    REQUIRE(feat != mapnik::feature_ptr());
     CHECK(feat->size() == 0);
     CHECK(fs->next() == mapnik::feature_ptr());
     mapnik::query qq = mapnik::query(mapnik::box2d<double>(-1,-1,1,1));
     qq.add_property_name("name");
     fs = ds.features(qq);
     feat = fs->next();
-    CHECK(feat != mapnik::feature_ptr());
+    REQUIRE(feat != mapnik::feature_ptr());
     CHECK(feat->size() == 1);
     CHECK(feat->get("name") == mapnik::value_unicode_string("null island"));
 
@@ -187,10 +187,10 @@ TEST_CASE("pbf vector tile datasource")
 
     // ensure same behavior for feature_at_point
     fs = ds.features_at_point(mapnik::coord2d(0.0,0.0),0.0001);
-    CHECK(fs->next() != mapnik::feature_ptr());
+    REQUIRE(fs->next() != mapnik::feature_ptr());
 
     fs = ds.features_at_point(mapnik::coord2d(1.0,1.0),1.0001);
-    CHECK(fs->next() != mapnik::feature_ptr());
+    REQUIRE(fs->next() != mapnik::feature_ptr());
 
     fs = ds.features_at_point(mapnik::coord2d(-10,-10),0);
     CHECK(fs->next() == mapnik::feature_ptr());
@@ -199,7 +199,7 @@ TEST_CASE("pbf vector tile datasource")
     mapnik::feature_ptr f_ptr;
     fs = ds.features(mapnik::query(bbox));
     f_ptr = fs->next();
-    CHECK(f_ptr != mapnik::feature_ptr());
+    REQUIRE(f_ptr != mapnik::feature_ptr());
     // no attributes
     CHECK(f_ptr->context()->size() == 0);
 
@@ -207,7 +207,7 @@ TEST_CASE("pbf vector tile datasource")
     q.add_property_name("name");
     fs = ds.features(q);
     f_ptr = fs->next();
-    CHECK(f_ptr != mapnik::feature_ptr());
+    REQUIRE(f_ptr != mapnik::feature_ptr());
     // one attribute
     CHECK(f_ptr->context()->size() == 1);
 }
@@ -273,7 +273,7 @@ TEST_CASE("pbf encoding multi line")
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     fs = ds.features(mapnik::query(bbox));
     f_ptr = fs->next();
-    CHECK(f_ptr != mapnik::feature_ptr());
+    REQUIRE(f_ptr != mapnik::feature_ptr());
     // no attributes
     CHECK(f_ptr->context()->size() == 0);
 
@@ -415,9 +415,9 @@ TEST_CASE("pbf vector tile from simplified geojson")
       {
           found = true;
           std::pair< protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > geom_itr = pbf_feature.get_packed_uint32();
-          mapnik::vector_tile_impl::GeometryPBF<double> geoms(geom_itr, tile_x,tile_y,scale,-1*scale);
-          auto geom = mapnik::vector_tile_impl::decode_geometry(geoms, f.type(),2);
-              unsigned int n_err = 0;
+          mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr);
+          auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, f.type(), 2, tile_x, tile_y, scale, -1.0 * scale);
+          unsigned int n_err = 0;
           mapnik::projection wgs84("+init=epsg:4326",true);
           mapnik::projection merc("+init=epsg:3857",true);
           mapnik::proj_transform prj_trans(merc,wgs84);
@@ -602,19 +602,19 @@ TEST_CASE("pbf vector tile from linestring geojson")
     std::size_t expected_num_attr_returned = q.property_names().size();
     auto fs = ds2->features(q);
     auto f_ptr = fs->next();
-    CHECK(f_ptr != mapnik::feature_ptr());
+    REQUIRE(f_ptr != mapnik::feature_ptr());
     // no attributes
     CHECK(f_ptr->context()->size() == expected_num_attr_returned);
     CHECK(f_ptr->get_geometry().is<mapnik::geometry::line_string<double> >());
     // second feature
     f_ptr = fs->next();
-    CHECK(f_ptr != mapnik::feature_ptr());
+    REQUIRE(f_ptr != mapnik::feature_ptr());
     CHECK(f_ptr->context()->size() == expected_num_attr_returned);
     CHECK(f_ptr->get_geometry().is<mapnik::geometry::line_string<double> >());
 
     // third feature
     f_ptr = fs->next();
-    CHECK(f_ptr != mapnik::feature_ptr());
+    REQUIRE(f_ptr != mapnik::feature_ptr());
     CHECK(f_ptr->context()->size() == expected_num_attr_returned);
     CHECK(f_ptr->get_geometry().is<mapnik::geometry::point<double> >());
 

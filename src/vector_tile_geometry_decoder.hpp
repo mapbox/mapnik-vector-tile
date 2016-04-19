@@ -28,18 +28,13 @@ namespace vector_tile_impl
 
 // NOTE: this object is for one-time use.  Once you've progressed to the end
 //       by calling next(), to re-iterate, you must construct a new object
-template <typename T>
 class GeometryPBF 
 {
 public:
-    using value_type = T;
+    using value_type = std::int64_t;
     using pbf_itr = std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator >;
     
-    explicit GeometryPBF(pbf_itr const& geo_iterator,
-                         value_type tile_x, 
-                         value_type tile_y,
-                         double scale_x, 
-                         double scale_y);
+    explicit GeometryPBF(pbf_itr const& geo_iterator);
 
     enum command : uint8_t
     {
@@ -48,12 +43,6 @@ public:
         line_to = 2,
         close = 7
     };
-
-
-    bool scaling_reversed_orientation() const
-    {
-        return (scale_x_ * scale_y_) < 0;
-    }
 
     uint32_t get_length() const
     {
@@ -66,8 +55,6 @@ public:
 
 private:
     std::pair< protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > geo_iterator_;
-    double scale_x_;
-    double scale_y_;
     value_type x, y;
     value_type ox, oy;
     uint32_t length;
@@ -78,14 +65,24 @@ public:
     #endif
 };
 
-template <typename T>
-MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_geometry(T & paths, 
-                                                                   int32_t geom_type, 
-                                                                   unsigned version,
-                                                                   mapnik::box2d<double> const& bbox);
+template <typename value_type>
+MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<value_type> decode_geometry(GeometryPBF & paths, 
+                                                                            std::int32_t geom_type, 
+                                                                            unsigned version,
+                                                                            value_type tile_x,
+                                                                            value_type tile_y,
+                                                                            double scale_x,
+                                                                            double scale_y,
+                                                                            mapnik::box2d<double> const& bbox);
 
-template <typename T>
-MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<typename T::value_type> decode_geometry(T & paths, int32_t geom_type, unsigned version);
+template <typename value_type>
+MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<value_type> decode_geometry(GeometryPBF & paths, 
+                                                                            std::int32_t geom_type, 
+                                                                            unsigned version,
+                                                                            value_type tile_x,
+                                                                            value_type tile_y,
+                                                                            double scale_x,
+                                                                            double scale_y);
 
 } // end ns vector_tile_impl
 

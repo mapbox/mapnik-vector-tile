@@ -47,7 +47,7 @@ TEST_CASE("encoding multi line string and check output datasource")
 
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
-    CHECK(1 == layer.features_size());
+    REQUIRE(1 == layer.features_size());
     vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(12 == f.geometry_size());
     CHECK(9 == f.geometry(0)); // 1 move_to
@@ -75,7 +75,7 @@ TEST_CASE("encoding multi line string and check output datasource")
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     fs = ds.features(mapnik::query(bbox));
     f_ptr = fs->next();
-    CHECK(f_ptr != mapnik::feature_ptr());
+    REQUIRE(f_ptr != mapnik::feature_ptr());
     // no attributes
     CHECK(f_ptr->context()->size() == 0);
 
