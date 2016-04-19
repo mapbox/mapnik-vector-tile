@@ -2,7 +2,6 @@
 
 // mapnik vector tile
 #include "vector_tile_geometry_feature.hpp"
-#include "vector_tile_layer.hpp"
 
 // mapnik
 #include <mapnik/geometry.hpp>
