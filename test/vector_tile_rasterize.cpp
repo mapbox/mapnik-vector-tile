@@ -168,9 +168,9 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
         mapnik::agg_renderer<mapnik::image_rgba8> ren(map,im);
         ren.apply();
         unsigned diff = testing::compare_images(im,"test/fixtures/rasterize-expected-1.png");
-        // should be almost equal (50 is good enough since re-rendering filters a few small degenerates)
+        // should be almost equal (110 is good enough since re-rendering filters a few small degenerates)
         CHECK(110 == diff);
-        if (diff > 50)
+        if (diff > 110)
         {
             mapnik::save_to_file(im,"test/fixtures/rasterize-actual-1.png","png32");
         }
