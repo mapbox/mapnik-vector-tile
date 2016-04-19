@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
-#include <iostream>
 
 namespace mapnik 
 { 
@@ -449,7 +448,6 @@ void decode_polygon(mapnik::geometry::geometry<geom_value_type> & geom,
             ring.add_coord(x0_, y0_);
             ring_area += calculate_segment_area(x1, y1, x0, y0);
         }
-        //std::clog << "ring size: " << ring.size() << " ring area: " << ring_area << std::endl;
         if (ring.size() > 3)
         {
             if (first_ring)
