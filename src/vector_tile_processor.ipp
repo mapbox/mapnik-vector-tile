@@ -78,7 +78,7 @@ inline void create_geom_layer(tile_layer & layer,
     const double maxy = std::max(p2_min.y, p2_max.y);
     const mapnik::box2d<int> tile_clipping_extent(minx, miny, maxx, maxy);
 
-    if (simplify_distance > 0)
+    if (simplify_distance > 0.0)
     {
         using simplifier_process = mapnik::vector_tile_impl::geometry_simplifier<clipping_process>;
         if (layer.get_proj_transform().equal())
