@@ -33,7 +33,7 @@
 void clip_geometry(mapnik::Map const& map,
                    std::string const& file,
                    mapnik::box2d<double> const& bbox,
-                   int simplify_distance,
+                   double simplify_distance,
                    bool strictly_simple,
                    mapnik::vector_tile_impl::polygon_fill_type fill_type,
                    bool mpu,

@@ -42,7 +42,8 @@
 
 // std
 #include <vector>
-#include <x86intrin.h>
+#include <xmmintrin.h>
+#include <emmintrin.h>
 
 namespace mapnik 
 {

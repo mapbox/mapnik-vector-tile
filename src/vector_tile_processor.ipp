@@ -58,7 +58,7 @@ inline void create_geom_layer(tile_layer & layer,
     
     using encoding_process = mapnik::vector_tile_impl::geometry_to_feature_pbf_visitor;
     using clipping_process = mapnik::vector_tile_impl::geometry_clipper<encoding_process>;
-    if (simplify_distance > 0)
+    if (simplify_distance > 0.0)
     {
         using simplifier_process = mapnik::vector_tile_impl::geometry_simplifier<clipping_process>;
         if (layer.get_proj_transform().equal())
