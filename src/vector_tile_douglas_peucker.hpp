@@ -82,8 +82,9 @@ struct douglas_peucker_point
     }
 };
 
-template <typename value_type, typename calc_type>
-inline void consider(std::vector<douglas_peucker_point<value_type> > & vec,
+template <typename value_type, typename calc_type, typename Range>
+inline void consider(Range const& vec,
+                     std::vector<bool> & included,
                      std::uint32_t begin_idx,
                      std::uint32_t last_idx,
                      calc_type const& max_dist)
@@ -110,31 +111,31 @@ inline void consider(std::vector<douglas_peucker_point<value_type> > & vec,
             b = c1 / c2
             RETURN POINT(x1 + b * vx, y1 + b * vy)
         */
-        douglas_peucker_point<value_type> const& last = vec[last_idx];
-        douglas_peucker_point<value_type> const& begin = vec[begin_idx];
-        calc_type const v_x = last.p.x - begin.p.x;
-        calc_type const v_y = last.p.y - begin.p.y;
+        auto const& last = vec[last_idx];
+        auto const& begin = vec[begin_idx];
+        calc_type const v_x = last.x - begin.x;
+        calc_type const v_y = last.y - begin.y;
         calc_type const c2 = v_x * v_x + v_y * v_y;
         std::uint32_t i = begin_idx + 1;
 
         if (size > 4)
         {
-            __m128 begin_x_4 = _mm_set1_ps(begin.p.x);
-            __m128 begin_y_4 = _mm_set1_ps(begin.p.y);
-            __m128 last_x_4 = _mm_set1_ps(last.p.x);
-            __m128 last_y_4 = _mm_set1_ps(last.p.y);
+            __m128 begin_x_4 = _mm_set1_ps(begin.x);
+            __m128 begin_y_4 = _mm_set1_ps(begin.y);
+            __m128 last_x_4 = _mm_set1_ps(last.x);
+            __m128 last_y_4 = _mm_set1_ps(last.y);
             __m128 v_x_4 =  _mm_set1_ps(v_x);
             __m128 v_y_4 =  _mm_set1_ps(v_y);
             __m128 c2_4 =  _mm_set1_ps(c2);
             __m128 zero_4 = _mm_set1_ps(0.0);
             __m128 md_4 = _mm_set1_ps(md);
-            m128u md_idx = { { begin_idx, begin_idx, begin_idx, begin_idx} };
+            m128u md_idx = { { i, i, i, i} };
 
             for (; i + 3 < last_idx; i += 4)
             {
                 // Setup loop values
-                __m128 it_x_4 = _mm_set_ps(vec[i].p.x, vec[i+1].p.x, vec[i+2].p.x, vec[i+3].p.x);
-                __m128 it_y_4 = _mm_set_ps(vec[i].p.y, vec[i+1].p.y, vec[i+2].p.y, vec[i+3].p.y);
+                __m128 it_x_4 = _mm_set_ps(vec[i].x, vec[i+1].x, vec[i+2].x, vec[i+3].x);
+                __m128 it_y_4 = _mm_set_ps(vec[i].y, vec[i+1].y, vec[i+2].y, vec[i+3].y);
                 m128u it_idx = { { i, i+1, i+2, i+3 } };     
                 
                 // Calculate c1
@@ -152,10 +153,8 @@ inline void consider(std::vector<douglas_peucker_point<value_type> > & vec,
 
                 // Calculate the default distance solution now
                 __m128 b_4 = _mm_div_ps(c1_4, c2_4);
-                __m128 p_x_4 = _mm_add_ps(begin_x_4, _mm_mul_ps(b_4, v_x_4));
-                __m128 p_y_4 = _mm_add_ps(begin_y_4, _mm_mul_ps(b_4, v_y_4));
-                __m128 dx_4 = _mm_sub_ps(it_x_4, p_x_4);
-                __m128 dy_4 = _mm_sub_ps(it_y_4, p_y_4);
+                __m128 dx_4 = _mm_sub_ps(w_x_4, _mm_mul_ps(b_4, v_x_4));
+                __m128 dy_4 = _mm_sub_ps(w_y_4, _mm_mul_ps(b_4, v_y_4));
                 __m128 dist_3 = _mm_add_ps(_mm_mul_ps(dx_4, dx_4), _mm_mul_ps(dy_4, dy_4));
                 
                 __m128 dist = _mm_and_ps(dist_1, bool_dist_1);
@@ -178,36 +177,36 @@ inline void consider(std::vector<douglas_peucker_point<value_type> > & vec,
                     md = md_out.a[j];
                     candidate = md_idx.a[j];
                 }
+                else if (md == md_out.a[j] && md_idx.a[j] < candidate)
+                {
+                    candidate = md_idx.a[j];
+                }
             }
         }
 
         for (; i < last_idx; ++i)
         {
-            douglas_peucker_point<value_type> const& it = vec[i];
-            calc_type const w_x = it.p.x - begin.p.x;
-            calc_type const w_y = it.p.y - begin.p.y;
+            auto const& it = vec[i];
+            calc_type const w_x = it.x - begin.x;
+            calc_type const w_y = it.y - begin.y;
             calc_type const c1 = w_x * v_x + w_y * v_y;
             calc_type dist;
             if (c1 <= 0) // calc_type() should be 0 of the proper calc type format
             {
-                calc_type const dx = it.p.x - begin.p.x;
-                calc_type const dy = it.p.y - begin.p.y;
-                dist = dx * dx + dy * dy;
+                dist = w_x * w_x + w_y * w_y;
             }
             else if (c2 <= c1)
             {
-                calc_type const dx = it.p.x - last.p.x;
-                calc_type const dy = it.p.y - last.p.y;
+                calc_type const dx = it.x - last.x;
+                calc_type const dy = it.y - last.y;
                 dist = dx * dx + dy * dy;
             }
             else 
             {
                 // See above, c1 > 0 AND c2 > c1 so: c2 != 0
                 calc_type const b = c1 / c2;
-                calc_type const p_x = begin.p.x + b * v_x;
-                calc_type const p_y = begin.p.y + b * v_y;
-                calc_type const dx = it.p.x - p_x;
-                calc_type const dy = it.p.y - p_y;
+                calc_type const dx = w_x - b * v_x;
+                calc_type const dy = w_y - b * v_y;
                 dist = dx * dx + dy * dy;
             }
             if (md < dist)
@@ -222,9 +221,9 @@ inline void consider(std::vector<douglas_peucker_point<value_type> > & vec,
     // and handle segments in between recursively
     if (max_dist < md)
     {
-        vec[candidate].included = true;
-        consider<value_type>(vec, begin_idx, candidate, max_dist);
-        consider<value_type>(vec, candidate, last_idx, max_dist);
+        included[candidate] = true;
+        consider<value_type, calc_type, Range>(vec, included, begin_idx, candidate, max_dist);
+        consider<value_type, calc_type, Range>(vec, included, candidate, last_idx, max_dist);
     }
 }
 
@@ -285,10 +284,8 @@ inline void consider(typename std::vector<douglas_peucker_point<value_type> >::i
             {
                 // See above, c1 > 0 AND c2 > c1 so: c2 != 0
                 calc_type const b = c1 / c2;
-                calc_type const p_x = begin->p.x + b * v_x;
-                calc_type const p_y = begin->p.y + b * v_y;
-                calc_type const dx = it->p.x - p_x;
-                calc_type const dy = it->p.y - p_y;
+                calc_type const dx = w_x - b * v_x;
+                calc_type const dy = w_y - b * v_y;
                 dist = dx * dx + dy * dy;
             }
             if (md < dist)
@@ -316,44 +313,70 @@ inline void douglas_peucker(Range const& range,
                             OutputIterator out,
                             calc_type max_distance)
 {
-    // Copy coordinates, a vector of references to all points
-    std::vector<detail::douglas_peucker_point<value_type> > ref_candidates(std::begin(range),
-                    std::end(range));
-
-    // Include first and last point of line,
-    // they are always part of the line
-    ref_candidates.front().included = true;
-    ref_candidates.back().included = true;
-
-    // We will compare to squared of distance so we don't have to do a sqrt
-    calc_type const max_sqrd = max_distance * max_distance;
-
-    // Get points, recursively, including them if they are further away
-    // than the specified distance
-    if (ref_candidates.size() < std::numeric_limits<std::uint32_t>::max())
+    if (range.size() < std::numeric_limits<std::uint32_t>::max())
     {
-        detail::consider<value_type, float>(ref_candidates, 0, ref_candidates.size() - 1, max_sqrd);
+        std::vector<bool> included(range.size());
+        
+        // Include first and last point of line,
+        // they are always part of the line
+        included.front() = true;
+        included.back() = true;
+        
+        // We will compare to squared of distance so we don't have to do a sqrt
+        float const max_sqrd = max_distance * max_distance;
+        
+        detail::consider<value_type, float, Range>(range, included, 0, range.size() - 1, max_sqrd);
+        
+        // Copy included elements to the output
+        auto data = std::begin(range);
+        auto end_data = std::end(range);
+        auto inc = included.begin();
+        for (; data != end_data; ++data)
+        {
+            if (*inc)
+            {
+                // copy-coordinates does not work because OutputIterator
+                // does not model Point (??)
+                //geometry::convert(it->p, *out);
+                *out++ = *data;
+            }
+            ++inc;
+        }
     }
     else
     {
-        detail::consider<value_type, calc_type>(std::begin(ref_candidates), std::end(ref_candidates), max_sqrd);
-    }
+        // Copy coordinates, a vector of references to all points
+        std::vector<detail::douglas_peucker_point<value_type> > ref_candidates(std::begin(range),
+                        std::end(range));
 
-    // Copy included elements to the output
-    for(typename std::vector<detail::douglas_peucker_point<value_type> >::const_iterator it
-                    = std::begin(ref_candidates);
-        it != std::end(ref_candidates);
-        ++it)
-    {
-        if (it->included)
+        // Include first and last point of line,
+        // they are always part of the line
+        ref_candidates.front().included = true;
+        ref_candidates.back().included = true;
+
+        // We will compare to squared of distance so we don't have to do a sqrt
+        calc_type const max_sqrd = max_distance * max_distance;
+        
+        // Get points, recursively, including them if they are further away
+        // than the specified distance
+        detail::consider<value_type, calc_type>(std::begin(ref_candidates), std::end(ref_candidates), max_sqrd);
+        
+        // Copy included elements to the output
+        for(typename std::vector<detail::douglas_peucker_point<value_type> >::const_iterator it
+                        = std::begin(ref_candidates);
+            it != std::end(ref_candidates);
+            ++it)
         {
-            // copy-coordinates does not work because OutputIterator
-            // does not model Point (??)
-            //geometry::convert(it->p, *out);
-            *out = it->p;
-            out++;
+            if (it->included)
+            {
+                // copy-coordinates does not work because OutputIterator
+                // does not model Point (??)
+                //geometry::convert(it->p, *out);
+                *out++ = it->p;
+            }
         }
     }
+
 }
 
 } // end ns vector_tile_impl
