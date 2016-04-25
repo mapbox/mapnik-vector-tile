@@ -54,17 +54,6 @@ namespace vector_tile_impl
 namespace detail
 {
 
-typedef union {
-    float a[4];  // scalar array of 4 floats
-    __m128 v;    // SSE float vector
-} m128;
-
-typedef union {
-    std::uint32_t a[4];  // scalar array of 4 uint32
-    __m128i v;    // SSE int vector
-    __m128 vf;    // SSE float vector
-} m128u;
-
 template<typename T>
 struct douglas_peucker_point
 {
@@ -129,14 +118,14 @@ inline void consider(Range const& vec,
             __m128 c2_4 =  _mm_set1_ps(c2);
             __m128 zero_4 = _mm_set1_ps(0.0);
             __m128 md_4 = _mm_set1_ps(md);
-            m128u md_idx = { { i, i, i, i} };
+            __m128 md_idx = _mm_castsi128_ps(_mm_set1_epi32(i));
 
             for (; i + 3 < last_idx; i += 4)
             {
                 // Setup loop values
                 __m128 it_x_4 = _mm_set_ps(vec[i].x, vec[i+1].x, vec[i+2].x, vec[i+3].x);
                 __m128 it_y_4 = _mm_set_ps(vec[i].y, vec[i+1].y, vec[i+2].y, vec[i+3].y);
-                m128u it_idx = { { i, i+1, i+2, i+3 } };     
+                __m128 it_idx = _mm_castsi128_ps(_mm_set_epi32(i, i+1, i+2, i+3));     
                 
                 // Calculate c1
                 __m128 w_x_4 = _mm_sub_ps(it_x_4, begin_x_4);
@@ -162,24 +151,26 @@ inline void consider(Range const& vec,
                 dist = _mm_or_ps(dist, _mm_andnot_ps(_mm_and_ps(bool_dist_1, bool_dist_2), dist_3));
                 __m128 bool_md = _mm_cmplt_ps(md_4, dist);
                 md_4 = _mm_or_ps(_mm_andnot_ps(bool_md, md_4), _mm_and_ps(bool_md, dist));
-                md_idx.vf = _mm_or_ps(_mm_andnot_ps(bool_md, md_idx.vf), _mm_and_ps(bool_md, it_idx.vf));
+                md_idx = _mm_or_ps(_mm_andnot_ps(bool_md, md_idx), _mm_and_ps(bool_md, it_idx));
             }
 
-            m128 md_out;
-            md_out.v = md_4;
+            float md_out [4];
+            std::uint32_t md_idx_out [4];
+            _mm_store_ps(md_out, md_4);
+            _mm_store_ps((float*)md_idx_out, md_idx);
             
-            md = md_out.a[0];
-            candidate = md_idx.a[0];
+            md = md_out[0];
+            candidate = md_idx_out[0];
             for (std::size_t j = 1; j < 4; ++j)
             {
-                if (md < md_out.a[j])
+                if (md < md_out[j])
                 {
-                    md = md_out.a[j];
-                    candidate = md_idx.a[j];
+                    md = md_out[j];
+                    candidate = md_idx_out[j];
                 }
-                else if (md == md_out.a[j] && md_idx.a[j] < candidate)
+                else if (md == md_out[j] && md_idx_out[j] < candidate)
                 {
-                    candidate = md_idx.a[j];
+                    candidate = md_idx_out[j];
                 }
             }
         }
