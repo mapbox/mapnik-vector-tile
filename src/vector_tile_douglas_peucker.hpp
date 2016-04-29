@@ -157,7 +157,7 @@ inline void consider(Range const& vec,
             float md_out [4];
             std::uint32_t md_idx_out [4];
             _mm_store_ps(md_out, md_4);
-            _mm_store_ps((float*)md_idx_out, md_idx);
+            _mm_store_ps(reinterpret_cast<float*>(md_idx_out), md_idx);
             
             md = md_out[0];
             candidate = md_idx_out[0];
