@@ -15,14 +15,14 @@ namespace vector_tile_impl
 {
 
 template <typename NextProcessor>
-struct geometry_simplifier 
+struct geometry_simplifier
 {
     geometry_simplifier(unsigned simplify_distance,
                         NextProcessor & next)
         : next_(next),
           simplify_distance_(simplify_distance) {}
 
-    void operator() (mapnik::geometry::geometry_empty &)
+    void operator() (mapnik::geometry::geometry_empty<std::int64_t> &)
     {
         return;
     }
@@ -136,7 +136,7 @@ struct geometry_simplifier
             mapnik::util::apply_visitor((*this), g);
         }
     }
-        
+
     NextProcessor & next_;
     double simplify_distance_;
 };

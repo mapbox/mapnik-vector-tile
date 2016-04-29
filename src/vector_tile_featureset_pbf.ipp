@@ -17,10 +17,10 @@
 // protozero
 #include <protozero/pbf_reader.hpp>
 
-namespace mapnik 
-{ 
+namespace mapnik
+{
 
-namespace vector_tile_impl 
+namespace vector_tile_impl
 {
 
 template <typename Filter>
@@ -78,7 +78,7 @@ struct value_visitor
         : tr_(tr),
           feature_(feature),
           name_(name) {}
-    
+
     void operator() (std::string const& val)
     {
         feature_->put(name_, tr_.transcode(val.data(), val.length()));
@@ -271,7 +271,7 @@ feature_ptr tile_featureset_pbf<Filter>::next()
             {
                 mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr);
                 mapnik::geometry::geometry<double> geom = decode_geometry<double>(geoms, geometry_type, version_, tile_x_, tile_y_, scale_, -1.0 * scale_, filter_.box_);
-                if (geom.is<mapnik::geometry::geometry_empty>())
+                if (geom.is<mapnik::geometry::geometry_empty<double>>())
                 {
                     continue;
                 }
@@ -292,7 +292,7 @@ feature_ptr tile_featureset_pbf<Filter>::next()
                 {
                     mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr);
                     mapnik::geometry::geometry<double> geom = decode_geometry<double>(geoms, geometry_type, version_, tile_x_, tile_y_, scale_, -1.0 * scale_, filter_.box_);
-                    if (geom.is<mapnik::geometry::geometry_empty>())
+                    if (geom.is<mapnik::geometry::geometry_empty<double>>())
                     {
                         continue;
                     }

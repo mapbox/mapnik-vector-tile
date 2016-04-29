@@ -31,12 +31,12 @@ namespace detail
 
 inline ClipperLib::PolyFillType get_angus_fill_type(polygon_fill_type type)
 {
-    switch (type) 
+    switch (type)
     {
     case polygon_fill_type_max:
     case even_odd_fill:
         return ClipperLib::pftEvenOdd;
-    case non_zero_fill: 
+    case non_zero_fill:
         return ClipperLib::pftNonZero;
     case positive_fill:
         return ClipperLib::pftPositive;
@@ -46,7 +46,7 @@ inline ClipperLib::PolyFillType get_angus_fill_type(polygon_fill_type type)
 }
 
 
-inline void process_polynode_branch(ClipperLib::PolyNode* polynode, 
+inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
                                     mapnik::geometry::multi_polygon<std::int64_t> & mp,
                                     double area_threshold)
 {
@@ -60,10 +60,10 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
             // The view transform inverts the y axis so this should be positive still despite now
             // being clockwise for the exterior ring. If it is not lets invert it.
             if (outer_area < 0)
-            {   
+            {
                 std::reverse(polygon.exterior_ring.begin(), polygon.exterior_ring.end());
             }
-            
+
             // children of exterior ring are always interior rings
             for (auto * ring : polynode->Childs)
             {
@@ -76,7 +76,7 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
                 {
                     continue;
                 }
-                
+
                 if (inner_area > 0)
                 {
                     std::reverse(ring->Contour.begin(), ring->Contour.end());
@@ -98,7 +98,7 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
 } // end ns detail
 
 template <typename NextProcessor>
-class geometry_clipper 
+class geometry_clipper
 {
 private:
     NextProcessor & next_;
@@ -126,7 +126,7 @@ public:
     {
     }
 
-    void operator() (mapnik::geometry::geometry_empty &)
+    void operator() (mapnik::geometry::geometry_empty<std::int64_t> &)
     {
         return;
     }
@@ -213,17 +213,17 @@ public:
         {
             return;
         }
-        
+
         double clean_distance = 1.415;
-        
+
         // Prepare the clipper object
         ClipperLib::Clipper clipper;
-        
-        if (strictly_simple_) 
+
+        if (strictly_simple_)
         {
             clipper.StrictlySimple(true);
         }
-        
+
         // Start processing on exterior ring
         // if proces_all_rings is true even if the exterior
         // ring is invalid we will continue to insert all polygon
@@ -238,7 +238,7 @@ public:
         // The view transform inverts the y axis so this should be positive still despite now
         // being clockwise for the exterior ring. If it is not lets invert it.
         if (outer_area < 0)
-        {   
+        {
             std::reverse(geom.exterior_ring.begin(), geom.exterior_ring.end());
         }
 
@@ -249,7 +249,7 @@ public:
 
         for (auto & ring : geom.interior_rings)
         {
-            if (ring.size() < 3) 
+            if (ring.size() < 3)
             {
                 continue;
             }
@@ -279,7 +279,7 @@ public:
         clip_box.emplace_back(tile_clipping_extent_.maxx(), tile_clipping_extent_.maxy());
         clip_box.emplace_back(tile_clipping_extent_.minx(), tile_clipping_extent_.maxy());
         clip_box.emplace_back(tile_clipping_extent_.minx(), tile_clipping_extent_.miny());
-        
+
         // Finally add the box we will be using for clipping
         if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
         {
@@ -290,12 +290,12 @@ public:
         ClipperLib::PolyFillType fill_type = detail::get_angus_fill_type(fill_type_);
         clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, ClipperLib::pftEvenOdd);
         clipper.Clear();
-        
+
         mapnik::geometry::multi_polygon<std::int64_t> mp;
-        
+
         for (auto * polynode : polygons.Childs)
         {
-            detail::process_polynode_branch(polynode, mp, area_threshold_); 
+            detail::process_polynode_branch(polynode, mp, area_threshold_);
         }
 
         if (mp.empty())
@@ -311,7 +311,7 @@ public:
         {
             return;
         }
-        
+
         double clean_distance = 1.415;
         mapnik::geometry::linear_ring<std::int64_t> clip_box;
         clip_box.reserve(5);
@@ -320,12 +320,12 @@ public:
         clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.maxy());
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.maxy());
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
-        
+
         mapnik::geometry::multi_polygon<std::int64_t> mp;
-        
+
         ClipperLib::Clipper clipper;
-        
-        if (strictly_simple_) 
+
+        if (strictly_simple_)
         {
             clipper.StrictlySimple(true);
         }
@@ -390,10 +390,10 @@ public:
             ClipperLib::PolyTree polygons;
             clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, ClipperLib::pftEvenOdd);
             clipper.Clear();
-            
+
             for (auto * polynode : polygons.Childs)
             {
-                detail::process_polynode_branch(polynode, mp, area_threshold_); 
+                detail::process_polynode_branch(polynode, mp, area_threshold_);
             }
         }
         else
@@ -455,10 +455,10 @@ public:
                 ClipperLib::PolyTree polygons;
                 clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, ClipperLib::pftEvenOdd);
                 clipper.Clear();
-                
+
                 for (auto * polynode : polygons.Childs)
                 {
-                    detail::process_polynode_branch(polynode, mp, area_threshold_); 
+                    detail::process_polynode_branch(polynode, mp, area_threshold_);
                 }
             }
         }

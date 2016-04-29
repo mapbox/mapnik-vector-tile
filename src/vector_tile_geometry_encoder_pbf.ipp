@@ -14,7 +14,7 @@
 
 namespace mapnik
 {
-    
+
 namespace vector_tile_impl
 {
 
@@ -54,12 +54,12 @@ struct encoder_visitor
 
     encoder_visitor(protozero::pbf_writer & feature,
                     int32_t & x,
-                    int32_t & y) 
+                    int32_t & y)
         : feature_(feature),
           x_(x),
           y_(y) {}
 
-    bool operator() (mapnik::geometry::geometry_empty const&)
+    bool operator() (mapnik::geometry::geometry_empty<std::int64_t> const&)
     {
         return false;
     }

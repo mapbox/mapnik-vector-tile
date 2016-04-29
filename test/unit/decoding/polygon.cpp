@@ -540,7 +540,7 @@ TEST_CASE("decode polygon - only moveto")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 1, 0.0, 0.0, 1.0, 1.0));
     }
-    
+
     SECTION("VT Spec v2")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));
@@ -564,9 +564,9 @@ TEST_CASE("decode polygon - only moveto and close")
     SECTION("VT Spec v1")
     {
         auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 1, 0.0, 0.0, 1.0, 1.0);
-        CHECK( geom.is<mapnik::geometry::geometry_empty>() );
+        CHECK( geom.is<mapnik::geometry::geometry_empty<double>>() );
     }
-    
+
     SECTION("VT Spec v2")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));
@@ -593,7 +593,7 @@ TEST_CASE("decode polygon - only moveto and close followed by close")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 1, 0.0, 0.0, 1.0, 1.0));
     }
-    
+
     SECTION("VT Spec v2")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));
@@ -622,7 +622,7 @@ TEST_CASE("decode polygon - only moveto and close followed by lineto")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 1, 0.0, 0.0, 1.0, 1.0));
     }
-    
+
     SECTION("VT Spec v2")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));
@@ -651,7 +651,7 @@ TEST_CASE("decode polygon - only moveto and close followed by lineto -- delta ze
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 1, 0.0, 0.0, 1.0, 1.0));
     }
-    
+
     SECTION("VT Spec v2")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));
@@ -723,7 +723,7 @@ TEST_CASE("decode polygon - only moveto and lineto")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 1, 0.0, 0.0, 1.0, 1.0));
     }
-    
+
     SECTION("VT Spec v2")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));
@@ -795,9 +795,9 @@ TEST_CASE("decode polygon - only moveto lineto and close")
     SECTION("VT Spec v1")
     {
         auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 1, 0.0, 0.0, 1.0, 1.0);
-        CHECK( geom.is<mapnik::geometry::geometry_empty>() );
+        CHECK( geom.is<mapnik::geometry::geometry_empty<double>>() );
     }
-    
+
     SECTION("VT Spec v2")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));
@@ -828,7 +828,7 @@ TEST_CASE("decode polygon - only moveto, lineto, and close followed by close")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 1, 0.0, 0.0, 1.0, 1.0));
     }
-    
+
     SECTION("VT Spec v2")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));
@@ -853,7 +853,7 @@ TEST_CASE("decode polygon - only moveto, lineto, and close followed by lineto")
     feature.add_geometry((1 << 3u) | 2u);
     feature.add_geometry(protozero::encode_zigzag32(1));
     feature.add_geometry(protozero::encode_zigzag32(1));
-        
+
     std::string feature_string = feature.SerializeAsString();
     mapnik::vector_tile_impl::GeometryPBF geoms = feature_to_pbf_geometry(feature_string);
 
@@ -861,7 +861,7 @@ TEST_CASE("decode polygon - only moveto, lineto, and close followed by lineto")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 1, 0.0, 0.0, 1.0, 1.0));
     }
-    
+
     SECTION("VT Spec v2")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));
@@ -894,7 +894,7 @@ TEST_CASE("decode polygon - only moveto, lineto, and close followed by lineto --
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 1, 0.0, 0.0, 1.0, 1.0));
     }
-    
+
     SECTION("VT Spec v2")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));
@@ -974,9 +974,9 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - both delta z
     SECTION("VT Spec v1")
     {
         auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 1, 0.0, 0.0, 1.0, 1.0);
-        CHECK( geom.is<mapnik::geometry::geometry_empty>() );
+        CHECK( geom.is<mapnik::geometry::geometry_empty<double>>() );
     }
-    
+
     SECTION("VT Spec v2")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));
@@ -1008,9 +1008,9 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - both delta z
     SECTION("VT Spec v1")
     {
         auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 1, 0.0, 0.0, 1.0, 1.0);
-        CHECK( geom.is<mapnik::geometry::geometry_empty>() );
+        CHECK( geom.is<mapnik::geometry::geometry_empty<double>>() );
     }
-    
+
     SECTION("VT Spec v2")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));
@@ -1042,9 +1042,9 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - first delta 
     SECTION("VT Spec v1")
     {
         auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 1, 0.0, 0.0, 1.0, 1.0);
-        CHECK( geom.is<mapnik::geometry::geometry_empty>() );
+        CHECK( geom.is<mapnik::geometry::geometry_empty<double>>() );
     }
-    
+
     SECTION("VT Spec v2")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));
@@ -1076,9 +1076,9 @@ TEST_CASE("decode polygon - only moveto, lineto, lineto and close - second delta
     SECTION("VT Spec v1")
     {
         auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 1, 0.0, 0.0, 1.0, 1.0);
-        CHECK( geom.is<mapnik::geometry::geometry_empty>() );
+        CHECK( geom.is<mapnik::geometry::geometry_empty<double>>() );
     }
-    
+
     SECTION("VT Spec v2")
     {
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));

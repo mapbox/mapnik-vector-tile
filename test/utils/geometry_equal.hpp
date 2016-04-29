@@ -94,7 +94,7 @@ std::string type_name()
     if(status == 0) {
         tname = demangled_name;
         std::free(demangled_name);
-    }   
+    }
     return tname;
 }
 
@@ -112,7 +112,8 @@ struct geometry_equal_visitor
         REQUIRE(false);
     }
 
-    void operator() (mapnik::geometry::geometry_empty const&, mapnik::geometry::geometry_empty const&)
+    template <typename T>
+    void operator() (mapnik::geometry::geometry_empty<T> const&, mapnik::geometry::geometry_empty<T> const&)
     {
         REQUIRE(true);
     }
@@ -158,7 +159,16 @@ struct geometry_equal_visitor
     template <typename T>
     void operator() (mapnik::geometry::multi_point<T> const& mp1, mapnik::geometry::multi_point<T> const& mp2)
     {
-        (*this)(static_cast<mapnik::geometry::line_string<T> const&>(mp1), static_cast<mapnik::geometry::line_string<T> const&>(mp2));
+        if (mp1.size() != mp2.size())
+        {
+            REQUIRE(false);
+        }
+
+        for(auto const& p : zip_crange(mp1, mp2))
+        {
+            REQUIRE(p.template get<0>().x == Approx(p.template get<1>().x));
+            REQUIRE(p.template get<0>().y == Approx(p.template get<1>().y));
+        }
     }
 
     template <typename T>
