@@ -29,7 +29,6 @@ class tile
 protected:
     std::string buffer_;
     std::set<std::string> painted_layers_;
-    std::set<std::string> empty_layers_;
     std::set<std::string> layers_set_;
     std::vector<std::string> layers_;
     mapnik::box2d<double> extent_;
@@ -42,7 +41,6 @@ public:
          std::int32_t buffer_size = 128)
         : buffer_(),
           painted_layers_(),
-          empty_layers_(),
           layers_set_(),
           layers_(),
           extent_(extent),
@@ -54,11 +52,6 @@ public:
     tile(tile && rhs) = default;
 
     MAPNIK_VECTOR_INLINE bool add_layer(tile_layer const& layer);
-
-    void add_empty_layer(std::string const& name)
-    {
-        empty_layers_.insert(name);
-    }
 
     const char * data() const
     {
@@ -154,11 +147,6 @@ public:
     {
         return painted_layers_;
     }
-
-    std::set<std::string> const& get_empty_layers() const
-    {
-        return empty_layers_;
-    }
     
     std::vector<std::string> const& get_layers() const
     {
@@ -178,7 +166,6 @@ public:
     void clear()
     {
         buffer_.clear();
-        empty_layers_.clear();
         layers_.clear();
         layers_set_.clear();
         painted_layers_.clear();

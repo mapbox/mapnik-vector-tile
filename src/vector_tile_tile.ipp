@@ -21,11 +21,7 @@ MAPNIK_VECTOR_INLINE bool tile::add_layer(tile_layer const& layer)
     std::string const& new_name = layer.name();
     if (layer.is_empty())
     {
-        empty_layers_.insert(new_name);
-        if (layer.is_painted())
-        {
-            painted_layers_.insert(new_name);
-        }
+        return false;
     }
     else
     {
@@ -39,11 +35,6 @@ MAPNIK_VECTOR_INLINE bool tile::add_layer(tile_layer const& layer)
         layers_.push_back(new_name);
         protozero::pbf_writer tile_writer(buffer_);
         tile_writer.add_message(Tile_Encoding::LAYERS, layer.get_data());
-        auto itr = empty_layers_.find(new_name);
-        if (itr != empty_layers_.end())
-        {
-            empty_layers_.erase(itr);
-        }
     }
     return true;
 }
@@ -60,11 +51,6 @@ MAPNIK_VECTOR_INLINE bool tile::append_layer_buffer(const char * data, std::size
     layers_.push_back(name);
     protozero::pbf_writer writer(buffer_);
     writer.add_message(3, data, size);
-    auto itr = empty_layers_.find(name);
-    if (itr != empty_layers_.end())
-    {
-        empty_layers_.erase(itr);
-    }
     return true;
 }
 

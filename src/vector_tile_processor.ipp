@@ -286,7 +286,6 @@ MAPNIK_VECTOR_INLINE void processor::update_tile(tile & t,
                              offset_y);
         if (!tile_layers.back().is_valid())
         {
-            t.add_empty_layer(lay.name());
             tile_layers.pop_back();
             continue;
         }

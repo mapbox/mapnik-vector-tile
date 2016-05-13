@@ -41,7 +41,6 @@ TEST_CASE("Vector tile base class")
         CHECK(default_tile.tile_size() == 4096);
 
         CHECK(default_tile.get_painted_layers().empty() == true);
-        CHECK(default_tile.get_empty_layers().empty() == true);
         CHECK(default_tile.get_layers().empty() == true);
         CHECK(default_tile.get_layers_set().empty() == true);
 
@@ -100,7 +99,6 @@ TEST_CASE("Vector tile base class")
         const std::vector<std::string> expected_vec{"bogus"};
 
         CHECK(tile.get_painted_layers() == expected_set);
-        CHECK(tile.get_empty_layers() == empty_set);
         CHECK(tile.get_layers() == expected_vec);
         CHECK(tile.get_layers_set() == expected_set);
         CHECK(tile.has_layer("bogus") == true);
@@ -166,7 +164,6 @@ TEST_CASE("Vector tile base class")
         const std::vector<std::string> expected_vec{"valid"};
 
         CHECK(tile.get_painted_layers() == expected_set);
-        CHECK(tile.get_empty_layers() == empty_set);
         CHECK(tile.get_layers() == expected_vec);
         CHECK(tile.get_layers_set() == expected_set);
         CHECK(tile.has_layer("valid") == true);
@@ -209,7 +206,6 @@ TEST_CASE("Vector tile base class")
 
         const std::set<std::string> empty_set{"empty"};
 
-        CHECK(tile.get_empty_layers().size() == 1);
         CHECK(tile.is_painted() == false);
         CHECK(tile.is_empty() == true);
     }
@@ -248,7 +244,6 @@ TEST_CASE("Vector tile base class")
         const std::vector<std::string> expected_vec{"valid"};
 
         CHECK(tile.get_painted_layers() == expected_set);
-        CHECK(tile.get_empty_layers() == empty_set);
         CHECK(tile.get_layers() == expected_vec);
         CHECK(tile.get_layers_set() == expected_set);
         CHECK(tile.has_layer("valid") == true);
@@ -276,7 +271,6 @@ TEST_CASE("Vector tile base class")
         // Add empty layer to tile
         tile.add_empty_layer("valid");
         std::set<std::string> empty_set{"valid"};
-        CHECK(tile.get_empty_layers() == empty_set);
 
         // Create layer builder and add feature
         mapnik::vector_tile_impl::tile_layer layer;
@@ -299,7 +293,6 @@ TEST_CASE("Vector tile base class")
         // Add layer to tile
         tile.add_layer(layer);
         empty_set.clear();
-        CHECK(tile.get_empty_layers() == empty_set);
     }
 
     SECTION("add_layer takes layer out of empty layers")
@@ -458,11 +451,10 @@ TEST_CASE("Vector tile base class")
     SECTION("adding a valid layer takes name out of empty layers")
     {
         mapnik::vector_tile_impl::tile tile(global_extent);
-        tile.add_empty_layer("layer");
 
+        const std::set<std::string> empty_set;
         const std::set<std::string> expected_set{"layer"};
 
-        CHECK(tile.get_empty_layers() == expected_set);
         CHECK(tile.has_layer("layer") == false);
         CHECK(tile.is_painted() == false);
         CHECK(tile.is_empty() == true);
@@ -476,9 +468,6 @@ TEST_CASE("Vector tile base class")
         layer.SerializePartialToString(&layer_buffer);
         tile.append_layer_buffer(layer_buffer.data(), layer_buffer.length(), "layer");
 
-        const std::set<std::string> empty_set;
-
-        CHECK(tile.get_empty_layers() == empty_set);
         CHECK(tile.get_painted_layers() == expected_set);
         CHECK(tile.has_layer("layer") == true);
         CHECK(tile.is_painted() == true);
