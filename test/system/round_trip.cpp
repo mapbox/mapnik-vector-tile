@@ -74,8 +74,8 @@ TEST_CASE("vector tile multi_point encoding of actual multi_point")
 TEST_CASE("vector tile line_string encoding")
 {
     mapnik::geometry::line_string<double> geom;
-    geom.add_coord(0,0);
-    geom.add_coord(100,100);
+    geom.emplace_back(0,0);
+    geom.emplace_back(100,100);
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(geom);
     std::string wkt;
     CHECK( test_utils::to_wkt(wkt, new_geom) );
@@ -88,8 +88,8 @@ TEST_CASE("vector tile multi_line_string encoding of single line_string")
 {
     mapnik::geometry::multi_line_string<double> geom;
     mapnik::geometry::line_string<double> line;
-    line.add_coord(0,0);
-    line.add_coord(100,100);
+    line.emplace_back(0,0);
+    line.emplace_back(100,100);
     geom.emplace_back(std::move(line));
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(geom);
     std::string wkt;
@@ -103,12 +103,12 @@ TEST_CASE("vector tile multi_line_string encoding of actual multi_line_string")
 {
     mapnik::geometry::multi_line_string<double> geom;
     mapnik::geometry::line_string<double> line;
-    line.add_coord(0,0);
-    line.add_coord(100,100);
+    line.emplace_back(0,0);
+    line.emplace_back(100,100);
     geom.emplace_back(std::move(line));
     mapnik::geometry::line_string<double> line2;
-    line2.add_coord(-10,-0);
-    line2.add_coord(-100,-100);
+    line2.emplace_back(-10,-0);
+    line2.emplace_back(-100,-100);
     geom.emplace_back(std::move(line2));
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(geom);
     std::string wkt;
@@ -121,11 +121,11 @@ TEST_CASE("vector tile multi_line_string encoding of actual multi_line_string")
 TEST_CASE("vector tile polygon encoding")
 {
     mapnik::geometry::polygon<double> geom;
-    geom.exterior_ring.add_coord(0,0);
-    geom.exterior_ring.add_coord(0,10);
-    geom.exterior_ring.add_coord(-10,10);
-    geom.exterior_ring.add_coord(-10,0);
-    geom.exterior_ring.add_coord(0,0);
+    geom.exterior_ring.emplace_back(0,0);
+    geom.exterior_ring.emplace_back(0,10);
+    geom.exterior_ring.emplace_back(-10,10);
+    geom.exterior_ring.emplace_back(-10,0);
+    geom.exterior_ring.emplace_back(0,0);
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(geom);
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::polygon<double> >() );
@@ -137,11 +137,11 @@ TEST_CASE("vector tile polygon encoding")
 TEST_CASE("vector tile multi_polygon encoding of single polygon")
 {
     mapnik::geometry::polygon<double> poly;
-    poly.exterior_ring.add_coord(0,0);
-    poly.exterior_ring.add_coord(0,10);
-    poly.exterior_ring.add_coord(-10,10);
-    poly.exterior_ring.add_coord(-10,0);
-    poly.exterior_ring.add_coord(0,0);
+    poly.exterior_ring.emplace_back(0,0);
+    poly.exterior_ring.emplace_back(0,10);
+    poly.exterior_ring.emplace_back(-10,10);
+    poly.exterior_ring.emplace_back(-10,0);
+    poly.exterior_ring.emplace_back(0,0);
     mapnik::geometry::multi_polygon<double> geom;
     geom.emplace_back(std::move(poly));
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(geom);
@@ -155,17 +155,17 @@ TEST_CASE("vector tile multi_polygon encoding of single polygon")
 TEST_CASE("vector tile multi_polygon with multipolygon union")
 {
     mapnik::geometry::polygon<double> poly;
-    poly.exterior_ring.add_coord(0,0);
-    poly.exterior_ring.add_coord(0,10);
-    poly.exterior_ring.add_coord(-10,10);
-    poly.exterior_ring.add_coord(-10,0);
-    poly.exterior_ring.add_coord(0,0);
+    poly.exterior_ring.emplace_back(0,0);
+    poly.exterior_ring.emplace_back(0,10);
+    poly.exterior_ring.emplace_back(-10,10);
+    poly.exterior_ring.emplace_back(-10,0);
+    poly.exterior_ring.emplace_back(0,0);
     mapnik::geometry::polygon<double> poly2;
-    poly2.exterior_ring.add_coord(0,0);
-    poly2.exterior_ring.add_coord(0,10);
-    poly2.exterior_ring.add_coord(-10,10);
-    poly2.exterior_ring.add_coord(-10,0);
-    poly2.exterior_ring.add_coord(0,0);
+    poly2.exterior_ring.emplace_back(0,0);
+    poly2.exterior_ring.emplace_back(0,10);
+    poly2.exterior_ring.emplace_back(-10,10);
+    poly2.exterior_ring.emplace_back(-10,0);
+    poly2.exterior_ring.emplace_back(0,0);
     mapnik::geometry::multi_polygon<double> geom;
     geom.emplace_back(std::move(poly));
     geom.emplace_back(std::move(poly2));
@@ -180,17 +180,17 @@ TEST_CASE("vector tile multi_polygon with multipolygon union")
 TEST_CASE("vector tile multi_polygon with out multipolygon union")
 {
     mapnik::geometry::polygon<double> poly;
-    poly.exterior_ring.add_coord(0,0);
-    poly.exterior_ring.add_coord(0,10);
-    poly.exterior_ring.add_coord(-10,10);
-    poly.exterior_ring.add_coord(-10,0);
-    poly.exterior_ring.add_coord(0,0);
+    poly.exterior_ring.emplace_back(0,0);
+    poly.exterior_ring.emplace_back(0,10);
+    poly.exterior_ring.emplace_back(-10,10);
+    poly.exterior_ring.emplace_back(-10,0);
+    poly.exterior_ring.emplace_back(0,0);
     mapnik::geometry::polygon<double> poly2;
-    poly2.exterior_ring.add_coord(0,0);
-    poly2.exterior_ring.add_coord(0,10);
-    poly2.exterior_ring.add_coord(-10,10);
-    poly2.exterior_ring.add_coord(-10,0);
-    poly2.exterior_ring.add_coord(0,0);
+    poly2.exterior_ring.emplace_back(0,0);
+    poly2.exterior_ring.emplace_back(0,10);
+    poly2.exterior_ring.emplace_back(-10,10);
+    poly2.exterior_ring.emplace_back(-10,0);
+    poly2.exterior_ring.emplace_back(0,0);
     mapnik::geometry::multi_polygon<double> geom;
     geom.emplace_back(std::move(poly));
     geom.emplace_back(std::move(poly2));
@@ -206,18 +206,18 @@ TEST_CASE("vector tile multi_polygon encoding of actual multi_polygon")
 {
     mapnik::geometry::multi_polygon<double> geom;
     mapnik::geometry::polygon<double> poly;
-    poly.exterior_ring.add_coord(0,0);
-    poly.exterior_ring.add_coord(0,10);
-    poly.exterior_ring.add_coord(-10,10);
-    poly.exterior_ring.add_coord(-10,0);
-    poly.exterior_ring.add_coord(0,0);
+    poly.exterior_ring.emplace_back(0,0);
+    poly.exterior_ring.emplace_back(0,10);
+    poly.exterior_ring.emplace_back(-10,10);
+    poly.exterior_ring.emplace_back(-10,0);
+    poly.exterior_ring.emplace_back(0,0);
     geom.emplace_back(std::move(poly));
     mapnik::geometry::polygon<double> poly2;
-    poly2.exterior_ring.add_coord(11,11);
-    poly2.exterior_ring.add_coord(11,21);
-    poly2.exterior_ring.add_coord(1,21);
-    poly2.exterior_ring.add_coord(1,11);
-    poly2.exterior_ring.add_coord(11,11);
+    poly2.exterior_ring.emplace_back(11,11);
+    poly2.exterior_ring.emplace_back(11,21);
+    poly2.exterior_ring.emplace_back(1,21);
+    poly2.exterior_ring.emplace_back(1,11);
+    poly2.exterior_ring.emplace_back(11,11);
     geom.emplace_back(std::move(poly2));
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(geom);
     CHECK( !mapnik::geometry::is_empty(new_geom) );
@@ -228,18 +228,18 @@ TEST_CASE("vector tile multi_polygon encoding overlapping multipolygons")
 {
     mapnik::geometry::multi_polygon<double> geom;
     mapnik::geometry::polygon<double> poly;
-    poly.exterior_ring.add_coord(0,0);
-    poly.exterior_ring.add_coord(0,10);
-    poly.exterior_ring.add_coord(-10,10);
-    poly.exterior_ring.add_coord(-10,0);
-    poly.exterior_ring.add_coord(0,0);
+    poly.exterior_ring.emplace_back(0,0);
+    poly.exterior_ring.emplace_back(0,10);
+    poly.exterior_ring.emplace_back(-10,10);
+    poly.exterior_ring.emplace_back(-10,0);
+    poly.exterior_ring.emplace_back(0,0);
     geom.emplace_back(std::move(poly));
     mapnik::geometry::polygon<double> poly2;
-    poly2.exterior_ring.add_coord(-5,5);
-    poly2.exterior_ring.add_coord(-5,15);
-    poly2.exterior_ring.add_coord(-15,15);
-    poly2.exterior_ring.add_coord(-15,5);
-    poly2.exterior_ring.add_coord(-5,5);
+    poly2.exterior_ring.emplace_back(-5,5);
+    poly2.exterior_ring.emplace_back(-5,15);
+    poly2.exterior_ring.emplace_back(-15,15);
+    poly2.exterior_ring.emplace_back(-15,5);
+    poly2.exterior_ring.emplace_back(-5,5);
     geom.emplace_back(std::move(poly2));
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(geom);
     CHECK( !mapnik::geometry::is_empty(new_geom) );

@@ -28,7 +28,7 @@
 
 TEST_CASE("encode feature pbf of degenerate linestring")
 {
-    mapnik::geometry::geometry_empty empty;
+    mapnik::geometry::geometry_empty<std::int64_t> empty;
     std::string empty_buffer = "";
     mapnik::vector_tile_impl::layer_builder_pbf empty_layer("foo", 4096, empty_buffer);
     mapnik::feature_ptr empty_feature(mapnik::feature_factory::create(std::make_shared<mapnik::context_type>(),1));
@@ -36,7 +36,7 @@ TEST_CASE("encode feature pbf of degenerate linestring")
     empty_visitor(empty);
 
     mapnik::geometry::line_string<std::int64_t> line;
-    line.add_coord(10,10);
+    line.emplace_back(10,10);
 
     std::string layer_buffer = "";
     mapnik::vector_tile_impl::layer_builder_pbf layer("foo", 4096, layer_buffer);

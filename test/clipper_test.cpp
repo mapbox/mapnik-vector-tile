@@ -38,11 +38,11 @@ TEST_CASE("vector_tile_strategy -- should not overflow")
     }
     merc_tiler.xyz(0,0,0,minx,miny,maxx,maxy);
     mapnik::geometry::polygon<double> g;
-    g.exterior_ring.add_coord(minx,miny);
-    g.exterior_ring.add_coord(maxx,miny);
-    g.exterior_ring.add_coord(maxx,maxy);
-    g.exterior_ring.add_coord(minx,maxy);
-    g.exterior_ring.add_coord(minx,miny);
+    g.exterior_ring.emplace_back(minx,miny);
+    g.exterior_ring.emplace_back(maxx,miny);
+    g.exterior_ring.emplace_back(maxx,maxy);
+    g.exterior_ring.emplace_back(minx,maxy);
+    g.exterior_ring.emplace_back(minx,miny);
     {
         // absurdly large but still should not result in values beyond hirange
         mapnik::view_transform tr(std::numeric_limits<int>::max(),

@@ -217,14 +217,14 @@ TEST_CASE("pbf encoding multi line")
     mapnik::geometry::multi_line_string<std::int64_t> geom;
     {
         mapnik::geometry::line_string<std::int64_t> ring;
-        ring.add_coord(0,0);
-        ring.add_coord(2,2);
+        ring.emplace_back(0,0);
+        ring.emplace_back(2,2);
         geom.emplace_back(std::move(ring));
     }
     {
         mapnik::geometry::line_string<std::int64_t> ring;
-        ring.add_coord(1,1);
-        ring.add_coord(2,2);
+        ring.emplace_back(1,1);
+        ring.emplace_back(2,2);
         geom.emplace_back(std::move(ring));
     }
     vector_tile::Tile tile;

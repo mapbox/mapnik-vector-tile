@@ -91,8 +91,8 @@ TEST_CASE("vector tile output -- layers outside extent")
     mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
     mapnik::geometry::line_string<double> g;
-    g.add_coord(-10,-10);
-    g.add_coord(-11,-11);
+    g.emplace_back(-10,-10);
+    g.emplace_back(-11,-11);
     feature->set_geometry(std::move(g));
     mapnik::parameters params;
     params["type"] = "memory";

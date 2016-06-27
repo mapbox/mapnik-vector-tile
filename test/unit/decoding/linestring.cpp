@@ -77,7 +77,7 @@ TEST_CASE("decode degenerate line_string only moveto")
     SECTION("VT Spec v1") 
     {
         auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 1, 0.0, 0.0, 1.0, 1.0);
-        CHECK( geom.is<mapnik::geometry::geometry_empty>() );
+        CHECK( geom.is<mapnik::geometry::geometry_empty<double>>() );
     }
 
     SECTION("VT Spec v2") 
@@ -105,7 +105,7 @@ TEST_CASE("decode degenerate line_string lineto(0,0)")
     SECTION("VT Spec v1") 
     {
         auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, feature.type(), 1, 0.0, 0.0, 1.0, 1.0);
-        CHECK( geom.is<mapnik::geometry::geometry_empty>() );
+        CHECK( geom.is<mapnik::geometry::geometry_empty<double>>() );
     }
 
     SECTION("VT Spec v2") 

@@ -112,7 +112,8 @@ struct geometry_equal_visitor
         REQUIRE(false);
     }
 
-    void operator() (mapnik::geometry::geometry_empty const&, mapnik::geometry::geometry_empty const&)
+    template <typename T>
+    void operator() (mapnik::geometry::geometry_empty<T> const&, mapnik::geometry::geometry_empty<T> const&)
     {
         REQUIRE(true);
     }
@@ -142,7 +143,7 @@ struct geometry_equal_visitor
     template <typename T>
     void operator() (mapnik::geometry::polygon<T> const& p1, mapnik::geometry::polygon<T> const& p2)
     {
-        (*this)(static_cast<mapnik::geometry::line_string<T> const&>(p1.exterior_ring), static_cast<mapnik::geometry::line_string<T> const&>(p2.exterior_ring));
+        (*this)(reinterpret_cast<mapnik::geometry::line_string<T> const&>(p1.exterior_ring), reinterpret_cast<mapnik::geometry::line_string<T> const&>(p2.exterior_ring));
 
         if (p1.interior_rings.size() != p2.interior_rings.size())
         {
@@ -151,14 +152,14 @@ struct geometry_equal_visitor
 
         for (auto const& p : zip_crange(p1.interior_rings, p2.interior_rings))
         {
-            (*this)(static_cast<mapnik::geometry::line_string<T> const&>(p.template get<0>()),static_cast<mapnik::geometry::line_string<T> const&>(p.template get<1>()));
+            (*this)(reinterpret_cast<mapnik::geometry::line_string<T> const&>(p.template get<0>()),reinterpret_cast<mapnik::geometry::line_string<T> const&>(p.template get<1>()));
         }
     }
 
     template <typename T>
     void operator() (mapnik::geometry::multi_point<T> const& mp1, mapnik::geometry::multi_point<T> const& mp2)
     {
-        (*this)(static_cast<mapnik::geometry::line_string<T> const&>(mp1), static_cast<mapnik::geometry::line_string<T> const&>(mp2));
+        (*this)(reinterpret_cast<mapnik::geometry::line_string<T> const&>(mp1), reinterpret_cast<mapnik::geometry::line_string<T> const&>(mp2));
     }
 
     template <typename T>

@@ -21,14 +21,14 @@ TEST_CASE("encoding multi line string and check output datasource")
     mapnik::geometry::multi_line_string<std::int64_t> geom;
     {
         mapnik::geometry::line_string<std::int64_t> ring;
-        ring.add_coord(0,0);
-        ring.add_coord(2,2);
+        ring.emplace_back(0,0);
+        ring.emplace_back(2,2);
         geom.emplace_back(std::move(ring));
     }
     {
         mapnik::geometry::line_string<std::int64_t> ring;
-        ring.add_coord(1,1);
-        ring.add_coord(2,2);
+        ring.emplace_back(1,1);
+        ring.emplace_back(2,2);
         geom.emplace_back(std::move(ring));
     }
     
@@ -87,11 +87,11 @@ TEST_CASE("encoding and decoding with datasource simple polygon")
     mapnik::geometry::polygon<double> geom;
     {
         mapnik::geometry::linear_ring<double> ring;
-        ring.add_coord(168.267850,-24.576888);
-        ring.add_coord(167.982618,-24.697145);
-        ring.add_coord(168.114561,-24.783548);
-        ring.add_coord(168.267850,-24.576888);
-        ring.add_coord(168.267850,-24.576888);
+        ring.emplace_back(168.267850,-24.576888);
+        ring.emplace_back(167.982618,-24.697145);
+        ring.emplace_back(168.114561,-24.783548);
+        ring.emplace_back(168.267850,-24.576888);
+        ring.emplace_back(168.267850,-24.576888);
         geom.set_exterior_ring(std::move(ring));
     }
     
