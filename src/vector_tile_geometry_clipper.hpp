@@ -126,7 +126,7 @@ public:
     {
     }
 
-    void operator() (mapnik::geometry::geometry_empty &)
+    void operator() (mapnik::geometry::geometry_empty<std::int64_t> &)
     {
         return;
     }

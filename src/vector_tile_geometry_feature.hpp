@@ -41,7 +41,7 @@ struct geometry_to_feature_pbf_visitor
         : mapnik_feature_(mapnik_feature),
           builder_(builder) {}
 
-    void operator() (mapnik::geometry::geometry_empty const&)
+    void operator() (mapnik::geometry::geometry_empty<std::int64_t> const&)
     {
         return;
     }

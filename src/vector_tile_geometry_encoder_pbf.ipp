@@ -59,7 +59,7 @@ struct encoder_visitor
           x_(x),
           y_(y) {}
 
-    bool operator() (mapnik::geometry::geometry_empty const&)
+    bool operator() (mapnik::geometry::geometry_empty<std::int64_t> const&)
     {
         return false;
     }
