@@ -5,11 +5,11 @@
   'variables': {
     'MAPNIK_PLUGINDIR%': '',
     'common_defines' : [
-        'MAPNIK_VECTOR_TILE_LIBRARY=1',
-        'CLIPPER_INTPOINT_IMPL=mapnik::geometry::point<cInt>',
-        'CLIPPER_PATH_IMPL=mapnik::geometry::line_string<cInt>',
-        'CLIPPER_PATHS_IMPL=mapnik::geometry::multi_line_string<cInt>',
-        'CLIPPER_IMPL_INCLUDE=<mapnik/geometry.hpp>'
+	'MAPNIK_VECTOR_TILE_LIBRARY=1',
+	'CLIPPER_INTPOINT_IMPL=mapnik::geometry::point<cInt>',
+	'CLIPPER_PATH_IMPL=mapnik::geometry::linear_ring<cInt>',
+	'CLIPPER_PATHS_IMPL=std::vector<mapnik::geometry::linear_ring<cInt>>',
+	'CLIPPER_IMPL_INCLUDE=<mapnik/geometry.hpp>'
     ]
   },
   "targets": [
@@ -18,17 +18,17 @@
       'type': 'none',
       'hard_dependency': 1,
       'actions': [
-        {
-          'action_name': 'run_protoc',
-          'inputs': [
-            '../proto/vector_tile.proto'
-          ],
-          'outputs': [
-            "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc",
-            "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.h"
-          ],
-          'action': ['protoc','-I../proto/','--cpp_out=<(SHARED_INTERMEDIATE_DIR)/','../proto/vector_tile.proto']
-        }
+	{
+	  'action_name': 'run_protoc',
+	  'inputs': [
+	    '../proto/vector_tile.proto'
+	  ],
+	  'outputs': [
+	    "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc",
+	    "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.h"
+	  ],
+	  'action': ['protoc','-I../proto/','--cpp_out=<(SHARED_INTERMEDIATE_DIR)/','../proto/vector_tile.proto']
+	}
       ]
     },
 
@@ -38,42 +38,42 @@
       'hard_dependency': 1,
       "type": "static_library",
       "sources": [
-        "<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc"
+	"<(SHARED_INTERMEDIATE_DIR)/vector_tile.pb.cc"
       ],
       'include_dirs': [
-        '<(SHARED_INTERMEDIATE_DIR)/',
-        '../deps/protozero/include'
+	'<(SHARED_INTERMEDIATE_DIR)/',
+	'../deps/protozero/include'
       ],
       'cflags_cc' : [
-          '-D_THREAD_SAFE',
-          '<!@(mapnik-config --cflags)', # assume protobuf headers are here
-          '-Wno-sign-compare',
-          '-Wno-sign-conversion'
+	  '-D_THREAD_SAFE',
+	  '<!@(mapnik-config --cflags)', # assume protobuf headers are here
+	  '-Wno-sign-compare',
+	  '-Wno-sign-conversion'
       ],
       'xcode_settings': {
-        'OTHER_CPLUSPLUSFLAGS':[
-           '-D_THREAD_SAFE',
-           '<!@(mapnik-config --cflags)', # assume protobuf headers are here
-           '-Wno-sign-compare',
-           '-Wno-sign-conversion'
-        ],
+	'OTHER_CPLUSPLUSFLAGS':[
+	   '-D_THREAD_SAFE',
+	   '<!@(mapnik-config --cflags)', # assume protobuf headers are here
+	   '-Wno-sign-compare',
+	   '-Wno-sign-conversion'
+	],
       },
       'direct_dependent_settings': {
-        'include_dirs': [
-          '<(SHARED_INTERMEDIATE_DIR)/',
-          '../deps/protozero/include'
-        ],
-        'libraries':[
-          '-lprotobuf-lite'
-        ],
-        'cflags_cc' : [
-            '-D_THREAD_SAFE'
-        ],
-        'xcode_settings': {
-          'OTHER_CPLUSPLUSFLAGS':[
-             '-D_THREAD_SAFE',
-          ],
-        },
+	'include_dirs': [
+	  '<(SHARED_INTERMEDIATE_DIR)/',
+	  '../deps/protozero/include'
+	],
+	'libraries':[
+	  '-lprotobuf-lite'
+	],
+	'cflags_cc' : [
+	    '-D_THREAD_SAFE'
+	],
+	'xcode_settings': {
+	  'OTHER_CPLUSPLUSFLAGS':[
+	     '-D_THREAD_SAFE',
+	  ],
+	},
       }
     },
     {
@@ -82,50 +82,50 @@
       'hard_dependency': 1,
       "type": "static_library",
       "sources": [
-        "<!@(find ../src/ -name '*.cpp')",
-        "../deps/clipper/cpp/clipper.cpp"
+	"<!@(find ../src/ -name '*.cpp')",
+	"../deps/clipper/cpp/clipper.cpp"
       ],
       'defines' : [
-        "<@(common_defines)"
+	"<@(common_defines)"
       ],
       'cflags_cc' : [
-          '<!@(mapnik-config --cflags)'
+	  '<!@(mapnik-config --cflags)'
       ],
       'include_dirs': [
-        '../deps/protozero/include',
-        '../deps/clipper/cpp'
+	'../deps/protozero/include',
+	'../deps/clipper/cpp'
       ],
       'xcode_settings': {
-        'OTHER_CPLUSPLUSFLAGS':[
-           '<!@(mapnik-config --cflags)'
-        ],
+	'OTHER_CPLUSPLUSFLAGS':[
+	   '<!@(mapnik-config --cflags)'
+	],
       },
       'direct_dependent_settings': {
-        'include_dirs': [
-          '<(SHARED_INTERMEDIATE_DIR)/',
-          '../deps/protozero/include',
-          '../deps/clipper/cpp'
-        ],
-        'defines' : [
-          "<@(common_defines)"
-        ],
-        'cflags_cc' : [
-            '<!@(mapnik-config --cflags)'
-        ],
-        'xcode_settings': {
-          'OTHER_CPLUSPLUSFLAGS':[
-             '<!@(mapnik-config --cflags)'
-          ],
-        },
-        'libraries':[
-          '<!@(mapnik-config --libs)',
-          '<!@(mapnik-config --ldflags)',
-          '-lmapnik-wkt',
-          '-lmapnik-json',
-          '<!@(mapnik-config --dep-libs)',
-          '-lprotobuf-lite',
-          '-lz'
-        ],
+	'include_dirs': [
+	  '<(SHARED_INTERMEDIATE_DIR)/',
+	  '../deps/protozero/include',
+	  '../deps/clipper/cpp'
+	],
+	'defines' : [
+	  "<@(common_defines)"
+	],
+	'cflags_cc' : [
+	    '<!@(mapnik-config --cflags)'
+	],
+	'xcode_settings': {
+	  'OTHER_CPLUSPLUSFLAGS':[
+	     '<!@(mapnik-config --cflags)'
+	  ],
+	},
+	'libraries':[
+	  '<!@(mapnik-config --libs)',
+	  '<!@(mapnik-config --ldflags)',
+	  '-lmapnik-wkt',
+	  '-lmapnik-json',
+	  '<!@(mapnik-config --dep-libs)',
+	  '-lprotobuf-lite',
+	  '-lz'
+	],
       }
     },
     {
@@ -133,17 +133,17 @@
       'dependencies': [ 'mapnik_vector_tile_impl' ],
       "type": "executable",
       "defines": [
-        "<@(common_defines)",
-        "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
+	"<@(common_defines)",
+	"MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
       ],
       "sources": [
-        "<!@(find ../test/ -name '*.cpp')"
+	"<!@(find ../test/ -name '*.cpp')"
       ],
       "include_dirs": [
-        "../src",
-        '../deps/protozero/include',
-        '../test',
-        '../test/utils'
+	"../src",
+	'../deps/protozero/include',
+	'../test',
+	'../test/utils'
       ]
     },
     {
@@ -151,15 +151,15 @@
       'dependencies': [ 'mapnik_vector_tile_impl' ],
       "type": "executable",
       "defines": [
-        "<@(common_defines)",
-        "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
+	"<@(common_defines)",
+	"MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
       ],
       "sources": [
-        "../bench/vtile-transform.cpp"
+	"../bench/vtile-transform.cpp"
       ],
       "include_dirs": [
-        "../src",
-        '../deps/protozero/include'
+	"../src",
+	'../deps/protozero/include'
       ]
     },
     {
@@ -167,15 +167,15 @@
       'dependencies': [ 'mapnik_vector_tile_impl' ],
       "type": "executable",
       "defines": [
-        "<@(common_defines)",
-        "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
+	"<@(common_defines)",
+	"MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
       ],
       "sources": [
-        "../bench/vtile-decode.cpp"
+	"../bench/vtile-decode.cpp"
       ],
       "include_dirs": [
-        "../src",
-        '../deps/protozero/include'
+	"../src",
+	'../deps/protozero/include'
       ]
     },
     {
@@ -183,15 +183,15 @@
       'dependencies': [ 'mapnik_vector_tile_impl' ],
       "type": "executable",
       "defines": [
-        "<@(common_defines)",
-        "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
+	"<@(common_defines)",
+	"MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
       ],
       "sources": [
-        "../bench/vtile-encode.cpp"
+	"../bench/vtile-encode.cpp"
       ],
       "include_dirs": [
-        "../src",
-        '../deps/protozero/include'
+	"../src",
+	'../deps/protozero/include'
       ]
     },
     {
@@ -199,15 +199,15 @@
       'dependencies': [ 'mapnik_vector_tile_impl' ],
       "type": "executable",
       "defines": [
-        "<@(common_defines)",
-        "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
+	"<@(common_defines)",
+	"MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
       ],
       "sources": [
-        "../bin/vtile-edit.cpp"
+	"../bin/vtile-edit.cpp"
       ],
       "include_dirs": [
-        "../src",
-        '../deps/protozero/include'
+	"../src",
+	'../deps/protozero/include'
       ]
     },
     {
@@ -215,15 +215,15 @@
       'dependencies': [ 'mapnik_vector_tile_impl' ],
       "type": "executable",
       "defines": [
-        "<@(common_defines)",
-        "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
+	"<@(common_defines)",
+	"MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
       ],
       "sources": [
-        "../bin/vtile-fuzz.cpp"
+	"../bin/vtile-fuzz.cpp"
       ],
       "include_dirs": [
-        "../src",
-        '../deps/protozero/include'
+	"../src",
+	'../deps/protozero/include'
       ]
     },
     {
@@ -231,27 +231,27 @@
       'dependencies': [ 'vector_tile' ],
       "type": "executable",
       "sources": [
-        "../examples/c++/tileinfo.cpp"
+	"../examples/c++/tileinfo.cpp"
       ],
       "include_dirs": [
-        "../src"
+	"../src"
       ],
       'libraries':[
-        '-L<!@(mapnik-config --prefix)/lib',
-        '<!@(mapnik-config --ldflags)',
-        '-lz'
+	'-L<!@(mapnik-config --prefix)/lib',
+	'<!@(mapnik-config --ldflags)',
+	'-lz'
       ],
       'cflags_cc' : [
-          '-D_THREAD_SAFE',
-          '<!@(mapnik-config --cflags)' # assume protobuf headers are here
+	  '-D_THREAD_SAFE',
+	  '<!@(mapnik-config --cflags)' # assume protobuf headers are here
       ],
       'xcode_settings': {
-        'OTHER_CPLUSPLUSFLAGS':[
-           '-D_THREAD_SAFE',
-           '<!@(mapnik-config --cflags)' # assume protobuf headers are here
-        ],
+	'OTHER_CPLUSPLUSFLAGS':[
+	   '-D_THREAD_SAFE',
+	   '<!@(mapnik-config --cflags)' # assume protobuf headers are here
+	],
       }
-    }    
+    }
 
   ]
 }
