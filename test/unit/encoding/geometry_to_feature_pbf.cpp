@@ -36,7 +36,7 @@ TEST_CASE("encode feature pbf of degenerate linestring")
     empty_visitor(empty);
 
     mapnik::geometry::line_string<std::int64_t> line;
-    line.add_coord(10,10);
+    line.emplace_back(10,10);
 
     std::string layer_buffer = "";
     mapnik::vector_tile_impl::layer_builder_pbf layer("foo", 4096, layer_buffer);

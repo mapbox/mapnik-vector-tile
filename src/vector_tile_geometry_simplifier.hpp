@@ -73,25 +73,29 @@ struct geometry_simplifier
     void operator() (mapnik::geometry::polygon<std::int64_t> & geom)
     {
         mapnik::geometry::polygon<std::int64_t> simplified;
-        if (geom.exterior_ring.size() <= 4)
+        simplified.emplace_back();
+        if (!geom.empty())
         {
-            simplified.exterior_ring = geom.exterior_ring;
-        }
-        else
-        {
-            douglas_peucker<std::int64_t>(geom.exterior_ring, std::back_inserter(simplified.exterior_ring), simplify_distance_);
-        }
-        for (auto const & g : geom.interior_rings)
-        {
-            if (g.size() <= 4)
+            if (geom.front().size() <= 4)
             {
-                simplified.interior_rings.push_back(g);
+                simplified.front() = geom.front();
             }
             else
             {
-                mapnik::geometry::linear_ring<std::int64_t> simplified_ring;
-                douglas_peucker<std::int64_t>(g, std::back_inserter(simplified_ring), simplify_distance_);
-                simplified.interior_rings.push_back(simplified_ring);
+                douglas_peucker<std::int64_t>(geom.front(), std::back_inserter(simplified.front()), simplify_distance_);
+            }
+            for (auto const & g : geom.interior())
+            {
+                if (g.size() <= 4)
+                {
+                    simplified.interior().push_back(g);
+                }
+                else
+                {
+                    mapnik::geometry::linear_ring<std::int64_t> simplified_ring;
+                    douglas_peucker<std::int64_t>(g, std::back_inserter(simplified_ring), simplify_distance_);
+                    simplified.interior().push_back(simplified_ring);
+                }
             }
         }
         next_(simplified);
@@ -100,28 +104,33 @@ struct geometry_simplifier
     void operator() (mapnik::geometry::multi_polygon<std::int64_t> & multi_geom)
     {
         mapnik::geometry::multi_polygon<std::int64_t> simplified_multi;
+
         for (auto const & geom : multi_geom)
         {
             mapnik::geometry::polygon<std::int64_t> simplified;
-            if (geom.exterior_ring.size() <= 4)
+            simplified.emplace_back();
+            if (!geom.empty())
             {
-                simplified.exterior_ring = geom.exterior_ring;
-            }
-            else
-            {
-                douglas_peucker<std::int64_t>(geom.exterior_ring, std::back_inserter(simplified.exterior_ring), simplify_distance_);
-            }
-            for (auto const & g : geom.interior_rings)
-            {
-                if (g.size() <= 4)
+                if (geom.front().size() <= 4)
                 {
-                    simplified.interior_rings.push_back(g);
+                    simplified.front() = geom.front();
                 }
                 else
                 {
-                    mapnik::geometry::linear_ring<std::int64_t> simplified_ring;
-                    douglas_peucker<std::int64_t>(g, std::back_inserter(simplified_ring), simplify_distance_);
-                    simplified.interior_rings.push_back(simplified_ring);
+                    douglas_peucker<std::int64_t>(geom.front(), std::back_inserter(simplified.front()), simplify_distance_);
+                }
+                for (auto const & g : geom.interior())
+                {
+                    if (g.size() <= 4)
+                    {
+                        simplified.interior().push_back(g);
+                    }
+                    else
+                    {
+                        mapnik::geometry::linear_ring<std::int64_t> simplified_ring;
+                        douglas_peucker<std::int64_t>(g, std::back_inserter(simplified_ring), simplify_distance_);
+                        simplified.interior().push_back(simplified_ring);
+                    }
                 }
             }
             simplified_multi.push_back(simplified);

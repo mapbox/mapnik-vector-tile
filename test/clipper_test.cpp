@@ -38,11 +38,12 @@ TEST_CASE("vector_tile_strategy -- should not overflow")
     }
     merc_tiler.xyz(0,0,0,minx,miny,maxx,maxy);
     mapnik::geometry::polygon<double> g;
-    g.exterior_ring.add_coord(minx,miny);
-    g.exterior_ring.add_coord(maxx,miny);
-    g.exterior_ring.add_coord(maxx,maxy);
-    g.exterior_ring.add_coord(minx,maxy);
-    g.exterior_ring.add_coord(minx,miny);
+    g.emplace_back();
+    g.front().emplace_back(minx,miny);
+    g.front().emplace_back(maxx,miny);
+    g.front().emplace_back(maxx,maxy);
+    g.front().emplace_back(minx,maxy);
+    g.front().emplace_back(minx,miny);
     {
         // absurdly large but still should not result in values beyond hirange
         mapnik::view_transform tr(std::numeric_limits<int>::max(),
@@ -54,7 +55,7 @@ TEST_CASE("vector_tile_strategy -- should not overflow")
         mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(g, vs);
         REQUIRE( new_geom.is<mapnik::geometry::polygon<std::int64_t>>() );
         auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);
-        for (auto const& pt : poly.exterior_ring)
+        for (auto const& pt : poly.front())
         {
             INFO( pt.x )
             INFO( ClipperLib::hiRange )
@@ -86,7 +87,7 @@ TEST_CASE("vector_tile_strategy -- should not overflow")
         mapnik::geometry::geometry<std::int64_t> new_geom = skipping_transformer(g);
         REQUIRE( new_geom.is<mapnik::geometry::polygon<std::int64_t>>() );
         auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);
-        for (auto const& pt : poly.exterior_ring)
+        for (auto const& pt : poly.front())
         {
             INFO( pt.x )
             INFO( ClipperLib::hiRange )
@@ -117,18 +118,18 @@ TEST_CASE("vector_tile_strategy2 -- invalid mercator coord in interior ring")
     mapnik::vector_tile_impl::vector_tile_strategy_proj vs(prj_trans, tr);
     CHECK_THROWS( mapnik::geometry::transform<std::int64_t>(geom, vs) );
     mapnik::box2d<double> clip_extent(std::numeric_limits<double>::min(),
-                                   std::numeric_limits<double>::min(),
-                                   std::numeric_limits<double>::max(),
-                                   std::numeric_limits<double>::max());
+                                      std::numeric_limits<double>::min(),
+                                      std::numeric_limits<double>::max(),
+                                      std::numeric_limits<double>::max());
     mapnik::vector_tile_impl::geom_out_visitor<int64_t> out_geom;
     mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj,
-                                                mapnik::vector_tile_impl::geom_out_visitor<int64_t> > 
+                                                mapnik::vector_tile_impl::geom_out_visitor<int64_t> >
                                            skipping_transformer(vs, clip_extent, out_geom);
     mapnik::util::apply_visitor(skipping_transformer,geom);
     mapnik::geometry::geometry<std::int64_t> new_geom = out_geom.geom;
     REQUIRE( new_geom.is<mapnik::geometry::polygon<std::int64_t>>() );
     auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);
-    for (auto const& pt : poly.exterior_ring)
+    for (auto const& pt : poly.front())
     {
         INFO( pt.x )
         INFO( ClipperLib::hiRange )
@@ -137,7 +138,7 @@ TEST_CASE("vector_tile_strategy2 -- invalid mercator coord in interior ring")
         REQUIRE( (-pt.x < ClipperLib::hiRange) );
         REQUIRE( (-pt.y < ClipperLib::hiRange) );
     }
-    for (auto const& ring : poly.interior_rings)
+    for (auto const& ring : poly.interior())
     {
         for (auto const& pt : ring)
         {
@@ -216,7 +217,7 @@ TEST_CASE("clipper AddPath 2 -- should throw on out of range coords")
     catch(std::exception const& ex)
     {
       REQUIRE(std::string(ex.what()) == "Coordinate outside allowed range: -9223372036854775807 -9223372036854775807 9223372036854775807 9223372036854775807");
-    }        
+    }
 }
 
 TEST_CASE("clipper polytree error")

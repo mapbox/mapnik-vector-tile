@@ -141,18 +141,33 @@ struct geometry_equal_visitor
     }
 
     template <typename T>
-    void operator() (mapnik::geometry::polygon<T> const& p1, mapnik::geometry::polygon<T> const& p2)
+    void operator() (mapnik::geometry::linear_ring<T> const& ls1, mapnik::geometry::linear_ring<T> const& ls2)
     {
-        (*this)(static_cast<mapnik::geometry::line_string<T> const&>(p1.exterior_ring), static_cast<mapnik::geometry::line_string<T> const&>(p2.exterior_ring));
-
-        if (p1.interior_rings.size() != p2.interior_rings.size())
+        if (ls1.size() != ls2.size())
         {
             REQUIRE(false);
         }
 
-        for (auto const& p : zip_crange(p1.interior_rings, p2.interior_rings))
+        for(auto const& p : zip_crange(ls1, ls2))
         {
-            (*this)(static_cast<mapnik::geometry::line_string<T> const&>(p.template get<0>()),static_cast<mapnik::geometry::line_string<T> const&>(p.template get<1>()));
+            REQUIRE(p.template get<0>().x == Approx(p.template get<1>().x));
+            REQUIRE(p.template get<0>().y == Approx(p.template get<1>().y));
+        }
+    }
+
+    template <typename T>
+    void operator() (mapnik::geometry::polygon<T> const& p1, mapnik::geometry::polygon<T> const& p2)
+    {
+        (*this)(p1.front(), p2.front());
+
+        if (p1.interior().size() != p2.interior().size())
+        {
+            REQUIRE(false);
+        }
+
+        for (auto const& p : zip_crange(p1.interior(), p2.interior()))
+        {
+            (*this)(p.template get<0>(),p.template get<1>());
         }
     }
 

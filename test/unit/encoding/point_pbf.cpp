@@ -26,7 +26,7 @@
 TEST_CASE("encode pbf simple point")
 {
     mapnik::geometry::point<std::int64_t> point(10,10);
-    
+
     std::int32_t x = 0;
     std::int32_t y = 0;
     std::string feature_str;
@@ -35,7 +35,7 @@ TEST_CASE("encode pbf simple point")
     REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(point, feature_writer, x, y));
     feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POINT);
-    
+
     // MoveTo, ParameterInteger, ParameterInteger
     // Therefore 1 commands + 2 parameters = 3
     REQUIRE(feature.geometry_size() == 3);
@@ -58,7 +58,7 @@ TEST_CASE("encode pbf simple point -- geometry type")
     REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(geom, feature_writer, x, y));
     feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POINT);
-    
+
     // MoveTo, ParameterInteger, ParameterInteger
     // Therefore 1 commands + 2 parameters = 3
     REQUIRE(feature.geometry_size() == 3);
@@ -71,7 +71,7 @@ TEST_CASE("encode pbf simple point -- geometry type")
 TEST_CASE("encode pbf simple negative point")
 {
     mapnik::geometry::point<std::int64_t> point(-10,-10);
-    
+
     std::int32_t x = 0;
     std::int32_t y = 0;
     std::string feature_str;
@@ -80,7 +80,7 @@ TEST_CASE("encode pbf simple negative point")
     REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(point, feature_writer, x, y));
     feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POINT);
-    
+
     // MoveTo, ParameterInteger, ParameterInteger
     // Therefore 1 commands + 2 parameters = 3
     REQUIRE( feature.geometry_size() == 3);
@@ -93,11 +93,11 @@ TEST_CASE("encode pbf simple negative point")
 TEST_CASE("encode pbf simple multi point -- geometry type")
 {
     mapnik::geometry::multi_point<std::int64_t> mp;
-    mp.add_coord(10,10);
-    mp.add_coord(20,20);
-    mp.add_coord(30,30);
+    mp.emplace_back(10,10);
+    mp.emplace_back(20,20);
+    mp.emplace_back(30,30);
     mapnik::geometry::geometry<std::int64_t> geom(mp);
-    
+
     std::int32_t x = 0;
     std::int32_t y = 0;
     std::string feature_str;
@@ -106,7 +106,7 @@ TEST_CASE("encode pbf simple multi point -- geometry type")
     REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(geom, feature_writer, x, y));
     feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POINT);
-    
+
     // MoveTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
     // Therefore 1 commands + 6 parameters = 7
     REQUIRE( feature.geometry_size() == 7);
@@ -125,10 +125,10 @@ TEST_CASE("encode pbf simple multi point -- geometry type")
 TEST_CASE("encode pbf simple multi point")
 {
     mapnik::geometry::multi_point<std::int64_t> mp;
-    mp.add_coord(10,10);
-    mp.add_coord(20,20);
-    mp.add_coord(30,30);
-    
+    mp.emplace_back(10,10);
+    mp.emplace_back(20,20);
+    mp.emplace_back(30,30);
+
     std::int32_t x = 0;
     std::int32_t y = 0;
     std::string feature_str;
@@ -137,7 +137,7 @@ TEST_CASE("encode pbf simple multi point")
     REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(mp, feature_writer, x, y));
     feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POINT);
-    
+
     // MoveTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
     // Therefore 1 commands + 6 parameters = 7
     REQUIRE( feature.geometry_size() == 7);
@@ -156,10 +156,10 @@ TEST_CASE("encode pbf simple multi point")
 TEST_CASE("encode pbf multi point with repeated points")
 {
     mapnik::geometry::multi_point<std::int64_t> mp;
-    mp.add_coord(10,10);
-    mp.add_coord(10,10);
-    mp.add_coord(20,20);
-    
+    mp.emplace_back(10,10);
+    mp.emplace_back(10,10);
+    mp.emplace_back(20,20);
+
     std::int32_t x = 0;
     std::int32_t y = 0;
     std::string feature_str;
@@ -168,7 +168,7 @@ TEST_CASE("encode pbf multi point with repeated points")
     REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(mp, feature_writer, x, y));
     feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POINT);
-    
+
     // MoveTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
     // Therefore 1 commands + 6 parameters = 7
     REQUIRE( feature.geometry_size() == 7);
@@ -187,7 +187,7 @@ TEST_CASE("encode pbf multi point with repeated points")
 TEST_CASE("encode pbf empty multi point geometry")
 {
     mapnik::geometry::multi_point<std::int64_t> mp;
-    
+
     std::int32_t x = 0;
     std::int32_t y = 0;
     std::string feature_str;
@@ -196,7 +196,6 @@ TEST_CASE("encode pbf empty multi point geometry")
     REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry_pbf(mp, feature_writer, x, y));
     feature.ParseFromString(feature_str);
     REQUIRE(!feature.has_type());
-    
+
     REQUIRE(feature.geometry_size() == 0);
 }
-

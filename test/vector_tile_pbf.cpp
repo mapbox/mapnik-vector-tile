@@ -133,7 +133,7 @@ TEST_CASE("pbf vector tile datasource")
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(testing::build_ds(0,0));
     map.add_layer(lyr);
-    
+
     mapnik::vector_tile_impl::processor ren(map);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
 
@@ -142,11 +142,11 @@ TEST_CASE("pbf vector tile datasource")
     out_tile.serialize_to_string(buffer);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    
+
     // check that vector tile contains proper information
     vector_tile::Tile tile;
     tile.ParseFromString(out_tile.get_buffer());
-    
+
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -217,14 +217,14 @@ TEST_CASE("pbf encoding multi line")
     mapnik::geometry::multi_line_string<std::int64_t> geom;
     {
         mapnik::geometry::line_string<std::int64_t> ring;
-        ring.add_coord(0,0);
-        ring.add_coord(2,2);
+        ring.emplace_back(0,0);
+        ring.emplace_back(2,2);
         geom.emplace_back(std::move(ring));
     }
     {
         mapnik::geometry::line_string<std::int64_t> ring;
-        ring.add_coord(1,1);
-        ring.add_coord(2,2);
+        ring.emplace_back(1,1);
+        ring.emplace_back(2,2);
         geom.emplace_back(std::move(ring));
     }
     vector_tile::Tile tile;
@@ -325,12 +325,12 @@ TEST_CASE("pbf decoding some truncated buffers")
 
     // Create processor
     mapnik::vector_tile_impl::processor ren(map);
-    
+
     // Request Tile
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    
+
     // Now check that the tile is correct.
     vector_tile::Tile tile;
     tile.ParseFromString(out_tile.get_buffer());
@@ -384,7 +384,7 @@ TEST_CASE("pbf vector tile from simplified geojson")
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    
+
     vector_tile::Tile tile;
     tile.ParseFromString(out_tile.get_buffer());
     REQUIRE(1 == tile.layers_size());
@@ -454,7 +454,7 @@ TEST_CASE("pbf raster tile output -- should be able to overzoom raster")
         s << std::fixed << std::setprecision(16)
           << bbox.minx() << ',' << bbox.miny() << ','
           << bbox.maxx() << ',' << bbox.maxy();
-        
+
         // build map
         mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
         map.set_buffer_size(buffer_size);
@@ -466,12 +466,12 @@ TEST_CASE("pbf raster tile output -- should be able to overzoom raster")
         std::shared_ptr<mapnik::datasource> ds = mapnik::datasource_cache::instance().create(params);
         lyr.set_datasource(ds);
         map.add_layer(lyr);
-        
+
         // build processor
         mapnik::vector_tile_impl::processor ren(map);
         ren.set_image_format("jpeg");
         ren.set_scaling_method(mapnik::SCALING_BILINEAR);
-        
+
         // Update the tile
         ren.update_tile(out_tile);
     }
@@ -592,7 +592,7 @@ TEST_CASE("pbf vector tile from linestring geojson")
                                     mapnik::vector_tile_impl::tile_datasource_pbf>(
                                         layer3,0,0,0);
     CHECK(ds2->get_name() == "layer");
-    
+
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     mapnik::query q(bbox);
     // note: https://github.com/mapbox/mapnik-vector-tile/issues/132 does not occur

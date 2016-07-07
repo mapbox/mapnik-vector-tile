@@ -42,7 +42,7 @@ void clip_geometry(mapnik::Map const& map,
     unsigned tile_size = 4096;
     int buffer_size = 0;
     std::string geojson_string;
-    
+
     mapnik::vector_tile_impl::processor ren(map);
     // TODO - test these booleans https://github.com/mapbox/mapnik-vector-tile/issues/165
     ren.set_strictly_simple(strictly_simple);
@@ -50,10 +50,10 @@ void clip_geometry(mapnik::Map const& map,
     ren.set_fill_type(fill_type);
     ren.set_process_all_rings(process_all);
     ren.set_multi_polygon_union(mpu);
-    
+
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(bbox, tile_size, buffer_size);
     mapnik::geometry::geometry<double> geom4326_pbf;
-    
+
     std::string buffer;
     out_tile.serialize_to_string(buffer);
     if (!buffer.empty())
@@ -67,7 +67,7 @@ void clip_geometry(mapnik::Map const& map,
         if (layer_reader.next(mapnik::vector_tile_impl::Layer_Encoding::FEATURES))
         {
             protozero::pbf_reader feature_reader = layer_reader.get_message();
-            int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN; 
+            int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN;
             std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
             while (feature_reader.next())
             {
@@ -88,10 +88,10 @@ void clip_geometry(mapnik::Map const& map,
             double sy = static_cast<double>(tile_size) / bbox.height();
             double i_x = bbox.minx();
             double i_y = bbox.maxy();
-            
+
             mapnik::vector_tile_impl::GeometryPBF geoms2_pbf(geom_itr);
             geom4326_pbf = mapnik::vector_tile_impl::decode_geometry<double>(geoms2_pbf, geometry_type, 2, i_x, i_y, 1.0 * sx, -1.0 * sy);
-            
+
             std::string reason;
             std::string is_valid = "false";
             std::string is_simple = "false";
@@ -244,6 +244,7 @@ mapnik::box2d<double> zoomed_out(mapnik::box2d<double> const& bbox)
 
 TEST_CASE("geometries visual tests")
 {
+#if 0
     std::vector<std::string> geometries = mapnik::util::list_directory("./test/geometry-test-data/input");
     std::vector<std::string> benchmarks = mapnik::util::list_directory("./test/geometry-test-data/benchmark");
     if (std::getenv("BENCHMARK") != nullptr)
@@ -263,9 +264,9 @@ TEST_CASE("geometries visual tests")
             for (bool strictly_simple : std::vector<bool>({false, true}))
             {
                 std::vector<mapnik::vector_tile_impl::polygon_fill_type> types;
-                types.emplace_back(mapnik::vector_tile_impl::even_odd_fill); 
+                types.emplace_back(mapnik::vector_tile_impl::even_odd_fill);
                 types.emplace_back(mapnik::vector_tile_impl::non_zero_fill);
-                types.emplace_back(mapnik::vector_tile_impl::positive_fill); 
+                types.emplace_back(mapnik::vector_tile_impl::positive_fill);
                 types.emplace_back(mapnik::vector_tile_impl::negative_fill);
                 for (auto const& type : types)
                 {
@@ -286,4 +287,5 @@ TEST_CASE("geometries visual tests")
             }
         }
     }
+#endif
 }

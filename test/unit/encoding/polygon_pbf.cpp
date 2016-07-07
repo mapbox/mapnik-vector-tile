@@ -23,12 +23,13 @@
 TEST_CASE("encoding pbf simple polygon")
 {
     mapnik::geometry::polygon<std::int64_t> p0;
-    p0.exterior_ring.add_coord(0,0);
-    p0.exterior_ring.add_coord(0,10);
-    p0.exterior_ring.add_coord(-10,10);
-    p0.exterior_ring.add_coord(-10,0);
-    p0.exterior_ring.add_coord(0,0);
-    
+    p0.emplace_back();
+    p0.front().emplace_back(0,0);
+    p0.front().emplace_back(0,10);
+    p0.front().emplace_back(-10,10);
+    p0.front().emplace_back(-10,0);
+    p0.front().emplace_back(0,0);
+
     std::int32_t x = 0;
     std::int32_t y = 0;
     std::string feature_str;
@@ -37,11 +38,11 @@ TEST_CASE("encoding pbf simple polygon")
     REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(p0, feature_writer, x, y));
     feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
-    
+
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
     // Close
-    // 3 commands + 8 Params = 11 
+    // 3 commands + 8 Params = 11
     REQUIRE(feature.geometry_size() == 11);
     // MoveTo(0,0)
     CHECK(feature.geometry(0) == ((1 << 3) | 1u)); // 9
@@ -64,13 +65,14 @@ TEST_CASE("encoding pbf simple polygon")
 TEST_CASE("encoding pbf simple polygon -- geometry")
 {
     mapnik::geometry::polygon<std::int64_t> p0;
-    p0.exterior_ring.add_coord(0,0);
-    p0.exterior_ring.add_coord(0,10);
-    p0.exterior_ring.add_coord(-10,10);
-    p0.exterior_ring.add_coord(-10,0);
-    p0.exterior_ring.add_coord(0,0);
+    p0.emplace_back();
+    p0.front().emplace_back(0,0);
+    p0.front().emplace_back(0,10);
+    p0.front().emplace_back(-10,10);
+    p0.front().emplace_back(-10,0);
+    p0.front().emplace_back(0,0);
     mapnik::geometry::geometry<std::int64_t> geom(p0);
-    
+
     std::int32_t x = 0;
     std::int32_t y = 0;
     std::string feature_str;
@@ -79,11 +81,11 @@ TEST_CASE("encoding pbf simple polygon -- geometry")
     REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(geom, feature_writer, x, y));
     feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
-    
+
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
     // Close
-    // 3 commands + 8 Params = 11 
+    // 3 commands + 8 Params = 11
     REQUIRE(feature.geometry_size() == 11);
     // MoveTo(0,0)
     CHECK(feature.geometry(0) == ((1 << 3) | 1u)); // 9
@@ -106,18 +108,19 @@ TEST_CASE("encoding pbf simple polygon -- geometry")
 TEST_CASE("encoding pbf simple polygon with hole")
 {
     mapnik::geometry::polygon<std::int64_t> p0;
-    p0.exterior_ring.add_coord(0,0);
-    p0.exterior_ring.add_coord(0,10);
-    p0.exterior_ring.add_coord(-10,10);
-    p0.exterior_ring.add_coord(-10,0);
-    p0.exterior_ring.add_coord(0,0);
+    p0.emplace_back();
+    p0.front().emplace_back(0,0);
+    p0.front().emplace_back(0,10);
+    p0.front().emplace_back(-10,10);
+    p0.front().emplace_back(-10,0);
+    p0.front().emplace_back(0,0);
     mapnik::geometry::linear_ring<std::int64_t> hole;
-    hole.add_coord(-7,7);
-    hole.add_coord(-3,7);
-    hole.add_coord(-3,3);
-    hole.add_coord(-7,3);
-    hole.add_coord(-7,7);
-    p0.add_hole(std::move(hole));
+    hole.emplace_back(-7,7);
+    hole.emplace_back(-3,7);
+    hole.emplace_back(-3,3);
+    hole.emplace_back(-7,3);
+    hole.emplace_back(-7,7);
+    p0.push_back(std::move(hole));
 
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -127,14 +130,14 @@ TEST_CASE("encoding pbf simple polygon with hole")
     REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(p0, feature_writer, x, y));
     feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
-    
+
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
     // Close
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
     // Close
-    // 6 commands + 16 Params = 22 
+    // 6 commands + 16 Params = 22
     REQUIRE(feature.geometry_size() == 22);
     // MoveTo(0,0)
     CHECK(feature.geometry(0) == ((1 << 3) | 1u)); // 9
@@ -192,35 +195,37 @@ TEST_CASE("encoding pbf multi polygons with holes")
     mapnik::geometry::multi_polygon<std::int64_t> mp;
     {
         mapnik::geometry::polygon<std::int64_t> p0;
-        p0.exterior_ring.add_coord(0,0);
-        p0.exterior_ring.add_coord(0,10);
-        p0.exterior_ring.add_coord(-10,10);
-        p0.exterior_ring.add_coord(-10,0);
-        p0.exterior_ring.add_coord(0,0);
+        p0.emplace_back();
+        p0.front().emplace_back(0,0);
+        p0.front().emplace_back(0,10);
+        p0.front().emplace_back(-10,10);
+        p0.front().emplace_back(-10,0);
+        p0.front().emplace_back(0,0);
         mapnik::geometry::linear_ring<std::int64_t> hole;
-        hole.add_coord(-7,7);
-        hole.add_coord(-3,7);
-        hole.add_coord(-3,3);
-        hole.add_coord(-7,3);
-        hole.add_coord(-7,7);
-        p0.add_hole(std::move(hole));
+        hole.emplace_back(-7,7);
+        hole.emplace_back(-3,7);
+        hole.emplace_back(-3,3);
+        hole.emplace_back(-7,3);
+        hole.emplace_back(-7,7);
+        p0.push_back(std::move(hole));
         mp.push_back(p0);
     }
     // yeah so its the same polygon -- haters gonna hate.
     {
         mapnik::geometry::polygon<std::int64_t> p0;
-        p0.exterior_ring.add_coord(0,0);
-        p0.exterior_ring.add_coord(0,10);
-        p0.exterior_ring.add_coord(-10,10);
-        p0.exterior_ring.add_coord(-10,0);
-        p0.exterior_ring.add_coord(0,0);
+        p0.emplace_back();
+        p0.front().emplace_back(0,0);
+        p0.front().emplace_back(0,10);
+        p0.front().emplace_back(-10,10);
+        p0.front().emplace_back(-10,0);
+        p0.front().emplace_back(0,0);
         mapnik::geometry::linear_ring<std::int64_t> hole;
-        hole.add_coord(-7,7);
-        hole.add_coord(-3,7);
-        hole.add_coord(-3,3);
-        hole.add_coord(-7,3);
-        hole.add_coord(-7,7);
-        p0.add_hole(std::move(hole));
+        hole.emplace_back(-7,7);
+        hole.emplace_back(-3,7);
+        hole.emplace_back(-3,3);
+        hole.emplace_back(-7,3);
+        hole.emplace_back(-7,7);
+        p0.push_back(std::move(hole));
         mp.push_back(p0);
     }
 
@@ -232,7 +237,7 @@ TEST_CASE("encoding pbf multi polygons with holes")
     REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(mp, feature_writer, x, y));
     feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
-    
+
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
     // Close
@@ -324,35 +329,37 @@ TEST_CASE("encoding pbf multi polygons with holes -- geometry type")
     mapnik::geometry::multi_polygon<std::int64_t> mp;
     {
         mapnik::geometry::polygon<std::int64_t> p0;
-        p0.exterior_ring.add_coord(0,0);
-        p0.exterior_ring.add_coord(0,10);
-        p0.exterior_ring.add_coord(-10,10);
-        p0.exterior_ring.add_coord(-10,0);
-        p0.exterior_ring.add_coord(0,0);
+        p0.emplace_back();
+        p0.front().emplace_back(0,0);
+        p0.front().emplace_back(0,10);
+        p0.front().emplace_back(-10,10);
+        p0.front().emplace_back(-10,0);
+        p0.front().emplace_back(0,0);
         mapnik::geometry::linear_ring<std::int64_t> hole;
-        hole.add_coord(-7,7);
-        hole.add_coord(-3,7);
-        hole.add_coord(-3,3);
-        hole.add_coord(-7,3);
-        hole.add_coord(-7,7);
-        p0.add_hole(std::move(hole));
+        hole.emplace_back(-7,7);
+        hole.emplace_back(-3,7);
+        hole.emplace_back(-3,3);
+        hole.emplace_back(-7,3);
+        hole.emplace_back(-7,7);
+        p0.push_back(std::move(hole));
         mp.push_back(p0);
     }
     // yeah so its the same polygon -- haters gonna hate.
     {
         mapnik::geometry::polygon<std::int64_t> p0;
-        p0.exterior_ring.add_coord(0,0);
-        p0.exterior_ring.add_coord(0,10);
-        p0.exterior_ring.add_coord(-10,10);
-        p0.exterior_ring.add_coord(-10,0);
-        p0.exterior_ring.add_coord(0,0);
+        p0.emplace_back();
+        p0.front().emplace_back(0,0);
+        p0.front().emplace_back(0,10);
+        p0.front().emplace_back(-10,10);
+        p0.front().emplace_back(-10,0);
+        p0.front().emplace_back(0,0);
         mapnik::geometry::linear_ring<std::int64_t> hole;
-        hole.add_coord(-7,7);
-        hole.add_coord(-3,7);
-        hole.add_coord(-3,3);
-        hole.add_coord(-7,3);
-        hole.add_coord(-7,7);
-        p0.add_hole(std::move(hole));
+        hole.emplace_back(-7,7);
+        hole.emplace_back(-3,7);
+        hole.emplace_back(-3,3);
+        hole.emplace_back(-7,3);
+        hole.emplace_back(-7,7);
+        p0.push_back(std::move(hole));
         mp.push_back(p0);
     }
     mapnik::geometry::geometry<std::int64_t> geom(mp);
@@ -365,7 +372,7 @@ TEST_CASE("encoding pbf multi polygons with holes -- geometry type")
     REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(geom, feature_writer, x, y));
     feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
-    
+
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
     // Close
@@ -470,15 +477,16 @@ TEST_CASE("encoding pbf empty multi polygon")
 TEST_CASE("encoding pbf polygon with degenerate exterior ring full of repeated points")
 {
     mapnik::geometry::polygon<std::int64_t> p0;
+    p0.emplace_back();
     // invalid exterior ring
-    p0.exterior_ring.add_coord(0,0);
-    p0.exterior_ring.add_coord(0,10);
-    p0.exterior_ring.add_coord(0,10);
-    p0.exterior_ring.add_coord(0,10);
-    p0.exterior_ring.add_coord(0,10);
-    p0.exterior_ring.add_coord(0,10);
-    p0.exterior_ring.add_coord(0,10);
-    p0.exterior_ring.add_coord(0,10);
+    p0.front().emplace_back(0,0);
+    p0.front().emplace_back(0,10);
+    p0.front().emplace_back(0,10);
+    p0.front().emplace_back(0,10);
+    p0.front().emplace_back(0,10);
+    p0.front().emplace_back(0,10);
+    p0.front().emplace_back(0,10);
+    p0.front().emplace_back(0,10);
 
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -495,9 +503,10 @@ TEST_CASE("encoding pbf polygon with degenerate exterior ring full of repeated p
 TEST_CASE("encoding pbf polygon with degenerate exterior ring")
 {
     mapnik::geometry::polygon<std::int64_t> p0;
+    p0.emplace_back();
     // invalid exterior ring
-    p0.exterior_ring.add_coord(0,0);
-    p0.exterior_ring.add_coord(0,10);
+    p0.front().emplace_back(0,0);
+    p0.front().emplace_back(0,10);
 
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -514,17 +523,18 @@ TEST_CASE("encoding pbf polygon with degenerate exterior ring")
 TEST_CASE("encoding pbf polygon with degenerate exterior ring and interior ring")
 {
     mapnik::geometry::polygon<std::int64_t> p0;
+    p0.emplace_back();
     // invalid exterior ring
-    p0.exterior_ring.add_coord(0,0);
-    p0.exterior_ring.add_coord(0,10);
+    p0.front().emplace_back(0,0);
+    p0.front().emplace_back(0,10);
     // invalid interior ring -- is counter clockwise
     mapnik::geometry::linear_ring<std::int64_t> hole;
-    hole.add_coord(-7,7);
-    hole.add_coord(-3,7);
-    hole.add_coord(-3,3);
-    hole.add_coord(-7,3);
-    hole.add_coord(-7,7);
-    p0.add_hole(std::move(hole));
+    hole.emplace_back(-7,7);
+    hole.emplace_back(-3,7);
+    hole.emplace_back(-3,3);
+    hole.emplace_back(-7,3);
+    hole.emplace_back(-7,7);
+    p0.push_back(std::move(hole));
 
     // encoder should cull the exterior invalid ring, which triggers
     // the entire polygon to be culled.
@@ -543,16 +553,17 @@ TEST_CASE("encoding pbf polygon with degenerate exterior ring and interior ring"
 TEST_CASE("encoding pbf polygon with valid exterior ring but degenerate interior ring")
 {
     mapnik::geometry::polygon<std::int64_t> p0;
-    p0.exterior_ring.add_coord(0,0);
-    p0.exterior_ring.add_coord(0,10);
-    p0.exterior_ring.add_coord(-10,10);
-    p0.exterior_ring.add_coord(-10,0);
-    p0.exterior_ring.add_coord(0,0);
+    p0.emplace_back();
+    p0.front().emplace_back(0,0);
+    p0.front().emplace_back(0,10);
+    p0.front().emplace_back(-10,10);
+    p0.front().emplace_back(-10,0);
+    p0.front().emplace_back(0,0);
     // invalid interior ring
     mapnik::geometry::linear_ring<std::int64_t> hole;
-    hole.add_coord(-7,7);
-    hole.add_coord(-3,7);
-    p0.add_hole(std::move(hole));
+    hole.emplace_back(-7,7);
+    hole.emplace_back(-3,7);
+    p0.push_back(std::move(hole));
 
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -562,11 +573,11 @@ TEST_CASE("encoding pbf polygon with valid exterior ring but degenerate interior
     REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(p0, feature_writer, x, y));
     feature.ParseFromString(feature_str);
     REQUIRE(feature.type() == vector_tile::Tile_GeomType_POLYGON);
-    
+
     // MoveTo, ParameterInteger, ParameterInteger
     // LineTo, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger, ParameterInteger
     // Close
-    // 3 commands + 8 Params = 11 
+    // 3 commands + 8 Params = 11
     REQUIRE(feature.geometry_size() == 11);
     // MoveTo(0,0)
     CHECK(feature.geometry(0) == ((1 << 3) | 1u)); // 9
@@ -585,4 +596,3 @@ TEST_CASE("encoding pbf polygon with valid exterior ring but degenerate interior
     // Close
     CHECK(feature.geometry(10) == 15);
 }
-

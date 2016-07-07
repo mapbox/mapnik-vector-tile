@@ -51,17 +51,17 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
                                     double area_threshold)
 {
     mapnik::geometry::polygon<std::int64_t> polygon;
-    polygon.set_exterior_ring(std::move(polynode->Contour));
-    if (polygon.exterior_ring.size() > 2) // Throw out invalid polygons
+    polygon.push_back(std::move(polynode->Contour));
+    if (polygon.empty() || polygon.front().size() > 2) // Throw out invalid polygons
     {
-        double outer_area = ClipperLib::Area(polygon.exterior_ring);
+        double outer_area = ClipperLib::Area(polygon.front());
         if (std::abs(outer_area) >= area_threshold)
         {
             // The view transform inverts the y axis so this should be positive still despite now
             // being clockwise for the exterior ring. If it is not lets invert it.
             if (outer_area < 0)
             {
-                std::reverse(polygon.exterior_ring.begin(), polygon.exterior_ring.end());
+                std::reverse(polygon.front().begin(), polygon.front().end());
             }
 
             // children of exterior ring are always interior rings
@@ -81,7 +81,7 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
                 {
                     std::reverse(ring->Contour.begin(), ring->Contour.end());
                 }
-                polygon.add_hole(std::move(ring->Contour));
+                polygon.push_back(std::move(ring->Contour));
             }
             mp.push_back(std::move(polygon));
         }
@@ -209,7 +209,7 @@ public:
 
     void operator() (mapnik::geometry::polygon<std::int64_t> & geom)
     {
-        if ((geom.exterior_ring.size() < 3) && !process_all_rings_)
+        if (geom.empty() || (geom.front().size() < 3 && !process_all_rings_))
         {
             return;
         }
@@ -228,8 +228,8 @@ public:
         // if proces_all_rings is true even if the exterior
         // ring is invalid we will continue to insert all polygon
         // rings into the clipper
-        ClipperLib::CleanPolygon(geom.exterior_ring, clean_distance);
-        double outer_area = ClipperLib::Area(geom.exterior_ring);
+        ClipperLib::CleanPolygon(geom.front(), clean_distance);
+        double outer_area = ClipperLib::Area(geom.front());
         if ((std::abs(outer_area) < area_threshold_)  && !process_all_rings_)
         {
             return;
@@ -239,15 +239,15 @@ public:
         // being clockwise for the exterior ring. If it is not lets invert it.
         if (outer_area < 0)
         {
-            std::reverse(geom.exterior_ring.begin(), geom.exterior_ring.end());
+            std::reverse(geom.front().begin(), geom.front().end());
         }
 
-        if (!clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
+        if (!clipper.AddPath(geom.front(), ClipperLib::ptSubject, true) && !process_all_rings_)
         {
             return;
         }
 
-        for (auto & ring : geom.interior_rings)
+        for (auto & ring : geom.interior())
         {
             if (ring.size() < 3)
             {
@@ -341,12 +341,12 @@ public:
                 // When `process_all_rings_=true` this optimization is disabled. This is needed when
                 // the ring order of input polygons is potentially incorrect and where the
                 // "exterior_ring" might actually be an incorrectly classified exterior ring.
-                if (poly.exterior_ring.size() < 3 && !process_all_rings_)
+                if (poly.empty() || (poly.front().size() < 3 && !process_all_rings_))
                 {
                     continue;
                 }
-                ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
-                double outer_area = ClipperLib::Area(poly.exterior_ring);
+                ClipperLib::CleanPolygon(poly.front(), clean_distance);
+                double outer_area = ClipperLib::Area(poly.front());
                 if ((std::abs(outer_area) < area_threshold_) && !process_all_rings_)
                 {
                     continue;
@@ -355,14 +355,14 @@ public:
                 // being clockwise for the exterior ring. If it is not lets invert it.
                 if (outer_area < 0)
                 {
-                    std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
+                    std::reverse(poly.front().begin(), poly.front().end());
                 }
-                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
+                if (!clipper.AddPath(poly.front(), ClipperLib::ptSubject, true) && !process_all_rings_)
                 {
                     continue;
                 }
 
-                for (auto & ring : poly.interior_rings)
+                for (auto & ring : poly.interior())
                 {
                     if (ring.size() < 3)
                     {
@@ -405,12 +405,12 @@ public:
                 // When `process_all_rings_=true` this optimization is disabled. This is needed when
                 // the ring order of input polygons is potentially incorrect and where the
                 // "exterior_ring" might actually be an incorrectly classified exterior ring.
-                if (poly.exterior_ring.size() < 3 && !process_all_rings_)
+                if (poly.empty() || (poly.front().size() < 3 && !process_all_rings_))
                 {
                     continue;
                 }
-                ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
-                double outer_area = ClipperLib::Area(poly.exterior_ring);
+                ClipperLib::CleanPolygon(poly.front(), clean_distance);
+                double outer_area = ClipperLib::Area(poly.front());
                 if ((std::abs(outer_area) < area_threshold_) && !process_all_rings_)
                 {
                     continue;
@@ -419,13 +419,13 @@ public:
                 // being clockwise for the exterior ring. If it is not lets invert it.
                 if (outer_area < 0)
                 {
-                    std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
+                    std::reverse(poly.front().begin(), poly.front().end());
                 }
-                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
+                if (!clipper.AddPath(poly.front(), ClipperLib::ptSubject, true) && !process_all_rings_)
                 {
                     continue;
                 }
-                for (auto & ring : poly.interior_rings)
+                for (auto & ring : poly.interior())
                 {
                     if (ring.size() < 3)
                     {

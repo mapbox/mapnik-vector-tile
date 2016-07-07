@@ -165,11 +165,11 @@ inline bool encode_polygon(mapnik::geometry::polygon<std::int64_t> const& poly,
                            int32_t & start_x,
                            int32_t & start_y)
 {
-    if (!encode_linearring(poly.exterior_ring, geometry, start_x, start_y))
+    if (poly.empty() || !encode_linearring(poly.front(), geometry, start_x, start_y))
     {
         return false;
     }
-    for (auto const& ring : poly.interior_rings)
+    for (auto const& ring : poly.interior())
     {
         encode_linearring(ring, geometry, start_x, start_y);
     }

@@ -207,18 +207,19 @@ struct transform_visitor
             return;
         }
         mapnik::geometry::polygon<std::int64_t> new_geom;
-        new_geom.exterior_ring.reserve(geom.exterior_ring.size());
-        for (auto const& pt : geom.exterior_ring)
+        new_geom.emplace_back();
+        new_geom.front().reserve(geom.front().size());
+        for (auto const& pt : geom.front())
         {
             mapnik::geometry::point<std::int64_t> pt2;
             if (tr_.apply(pt,pt2))
             {
-                new_geom.exterior_ring.push_back(std::move(pt2));
+                new_geom.front().push_back(std::move(pt2));
             }
         }
-        for (auto const& ring : geom.interior_rings)
+        for (auto const& ring : geom.interior())
         {
-            mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(static_cast<mapnik::geometry::line_string<double> const&>(ring));
+            mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(ring);
             if (!target_clipping_extent_.intersects(ring_bbox))
             {
                 continue;
@@ -233,7 +234,7 @@ struct transform_visitor
                     new_ring.push_back(std::move(pt2));
                 }
             }
-            new_geom.interior_rings.push_back(std::move(new_ring));
+            new_geom.interior().push_back(std::move(new_ring));
         }
         return next_(new_geom);
     }
@@ -250,18 +251,19 @@ struct transform_visitor
                 continue;
             }
             mapnik::geometry::polygon<std::int64_t> new_poly;
-            new_poly.exterior_ring.reserve(poly.exterior_ring.size());
-            for (auto const& pt : poly.exterior_ring)
+            new_poly.emplace_back();
+            new_poly.front().reserve(poly.front().size());
+            for (auto const& pt : poly.front())
             {
                 mapnik::geometry::point<std::int64_t> pt2;
                 if (tr_.apply(pt,pt2))
                 {
-                    new_poly.exterior_ring.push_back(std::move(pt2));
+                    new_poly.front().push_back(std::move(pt2));
                 }
             }
-            for (auto const& ring : poly.interior_rings)
+            for (auto const& ring : poly.interior())
             {
-                mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(static_cast<mapnik::geometry::line_string<double> const&>(ring));
+                mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(ring);
                 if (!target_clipping_extent_.intersects(ring_bbox))
                 {
                     continue;
@@ -276,7 +278,7 @@ struct transform_visitor
                         new_ring.push_back(std::move(pt2));
                     }
                 }
-                new_poly.interior_rings.push_back(std::move(new_ring));
+                new_poly.interior().push_back(std::move(new_ring));
             }
             new_geom.push_back(std::move(new_poly));
         }
