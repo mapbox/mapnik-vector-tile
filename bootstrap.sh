@@ -28,7 +28,7 @@ ICU_VERSION="55.1"
 
 function install_mason_deps() {
     install ccache 3.2.4
-    install mapnik latest
+    install mapnik geometry-refactor
     install protobuf 2.6.1
     install freetype 2.6
     install harfbuzz 0.9.40
