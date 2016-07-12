@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MASON_VERSION="694d08c"
+MASON_VERSION="b709931"
 
 function setup_mason() {
     if [[ ! -d ./.mason ]]; then
@@ -10,7 +10,6 @@ function setup_mason() {
         echo "Updating to latest mason"
         (cd ./.mason && git fetch && git checkout ${MASON_VERSION})
     fi
-    export MASON_DIR=$(pwd)/.mason
     export PATH=$(pwd)/.mason:$PATH
     export CXX=${CXX:-clang++}
     export CC=${CC:-clang}
@@ -31,16 +30,15 @@ function install_mason_deps() {
     install mapnik latest
     install protobuf 2.6.1
     install freetype 2.6
-    install harfbuzz 0.9.40
+    install harfbuzz 0.9.41
     install jpeg_turbo 1.4.0
-    install libxml2 2.9.2
-    install libpng 1.6.17
+    install libpng 1.6.20
     install webp 0.4.2
     install icu ${ICU_VERSION}
     install proj 4.8.0
     install libtiff 4.0.4beta
-    install boost 1.59.0
-    install boost_liball 1.59.0
+    install boost 1.61.0
+    install boost_liball 1.61.0
     install pixman 0.32.6
     install cairo 1.14.2
 }
