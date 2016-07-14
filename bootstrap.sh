@@ -26,21 +26,27 @@ function install() {
 ICU_VERSION="55.1"
 
 function install_mason_deps() {
-    install ccache 3.2.4
-    install mapnik latest
-    install protobuf 2.6.1
-    install freetype 2.6
-    install harfbuzz 0.9.41
-    install jpeg_turbo 1.4.0
-    install libpng 1.6.20
-    install webp 0.4.2
-    install icu ${ICU_VERSION}
-    install proj 4.8.0
-    install libtiff 4.0.4beta
-    install boost 1.61.0
-    install boost_liball 1.61.0
-    install pixman 0.32.6
-    install cairo 1.14.2
+    install ccache 3.2.4 &
+    install mapnik latest &
+    install protobuf 2.6.1 &
+    install freetype 2.6 &
+    install harfbuzz 0.9.41 &
+    wait
+    install jpeg_turbo 1.4.0 &
+    install libpng 1.6.20 &
+    install webp 0.4.2 &
+    install icu ${ICU_VERSION} &
+    install proj 4.8.0 &
+    install libtiff 4.0.4beta &
+    wait
+    install boost 1.61.0 &
+    install boost_libsystem 1.61.0 &
+    install boost_libfilesystem 1.61.0 &
+    install boost_libprogram_options 1.61.0 &
+    install boost_libregex 1.61.0 &
+    install pixman 0.32.6 &
+    install cairo 1.14.2 &
+    wait
 }
 
 function setup_runtime_settings() {
