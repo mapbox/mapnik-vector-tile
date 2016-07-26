@@ -162,7 +162,7 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
     }
     if (use_tile_extent)
     {
-        params_["vector_layer_extent"] = tile_size_;
+        params_["vector_layer_extent"] = static_cast<long long>(tile_size_);
     }
 }
 
