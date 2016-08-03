@@ -1,6 +1,6 @@
-#include <mapnik/geometry_correct.hpp>
+#include <mapnik/geometry/correct.hpp>
 #include <mapnik/projection.hpp>
-#include <mapnik/geometry_transform.hpp>
+#include <mapnik/geometry/transform.hpp>
 #include <mapnik/util/file_io.hpp>
 #include <mapnik/json/geometry_parser.hpp>
 #include <mapnik/timer.hpp>
@@ -22,7 +22,7 @@
 
 */
 
-int main() 
+int main()
 {
     mapnik::projection merc("+init=epsg:3857",true);
     mapnik::projection merc2("+init=epsg:4326",true);
@@ -79,7 +79,7 @@ int main()
                                     > transit(vs, clip_extent, out_geom);
         for (unsigned i=0;i<10000;++i)
         {
-            mapnik::util::apply_visitor(transit,geom);        
+            mapnik::util::apply_visitor(transit,geom);
             auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(out_geom.geom);
             count2 += poly.size();
         }
@@ -103,7 +103,7 @@ int main()
                                     > transit(vs, clip_extent, out_geom);
         for (unsigned i=0;i<10000;++i)
         {
-            mapnik::util::apply_visitor(transit,geom);        
+            mapnik::util::apply_visitor(transit,geom);
             auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(out_geom.geom);
             count4 += poly.size();
         }

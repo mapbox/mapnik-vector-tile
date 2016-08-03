@@ -5,7 +5,7 @@
 #include "geom_to_wkt.hpp"
 
 // mapnik
-#include <mapnik/geometry_is_empty.hpp>
+#include <mapnik/geometry/is_empty.hpp>
 
 TEST_CASE("vector tile polygon even odd fill")
 {
@@ -62,4 +62,3 @@ TEST_CASE("vector tile polygon non zero fill")
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     REQUIRE( new_geom.is<mapnik::geometry::polygon<double> >() );
 }
-

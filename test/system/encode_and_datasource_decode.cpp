@@ -2,8 +2,8 @@
 
 // mapnik
 #include <mapnik/geometry.hpp>
-#include <mapnik/geometry_strategy.hpp>
-#include <mapnik/geometry_transform.hpp>
+#include <mapnik/geometry/strategy.hpp>
+#include <mapnik/geometry/transform.hpp>
 
 // mapnik-vector-tile
 #include "vector_tile_geometry_encoder_pbf.hpp"
@@ -31,7 +31,7 @@ TEST_CASE("encoding multi line string and check output datasource")
         ring.add_coord(2,2);
         geom.emplace_back(std::move(ring));
     }
-    
+
     vector_tile::Tile tile;
     vector_tile::Tile_Layer * t_layer = tile.add_layers();
     t_layer->set_name("layer");
@@ -94,7 +94,7 @@ TEST_CASE("encoding and decoding with datasource simple polygon")
         ring.add_coord(168.267850,-24.576888);
         geom.set_exterior_ring(std::move(ring));
     }
-    
+
     unsigned path_multiplier = 16;
     mapnik::geometry::scale_rounding_strategy scale_strat(path_multiplier);
     mapnik::geometry::geometry<std::int64_t> geom2 = mapnik::geometry::transform<std::int64_t>(geom, scale_strat);
@@ -109,7 +109,7 @@ TEST_CASE("encoding and decoding with datasource simple polygon")
     protozero::pbf_writer feature_writer(feature_str);
     CHECK(mapnik::vector_tile_impl::encode_geometry_pbf(geom2, feature_writer, x, y));
     t_feature->ParseFromString(feature_str);
-    
+
     // test results
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);

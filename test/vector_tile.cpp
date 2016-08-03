@@ -8,8 +8,8 @@
 #include <mapnik/datasource_cache.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/geometry.hpp>
-#include <mapnik/geometry_is_empty.hpp>
-#include <mapnik/geometry_reprojection.hpp>
+#include <mapnik/geometry/is_empty.hpp>
+#include <mapnik/geometry/reprojection.hpp>
 #include <mapnik/image_util.hpp>
 #include <mapnik/load_map.hpp>
 #include <mapnik/memory_datasource.hpp>
@@ -51,7 +51,7 @@ TEST_CASE("vector tile from simplified geojson")
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    
+
     vector_tile::Tile tile;
     tile.ParseFromString(out_tile.get_buffer());
     REQUIRE(1 == tile.layers_size());
@@ -70,7 +70,7 @@ TEST_CASE("vector tile from simplified geojson")
     out_tile.layer_reader(0, layer_reader);
     REQUIRE(layer_reader.next(mapnik::vector_tile_impl::Layer_Encoding::FEATURES));
     protozero::pbf_reader feature_reader = layer_reader.get_message();
-    int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN; 
+    int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN;
     std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
     while (feature_reader.next())
     {
@@ -130,7 +130,7 @@ TEST_CASE("vector tile transform -- should not throw on coords outside merc rang
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    
+
     vector_tile::Tile tile;
     tile.ParseFromString(out_tile.get_buffer());
 
@@ -204,12 +204,12 @@ TEST_CASE("vector tile transform2 -- should not throw reprojected data from loca
         mapnik::datasource_cache::instance().create(params);
     lyr.set_datasource(ds);
     map.add_layer(lyr);
-    
+
     mapnik::vector_tile_impl::processor ren(map);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    
+
     vector_tile::Tile tile;
     tile.ParseFromString(out_tile.get_buffer());
 

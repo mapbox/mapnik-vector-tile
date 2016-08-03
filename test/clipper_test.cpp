@@ -1,7 +1,7 @@
 #include <limits>
 #include <iostream>
 #include <mapnik/projection.hpp>
-#include <mapnik/geometry_transform.hpp>
+#include <mapnik/geometry/transform.hpp>
 
 #include "vector_tile_strategy.hpp"
 #include "vector_tile_projection.hpp"
@@ -122,7 +122,7 @@ TEST_CASE("vector_tile_strategy2 -- invalid mercator coord in interior ring")
                                    std::numeric_limits<double>::max());
     mapnik::vector_tile_impl::geom_out_visitor<int64_t> out_geom;
     mapnik::vector_tile_impl::transform_visitor<mapnik::vector_tile_impl::vector_tile_strategy_proj,
-                                                mapnik::vector_tile_impl::geom_out_visitor<int64_t> > 
+                                                mapnik::vector_tile_impl::geom_out_visitor<int64_t> >
                                            skipping_transformer(vs, clip_extent, out_geom);
     mapnik::util::apply_visitor(skipping_transformer,geom);
     mapnik::geometry::geometry<std::int64_t> new_geom = out_geom.geom;
@@ -216,7 +216,7 @@ TEST_CASE("clipper AddPath 2 -- should throw on out of range coords")
     catch(std::exception const& ex)
     {
       REQUIRE(std::string(ex.what()) == "Coordinate outside allowed range: -9223372036854775807 -9223372036854775807 9223372036854775807 9223372036854775807");
-    }        
+    }
 }
 
 TEST_CASE("clipper polytree error")

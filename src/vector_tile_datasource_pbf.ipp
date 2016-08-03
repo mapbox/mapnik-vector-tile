@@ -12,7 +12,7 @@
 #include <mapnik/geom_util.hpp>
 #include <mapnik/query.hpp>
 #include <mapnik/version.hpp>
-#include <mapnik/value_types.hpp>
+#include <mapnik/value/types.hpp>
 #include <mapnik/well_known_srs.hpp>
 
 // protozero

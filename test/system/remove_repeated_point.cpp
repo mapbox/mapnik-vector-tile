@@ -5,7 +5,7 @@
 #include "geom_to_wkt.hpp"
 
 // mapnik
-#include <mapnik/geometry_is_empty.hpp>
+#include <mapnik/geometry/is_empty.hpp>
 
 TEST_CASE("vector tile multi_point encoding with repeated points should be removed")
 {

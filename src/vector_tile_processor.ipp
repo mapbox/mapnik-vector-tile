@@ -14,7 +14,7 @@
 #include <mapnik/image_scaling.hpp>
 #include <mapnik/layer.hpp>
 #include <mapnik/map.hpp>
-#include <mapnik/geometry_transform.hpp>
+#include <mapnik/geometry/transform.hpp>
 
 // boost
 #include <boost/optional.hpp>

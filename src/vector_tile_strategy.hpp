@@ -6,7 +6,7 @@
 #include <mapnik/util/noncopyable.hpp>
 #include <mapnik/proj_transform.hpp>
 #include <mapnik/view_transform.hpp>
-#include <mapnik/geometry_envelope.hpp>
+#include <mapnik/geometry/envelope.hpp>
 
 #include "clipper.hpp"
 
@@ -79,7 +79,7 @@ struct vector_tile_strategy_proj
         boost::geometry::set<1>(p2, static_cast<p2_type>(y));
         return true;
     }
-    
+
     template <typename P1, typename P2>
     inline P2 execute(P1 const& p1, bool & status) const
     {
@@ -112,7 +112,7 @@ struct transform_visitor
     NextProcessor & next_;
     box2d<double> const& target_clipping_extent_;
 
-    transform_visitor(TransformType const& tr, 
+    transform_visitor(TransformType const& tr,
                       box2d<double> const& target_clipping_extent,
                       NextProcessor & next) :
       tr_(tr),
@@ -155,7 +155,7 @@ struct transform_visitor
     inline void operator() (mapnik::geometry::line_string<double> const& geom)
     {
         mapnik::box2d<double> geom_bbox = mapnik::geometry::envelope(geom);
-        if (!target_clipping_extent_.intersects(geom_bbox)) 
+        if (!target_clipping_extent_.intersects(geom_bbox))
         {
             return;
         }
@@ -219,7 +219,7 @@ struct transform_visitor
         for (auto const& ring : geom.interior_rings)
         {
             mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(static_cast<mapnik::geometry::line_string<double> const&>(ring));
-            if (!target_clipping_extent_.intersects(ring_bbox)) 
+            if (!target_clipping_extent_.intersects(ring_bbox))
             {
                 continue;
             }
@@ -245,7 +245,7 @@ struct transform_visitor
         for (auto const& poly : geom)
         {
             mapnik::box2d<double> ext_bbox = mapnik::geometry::envelope(poly);
-            if (!target_clipping_extent_.intersects(ext_bbox)) 
+            if (!target_clipping_extent_.intersects(ext_bbox))
             {
                 continue;
             }
