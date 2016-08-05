@@ -35,6 +35,7 @@ function install_mason_deps() {
     install jpeg_turbo 1.4.0 &
     install libpng 1.6.20 &
     install webp 0.4.2 &
+    install gdal 1.11.2 libgdal &
     install icu ${ICU_VERSION} &
     install proj 4.8.0 &
     install libtiff 4.0.4beta &
