@@ -17,21 +17,21 @@ matrix:
     - os: linux
       sudo: false
       compiler: ": clang"
-      env: JOBS=10 CXX="ccache clang++-3.5 -Qunused-arguments"
+      env: JOBS=10 CXX="ccache clang++-3.8 -Qunused-arguments"
       sudo: false
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test','llvm-toolchain-precise-3.5']
-          packages: ['clang-3.5']
+          sources: ['ubuntu-toolchain-r-test']
+          packages: [ 'libstdc++-5-dev']
     - os: linux
       sudo: false
       compiler: ": clang-coverage"
-      env: JOBS=10 CXX="ccache clang++-3.5 -Qunused-arguments" COVERAGE=true BUILDTYPE=Debug
+      env: JOBS=10 CXX="ccache clang++-3.8 -Qunused-arguments" COVERAGE=true BUILDTYPE=Debug
       sudo: false
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test','llvm-toolchain-precise-3.5']
-          packages: ['clang-3.5', 'llvm-3.5-dev']
+          sources: ['ubuntu-toolchain-r-test']
+          packages: [ 'libstdc++-5-dev']
     - os: osx
       compiler: clang
       env: JOBS=10
@@ -40,6 +40,13 @@ matrix:
 
 before_install:
  - source ./bootstrap.sh
+ - |
+   if [[ $(uname -s) == 'Linux' ]]; then
+     mason install clang 3.8.0
+     export PATH=$(mason prefix clang 3.8.0)/bin:${PATH}
+     which clang++
+     export LLVM_COV="$(mason prefix clang 3.8.0)/bin/llvm-cov"
+   fi
 
 install:
  - source ./scripts/build.sh

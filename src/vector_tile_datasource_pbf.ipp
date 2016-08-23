@@ -26,10 +26,10 @@
 #include <stdexcept>
 #include <string>
 
-namespace mapnik 
-{ 
+namespace mapnik
+{
 
-namespace vector_tile_impl 
+namespace vector_tile_impl
 {
 
 // tile_datasource impl
@@ -162,7 +162,7 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
     }
     if (use_tile_extent)
     {
-        params_["vector_layer_extent"] = tile_size_;
+        params_["vector_layer_extent"] = static_cast<mapnik::value_integer>(tile_size_);
     }
 }
 
@@ -178,10 +178,10 @@ featureset_ptr tile_datasource_pbf::features(query const& q) const
     if (!valid_layer_)
     {
         // From spec:
-        // When a Vector Tile consumer encounters a Vector Tile layer with an unknown version, 
-        // it MAY make a best-effort attempt to interpret the layer, or it MAY skip the layer. 
+        // When a Vector Tile consumer encounters a Vector Tile layer with an unknown version,
+        // it MAY make a best-effort attempt to interpret the layer, or it MAY skip the layer.
         // In either case it SHOULD continue to process subsequent layers in the Vector Tile.
-    
+
         // Therefore if version is invalid we will just return pointer
         return featureset_ptr();
     }
@@ -195,10 +195,10 @@ featureset_ptr tile_datasource_pbf::features_at_point(coord2d const& pt, double 
     if (!valid_layer_)
     {
         // From spec:
-        // When a Vector Tile consumer encounters a Vector Tile layer with an unknown version, 
-        // it MAY make a best-effort attempt to interpret the layer, or it MAY skip the layer. 
+        // When a Vector Tile consumer encounters a Vector Tile layer with an unknown version,
+        // it MAY make a best-effort attempt to interpret the layer, or it MAY skip the layer.
         // In either case it SHOULD continue to process subsequent layers in the Vector Tile.
-    
+
         // Therefore if version is invalid we will just return pointer
         return featureset_ptr();
     }

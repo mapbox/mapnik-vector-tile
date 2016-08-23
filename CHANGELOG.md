@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.1
+
+- Updated clipper
+- Upgrade to clang-3.8
+- Works with latest variant (stricter type matching) 
+
 ## 1.2.0
 
 - Big overhaul to the interface around the vector tile decoder

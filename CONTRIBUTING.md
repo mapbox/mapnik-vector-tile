@@ -4,9 +4,9 @@ General guidelines for contributing to mapnik-vector-tile
 
 ## Releasing
 
-To release a new node-mapnik version:
+To release a new mapnik-vector-tile version:
 
- - Make sure that all tests as passing (including travis and appveyor tests).
+ - Make sure that all tests as passing (including travis tests).
  - Update the CHANGELOG.md
  - Make a "bump commit" by updating the version in `package.json` and adding a commit like `-m "bump to v0.8.5"`
  - Create a github tag like `git tag -a v0.8.5 -m "v0.8.5" && git push --tags`
