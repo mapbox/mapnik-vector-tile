@@ -45,16 +45,19 @@ inline ClipperLib::PolyFillType get_angus_fill_type(polygon_fill_type type)
     }
 }
 
+#define CAST_TO_LINEAR(g) reinterpret_cast<mapnik::geometry::linear_ring<std::int64_t> &&>(g)
+#define CAST_TO_PATH(g) reinterpret_cast<ClipperLib::Path const &>(g)
+#define CAST_TO_PATH_NONCONST(g) reinterpret_cast<ClipperLib::Path &>(g)
 
 inline void process_polynode_branch(ClipperLib::PolyNode* polynode, 
                                     mapnik::geometry::multi_polygon<std::int64_t> & mp,
                                     double area_threshold)
 {
     mapnik::geometry::polygon<std::int64_t> polygon;
-    polygon.set_exterior_ring(std::move(polynode->Contour));
+    polygon.set_exterior_ring(std::move(CAST_TO_LINEAR(polynode->Contour)));
     if (polygon.exterior_ring.size() > 2) // Throw out invalid polygons
     {
-        double outer_area = ClipperLib::Area(polygon.exterior_ring);
+        double outer_area = ClipperLib::Area(CAST_TO_PATH(polygon.exterior_ring));
         if (std::abs(outer_area) >= area_threshold)
         {
             // The view transform inverts the y axis so this should be positive still despite now
@@ -81,7 +84,7 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
                 {
                     std::reverse(ring->Contour.begin(), ring->Contour.end());
                 }
-                polygon.add_hole(std::move(ring->Contour));
+                polygon.add_hole(std::move(CAST_TO_LINEAR(ring->Contour)));
             }
             mp.push_back(std::move(polygon));
         }
@@ -228,8 +231,8 @@ public:
         // if proces_all_rings is true even if the exterior
         // ring is invalid we will continue to insert all polygon
         // rings into the clipper
-        ClipperLib::CleanPolygon(geom.exterior_ring, clean_distance);
-        double outer_area = ClipperLib::Area(geom.exterior_ring);
+        ClipperLib::CleanPolygon(CAST_TO_PATH_NONCONST(geom.exterior_ring), clean_distance);
+        double outer_area = ClipperLib::Area(CAST_TO_PATH(geom.exterior_ring));
         if ((std::abs(outer_area) < area_threshold_)  && !process_all_rings_)
         {
             return;
@@ -242,7 +245,7 @@ public:
             std::reverse(geom.exterior_ring.begin(), geom.exterior_ring.end());
         }
 
-        if (!clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
+        if (!clipper.AddPath(CAST_TO_PATH(geom.exterior_ring), ClipperLib::ptSubject, true) && !process_all_rings_)
         {
             return;
         }
@@ -253,8 +256,8 @@ public:
             {
                 continue;
             }
-            ClipperLib::CleanPolygon(ring, clean_distance);
-            double inner_area = ClipperLib::Area(ring);
+            ClipperLib::CleanPolygon(CAST_TO_PATH_NONCONST(ring), clean_distance);
+            double inner_area = ClipperLib::Area(CAST_TO_PATH(ring));
             if (std::abs(inner_area) < area_threshold_)
             {
                 continue;
@@ -265,7 +268,7 @@ public:
             {
                 std::reverse(ring.begin(), ring.end());
             }
-            if (!clipper.AddPath(ring, ClipperLib::ptSubject, true))
+            if (!clipper.AddPath(CAST_TO_PATH(ring), ClipperLib::ptSubject, true))
             {
                 continue;
             }
@@ -281,7 +284,7 @@ public:
         clip_box.emplace_back(tile_clipping_extent_.minx(), tile_clipping_extent_.miny());
         
         // Finally add the box we will be using for clipping
-        if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+        if (!clipper.AddPath(CAST_TO_PATH(clip_box), ClipperLib::ptClip, true ))
         {
             return;
         }
@@ -345,8 +348,8 @@ public:
                 {
                     continue;
                 }
-                ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
-                double outer_area = ClipperLib::Area(poly.exterior_ring);
+                ClipperLib::CleanPolygon(CAST_TO_PATH_NONCONST(poly.exterior_ring), clean_distance);
+                double outer_area = ClipperLib::Area(CAST_TO_PATH(poly.exterior_ring));
                 if ((std::abs(outer_area) < area_threshold_) && !process_all_rings_)
                 {
                     continue;
@@ -357,7 +360,7 @@ public:
                 {
                     std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
                 }
-                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
+                if (!clipper.AddPath(CAST_TO_PATH(poly.exterior_ring), ClipperLib::ptSubject, true) && !process_all_rings_)
                 {
                     continue;
                 }
@@ -368,8 +371,8 @@ public:
                     {
                         continue;
                     }
-                    ClipperLib::CleanPolygon(ring, clean_distance);
-                    double inner_area = ClipperLib::Area(ring);
+                    ClipperLib::CleanPolygon(CAST_TO_PATH_NONCONST(ring), clean_distance);
+                    double inner_area = ClipperLib::Area(CAST_TO_PATH(ring));
                     if (std::abs(inner_area) < area_threshold_)
                     {
                         continue;
@@ -380,10 +383,10 @@ public:
                     {
                         std::reverse(ring.begin(), ring.end());
                     }
-                    clipper.AddPath(ring, ClipperLib::ptSubject, true);
+                    clipper.AddPath(CAST_TO_PATH(ring), ClipperLib::ptSubject, true);
                 }
             }
-            if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+            if (!clipper.AddPath(CAST_TO_PATH(clip_box), ClipperLib::ptClip, true ))
             {
                 return;
             }
@@ -409,8 +412,8 @@ public:
                 {
                     continue;
                 }
-                ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
-                double outer_area = ClipperLib::Area(poly.exterior_ring);
+                ClipperLib::CleanPolygon(CAST_TO_PATH_NONCONST(poly.exterior_ring), clean_distance);
+                double outer_area = ClipperLib::Area(CAST_TO_PATH(poly.exterior_ring));
                 if ((std::abs(outer_area) < area_threshold_) && !process_all_rings_)
                 {
                     continue;
@@ -421,7 +424,7 @@ public:
                 {
                     std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
                 }
-                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
+                if (!clipper.AddPath(CAST_TO_PATH(poly.exterior_ring), ClipperLib::ptSubject, true) && !process_all_rings_)
                 {
                     continue;
                 }
@@ -431,8 +434,8 @@ public:
                     {
                         continue;
                     }
-                    ClipperLib::CleanPolygon(ring, clean_distance);
-                    double inner_area = ClipperLib::Area(ring);
+                    ClipperLib::CleanPolygon(CAST_TO_PATH_NONCONST(ring), clean_distance);
+                    double inner_area = ClipperLib::Area(CAST_TO_PATH(ring));
                     if (std::abs(inner_area) < area_threshold_)
                     {
                         continue;
@@ -443,12 +446,12 @@ public:
                     {
                         std::reverse(ring.begin(), ring.end());
                     }
-                    if (!clipper.AddPath(ring, ClipperLib::ptSubject, true))
+                    if (!clipper.AddPath(CAST_TO_PATH(ring), ClipperLib::ptSubject, true))
                     {
                         continue;
                     }
                 }
-                if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+                if (!clipper.AddPath(CAST_TO_PATH(clip_box), ClipperLib::ptClip, true ))
                 {
                     return;
                 }
