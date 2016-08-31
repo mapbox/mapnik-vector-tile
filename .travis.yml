@@ -17,7 +17,7 @@ matrix:
     - os: linux
       sudo: false
       compiler: ": gcc5"
-      env: JOBS=10 CXX="ccache g++-5 -Qunused-arguments" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0"
+      env: JOBS=10 CXX="ccache g++-5" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0"
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
