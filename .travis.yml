@@ -16,22 +16,28 @@ matrix:
   include:
     - os: linux
       sudo: false
-      compiler: ": clang"
-      env: JOBS=10 CXX="ccache clang++-3.8 -Qunused-arguments"
-      sudo: false
+      compiler: ": gcc5"
+      env: JOBS=10 CXX="ccache g++-5" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0"
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: [ 'libstdc++-5-dev']
+          packages: [ 'libstdc++-5-dev','g++-5']
+    - os: linux
+      sudo: false
+      compiler: ": clang"
+      env: JOBS=10 CXX="ccache clang++-3.8 -Qunused-arguments"
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: [ 'libstdc++-5-dev', 'xutils-dev']
     - os: linux
       sudo: false
       compiler: ": clang-coverage"
       env: JOBS=10 CXX="ccache clang++-3.8 -Qunused-arguments" COVERAGE=true BUILDTYPE=Debug
-      sudo: false
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: [ 'libstdc++-5-dev']
+          packages: [ 'libstdc++-5-dev', 'xutils-dev']
     - os: osx
       compiler: clang
       env: JOBS=10
