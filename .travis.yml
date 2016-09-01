@@ -53,11 +53,6 @@ before_install:
      which clang++
      export LLVM_COV="$(mason prefix clang 3.8.0)/bin/llvm-cov"
    fi
- - mason install protobuf 3.0.0
- - mason link protobuf 3.0.0
- - export CXXFLAGS="-I$(pwd)/mason_packages/.link/include"
- - export LDFLAGS="-L$(pwd)/mason_packages/.link/lib"
- - export PATH="$(pwd)/mason_packages/.link/bin:${PATH}"
  - which protoc
  - protoc --version
 
