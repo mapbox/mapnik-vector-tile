@@ -22,7 +22,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: [ 'libstdc++-5-dev']
+          packages: [ 'libstdc++-5-dev', 'xutils-dev']
     - os: linux
       sudo: false
       compiler: ": clang-coverage"
@@ -31,7 +31,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: [ 'libstdc++-5-dev']
+          packages: [ 'libstdc++-5-dev', 'xutils-dev']
     - os: osx
       compiler: clang
       env: JOBS=10
