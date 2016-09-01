@@ -21,7 +21,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: [ 'libstdc++-5-dev','g++-5']
+          packages: [ 'libstdc++-5-dev','g++-5', 'xutils-dev']
     - os: linux
       sudo: false
       compiler: ": clang"
