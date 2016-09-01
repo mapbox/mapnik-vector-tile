@@ -485,7 +485,7 @@ TEST_CASE("pbf raster tile output -- should be able to overzoom raster")
     vector_tile::Tile_Feature const& f = layer.features(0);
     CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
     CHECK(0 == f.geometry_size());
-    CHECK(f.has_raster());
+    //CHECK(f.has_raster());
     std::string const& ras_buffer = f.raster();
     CHECK(!ras_buffer.empty());
 

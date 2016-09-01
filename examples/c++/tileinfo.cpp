@@ -184,22 +184,20 @@ int main(int argc, char** argv)
                 for (std::size_t l=0;l<static_cast<std::size_t>(layer.values_size());++l)
                 {
                      vector_tile::Tile_Value const & value = layer.values(l);
-                     if (value.has_string_value()) {
+                     if (!value.string_value().empty()) {
                           std::cout << value.string_value();
-                     } else if (value.has_int_value()) {
+                     } else if (value.int_value() != 0) {
                           std::cout << value.int_value();
-                     } else if (value.has_double_value()) {
+                     } else if (value.double_value() != 0.0) {
                           std::cout << value.double_value();
-                     } else if (value.has_float_value()) {
+                     } else if (value.float_value() != 0) {
                           std::cout << value.float_value();
-                     } else if (value.has_bool_value()) {
-                          std::cout << value.bool_value();
-                     } else if (value.has_sint_value()) {
+                     } else if (value.sint_value() != 0) {
                           std::cout << value.sint_value();
-                     } else if (value.has_uint_value()) {
+                     } else if (value.uint_value() != 0) {
                           std::cout << value.uint_value();
                      } else {
-                          std::cout << "null";
+                          std::cout << value.bool_value();
                      }
                      if (l<static_cast<std::size_t>(layer.values_size())-1) {
                         std::cout << ",";

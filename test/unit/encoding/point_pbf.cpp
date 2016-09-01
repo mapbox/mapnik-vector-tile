@@ -195,7 +195,7 @@ TEST_CASE("encode pbf empty multi point geometry")
     vector_tile::Tile_Feature feature;
     REQUIRE_FALSE(mapnik::vector_tile_impl::encode_geometry_pbf(mp, feature_writer, x, y));
     feature.ParseFromString(feature_str);
-    REQUIRE(!feature.has_type());
+    //REQUIRE(!feature.has_type());
     
     REQUIRE(feature.geometry_size() == 0);
 }

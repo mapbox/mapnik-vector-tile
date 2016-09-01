@@ -1,5 +1,7 @@
 // Protocol Version 1
 
+syntax = "proto3";
+
 package vector_tile;
 
 option optimize_for = LITE_RUNTIME;
@@ -15,19 +17,17 @@ message Tile {
         // Variant type encoding
         message Value {
                 // Exactly one of these values may be present in a valid message
-                optional string string_value = 1;
-                optional float float_value = 2;
-                optional double double_value = 3;
-                optional int64 int_value = 4;
-                optional uint64 uint_value = 5;
-                optional sint64 sint_value = 6;
-                optional bool bool_value = 7;
-
-                extensions 8 to max;
+                string string_value = 1;
+                float float_value = 2;
+                double double_value = 3;
+                int64 int_value = 4;
+                uint64 uint_value = 5;
+                sint64 sint_value = 6;
+                bool bool_value = 7;
         }
 
         message Feature {
-                optional uint64 id = 1 [ default = 0 ];
+                uint64 id = 1;
 
                 // Tags of this feature are encoded as repeated pairs of
                 // integers. Even indexed values (n, beginning with 0) are
@@ -39,7 +39,7 @@ message Tile {
                 repeated uint32 tags = 2 [ packed = true ];
 
                 // The type of geometry stored in this feature.
-                optional GeomType type = 3 [ default = UNKNOWN ];
+                GeomType type = 3;
 
                 // Contains a stream of commands and parameters (vertices). The
                 // repeat count is shifted to the left by 3 bits. This means
@@ -69,7 +69,7 @@ message Tile {
                 // The original position is (0,0).
                 repeated uint32 geometry = 4 [ packed = true ];
 
-                optional bytes raster = 5;
+                bytes raster = 5;
         }
 
         message Layer {
@@ -77,9 +77,9 @@ message Tile {
                 // number encoded in this message and choose the correct
                 // implementation for this version number before proceeding to
                 // decode other parts of this message.
-                required uint32 version = 15 [ default = 1 ];
+                uint32 version = 15;
 
-                required string name = 1;
+                string name = 1;
 
                 // The actual features in this tile.
                 repeated Feature features = 2;
@@ -91,12 +91,8 @@ message Tile {
                 repeated Value values = 4;
 
                 // The bounding box in this tile spans from 0..4095 units
-                optional uint32 extent = 5 [ default = 4096 ];
-
-                extensions 16 to max;
+                uint32 extent = 5;
         }
 
         repeated Layer layers = 3;
-
-        extensions 16 to 8191;
 }

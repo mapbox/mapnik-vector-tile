@@ -83,7 +83,7 @@ int main(int argc, char** argv)
                 for (int i = 0; i < layer->features_size(); ++i)
                 {
                     auto feature = layer->mutable_features(i);
-                    if (feature->geometry_size() == 0 && !feature->has_raster())
+                    if (feature->geometry_size() == 0/* && !feature->has_raster()*/)
                     {
                         layer->mutable_features()->DeleteSubrange(i,1);
                         --i;
