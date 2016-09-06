@@ -306,7 +306,7 @@ feature_ptr tile_featureset_pbf<Filter>::next()
                     #endif
                     feature->set_geometry(std::move(geom));
                 }
-                catch (std::exception const& e)
+                catch (std::exception const&)
                 {
                     // For v1 any invalid geometry errors lets just skip the feature
                     continue;
