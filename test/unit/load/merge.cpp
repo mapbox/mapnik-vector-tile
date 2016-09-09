@@ -24,15 +24,15 @@ TEST_CASE( "merge_from_compressed_buffer - vector" )
         protozero::pbf_reader tile_msg(tile.get_buffer());
         while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
         {
-            auto layer_data = tile_msg.get_data();
-            protozero::pbf_reader layer_props_msg(layer_data);
+            const auto layer_view = tile_msg.get_view();
+            protozero::pbf_reader layer_props_msg(layer_view);
             auto layer_info = mapnik::vector_tile_impl::get_layer_name_and_version(layer_props_msg);
             std::string const& layer_name = layer_info.first;
             std::uint32_t version = layer_info.second;
             CHECK(layer_name == "water");
             CHECK(version == 1);
             std::set<mapnik::vector_tile_impl::validity_error> errors;
-            protozero::pbf_reader layer_valid_msg(layer_data);
+            protozero::pbf_reader layer_valid_msg(layer_view);
             layer_is_valid(layer_valid_msg, errors);
             CHECK(errors.size() == 0);
         }
@@ -51,15 +51,15 @@ TEST_CASE( "merge_from_compressed_buffer - vector" )
         protozero::pbf_reader tile_msg(tile2.get_buffer());
         while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
         {
-            auto layer_data = tile_msg.get_data();
-            protozero::pbf_reader layer_props_msg(layer_data);
+            const auto layer_view = tile_msg.get_view();
+            protozero::pbf_reader layer_props_msg(layer_view);
             auto layer_info = mapnik::vector_tile_impl::get_layer_name_and_version(layer_props_msg);
             std::string const& layer_name = layer_info.first;
             std::uint32_t version = layer_info.second;
             CHECK(layer_name == "water");
             CHECK(version == 2);
             std::set<mapnik::vector_tile_impl::validity_error> errors;
-            protozero::pbf_reader layer_valid_msg(layer_data);
+            protozero::pbf_reader layer_valid_msg(layer_view);
             layer_is_valid(layer_valid_msg, errors);
             CHECK(errors.size() == 0);
         }
@@ -79,15 +79,15 @@ TEST_CASE( "merge_from_compressed_buffer - raster" )
         protozero::pbf_reader tile_msg(tile.get_buffer());
         while (tile_msg.next(mapnik::vector_tile_impl::Tile_Encoding::LAYERS))
         {
-            auto layer_data = tile_msg.get_data();
-            protozero::pbf_reader layer_props_msg(layer_data);
+            const auto layer_view = tile_msg.get_view();
+            protozero::pbf_reader layer_props_msg(layer_view);
             auto layer_info = mapnik::vector_tile_impl::get_layer_name_and_version(layer_props_msg);
             std::string const& layer_name = layer_info.first;
             std::uint32_t version = layer_info.second;
             CHECK(layer_name == "layer");
             CHECK(version == 2);
             std::set<mapnik::vector_tile_impl::validity_error> errors;
-            protozero::pbf_reader layer_valid_msg(layer_data);
+            protozero::pbf_reader layer_valid_msg(layer_view);
             layer_is_valid(layer_valid_msg, errors);
             CHECK(errors.size() == 0);
         }

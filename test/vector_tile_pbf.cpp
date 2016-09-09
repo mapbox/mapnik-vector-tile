@@ -414,7 +414,7 @@ TEST_CASE("pbf vector tile from simplified geojson")
       while (!found && pbf_feature.next(4))
       {
           found = true;
-          std::pair< protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > geom_itr = pbf_feature.get_packed_uint32();
+          mapnik::vector_tile_impl::GeometryPBF::pbf_itr geom_itr = pbf_feature.get_packed_uint32();
           mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr);
           auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, f.type(), 2, tile_x, tile_y, scale, -1.0 * scale);
           unsigned int n_err = 0;

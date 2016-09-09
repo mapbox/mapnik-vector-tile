@@ -57,8 +57,8 @@ void composite(merc_tile & target_vt,
         while (tile_message.next(Tile_Encoding::LAYERS))
         {
             bool reencode_layer = reencode_tile;
-            auto data_pair = tile_message.get_data();
-            protozero::pbf_reader layer_message(data_pair);
+            const auto data_view = tile_message.get_view();
+            protozero::pbf_reader layer_message(data_view);
             if (!layer_message.next(Layer_Encoding::NAME))
             {
                 continue;
@@ -68,7 +68,7 @@ void composite(merc_tile & target_vt,
             
             if (!reencode_layer)
             {
-                target_vt.append_layer_buffer(data_pair.first, data_pair.second, layer_name);
+                target_vt.append_layer_buffer(data_view.data(), data_view.size(), layer_name);
             }
             
             if (target_vt.has_layer(layer_name))
@@ -76,7 +76,7 @@ void composite(merc_tile & target_vt,
                 continue;
             }
 
-            protozero::pbf_reader layer_pbf(data_pair);
+            protozero::pbf_reader layer_pbf(data_view);
             auto ds = std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
                         layer_pbf,
                         vt->x(),

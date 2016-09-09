@@ -2,7 +2,7 @@ MAPNIK_PLUGINDIR := $(shell mapnik-config --input-plugins)
 BUILDTYPE ?= Release
 
 CLIPPER_REVISION=ac8d6bf2517f46c05647b5c19cac113fb180ffb4
-PROTOZERO_REVISION=v1.3.0
+PROTOZERO_REVISION=v1.4.2
 GYP_REVISION=3464008
 
 all: libvtile

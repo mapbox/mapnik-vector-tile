@@ -201,7 +201,7 @@ inline void feature_is_valid(protozero::pbf_reader & feature_msg,
                 }
                 has_raster = true;
                 ++raster_feature_count;
-                feature_msg.get_data();
+                feature_msg.get_view();
                 break;
             default:
                 errors.insert(FEATURE_HAS_UNKNOWN_TAG);

@@ -71,7 +71,7 @@ TEST_CASE("vector tile from simplified geojson")
     REQUIRE(layer_reader.next(mapnik::vector_tile_impl::Layer_Encoding::FEATURES));
     protozero::pbf_reader feature_reader = layer_reader.get_message();
     int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN; 
-    std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
+    mapnik::vector_tile_impl::GeometryPBF::pbf_itr geom_itr;
     while (feature_reader.next())
     {
         if (feature_reader.tag() == mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY)
