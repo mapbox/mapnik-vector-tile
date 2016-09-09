@@ -123,7 +123,7 @@ feature_ptr tile_featureset_pbf<Filter>::next()
         int32_t geometry_type = 0; // vector_tile::Tile_GeomType_UNKNOWN
         bool has_geometry = false;
         bool has_geometry_type = false;
-        std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
+        GeometryPBF::pbf_itr geom_itr;
         bool has_raster = false;
         std::unique_ptr<mapnik::image_reader> reader;
         while (f.next())
@@ -136,10 +136,10 @@ feature_ptr tile_featureset_pbf<Filter>::next()
                 case 2:
                     {
                         auto tag_iterator = f.get_packed_uint32();
-                        for (auto _i = tag_iterator.first; _i != tag_iterator.second;)
+                        for (auto _i = tag_iterator.begin(); _i != tag_iterator.end();)
                         {
                             std::size_t key_name = *(_i++);
-                            if (_i == tag_iterator.second)
+                            if (_i == tag_iterator.end())
                             {
                                 throw std::runtime_error("Vector Tile has a feature with an odd number of tags, therefore the tile is invalid.");
                             }
@@ -186,8 +186,8 @@ feature_ptr tile_featureset_pbf<Filter>::next()
                             throw std::runtime_error("Vector Tile has a feature with multiple raster fields, it must have only one of them");
                         }
                         has_raster = true;
-                        auto image_buffer = f.get_data();
-                        reader = std::unique_ptr<mapnik::image_reader>(mapnik::get_image_reader(image_buffer.first, image_buffer.second));
+                        auto image_buffer = f.get_view();
+                        reader = std::unique_ptr<mapnik::image_reader>(mapnik::get_image_reader(image_buffer.data(), image_buffer.size()));
                     }
                     break;
                 case 4:

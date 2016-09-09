@@ -74,14 +74,14 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
                 break;
             case Layer_Encoding::FEATURES:
                 {
-                    auto data_pair = layer_.get_data();
-                    protozero::pbf_reader check_feature(data_pair);
+                    const auto data_view = layer_.get_view();
+                    protozero::pbf_reader check_feature(data_view);
                     while (check_feature.next(Feature_Encoding::RASTER))
                     {
                         type_ = datasource::Raster;
                         check_feature.skip();
                     }
-                    protozero::pbf_reader f_msg(data_pair);
+                    protozero::pbf_reader f_msg(data_view);
                     features_.push_back(f_msg);
                 }
                 break;

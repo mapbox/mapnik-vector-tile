@@ -31,7 +31,8 @@ class GeometryPBF
 {
 public:
     using value_type = std::int64_t;
-    using pbf_itr = std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator >;
+    using iterator_type = protozero::pbf_reader::const_uint32_iterator;
+    using pbf_itr = protozero::iterator_range<iterator_type>;
     
     explicit GeometryPBF(pbf_itr const& geo_iterator);
 
@@ -53,7 +54,8 @@ public:
     command ring_next(value_type & rx, value_type & ry, bool skip_lineto_zero);
 
 private:
-    std::pair< protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator > geo_iterator_;
+    iterator_type geo_itr_;
+    iterator_type geo_end_itr_;
     value_type x, y;
     value_type ox, oy;
     uint32_t length;

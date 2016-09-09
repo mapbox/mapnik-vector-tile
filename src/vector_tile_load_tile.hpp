@@ -62,8 +62,8 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size, bool 
         {
             case Tile_Encoding::LAYERS:
                 {
-                    auto layer_data = tile_msg.get_data();
-                    protozero::pbf_reader layer_props_msg(layer_data);
+                    const auto layer_view = tile_msg.get_view();
+                    protozero::pbf_reader layer_props_msg(layer_view);
                     auto layer_info = get_layer_name_and_version(layer_props_msg);
                     std::string const& layer_name = layer_info.first;
                     std::uint32_t version = layer_info.second;
@@ -78,7 +78,7 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size, bool 
                         {
                             errors.insert(TILE_REPEATED_LAYER_NAMES);
                         }
-                        protozero::pbf_reader layer_valid_msg(layer_data);
+                        protozero::pbf_reader layer_valid_msg(layer_view);
                         layer_is_valid(layer_valid_msg, errors);
                         if (!errors.empty())
                         {
@@ -94,7 +94,7 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size, bool 
                     if (upgrade && version == 1)
                     {
                             // v1 tiles will be converted to v2
-                            protozero::pbf_reader layer_msg(layer_data);
+                            protozero::pbf_reader layer_msg(layer_view);
                             ds_vec.push_back(std::make_shared<mapnik::vector_tile_impl::tile_datasource_pbf>(
                                         layer_msg,
                                         t.x(),
@@ -104,7 +104,7 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size, bool 
                     }
                     else
                     {
-                        t.append_layer_buffer(layer_data.first, layer_data.second, layer_name);
+                        t.append_layer_buffer(layer_view.data(), layer_view.size(), layer_name);
                     }
                 }
                 break;

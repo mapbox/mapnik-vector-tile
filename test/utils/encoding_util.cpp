@@ -65,7 +65,7 @@ std::string compare_pbf(mapnik::geometry::geometry<std::int64_t> const& g, unsig
     REQUIRE(mapnik::vector_tile_impl::encode_geometry_pbf(g, feature_writer, x, y));
     protozero::pbf_reader feature_reader(feature_str);
     int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN; 
-    std::pair<protozero::pbf_reader::const_uint32_iterator, protozero::pbf_reader::const_uint32_iterator> geom_itr;
+    mapnik::vector_tile_impl::GeometryPBF::pbf_itr geom_itr;
     while (feature_reader.next())
     {
         if (feature_reader.tag() == mapnik::vector_tile_impl::Feature_Encoding::GEOMETRY)
