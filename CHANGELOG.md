@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.2
+
+- Upgraded to protozer 1.4.2
+- Added ability to dynamically get include paths by requiring module in node.js
+
 ## 1.2.1
 
 - Updated clipper
