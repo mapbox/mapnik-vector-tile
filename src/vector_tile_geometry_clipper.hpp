@@ -4,14 +4,14 @@
 // mapnik-vector-tile
 #include "vector_tile_config.hpp"
 #include "vector_tile_processor.hpp"
+#include "convert_geometry_types.hpp"
 
 // mapnik
 #include <mapnik/box2d.hpp>
 #include <mapnik/geometry.hpp>
 
-// angus clipper
-// http://www.angusj.com/delphi/clipper.php
-#include "clipper.hpp"
+// mapbox
+#include <mapbox/geometry/wagyu/wagyu.hpp>
 
 // boost
 #pragma GCC diagnostic push
@@ -29,69 +29,39 @@ namespace vector_tile_impl
 namespace detail
 {
 
-inline ClipperLib::PolyFillType get_angus_fill_type(polygon_fill_type type)
+template <typename T>
+double area(mapnik::geometry::linear_ring<T> const& poly) {
+    std::size_t size = poly.size();
+    if (size < 3) {
+        return 0.0;
+    }
+
+    double a = 0.0;
+    auto itr = poly.begin();
+    auto itr_prev = poly.end();
+    --itr_prev;
+    a += static_cast<double>(itr_prev->x + itr->x) * static_cast<double>(itr_prev->y - itr->y);
+    ++itr;
+    itr_prev = poly.begin();
+    for (; itr != poly.end(); ++itr, ++itr_prev) {
+        a += static_cast<double>(itr_prev->x + itr->x) * static_cast<double>(itr_prev->y - itr->y);
+    }
+    return -a * 0.5;
+}
+
+inline mapbox::geometry::wagyu::fill_type get_wagyu_fill_type(polygon_fill_type type)
 {
     switch (type) 
     {
     case polygon_fill_type_max:
     case even_odd_fill:
-        return ClipperLib::pftEvenOdd;
+        return mapbox::geometry::wagyu::fill_type_even_odd;
     case non_zero_fill: 
-        return ClipperLib::pftNonZero;
+        return mapbox::geometry::wagyu::fill_type_non_zero;
     case positive_fill:
-        return ClipperLib::pftPositive;
+        return mapbox::geometry::wagyu::fill_type_positive;
     case negative_fill:
-        return ClipperLib::pftNegative;
-    }
-}
-
-
-inline void process_polynode_branch(ClipperLib::PolyNode* polynode, 
-                                    mapnik::geometry::multi_polygon<std::int64_t> & mp,
-                                    double area_threshold)
-{
-    mapnik::geometry::polygon<std::int64_t> polygon;
-    polygon.set_exterior_ring(std::move(polynode->Contour));
-    if (polygon.exterior_ring.size() > 2) // Throw out invalid polygons
-    {
-        double outer_area = ClipperLib::Area(polygon.exterior_ring);
-        if (std::abs(outer_area) >= area_threshold)
-        {
-            // The view transform inverts the y axis so this should be positive still despite now
-            // being clockwise for the exterior ring. If it is not lets invert it.
-            if (outer_area < 0)
-            {   
-                std::reverse(polygon.exterior_ring.begin(), polygon.exterior_ring.end());
-            }
-            
-            // children of exterior ring are always interior rings
-            for (auto * ring : polynode->Childs)
-            {
-                if (ring->Contour.size() < 3)
-                {
-                    continue; // Throw out invalid holes
-                }
-                double inner_area = ClipperLib::Area(ring->Contour);
-                if (std::abs(inner_area) < area_threshold)
-                {
-                    continue;
-                }
-                
-                if (inner_area > 0)
-                {
-                    std::reverse(ring->Contour.begin(), ring->Contour.end());
-                }
-                polygon.add_hole(std::move(ring->Contour));
-            }
-            mp.push_back(std::move(polygon));
-        }
-    }
-    for (auto * ring : polynode->Childs)
-    {
-        for (auto * sub_ring : ring->Childs)
-        {
-            process_polynode_branch(sub_ring, mp, area_threshold);
-        }
+        return mapbox::geometry::wagyu::fill_type_negative;
     }
 }
 
@@ -214,22 +184,13 @@ public:
             return;
         }
         
-        double clean_distance = 1.415;
-        
-        // Prepare the clipper object
-        ClipperLib::Clipper clipper;
-        
-        if (strictly_simple_) 
-        {
-            clipper.StrictlySimple(true);
-        }
+        mapbox::geometry::wagyu::wagyu<std::int64_t> clipper;
         
         // Start processing on exterior ring
         // if proces_all_rings is true even if the exterior
         // ring is invalid we will continue to insert all polygon
         // rings into the clipper
-        ClipperLib::CleanPolygon(geom.exterior_ring, clean_distance);
-        double outer_area = ClipperLib::Area(geom.exterior_ring);
+        double outer_area = detail::area(geom.exterior_ring);
         if ((std::abs(outer_area) < area_threshold_)  && !process_all_rings_)
         {
             return;
@@ -242,7 +203,7 @@ public:
             std::reverse(geom.exterior_ring.begin(), geom.exterior_ring.end());
         }
 
-        if (!clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
+        if (!clipper.add_ring(mapnik_to_mapbox(geom.exterior_ring)) && !process_all_rings_)
         {
             return;
         }
@@ -253,8 +214,7 @@ public:
             {
                 continue;
             }
-            ClipperLib::CleanPolygon(ring, clean_distance);
-            double inner_area = ClipperLib::Area(ring);
+            double inner_area = detail::area(ring);
             if (std::abs(inner_area) < area_threshold_)
             {
                 continue;
@@ -265,14 +225,14 @@ public:
             {
                 std::reverse(ring.begin(), ring.end());
             }
-            if (!clipper.AddPath(ring, ClipperLib::ptSubject, true))
+            if (!clipper.add_ring(mapnik_to_mapbox(ring)))
             {
                 continue;
             }
         }
 
         // Setup the box for clipping
-        mapnik::geometry::linear_ring<std::int64_t> clip_box;
+        mapbox::geometry::linear_ring<std::int64_t> clip_box;
         clip_box.reserve(5);
         clip_box.emplace_back(tile_clipping_extent_.minx(), tile_clipping_extent_.miny());
         clip_box.emplace_back(tile_clipping_extent_.maxx(), tile_clipping_extent_.miny());
@@ -281,22 +241,19 @@ public:
         clip_box.emplace_back(tile_clipping_extent_.minx(), tile_clipping_extent_.miny());
         
         // Finally add the box we will be using for clipping
-        if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+        if (!clipper.add_ring(clip_box, mapbox::geometry::wagyu::polygon_type_clip))
         {
             return;
         }
 
-        ClipperLib::PolyTree polygons;
-        ClipperLib::PolyFillType fill_type = detail::get_angus_fill_type(fill_type_);
-        clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, ClipperLib::pftEvenOdd);
-        clipper.Clear();
+        mapbox::geometry::multi_polygon<std::int64_t> output;
+
+        clipper.execute(mapbox::geometry::wagyu::clip_type_intersection, 
+                        output, 
+                        detail::get_wagyu_fill_type(fill_type_), 
+                        mapbox::geometry::wagyu::fill_type_even_odd);
         
-        mapnik::geometry::multi_polygon<std::int64_t> mp;
-        
-        for (auto * polynode : polygons.Childs)
-        {
-            detail::process_polynode_branch(polynode, mp, area_threshold_); 
-        }
+        mapnik::geometry::multi_polygon<std::int64_t> mp = mapbox_to_mapnik(output);
 
         if (mp.empty())
         {
@@ -312,8 +269,7 @@ public:
             return;
         }
         
-        double clean_distance = 1.415;
-        mapnik::geometry::linear_ring<std::int64_t> clip_box;
+        mapbox::geometry::linear_ring<std::int64_t> clip_box;
         clip_box.reserve(5);
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
         clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
@@ -323,17 +279,9 @@ public:
         
         mapnik::geometry::multi_polygon<std::int64_t> mp;
         
-        ClipperLib::Clipper clipper;
-        
-        if (strictly_simple_) 
-        {
-            clipper.StrictlySimple(true);
-        }
-
-        ClipperLib::PolyFillType fill_type = detail::get_angus_fill_type(fill_type_);
-
         if (multi_polygon_union_)
         {
+            mapbox::geometry::wagyu::wagyu<std::int64_t> clipper;
             for (auto & poly : geom)
             {
                 // Below we attempt to skip processing of all interior rings if the exterior
@@ -345,8 +293,7 @@ public:
                 {
                     continue;
                 }
-                ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
-                double outer_area = ClipperLib::Area(poly.exterior_ring);
+                double outer_area = detail::area(poly.exterior_ring);
                 if ((std::abs(outer_area) < area_threshold_) && !process_all_rings_)
                 {
                     continue;
@@ -357,7 +304,7 @@ public:
                 {
                     std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
                 }
-                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
+                if (!clipper.add_ring(mapnik_to_mapbox(poly.exterior_ring)) && !process_all_rings_)
                 {
                     continue;
                 }
@@ -368,8 +315,7 @@ public:
                     {
                         continue;
                     }
-                    ClipperLib::CleanPolygon(ring, clean_distance);
-                    double inner_area = ClipperLib::Area(ring);
+                    double inner_area = detail::area(ring);
                     if (std::abs(inner_area) < area_threshold_)
                     {
                         continue;
@@ -380,26 +326,28 @@ public:
                     {
                         std::reverse(ring.begin(), ring.end());
                     }
-                    clipper.AddPath(ring, ClipperLib::ptSubject, true);
+                    clipper.add_ring(mapnik_to_mapbox(ring));
                 }
             }
-            if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+            if (!clipper.add_ring(clip_box, mapbox::geometry::wagyu::polygon_type_clip))
             {
                 return;
             }
-            ClipperLib::PolyTree polygons;
-            clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, ClipperLib::pftEvenOdd);
-            clipper.Clear();
+            mapbox::geometry::multi_polygon<std::int64_t> output;
+
+            clipper.execute(mapbox::geometry::wagyu::clip_type_intersection, 
+                            output, 
+                            detail::get_wagyu_fill_type(fill_type_), 
+                            mapbox::geometry::wagyu::fill_type_even_odd);
             
-            for (auto * polynode : polygons.Childs)
-            {
-                detail::process_polynode_branch(polynode, mp, area_threshold_); 
-            }
+            mapnik::geometry::multi_polygon<std::int64_t> temp_mp = mapbox_to_mapnik(output);
+            mp.insert(mp.end(), temp_mp.begin(), temp_mp.end());
         }
         else
         {
             for (auto & poly : geom)
             {
+                mapbox::geometry::wagyu::wagyu<std::int64_t> clipper;
                 // Below we attempt to skip processing of all interior rings if the exterior
                 // ring fails a variety of sanity checks for size and validity for AddPath
                 // When `process_all_rings_=true` this optimization is disabled. This is needed when
@@ -409,8 +357,7 @@ public:
                 {
                     continue;
                 }
-                ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
-                double outer_area = ClipperLib::Area(poly.exterior_ring);
+                double outer_area = detail::area(poly.exterior_ring);
                 if ((std::abs(outer_area) < area_threshold_) && !process_all_rings_)
                 {
                     continue;
@@ -421,7 +368,7 @@ public:
                 {
                     std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
                 }
-                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
+                if (!clipper.add_ring(mapnik_to_mapbox(poly.exterior_ring)) && !process_all_rings_)
                 {
                     continue;
                 }
@@ -431,8 +378,7 @@ public:
                     {
                         continue;
                     }
-                    ClipperLib::CleanPolygon(ring, clean_distance);
-                    double inner_area = ClipperLib::Area(ring);
+                    double inner_area = detail::area(ring);
                     if (std::abs(inner_area) < area_threshold_)
                     {
                         continue;
@@ -443,23 +389,24 @@ public:
                     {
                         std::reverse(ring.begin(), ring.end());
                     }
-                    if (!clipper.AddPath(ring, ClipperLib::ptSubject, true))
+                    if (!clipper.add_ring(mapnik_to_mapbox(ring)))
                     {
                         continue;
                     }
                 }
-                if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
+                if (!clipper.add_ring(clip_box, mapbox::geometry::wagyu::polygon_type_clip))
                 {
-                    return;
+                    continue;
                 }
-                ClipperLib::PolyTree polygons;
-                clipper.Execute(ClipperLib::ctIntersection, polygons, fill_type, ClipperLib::pftEvenOdd);
-                clipper.Clear();
+                mapbox::geometry::multi_polygon<std::int64_t> output;
+
+                clipper.execute(mapbox::geometry::wagyu::clip_type_intersection, 
+                                output, 
+                                detail::get_wagyu_fill_type(fill_type_), 
+                                mapbox::geometry::wagyu::fill_type_even_odd);
                 
-                for (auto * polynode : polygons.Childs)
-                {
-                    detail::process_polynode_branch(polynode, mp, area_threshold_); 
-                }
+                mapnik::geometry::multi_polygon<std::int64_t> temp_mp = mapbox_to_mapnik(output);
+                mp.insert(mp.end(), temp_mp.begin(), temp_mp.end());
             }
         }
 

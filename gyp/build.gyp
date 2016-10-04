@@ -93,6 +93,7 @@
       ],
       'include_dirs': [
         '../deps/protozero/include',
+        '../deps/wagyu/include',
         '../deps/clipper/cpp'
       ],
       'xcode_settings': {
@@ -104,6 +105,7 @@
         'include_dirs': [
           '<(SHARED_INTERMEDIATE_DIR)/',
           '../deps/protozero/include',
+          '../deps/wagyu/include',
           '../deps/clipper/cpp'
         ],
         'defines' : [

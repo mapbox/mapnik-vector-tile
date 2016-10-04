@@ -2,7 +2,8 @@ MAPNIK_PLUGINDIR := $(shell mapnik-config --input-plugins)
 BUILDTYPE ?= Release
 
 CLIPPER_REVISION=ac8d6bf2517f46c05647b5c19cac113fb180ffb4
-PROTOZERO_REVISION=v1.5.1
+PROTOZERO_REVISION=master
+PROTOZERO_REVISION=v1.4.2
 GYP_REVISION=3464008
 
 all: libvtile
@@ -13,10 +14,13 @@ all: libvtile
 ./deps/protozero:
 	git clone https://github.com/mapbox/protozero.git ./deps/protozero && cd ./deps/protozero && git checkout $(PROTOZERO_REVISION)
 
+./deps/wagyu:
+	git clone https://github.com/mapbox/wagyu.git ./deps/wagyu && cd ./deps/wagyu && git checkout $(WAGYU_REVISION)
+
 ./deps/clipper:
 	git clone https://github.com/mapnik/clipper.git -b r496-mapnik ./deps/clipper && cd ./deps/clipper && git checkout $(CLIPPER_REVISION) && ./cpp/fix_members.sh
 
-build/Makefile: ./deps/gyp ./deps/clipper ./deps/protozero gyp/build.gyp test/*
+build/Makefile: ./deps/gyp ./deps/clipper ./deps/protozero ./deps/wagyu gyp/build.gyp test/*
 	deps/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(MAPNIK_PLUGINDIR)\" -Goutput_dir=. --generator-output=./build -f make
 
 libvtile: build/Makefile Makefile
@@ -38,6 +42,7 @@ clean:
 	rm -rf ./build
 	rm -rf ./deps/protozero
 	rm -rf ./deps/clipper
+	rm -rf ./deps/wagyu
 
 .PHONY: test
 
