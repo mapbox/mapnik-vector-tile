@@ -18,6 +18,7 @@ template <typename T>
 mapbox::geometry::linear_ring<T> mapnik_to_mapbox(mapnik::geometry::linear_ring<T> const& input)
 {
     mapbox::geometry::linear_ring<T> r;
+    r.reserve(input.size());
     for (auto const& pt : input) {
         r.emplace_back(pt.x, pt.y);
     }
@@ -56,6 +57,7 @@ template <typename T>
 mapnik::geometry::linear_ring<T> mapbox_to_mapnik(mapbox::geometry::linear_ring<T> const& input)
 {
     mapnik::geometry::linear_ring<T> r;
+    r.reserve(input.size());
     for (auto const& pt : input) {
         r.emplace_back(pt.x, pt.y);
     }
