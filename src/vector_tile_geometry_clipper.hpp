@@ -185,6 +185,7 @@ public:
         }
         
         mapbox::geometry::wagyu::wagyu<std::int64_t> clipper;
+        clipper.reverse_rings(true);
         
         // Start processing on exterior ring
         // if proces_all_rings is true even if the exterior
@@ -282,6 +283,7 @@ public:
         if (multi_polygon_union_)
         {
             mapbox::geometry::wagyu::wagyu<std::int64_t> clipper;
+            clipper.reverse_rings(true);
             for (auto & poly : geom)
             {
                 // Below we attempt to skip processing of all interior rings if the exterior
@@ -348,6 +350,7 @@ public:
             for (auto & poly : geom)
             {
                 mapbox::geometry::wagyu::wagyu<std::int64_t> clipper;
+                clipper.reverse_rings(true);
                 // Below we attempt to skip processing of all interior rings if the exterior
                 // ring fails a variety of sanity checks for size and validity for AddPath
                 // When `process_all_rings_=true` this optimization is disabled. This is needed when

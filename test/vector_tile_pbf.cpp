@@ -427,15 +427,14 @@ TEST_CASE("pbf vector tile from simplified geojson")
           CHECK( mapnik::util::to_geojson(geojson_string,projected_geom) );
           std::string geojson_file = "./test/data/simplified_geometry_pbf.geojson";
           mapnik::util::file input(geojson_file);
-          if (input.is_open())
-          {
-              std::string json_string(input.data().get(), input.size());
-              CHECK (geojson_string == json_string);
-          }
           if (!mapnik::util::exists(geojson_file) || (std::getenv("UPDATE") != nullptr))
           {
               std::ofstream out(geojson_file);
               out << geojson_string;
+          } else if (input.is_open())
+          {
+              std::string json_string(input.data().get(), input.size());
+              CHECK (geojson_string == json_string);
           }
           break;
       }

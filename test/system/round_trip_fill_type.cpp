@@ -30,7 +30,7 @@ TEST_CASE("vector tile polygon even odd fill")
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(poly,0,mapnik::vector_tile_impl::even_odd_fill);
     std::string wkt;
     CHECK( test_utils::to_wkt(wkt, new_geom) );
-    CHECK( wkt == "POLYGON((128 -128,128 -113.778,120.889 -113.778,120.889 -128,128 -128),(123.022 -118.044,125.867 -118.044,125.867 -123.733,123.022 -123.733,123.022 -118.044))");
+    CHECK( wkt == "POLYGON((128 -113.778,120.889 -113.778,120.889 -128,128 -128,128 -113.778),(123.022 -123.733,123.022 -118.044,125.867 -118.044,125.867 -123.733,123.022 -123.733))");
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     REQUIRE( new_geom.is<mapnik::geometry::polygon<double> >() );
 }
@@ -58,7 +58,7 @@ TEST_CASE("vector tile polygon non zero fill")
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(poly,0,mapnik::vector_tile_impl::non_zero_fill);
     std::string wkt;
     CHECK( test_utils::to_wkt(wkt, new_geom) );
-    CHECK( wkt == "POLYGON((128 -128,128 -113.778,120.889 -113.778,120.889 -128,128 -128),(123.022 -118.044,125.867 -118.044,125.867 -123.733,123.022 -123.733,123.022 -118.044))");
+    CHECK( wkt == "POLYGON((128 -113.778,120.889 -113.778,120.889 -128,128 -128,128 -113.778),(123.022 -123.733,123.022 -118.044,125.867 -118.044,125.867 -123.733,123.022 -123.733))");
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     REQUIRE( new_geom.is<mapnik::geometry::polygon<double> >() );
 }

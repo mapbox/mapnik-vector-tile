@@ -137,7 +137,7 @@ TEST_CASE("vector tile transform -- should not throw on coords outside merc rang
     // serialize to message
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(70 == buffer.size());
+    CHECK(71 == buffer.size());
     // now create new objects
     mapnik::Map map2(256,256,"+init=epsg:3857");
     vector_tile::Tile tile2;
