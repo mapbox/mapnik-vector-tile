@@ -2,8 +2,8 @@
 
 # encode geojson
 if [ "$1" == "encode" ] ; then
-	FILE_PATH=../test/geometry-test-data/input/*
-	COMMAND=../build/Release/vtile-encode
+	FILE_PATH=./test/geometry-test-data/input/*
+	COMMAND=./build/Release/vtile-encode
 	for f in $FILE_PATH
 	do
 		echo "${f##*/}"
@@ -16,8 +16,8 @@ if [ "$1" == "encode" ] ; then
 	done
 #decode pbf
 elif [ "$1" == "decode" ] ; then
-	FILE_PATH=../test/data/**.pbf
-	COMMAND=../build/Release/vtile-decode
+	FILE_PATH=./test/data/**.pbf
+	COMMAND=./build/Release/vtile-decode
 	for f in $FILE_PATH
 	do
 		echo "${f##*/}"
