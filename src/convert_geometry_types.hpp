@@ -5,7 +5,8 @@
 #include <mapnik/geometry.hpp>
 
 // Mapbox
-#include <mapbox/geometry.hpp>
+#include <mapbox/geometry/multi_polygon.hpp>
+#include <mapbox/geometry/polygon.hpp>
 
 
 namespace mapnik

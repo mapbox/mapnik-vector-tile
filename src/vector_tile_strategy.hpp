@@ -8,8 +8,6 @@
 #include <mapnik/view_transform.hpp>
 #include <mapnik/geometry_envelope.hpp>
 
-#include "clipper.hpp"
-
 #pragma GCC diagnostic push
 #include <mapnik/warning_ignore.hpp>
 #include <boost/geometry/core/coordinate_type.hpp>
@@ -20,8 +18,9 @@ namespace mapnik {
 
 namespace vector_tile_impl {
 
-static constexpr double coord_max = static_cast<double>(ClipperLib::hiRange);
-static constexpr double coord_min = -1 * static_cast<double>(ClipperLib::hiRange);
+static constexpr std::int64_t hiRange = 0x3FFFFFFFFFFFFFFFLL;
+static constexpr double coord_max = static_cast<double>(hiRange);
+static constexpr double coord_min = -1 * static_cast<double>(hiRange);
 
 struct vector_tile_strategy
 {
