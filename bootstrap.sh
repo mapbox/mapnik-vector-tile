@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MASON_VERSION="new-pkgs"
+MASON_VERSION="3e2944322"
 
 function setup_mason() {
     if [[ ! -d ./.mason ]]; then
