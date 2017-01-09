@@ -13,15 +13,18 @@
 #include <mapnik/vertex_adapters.hpp>
 #include <mapnik/projection.hpp>
 #include <mapnik/proj_transform.hpp>
-#include <mapnik/geometry_is_empty.hpp>
+#include <mapnik/geometry/is_empty.hpp>
 #include <mapnik/util/file_io.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
-#include <mapnik/geometry_reprojection.hpp>
-#include <mapnik/geometry_transform.hpp>
-#include <mapnik/geometry_strategy.hpp>
+#include <mapnik/geometry/reprojection.hpp>
+#include <mapnik/geometry/transform.hpp>
+#include <mapnik/geometry/strategy.hpp>
 #include <mapnik/proj_strategy.hpp>
 #include <mapnik/geometry.hpp>
 #include <mapnik/datasource_cache.hpp>
+
+// mapbox
+#include <mapbox/geometry.hpp>
 
 // boost
 #include <boost/optional/optional_io.hpp>
@@ -214,17 +217,17 @@ TEST_CASE("pbf vector tile datasource")
 
 TEST_CASE("pbf encoding multi line")
 {
-    mapnik::geometry::multi_line_string<std::int64_t> geom;
+    mapbox::geometry::multi_line_string<std::int64_t> geom;
     {
-        mapnik::geometry::line_string<std::int64_t> ring;
-        ring.add_coord(0,0);
-        ring.add_coord(2,2);
+        mapbox::geometry::line_string<std::int64_t> ring;
+        ring.emplace_back(0,0);
+        ring.emplace_back(2,2);
         geom.emplace_back(std::move(ring));
     }
     {
-        mapnik::geometry::line_string<std::int64_t> ring;
-        ring.add_coord(1,1);
-        ring.add_coord(2,2);
+        mapbox::geometry::line_string<std::int64_t> ring;
+        ring.emplace_back(1,1);
+        ring.emplace_back(2,2);
         geom.emplace_back(std::move(ring));
     }
     vector_tile::Tile tile;

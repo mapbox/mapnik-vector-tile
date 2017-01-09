@@ -8,8 +8,8 @@
 #include <mapnik/datasource_cache.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/geometry.hpp>
-#include <mapnik/geometry_is_empty.hpp>
-#include <mapnik/geometry_reprojection.hpp>
+#include <mapnik/geometry/is_empty.hpp>
+#include <mapnik/geometry/reprojection.hpp>
 #include <mapnik/image_util.hpp>
 #include <mapnik/load_map.hpp>
 #include <mapnik/memory_datasource.hpp>

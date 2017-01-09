@@ -1,7 +1,7 @@
 #include <limits>
 #include <iostream>
 #include <mapnik/projection.hpp>
-#include <mapnik/geometry_transform.hpp>
+#include <mapnik/geometry/transform.hpp>
 
 #include "vector_tile_strategy.hpp"
 #include "vector_tile_projection.hpp"
@@ -125,19 +125,11 @@ TEST_CASE("vector_tile_strategy2 -- invalid mercator coord in interior ring")
                                                 mapnik::vector_tile_impl::geom_out_visitor<int64_t> > 
                                            skipping_transformer(vs, clip_extent, out_geom);
     mapnik::util::apply_visitor(skipping_transformer,geom);
-    mapnik::geometry::geometry<std::int64_t> new_geom = out_geom.geom;
-    REQUIRE( new_geom.is<mapnik::geometry::polygon<std::int64_t>>() );
-    auto const& poly = mapnik::util::get<mapnik::geometry::polygon<std::int64_t>>(new_geom);
-    for (auto const& pt : poly.exterior_ring)
-    {
-        INFO( pt.x )
-        INFO( ClipperLib::hiRange )
-        REQUIRE( (pt.x < ClipperLib::hiRange) );
-        REQUIRE( (pt.y < ClipperLib::hiRange) );
-        REQUIRE( (-pt.x < ClipperLib::hiRange) );
-        REQUIRE( (-pt.y < ClipperLib::hiRange) );
-    }
-    for (auto const& ring : poly.interior_rings)
+    REQUIRE( out_geom.geom );
+    mapbox::geometry::geometry<std::int64_t> new_geom = *out_geom.geom;
+    REQUIRE( new_geom.is<mapbox::geometry::polygon<std::int64_t>>() );
+    auto const& poly = mapbox::util::get<mapbox::geometry::polygon<std::int64_t>>(new_geom);
+    for (auto const& ring : poly)
     {
         for (auto const& pt : ring)
         {

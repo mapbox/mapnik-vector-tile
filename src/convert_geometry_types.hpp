@@ -30,7 +30,7 @@ template <typename T>
 mapbox::geometry::polygon<T> mapnik_to_mapbox(mapnik::geometry::polygon<T> const& input)
 {
     mapbox::geometry::polygon<T> out;
-    if (input.interior_ring.empty())
+    if (input.exterior_ring.empty())
     {
         return out;
     }

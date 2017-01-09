@@ -6,10 +6,17 @@
 #include <mapnik/util/noncopyable.hpp>
 #include <mapnik/proj_transform.hpp>
 #include <mapnik/view_transform.hpp>
-#include <mapnik/geometry_envelope.hpp>
+#include <mapnik/geometry/envelope.hpp>
+#include <mapnik/geometry.hpp>
+
+// mapbox
+#include <mapbox/geometry.hpp>
+
+#include <experimental/optional>
 
 #pragma GCC diagnostic push
 #include <mapnik/warning_ignore.hpp>
+#include "boost_geometry_adapters.hpp"
 #include <boost/geometry/core/coordinate_type.hpp>
 #include <boost/geometry/core/access.hpp>
 #pragma GCC diagnostic pop
@@ -94,12 +101,13 @@ struct vector_tile_strategy_proj
 template <typename T>
 struct geom_out_visitor
 {
-    mapnik::geometry::geometry<T> geom;
+    using optional_geometry = std::experimental::optional<mapbox::geometry::geometry<T>>;
+    optional_geometry geom;
 
     template <typename T1>
     void operator() (T1 const& g)
     {
-        geom = mapnik::geometry::geometry<T>(g);
+        geom = optional_geometry(mapbox::geometry::geometry<T>(g));
     }
 };
 
@@ -124,7 +132,7 @@ struct transform_visitor
         {
             return;
         }
-        mapnik::geometry::point<std::int64_t> new_geom;
+        mapbox::geometry::point<std::int64_t> new_geom;
         if (!tr_.apply(geom,new_geom))
         {
             return;
@@ -134,11 +142,11 @@ struct transform_visitor
 
     inline void operator() (mapnik::geometry::multi_point<double> const& geom)
     {
-        mapnik::geometry::multi_point<std::int64_t> new_geom;
+        mapbox::geometry::multi_point<std::int64_t> new_geom;
         new_geom.reserve(geom.size());
         for (auto const& pt : geom)
         {
-            mapnik::geometry::point<std::int64_t> pt2;
+            mapbox::geometry::point<std::int64_t> pt2;
             if (target_clipping_extent_.intersects(pt.x, pt.y) && tr_.apply(pt,pt2))
             {
                 new_geom.push_back(std::move(pt2));
@@ -158,11 +166,11 @@ struct transform_visitor
         {
             return;
         }
-        mapnik::geometry::line_string<std::int64_t> new_geom;
+        mapbox::geometry::line_string<std::int64_t> new_geom;
         new_geom.reserve(geom.size());
         for (auto const& pt : geom)
         {
-            mapnik::geometry::point<std::int64_t> pt2;
+            mapbox::geometry::point<std::int64_t> pt2;
             if (tr_.apply(pt,pt2))
             {
                 new_geom.push_back(std::move(pt2));
@@ -173,17 +181,17 @@ struct transform_visitor
 
     inline void operator() (mapnik::geometry::multi_line_string<double> const& geom)
     {
-        mapnik::geometry::multi_line_string<std::int64_t> new_geom;
+        mapbox::geometry::multi_line_string<std::int64_t> new_geom;
         new_geom.reserve(geom.size());
         for (auto const& line : geom)
         {
             mapnik::box2d<double> line_bbox = mapnik::geometry::envelope(line);
             if (!target_clipping_extent_.intersects(line_bbox)) continue;
-            mapnik::geometry::line_string<std::int64_t> new_line;
+            mapbox::geometry::line_string<std::int64_t> new_line;
             new_line.reserve(line.size());
             for (auto const& pt : line)
             {
-                mapnik::geometry::point<std::int64_t> pt2;
+                mapbox::geometry::point<std::int64_t> pt2;
                 if (tr_.apply(pt,pt2))
                 {
                     new_line.push_back(std::move(pt2));
@@ -205,16 +213,18 @@ struct transform_visitor
         {
             return;
         }
-        mapnik::geometry::polygon<std::int64_t> new_geom;
-        new_geom.exterior_ring.reserve(geom.exterior_ring.size());
+        mapbox::geometry::polygon<std::int64_t> new_geom;
+        mapbox::geometry::linear_ring<std::int64_t> exterior_ring;
+        exterior_ring.reserve(geom.exterior_ring.size());
         for (auto const& pt : geom.exterior_ring)
         {
-            mapnik::geometry::point<std::int64_t> pt2;
+            mapbox::geometry::point<std::int64_t> pt2;
             if (tr_.apply(pt,pt2))
             {
-                new_geom.exterior_ring.push_back(std::move(pt2));
+                exterior_ring.push_back(std::move(pt2));
             }
         }
+        new_geom.push_back(std::move(exterior_ring));
         for (auto const& ring : geom.interior_rings)
         {
             mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(static_cast<mapnik::geometry::line_string<double> const&>(ring));
@@ -222,24 +232,24 @@ struct transform_visitor
             {
                 continue;
             }
-            mapnik::geometry::linear_ring<std::int64_t> new_ring;
+            mapbox::geometry::linear_ring<std::int64_t> new_ring;
             new_ring.reserve(ring.size());
             for (auto const& pt : ring)
             {
-                mapnik::geometry::point<std::int64_t> pt2;
+                mapbox::geometry::point<std::int64_t> pt2;
                 if (tr_.apply(pt,pt2))
                 {
                     new_ring.push_back(std::move(pt2));
                 }
             }
-            new_geom.interior_rings.push_back(std::move(new_ring));
+            new_geom.push_back(std::move(new_ring));
         }
         return next_(new_geom);
     }
 
     inline void operator() (mapnik::geometry::multi_polygon<double> const& geom)
     {
-        mapnik::geometry::multi_polygon<std::int64_t> new_geom;
+        mapbox::geometry::multi_polygon<std::int64_t> new_geom;
         new_geom.reserve(geom.size());
         for (auto const& poly : geom)
         {
@@ -248,16 +258,18 @@ struct transform_visitor
             {
                 continue;
             }
-            mapnik::geometry::polygon<std::int64_t> new_poly;
-            new_poly.exterior_ring.reserve(poly.exterior_ring.size());
+            mapbox::geometry::polygon<std::int64_t> new_poly;
+            mapbox::geometry::linear_ring<std::int64_t> exterior_ring;
+            exterior_ring.reserve(poly.exterior_ring.size());
             for (auto const& pt : poly.exterior_ring)
             {
-                mapnik::geometry::point<std::int64_t> pt2;
+                mapbox::geometry::point<std::int64_t> pt2;
                 if (tr_.apply(pt,pt2))
                 {
-                    new_poly.exterior_ring.push_back(std::move(pt2));
+                    exterior_ring.push_back(std::move(pt2));
                 }
             }
+            new_poly.push_back(std::move(exterior_ring));
             for (auto const& ring : poly.interior_rings)
             {
                 mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(static_cast<mapnik::geometry::line_string<double> const&>(ring));
@@ -265,17 +277,17 @@ struct transform_visitor
                 {
                     continue;
                 }
-                mapnik::geometry::linear_ring<std::int64_t> new_ring;
+                mapbox::geometry::linear_ring<std::int64_t> new_ring;
                 new_ring.reserve(ring.size());
                 for (auto const& pt : ring)
                 {
-                    mapnik::geometry::point<std::int64_t> pt2;
+                    mapbox::geometry::point<std::int64_t> pt2;
                     if (tr_.apply(pt,pt2))
                     {
                         new_ring.push_back(std::move(pt2));
                     }
                 }
-                new_poly.interior_rings.push_back(std::move(new_ring));
+                new_poly.push_back(std::move(new_ring));
             }
             new_geom.push_back(std::move(new_poly));
         }

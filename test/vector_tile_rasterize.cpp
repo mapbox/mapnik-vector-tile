@@ -122,7 +122,7 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
     // now `tile` should contain all the data
     std::string buffer2;
     out_tile.serialize_to_string(buffer2);
-    CHECK(2910 == buffer2.size());
+    CHECK(2939 == buffer2.size());
 
     std::ofstream stream_out("./test/data/0.0.0.vector-b.mvt",std::ios_base::out|std::ios_base::binary);
     stream_out << buffer2;
@@ -169,7 +169,7 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
         ren.apply();
         unsigned diff = testing::compare_images(im,"test/fixtures/rasterize-expected-1.png");
         // should be almost equal (111 is good enough since re-rendering filters a few small degenerates)
-        CHECK(125 == diff);
+        CHECK(84 >= diff);
         if (diff > 125)
         {
             mapnik::save_to_file(im,"test/fixtures/rasterize-actual-1.png","png32");

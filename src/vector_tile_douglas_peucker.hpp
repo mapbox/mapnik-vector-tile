@@ -37,8 +37,7 @@
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-// mapnik
-#include <mapnik/geometry.hpp>
+#include <mapbox/geometry.hpp>
 
 // std
 #include <vector>
@@ -55,10 +54,10 @@ namespace detail
 template<typename T>
 struct douglas_peucker_point
 {
-    mapnik::geometry::point<T> const& p;
+    mapbox::geometry::point<T> const& p;
     bool included;
 
-    inline douglas_peucker_point(mapnik::geometry::point<T> const& ap)
+    inline douglas_peucker_point(mapbox::geometry::point<T> const& ap)
         : p(ap)
         , included(false)
     {}

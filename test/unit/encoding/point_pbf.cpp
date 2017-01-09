@@ -3,8 +3,8 @@
 // mapnik vector tile
 #include "vector_tile_geometry_encoder_pbf.hpp"
 
-// mapnik
-#include <mapnik/geometry.hpp>
+// mapbox
+#include <mapbox/geometry.hpp>
 
 // protozero
 #include <protozero/pbf_writer.hpp>
@@ -25,7 +25,7 @@
 
 TEST_CASE("encode pbf simple point")
 {
-    mapnik::geometry::point<std::int64_t> point(10,10);
+    mapbox::geometry::point<std::int64_t> point(10,10);
     
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -47,8 +47,8 @@ TEST_CASE("encode pbf simple point")
 
 TEST_CASE("encode pbf simple point -- geometry type")
 {
-    mapnik::geometry::point<std::int64_t> point(10,10);
-    mapnik::geometry::geometry<std::int64_t> geom(point);
+    mapbox::geometry::point<std::int64_t> point(10,10);
+    mapbox::geometry::geometry<std::int64_t> geom(point);
 
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -70,7 +70,7 @@ TEST_CASE("encode pbf simple point -- geometry type")
 
 TEST_CASE("encode pbf simple negative point")
 {
-    mapnik::geometry::point<std::int64_t> point(-10,-10);
+    mapbox::geometry::point<std::int64_t> point(-10,-10);
     
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -92,11 +92,11 @@ TEST_CASE("encode pbf simple negative point")
 
 TEST_CASE("encode pbf simple multi point -- geometry type")
 {
-    mapnik::geometry::multi_point<std::int64_t> mp;
-    mp.add_coord(10,10);
-    mp.add_coord(20,20);
-    mp.add_coord(30,30);
-    mapnik::geometry::geometry<std::int64_t> geom(mp);
+    mapbox::geometry::multi_point<std::int64_t> mp;
+    mp.emplace_back(10,10);
+    mp.emplace_back(20,20);
+    mp.emplace_back(30,30);
+    mapbox::geometry::geometry<std::int64_t> geom(mp);
     
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -124,10 +124,10 @@ TEST_CASE("encode pbf simple multi point -- geometry type")
 
 TEST_CASE("encode pbf simple multi point")
 {
-    mapnik::geometry::multi_point<std::int64_t> mp;
-    mp.add_coord(10,10);
-    mp.add_coord(20,20);
-    mp.add_coord(30,30);
+    mapbox::geometry::multi_point<std::int64_t> mp;
+    mp.emplace_back(10,10);
+    mp.emplace_back(20,20);
+    mp.emplace_back(30,30);
     
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -155,10 +155,10 @@ TEST_CASE("encode pbf simple multi point")
 
 TEST_CASE("encode pbf multi point with repeated points")
 {
-    mapnik::geometry::multi_point<std::int64_t> mp;
-    mp.add_coord(10,10);
-    mp.add_coord(10,10);
-    mp.add_coord(20,20);
+    mapbox::geometry::multi_point<std::int64_t> mp;
+    mp.emplace_back(10,10);
+    mp.emplace_back(10,10);
+    mp.emplace_back(20,20);
     
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -186,7 +186,7 @@ TEST_CASE("encode pbf multi point with repeated points")
 
 TEST_CASE("encode pbf empty multi point geometry")
 {
-    mapnik::geometry::multi_point<std::int64_t> mp;
+    mapbox::geometry::multi_point<std::int64_t> mp;
     
     std::int32_t x = 0;
     std::int32_t y = 0;

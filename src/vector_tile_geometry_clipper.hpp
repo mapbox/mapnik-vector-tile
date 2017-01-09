@@ -4,13 +4,10 @@
 // mapnik-vector-tile
 #include "vector_tile_config.hpp"
 #include "vector_tile_processor.hpp"
-#include "convert_geometry_types.hpp"
-
-// mapnik
-#include <mapnik/box2d.hpp>
-#include <mapnik/geometry.hpp>
 
 // mapbox
+#include <mapbox/geometry.hpp>
+#include <mapbox/geometry/wagyu/quick_clip.hpp>
 #include <mapbox/geometry/wagyu/wagyu.hpp>
 
 // boost
@@ -30,7 +27,7 @@ namespace detail
 {
 
 template <typename T>
-double area(mapnik::geometry::linear_ring<T> const& poly) {
+double area(mapbox::geometry::linear_ring<T> const& poly) {
     std::size_t size = poly.size();
     if (size < 3) {
         return 0.0;
@@ -96,17 +93,12 @@ public:
     {
     }
 
-    void operator() (mapnik::geometry::geometry_empty &)
-    {
-        return;
-    }
-
-    void operator() (mapnik::geometry::point<std::int64_t> & geom)
+    void operator() (mapbox::geometry::point<std::int64_t> & geom)
     {
         next_(geom);
     }
 
-    void operator() (mapnik::geometry::multi_point<std::int64_t> & geom)
+    void operator() (mapbox::geometry::multi_point<std::int64_t> & geom)
     {
         // Here we remove repeated points from multi_point
         auto last = std::unique(geom.begin(), geom.end());
@@ -114,24 +106,23 @@ public:
         next_(geom);
     }
 
-    void operator() (mapnik::geometry::geometry_collection<std::int64_t> & geom)
+    void operator() (mapbox::geometry::geometry_collection<std::int64_t> & geom)
     {
         for (auto & g : geom)
         {
-            mapnik::util::apply_visitor((*this), g);
+            mapbox::util::apply_visitor((*this), g);
         }
     }
 
-    void operator() (mapnik::geometry::line_string<std::int64_t> & geom)
+    void operator() (mapbox::geometry::line_string<std::int64_t> & geom)
     {
         boost::geometry::unique(geom);
         if (geom.size() < 2)
         {
             return;
         }
-        //std::deque<mapnik::geometry::line_string<int64_t>> result;
-        mapnik::geometry::multi_line_string<int64_t> result;
-        mapnik::geometry::linear_ring<std::int64_t> clip_box;
+        mapbox::geometry::multi_line_string<int64_t> result;
+        mapbox::geometry::linear_ring<std::int64_t> clip_box;
         clip_box.reserve(5);
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
         clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
@@ -146,14 +137,14 @@ public:
         next_(result);
     }
 
-    void operator() (mapnik::geometry::multi_line_string<std::int64_t> & geom)
+    void operator() (mapbox::geometry::multi_line_string<std::int64_t> & geom)
     {
         if (geom.empty())
         {
             return;
         }
 
-        mapnik::geometry::linear_ring<std::int64_t> clip_box;
+        mapbox::geometry::linear_ring<std::int64_t> clip_box;
         clip_box.reserve(5);
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
         clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
@@ -161,7 +152,7 @@ public:
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.maxy());
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
         boost::geometry::unique(geom);
-        mapnik::geometry::multi_line_string<int64_t> results;
+        mapbox::geometry::multi_line_string<int64_t> results;
         for (auto const& line : geom)
         {
             if (line.size() < 2)
@@ -177,84 +168,71 @@ public:
         next_(results);
     }
 
-    void operator() (mapnik::geometry::polygon<std::int64_t> & geom)
+    void operator() (mapbox::geometry::polygon<std::int64_t> & geom)
     {
-        if ((geom.exterior_ring.size() < 3) && !process_all_rings_)
+        if (geom.empty() || ((geom.front().size() < 3) && !process_all_rings_))
         {
             return;
         }
         
         mapbox::geometry::wagyu::wagyu<std::int64_t> clipper;
-        clipper.reverse_rings(true);
+        mapbox::geometry::point<std::int64_t> min_pt(tile_clipping_extent_.minx(), tile_clipping_extent_.miny());
+        mapbox::geometry::point<std::int64_t> max_pt(tile_clipping_extent_.maxx(), tile_clipping_extent_.maxy());
+        mapbox::geometry::box<std::int64_t> b(min_pt, max_pt);
+        //clipper.reverse_rings(true);
         
-        // Start processing on exterior ring
-        // if proces_all_rings is true even if the exterior
-        // ring is invalid we will continue to insert all polygon
-        // rings into the clipper
-        double outer_area = detail::area(geom.exterior_ring);
-        if ((std::abs(outer_area) < area_threshold_)  && !process_all_rings_)
-        {
-            return;
-        }
-
-        // The view transform inverts the y axis so this should be positive still despite now
-        // being clockwise for the exterior ring. If it is not lets invert it.
-        if (outer_area < 0)
-        {   
-            std::reverse(geom.exterior_ring.begin(), geom.exterior_ring.end());
-        }
-
-        if (!clipper.add_ring(mapnik_to_mapbox(geom.exterior_ring)) && !process_all_rings_)
-        {
-            return;
-        }
-
-        for (auto & ring : geom.interior_rings)
-        {
+        bool first = true;
+        for (auto & ring : geom) {
             if (ring.size() < 3) 
             {
+                if (first) {
+                    if (process_all_rings_) {
+                        first = false;
+                    } else {
+                        return;
+                    }
+                }
                 continue;
             }
-            double inner_area = detail::area(ring);
-            if (std::abs(inner_area) < area_threshold_)
-            {
-                continue;
-            }
-            // This should be a negative area, the y axis is down, so the ring will be "CCW" rather
-            // then "CW" after the view transform, but if it is not lets reverse it
-            if (inner_area > 0)
-            {
-                std::reverse(ring.begin(), ring.end());
-            }
-            if (!clipper.add_ring(mapnik_to_mapbox(ring)))
-            {
-                continue;
+            double area = detail::area(ring);
+            if (first) {
+                first = false;
+                if ((std::abs(area) < area_threshold_)  && !process_all_rings_) {
+                    return;
+                }
+                if (area < 0) {   
+                    std::reverse(ring.begin(), ring.end());
+                }
+                auto new_ring = mapbox::geometry::wagyu::quick_clip::quick_lr_clip(ring, b);
+                if (!new_ring) {
+                    if (process_all_rings_) {
+                        continue;
+                    }
+                    return;
+                }
+                clipper.add_ring(*new_ring);
+            } else {
+                if (std::abs(area) < area_threshold_) {
+                    continue;
+                }
+                if (area > 0)
+                {
+                    std::reverse(ring.begin(), ring.end());
+                }
+                auto new_ring = mapbox::geometry::wagyu::quick_clip::quick_lr_clip(ring, b);
+                if (!new_ring) {
+                    continue;
+                }
+                clipper.add_ring(*new_ring);
             }
         }
 
-        // Setup the box for clipping
-        mapbox::geometry::linear_ring<std::int64_t> clip_box;
-        clip_box.reserve(5);
-        clip_box.emplace_back(tile_clipping_extent_.minx(), tile_clipping_extent_.miny());
-        clip_box.emplace_back(tile_clipping_extent_.maxx(), tile_clipping_extent_.miny());
-        clip_box.emplace_back(tile_clipping_extent_.maxx(), tile_clipping_extent_.maxy());
-        clip_box.emplace_back(tile_clipping_extent_.minx(), tile_clipping_extent_.maxy());
-        clip_box.emplace_back(tile_clipping_extent_.minx(), tile_clipping_extent_.miny());
-        
-        // Finally add the box we will be using for clipping
-        if (!clipper.add_ring(clip_box, mapbox::geometry::wagyu::polygon_type_clip))
-        {
-            return;
-        }
+        mapbox::geometry::multi_polygon<std::int64_t> mp;
 
-        mapbox::geometry::multi_polygon<std::int64_t> output;
-
-        clipper.execute(mapbox::geometry::wagyu::clip_type_intersection, 
-                        output, 
+        clipper.execute(mapbox::geometry::wagyu::clip_type_union, 
+                        mp, 
                         detail::get_wagyu_fill_type(fill_type_), 
                         mapbox::geometry::wagyu::fill_type_even_odd);
-        
-        mapnik::geometry::multi_polygon<std::int64_t> mp = mapbox_to_mapnik(output);
 
         if (mp.empty())
         {
@@ -263,153 +241,130 @@ public:
         next_(mp);
     }
 
-    void operator() (mapnik::geometry::multi_polygon<std::int64_t> & geom)
+    void operator() (mapbox::geometry::multi_polygon<std::int64_t> & geom)
     {
         if (geom.empty())
         {
             return;
         }
         
-        mapbox::geometry::linear_ring<std::int64_t> clip_box;
-        clip_box.reserve(5);
-        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
-        clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
-        clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.maxy());
-        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.maxy());
-        clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
+        mapbox::geometry::point<std::int64_t> min_pt(tile_clipping_extent_.minx(), tile_clipping_extent_.miny());
+        mapbox::geometry::point<std::int64_t> max_pt(tile_clipping_extent_.maxx(), tile_clipping_extent_.maxy());
+        mapbox::geometry::box<std::int64_t> b(min_pt, max_pt);
         
-        mapnik::geometry::multi_polygon<std::int64_t> mp;
+        mapbox::geometry::multi_polygon<std::int64_t> mp;
         
         if (multi_polygon_union_)
         {
             mapbox::geometry::wagyu::wagyu<std::int64_t> clipper;
-            clipper.reverse_rings(true);
+            //clipper.reverse_rings(true);
             for (auto & poly : geom)
             {
-                // Below we attempt to skip processing of all interior rings if the exterior
-                // ring fails a variety of sanity checks for size and validity for AddPath
-                // When `process_all_rings_=true` this optimization is disabled. This is needed when
-                // the ring order of input polygons is potentially incorrect and where the
-                // "exterior_ring" might actually be an incorrectly classified exterior ring.
-                if (poly.exterior_ring.size() < 3 && !process_all_rings_)
-                {
-                    continue;
-                }
-                double outer_area = detail::area(poly.exterior_ring);
-                if ((std::abs(outer_area) < area_threshold_) && !process_all_rings_)
-                {
-                    continue;
-                }
-                // The view transform inverts the y axis so this should be positive still despite now
-                // being clockwise for the exterior ring. If it is not lets invert it.
-                if (outer_area < 0)
-                {
-                    std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
-                }
-                if (!clipper.add_ring(mapnik_to_mapbox(poly.exterior_ring)) && !process_all_rings_)
-                {
-                    continue;
-                }
-
-                for (auto & ring : poly.interior_rings)
-                {
-                    if (ring.size() < 3)
+                bool first = true;
+                for (auto & ring : poly) {
+                    if (ring.size() < 3) 
                     {
+                        if (first) {
+                            first = false;
+                            if (!process_all_rings_) {
+                                return;
+                            }
+                        }
                         continue;
                     }
-                    double inner_area = detail::area(ring);
-                    if (std::abs(inner_area) < area_threshold_)
-                    {
-                        continue;
+                    double area = detail::area(ring);
+                    if (first) {
+                        first = false;
+                        if ((std::abs(area) < area_threshold_)  && !process_all_rings_) {
+                            return;
+                        }
+                        if (area < 0) {   
+                            std::reverse(ring.begin(), ring.end());
+                        }
+                        auto new_ring = mapbox::geometry::wagyu::quick_clip::quick_lr_clip(ring, b);
+                        if (!new_ring) {
+                            if (process_all_rings_) {
+                                continue;
+                            }
+                            return;
+                        }
+                        clipper.add_ring(*new_ring);
+                    } else {
+                        if (std::abs(area) < area_threshold_) {
+                            continue;
+                        }
+                        if (area > 0)
+                        {
+                            std::reverse(ring.begin(), ring.end());
+                        }
+                        auto new_ring = mapbox::geometry::wagyu::quick_clip::quick_lr_clip(ring, b);
+                        if (!new_ring) {
+                            continue;
+                        }
+                        clipper.add_ring(*new_ring);
                     }
-                    // This should be a negative area, the y axis is down, so the ring will be "CCW" rather
-                    // then "CW" after the view transform, but if it is not lets reverse it
-                    if (inner_area > 0)
-                    {
-                        std::reverse(ring.begin(), ring.end());
-                    }
-                    clipper.add_ring(mapnik_to_mapbox(ring));
                 }
             }
-            if (!clipper.add_ring(clip_box, mapbox::geometry::wagyu::polygon_type_clip))
-            {
-                return;
-            }
-            mapbox::geometry::multi_polygon<std::int64_t> output;
-
-            clipper.execute(mapbox::geometry::wagyu::clip_type_intersection, 
-                            output, 
+            clipper.execute(mapbox::geometry::wagyu::clip_type_union, 
+                            mp, 
                             detail::get_wagyu_fill_type(fill_type_), 
                             mapbox::geometry::wagyu::fill_type_even_odd);
-            
-            mapnik::geometry::multi_polygon<std::int64_t> temp_mp = mapbox_to_mapnik(output);
-            mp.insert(mp.end(), temp_mp.begin(), temp_mp.end());
         }
         else
         {
             for (auto & poly : geom)
             {
                 mapbox::geometry::wagyu::wagyu<std::int64_t> clipper;
-                clipper.reverse_rings(true);
-                // Below we attempt to skip processing of all interior rings if the exterior
-                // ring fails a variety of sanity checks for size and validity for AddPath
-                // When `process_all_rings_=true` this optimization is disabled. This is needed when
-                // the ring order of input polygons is potentially incorrect and where the
-                // "exterior_ring" might actually be an incorrectly classified exterior ring.
-                if (poly.exterior_ring.size() < 3 && !process_all_rings_)
-                {
-                    continue;
-                }
-                double outer_area = detail::area(poly.exterior_ring);
-                if ((std::abs(outer_area) < area_threshold_) && !process_all_rings_)
-                {
-                    continue;
-                }
-                // The view transform inverts the y axis so this should be positive still despite now
-                // being clockwise for the exterior ring. If it is not lets invert it.
-                if (outer_area < 0)
-                {
-                    std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
-                }
-                if (!clipper.add_ring(mapnik_to_mapbox(poly.exterior_ring)) && !process_all_rings_)
-                {
-                    continue;
-                }
-                for (auto & ring : poly.interior_rings)
-                {
-                    if (ring.size() < 3)
+                mapbox::geometry::multi_polygon<std::int64_t> tmp_mp;
+                bool first = true;
+                for (auto & ring : poly) {
+                    if (ring.size() < 3) 
                     {
+                        if (first) {
+                            first = false;
+                            if (!process_all_rings_) {
+                                return;
+                            }
+                        }
                         continue;
                     }
-                    double inner_area = detail::area(ring);
-                    if (std::abs(inner_area) < area_threshold_)
-                    {
-                        continue;
-                    }
-                    // This should be a negative area, the y axis is down, so the ring will be "CCW" rather
-                    // then "CW" after the view transform, but if it is not lets reverse it
-                    if (inner_area > 0)
-                    {
-                        std::reverse(ring.begin(), ring.end());
-                    }
-                    if (!clipper.add_ring(mapnik_to_mapbox(ring)))
-                    {
-                        continue;
+                    double area = detail::area(ring);
+                    if (first) {
+                        first = false;
+                        if ((std::abs(area) < area_threshold_)  && !process_all_rings_) {
+                            return;
+                        }
+                        if (area < 0) {   
+                            std::reverse(ring.begin(), ring.end());
+                        }
+                        auto new_ring = mapbox::geometry::wagyu::quick_clip::quick_lr_clip(ring, b);
+                        if (!new_ring) {
+                            if (process_all_rings_) {
+                                continue;
+                            }
+                            return;
+                        }
+                        clipper.add_ring(*new_ring);
+                    } else {
+                        if (std::abs(area) < area_threshold_) {
+                            continue;
+                        }
+                        if (area > 0)
+                        {
+                            std::reverse(ring.begin(), ring.end());
+                        }
+                        auto new_ring = mapbox::geometry::wagyu::quick_clip::quick_lr_clip(ring, b);
+                        if (!new_ring) {
+                            continue;
+                        }
+                        clipper.add_ring(*new_ring);
                     }
                 }
-                if (!clipper.add_ring(clip_box, mapbox::geometry::wagyu::polygon_type_clip))
-                {
-                    continue;
-                }
-                mapbox::geometry::multi_polygon<std::int64_t> output;
-
-                clipper.execute(mapbox::geometry::wagyu::clip_type_intersection, 
-                                output, 
+                clipper.execute(mapbox::geometry::wagyu::clip_type_union, 
+                                tmp_mp, 
                                 detail::get_wagyu_fill_type(fill_type_), 
                                 mapbox::geometry::wagyu::fill_type_even_odd);
-                
-                mapnik::geometry::multi_polygon<std::int64_t> temp_mp = mapbox_to_mapnik(output);
-                mp.insert(mp.end(), temp_mp.begin(), temp_mp.end());
+                mp.insert(mp.end(), tmp_mp.begin(), tmp_mp.end());
             }
         }
 

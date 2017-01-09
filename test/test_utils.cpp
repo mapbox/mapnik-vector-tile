@@ -18,7 +18,7 @@
 #include <mapnik/image.hpp>
 #include <mapnik/image_reader.hpp>
 #include <mapnik/util/file_io.hpp>
-#include <mapnik/geometry_correct.hpp>
+#include <mapnik/geometry/correct.hpp>
 #include <mapnik/json/geometry_parser.hpp>
 #include <string>
 #include <memory>
