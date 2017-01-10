@@ -376,7 +376,7 @@ TEST_CASE("pbf decoding some truncated buffers")
 
 TEST_CASE("pbf vector tile from simplified geojson")
 {
-    unsigned tile_size = 256 * 1000;
+    unsigned tile_size = 256 * 100;
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer","+init=epsg:4326");
     std::shared_ptr<mapnik::memory_datasource> ds = testing::build_geojson_ds("./test/data/poly.geojson");

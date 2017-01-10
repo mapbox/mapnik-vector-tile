@@ -40,7 +40,7 @@
 
 TEST_CASE("vector tile from simplified geojson")
 {
-    unsigned tile_size = 256 * 1000;
+    unsigned tile_size = 256 * 100;
     mapnik::Map map(256,256,"+init=epsg:3857");
     mapnik::layer lyr("layer","+init=epsg:4326");
     std::shared_ptr<mapnik::memory_datasource> ds = testing::build_geojson_ds("./test/data/poly.geojson");

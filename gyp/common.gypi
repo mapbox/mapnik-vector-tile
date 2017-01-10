@@ -125,7 +125,8 @@
                       '-O2',
                       '-O1',
                       '-Os',
-                      '-DNDEBUG'
+                      '-DNDEBUG',
+                      '-Wc++14-extensions'
                     ],
                     "xcode_settings": {
                         'OTHER_CPLUSPLUSFLAGS!': [
@@ -144,6 +145,9 @@
                 "Release": {
                     "defines": [
                         "NDEBUG"
+                    ],
+                    "cflags_cc!": [
+                      '-Wc++14-extensions'
                     ],
                     "xcode_settings": {
                         'OTHER_CPLUSPLUSFLAGS!': [ 
