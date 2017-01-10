@@ -30,7 +30,7 @@ ICU_VERSION="55.1"
 function install_mason_deps() {
     FAIL=0
     install mapnik latest &
-    install geometry 0.8.1 &
+    install geometry 0.9.0 &
     install ccache 3.2.4 &
     install jpeg_turbo 1.5.0 libjpeg &
     install libpng 1.6.24 libpng &

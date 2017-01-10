@@ -82,8 +82,7 @@
       'hard_dependency': 1,
       "type": "static_library",
       "sources": [
-        "<!@(find ../src/ -name '*.cpp')",
-        "../deps/clipper/cpp/clipper.cpp"
+        "<!@(find ../src/ -name '*.cpp')"
       ],
       'defines' : [
         "<@(common_defines)"
@@ -93,8 +92,7 @@
       ],
       'include_dirs': [
         '../deps/protozero/include',
-        '../deps/wagyu/include',
-        '../deps/clipper/cpp'
+        '../deps/wagyu/include'
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS':[
@@ -105,8 +103,7 @@
         'include_dirs': [
           '<(SHARED_INTERMEDIATE_DIR)/',
           '../deps/protozero/include',
-          '../deps/wagyu/include',
-          '../deps/clipper/cpp'
+          '../deps/wagyu/include'
         ],
         'defines' : [
           "<@(common_defines)"
