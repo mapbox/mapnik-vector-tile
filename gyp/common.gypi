@@ -133,7 +133,8 @@
                           '-O2',
                           '-O1',
                           '-Os',
-                          '-DNDEBUG'
+                          '-DNDEBUG',
+                          '-Wc++14-extensions'
                         ],
                         "GCC_OPTIMIZATION_LEVEL": "0",
                         "GCC_GENERATE_DEBUGGING_SYMBOLS": "YES",
@@ -145,6 +146,9 @@
                         "NDEBUG"
                     ],
                     "xcode_settings": {
+                        'OTHER_CPLUSPLUSFLAGS!': [ 
+                          '-Wc++14-extensions'
+                         ],
                         "GCC_OPTIMIZATION_LEVEL": "3",
                         "GCC_GENERATE_DEBUGGING_SYMBOLS": "NO",
                         "DEAD_CODE_STRIPPING": "YES",
