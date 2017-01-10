@@ -60,6 +60,8 @@ inline mapbox::geometry::wagyu::fill_type get_wagyu_fill_type(polygon_fill_type 
     case negative_fill:
         return mapbox::geometry::wagyu::fill_type_negative;
     }
+    // Added return here to make gcc happy
+    return mapbox::geometry::wagyu::fill_type_even_odd;
 }
 
 } // end ns detail
