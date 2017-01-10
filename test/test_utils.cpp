@@ -18,7 +18,12 @@
 #include <mapnik/image.hpp>
 #include <mapnik/image_reader.hpp>
 #include <mapnik/util/file_io.hpp>
+#include <mapnik/version.hpp>
+#if MAPNIK_VERSION >= 300100
 #include <mapnik/geometry/correct.hpp>
+#else
+#include <mapnik/geometry_correct.hpp>
+#endif
 #include <mapnik/json/geometry_parser.hpp>
 #include <string>
 #include <memory>

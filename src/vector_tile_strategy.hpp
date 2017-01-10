@@ -6,8 +6,14 @@
 #include <mapnik/util/noncopyable.hpp>
 #include <mapnik/proj_transform.hpp>
 #include <mapnik/view_transform.hpp>
-#include <mapnik/geometry/envelope.hpp>
 #include <mapnik/geometry.hpp>
+
+#include <mapnik/version.hpp>
+#if MAPNIK_VERSION >= 300100
+#include <mapnik/geometry/envelope.hpp>
+#else
+#include <mapnik/geometry_envelope.hpp>
+#endif
 
 // mapbox
 #include <mapbox/geometry.hpp>

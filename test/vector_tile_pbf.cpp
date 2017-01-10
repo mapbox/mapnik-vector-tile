@@ -13,12 +13,20 @@
 #include <mapnik/vertex_adapters.hpp>
 #include <mapnik/projection.hpp>
 #include <mapnik/proj_transform.hpp>
-#include <mapnik/geometry/is_empty.hpp>
 #include <mapnik/util/file_io.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
+#include <mapnik/version.hpp>
+#if MAPNIK_VERSION >= 300100
+#include <mapnik/geometry/is_empty.hpp>
 #include <mapnik/geometry/reprojection.hpp>
 #include <mapnik/geometry/transform.hpp>
 #include <mapnik/geometry/strategy.hpp>
+#else
+#include <mapnik/geometry_is_empty.hpp>
+#include <mapnik/geometry_reprojection.hpp>
+#include <mapnik/geometry_transform.hpp>
+#include <mapnik/geometry_strategy.hpp>
+#endif
 #include <mapnik/proj_strategy.hpp>
 #include <mapnik/geometry.hpp>
 #include <mapnik/datasource_cache.hpp>

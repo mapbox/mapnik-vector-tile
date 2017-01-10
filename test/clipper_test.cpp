@@ -1,7 +1,13 @@
 #include <limits>
 #include <iostream>
 #include <mapnik/projection.hpp>
+#include <mapnik/version.hpp>
+
+#if MAPNIK_VERSION >= 300100
 #include <mapnik/geometry/transform.hpp>
+#else
+#include <mapnik/geometry_transform.hpp>
+#endif
 
 #include "vector_tile_strategy.hpp"
 #include "vector_tile_projection.hpp"

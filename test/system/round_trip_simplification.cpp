@@ -5,7 +5,12 @@
 #include "geom_to_wkt.hpp"
 
 // mapnik
+#include <mapnik/version.hpp>
+#if MAPNIK_VERSION >= 300100
 #include <mapnik/geometry/is_empty.hpp>
+#else
+#include <mapnik/geometry_is_empty.hpp>
+#endif
 
 TEST_CASE("vector tile point correctly passed through simplification code path")
 {

@@ -1,6 +1,14 @@
+#include <mapnik/version.hpp>
+
+#if MAPNIK_VERSION >= 300100
 #include <mapnik/geometry/correct.hpp>
-#include <mapnik/projection.hpp>
 #include <mapnik/geometry/transform.hpp>
+#else
+#include <mapnik/geometry_correct.hpp>
+#include <mapnik/geometry_transform.hpp>
+#endif
+
+#include <mapnik/projection.hpp>
 #include <mapnik/util/file_io.hpp>
 #include <mapnik/json/geometry_parser.hpp>
 #include <mapnik/timer.hpp>
