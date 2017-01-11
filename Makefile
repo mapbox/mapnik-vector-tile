@@ -1,7 +1,7 @@
 MAPNIK_PLUGINDIR := $(shell mapnik-config --input-plugins)
 BUILDTYPE ?= Release
 
-WAGYU_REVISION=quickclip
+WAGYU_REVISION=master
 PROTOZERO_REVISION=v1.4.2
 GYP_REVISION=3464008
 
