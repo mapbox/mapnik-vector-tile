@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MASON_VERSION="3e2944322"
+MASON_VERSION="707311610a662920a2bd3a3b70be36b071fe9bb7"
 
 function setup_mason() {
     if [[ ! -d ./.mason ]]; then
@@ -47,15 +47,15 @@ function install_mason_deps() {
     # here by default helps make mapnik-vector-tile builds easier
     install webp 0.5.1 libwebp &
     install gdal 2.1.1 libgdal &
-    install boost 1.61.0 &
-    install boost_libsystem 1.61.0 &
-    install boost_libfilesystem 1.61.0 &
-    install boost_libprogram_options 1.61.0 &
-    install boost_libregex_icu 1.61.0 &
+    install boost 1.62.0 &
+    install boost_libsystem 1.62.0 &
+    install boost_libfilesystem 1.62.0 &
+    install boost_libprogram_options 1.62.0 &
+    install boost_libregex_icu 1.62.0 &
     # technically boost thread and python are not a core dep, but installing
     # here by default helps make python-mapnik builds easier
-    install boost_libthread 1.61.0 &
-    install boost_libpython 1.61.0 &
+    install boost_libthread 1.62.0 &
+    install boost_libpython 1.62.0 &
     install freetype 2.6.5 libfreetype &
     install harfbuzz 1.3.0 libharfbuzz &
     for job in $(jobs -p)
