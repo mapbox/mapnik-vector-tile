@@ -223,13 +223,13 @@ public:
                 }
                 #ifdef USE_QUICK_CLIP
                 auto new_ring = mapbox::geometry::wagyu::quick_clip::quick_lr_clip(ring, b);
-                if (!new_ring) {
+                if (new_ring.empty()) {
                     if (process_all_rings_) {
                         continue;
                     }
                     return;
                 }
-                clipper.add_ring(*new_ring);
+                clipper.add_ring(new_ring);
                 #else
                 clipper.add_ring(ring);
                 #endif
@@ -243,10 +243,10 @@ public:
                 }
                 #ifdef USE_QUICK_CLIP
                 auto new_ring = mapbox::geometry::wagyu::quick_clip::quick_lr_clip(ring, b);
-                if (!new_ring) {
+                if (new_ring.empty()) {
                     continue;
                 }
-                clipper.add_ring(*new_ring);
+                clipper.add_ring(new_ring);
                 #else
                 clipper.add_ring(ring);
                 #endif
@@ -325,13 +325,13 @@ public:
                         }
                         #ifdef USE_QUICK_CLIP
                         auto new_ring = mapbox::geometry::wagyu::quick_clip::quick_lr_clip(ring, b);
-                        if (!new_ring) {
+                        if (new_ring.empty()) {
                             if (process_all_rings_) {
                                 continue;
                             }
                             break;
                         }
-                        clipper.add_ring(*new_ring);
+                        clipper.add_ring(new_ring);
                         #else
                         clipper.add_ring(ring);
                         #endif
@@ -345,10 +345,10 @@ public:
                         }
                         #ifdef USE_QUICK_CLIP
                         auto new_ring = mapbox::geometry::wagyu::quick_clip::quick_lr_clip(ring, b);
-                        if (!new_ring) {
+                        if (new_ring.empty()) {
                             continue;
                         }
-                        clipper.add_ring(*new_ring);
+                        clipper.add_ring(new_ring);
                         #else
                         clipper.add_ring(ring);
                         #endif
@@ -396,13 +396,13 @@ public:
                         }
                         #ifdef USE_QUICK_CLIP
                         auto new_ring = mapbox::geometry::wagyu::quick_clip::quick_lr_clip(ring, b);
-                        if (!new_ring) {
+                        if (new_ring.empty()) {
                             if (process_all_rings_) {
                                 continue;
                             }
                             break;
                         }
-                        clipper.add_ring(*new_ring);
+                        clipper.add_ring(new_ring);
                         #else
                         clipper.add_ring(ring);
                         #endif
@@ -416,10 +416,10 @@ public:
                         }
                         #ifdef USE_QUICK_CLIP
                         auto new_ring = mapbox::geometry::wagyu::quick_clip::quick_lr_clip(ring, b);
-                        if (!new_ring) {
+                        if (new_ring.empty()) {
                             continue;
                         }
-                        clipper.add_ring(*new_ring);
+                        clipper.add_ring(new_ring);
                         #else
                         clipper.add_ring(ring);
                         #endif

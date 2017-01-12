@@ -108,10 +108,10 @@
             "default_configuration": "Release",
             "xcode_settings": {
               "CLANG_CXX_LIBRARY": "libc++",
-              "CLANG_CXX_LANGUAGE_STANDARD":"c++14",
+              "CLANG_CXX_LANGUAGE_STANDARD":"c++11",
               "GCC_VERSION": "com.apple.compilers.llvm.clang.1_0",
             },
-            "cflags_cc": ["-std=c++14"],
+            "cflags_cc": ["-std=c++11"],
             "configurations": {
                 "Debug": {
                     "defines": [
