@@ -16,9 +16,7 @@
 #endif
 
 // mapbox
-#include <mapbox/geometry.hpp>
-
-#include <experimental/optional>
+#include <mapbox/geometry/geometry.hpp>
 
 #pragma GCC diagnostic push
 #include <mapnik/warning_ignore.hpp>
@@ -26,6 +24,8 @@
 #include <boost/geometry/core/coordinate_type.hpp>
 #include <boost/geometry/core/access.hpp>
 #pragma GCC diagnostic pop
+
+#include <memory>
 
 namespace mapnik {
 
@@ -107,13 +107,12 @@ struct vector_tile_strategy_proj
 template <typename T>
 struct geom_out_visitor
 {
-    using optional_geometry = std::experimental::optional<mapbox::geometry::geometry<T>>;
-    optional_geometry geom;
+    std::shared_ptr<mapbox::geometry::geometry<T>> geom;
 
     template <typename T1>
     void operator() (T1 const& g)
     {
-        geom = optional_geometry(mapbox::geometry::geometry<T>(g));
+        geom = std::make_shared<mapbox::geometry::geometry<T>>(mapbox::geometry::geometry<T>(g));
     }
 };
 

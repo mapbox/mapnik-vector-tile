@@ -5,7 +5,7 @@
 #include "vector_tile_config.hpp"
 
 // mapbox
-#include <mapbox/geometry.hpp>
+#include <mapbox/geometry/geometry.hpp>
 
 // protozero
 #include <protozero/varint.hpp>

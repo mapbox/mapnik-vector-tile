@@ -11,7 +11,7 @@
 #include <mapnik/util/variant.hpp>
 
 // Mapbox
-#include <mapbox/geometry.hpp>
+#include <mapbox/geometry/geometry.hpp>
 
 
 namespace mapnik

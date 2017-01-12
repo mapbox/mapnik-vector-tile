@@ -6,7 +6,7 @@
 #include "vector_tile_processor.hpp"
 
 // mapbox
-#include <mapbox/geometry.hpp>
+#include <mapbox/geometry/geometry.hpp>
 #include <mapbox/geometry/wagyu/wagyu.hpp>
 
 // boost

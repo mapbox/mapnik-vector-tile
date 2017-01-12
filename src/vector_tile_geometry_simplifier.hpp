@@ -6,7 +6,7 @@
 #include "vector_tile_douglas_peucker.hpp"
 
 // mapbox
-#include <mapbox/geometry.hpp>
+#include <mapbox/geometry/geometry.hpp>
 
 namespace mapnik
 {
