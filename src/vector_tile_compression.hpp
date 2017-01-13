@@ -1,5 +1,4 @@
-#ifndef __MAPNIK_VECTOR_TILE_COMPRESSION_H__
-#define __MAPNIK_VECTOR_TILE_COMPRESSION_H__
+#pragma once
 
 // mapnik-vector-tile
 #include "vector_tile_config.hpp"
@@ -79,5 +78,3 @@ MAPNIK_VECTOR_INLINE void zlib_compress(const char * data,
 #if !defined(MAPNIK_VECTOR_TILE_LIBRARY)
 #include "vector_tile_compression.ipp"
 #endif
-
-#endif // __MAPNIK_VECTOR_TILE_COMPRESSION_H__

@@ -1,13 +1,10 @@
-#ifndef __MAPNIK_VECTOR_TILE_GEOMETRY_CONVERT_TYPES_H__
-#define __MAPNIK_VECTOR_TILE_GEOMETRY_CONVERT_TYPES_H__
+#pragma once
 
-// Mapik
+// Mapnik
 #include <mapnik/geometry.hpp>
 
 // Mapbox
-#include <mapbox/geometry/multi_polygon.hpp>
-#include <mapbox/geometry/polygon.hpp>
-
+#include <mapbox/geometry/geometry.hpp>
 
 namespace mapnik
 {
@@ -95,5 +92,3 @@ mapnik::geometry::multi_polygon<T> mapbox_to_mapnik(mapbox::geometry::multi_poly
 } // end ns vector_tile_impl
 
 } // end ns mapnik
-
-#endif // __MAPNIK_VECTOR_GEOMETRY_CONVERT_TYPES_H__

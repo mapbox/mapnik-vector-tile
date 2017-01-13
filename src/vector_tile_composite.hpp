@@ -1,5 +1,4 @@
-#ifndef __MAPNIK_VECTOR_TILE_COMPOSITE_H__
-#define __MAPNIK_VECTOR_TILE_COMPOSITE_H__
+#pragma once
 
 // mapnik-vector-tile
 #include "vector_tile_merc_tile.hpp"
@@ -101,5 +100,3 @@ void composite(merc_tile & target_vt,
 } // end ns vector_tile_impl
 
 } // end ns mapnik
-
-#endif // __MAPNIK_VECTOR_TILE_COMPOSITE_H__

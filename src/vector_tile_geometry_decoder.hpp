@@ -1,5 +1,4 @@
-#ifndef __MAPNIK_VECTOR_TILE_GEOMETRY_DECODER_H__
-#define __MAPNIK_VECTOR_TILE_GEOMETRY_DECODER_H__
+#pragma once
 
 // mapnik-vector-tile
 #include "vector_tile_config.hpp"
@@ -92,5 +91,3 @@ MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<value_type> decode_geometry(Geom
 #if !defined(MAPNIK_VECTOR_TILE_LIBRARY)
 #include "vector_tile_geometry_decoder.ipp"
 #endif
-
-#endif // __MAPNIK_VECTOR_TILE_GEOMETRY_DECODER_H__

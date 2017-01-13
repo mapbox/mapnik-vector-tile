@@ -1,5 +1,4 @@
-#ifndef __MAPNIK_VECTOR_TILE_DATASOURCE_PBF_H__
-#define __MAPNIK_VECTOR_TILE_DATASOURCE_PBF_H__
+#pragma once
 
 // mapnik
 #include <mapnik/box2d.hpp>
@@ -68,5 +67,3 @@ private:
 #if !defined(MAPNIK_VECTOR_TILE_LIBRARY)
 #include "vector_tile_datasource_pbf.ipp"
 #endif
-
-#endif // __MAPNIK_VECTOR_TILE_DATASOURCE_PBF_H__
