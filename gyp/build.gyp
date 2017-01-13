@@ -6,10 +6,6 @@
     'MAPNIK_PLUGINDIR%': '',
     'common_defines' : [
         'MAPNIK_VECTOR_TILE_LIBRARY=1',
-        'CLIPPER_INTPOINT_IMPL=mapnik::geometry::point<cInt>',
-        'CLIPPER_PATH_IMPL=mapnik::geometry::line_string<cInt>',
-        'CLIPPER_PATHS_IMPL=mapnik::geometry::multi_line_string<cInt>',
-        'CLIPPER_IMPL_INCLUDE=<mapnik/geometry.hpp>'
     ]
   },
   "targets": [

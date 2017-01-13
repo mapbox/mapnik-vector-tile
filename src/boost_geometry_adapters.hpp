@@ -1,3 +1,5 @@
+#pragma once
+
 #include <mapbox/geometry/box.hpp>
 #include <mapbox/geometry/line_string.hpp>
 #include <mapbox/geometry/multi_line_string.hpp>
