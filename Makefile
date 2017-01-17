@@ -2,7 +2,7 @@ MAPNIK_PLUGINDIR := $(shell mapnik-config --input-plugins)
 BUILDTYPE ?= Release
 
 WAGYU_REVISION=0.3.0
-PROTOZERO_REVISION=v1.4.2
+PROTOZERO_REVISION=v1.5.1
 GYP_REVISION=3464008
 
 all: libvtile
