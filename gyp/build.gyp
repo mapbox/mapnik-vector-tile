@@ -88,7 +88,8 @@
       ],
       'include_dirs': [
         '../deps/protozero/include',
-        '../deps/wagyu/include'
+        '../deps/wagyu/include',
+        '../deps/geometry/include'
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS':[
@@ -99,7 +100,8 @@
         'include_dirs': [
           '<(SHARED_INTERMEDIATE_DIR)/',
           '../deps/protozero/include',
-          '../deps/wagyu/include'
+          '../deps/wagyu/include',
+          '../deps/geometry/include'
         ],
         'defines' : [
           "<@(common_defines)"

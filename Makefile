@@ -1,6 +1,7 @@
 MAPNIK_PLUGINDIR := $(shell mapnik-config --input-plugins)
 BUILDTYPE ?= Release
 
+GEOMETRY_REVISION=v0.9.0
 WAGYU_REVISION=0.3.0
 PROTOZERO_REVISION=v1.5.1
 GYP_REVISION=3464008
@@ -13,10 +14,13 @@ all: libvtile
 ./deps/protozero:
 	git clone https://github.com/mapbox/protozero.git ./deps/protozero && cd ./deps/protozero && git checkout $(PROTOZERO_REVISION)
 
+./deps/geometry:
+	git clone https://github.com/mapbox/geometry.hpp.git ./deps/geometry && cd ./deps/geometry && git checkout $(GEOMETRY_REVISION)
+
 ./deps/wagyu:
 	git clone https://github.com/mapbox/wagyu.git ./deps/wagyu && cd ./deps/wagyu && git checkout $(WAGYU_REVISION)
 
-build/Makefile: ./deps/gyp ./deps/protozero ./deps/wagyu gyp/build.gyp test/*
+build/Makefile: ./deps/gyp ./deps/protozero ./deps/wagyu ./deps/geometry gyp/build.gyp test/*
 	deps/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(MAPNIK_PLUGINDIR)\" -Goutput_dir=. --generator-output=./build -f make
 
 libvtile: build/Makefile Makefile
