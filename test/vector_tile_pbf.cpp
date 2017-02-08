@@ -32,7 +32,7 @@
 #include <mapnik/datasource_cache.hpp>
 
 // mapbox
-#include <mapbox/geometry.hpp>
+#include <mapbox/geometry/geometry.hpp>
 
 // boost
 #include <boost/optional/optional_io.hpp>

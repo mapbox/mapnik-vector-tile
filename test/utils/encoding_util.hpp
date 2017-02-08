@@ -2,7 +2,7 @@
 #define __MAPNIK_VECTOR_TILE_TEST_ENCODING_UTIL_H__
 
 // mapbox
-#include <mapbox/geometry.hpp>
+#include <mapbox/geometry/geometry.hpp>
 
 // libprotobuf
 #pragma GCC diagnostic push

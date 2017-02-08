@@ -4,7 +4,7 @@
 #include "vector_tile_geometry_encoder_pbf.hpp"
 
 // mapbox
-#include <mapbox/geometry.hpp>
+#include <mapbox/geometry/geometry.hpp>
 
 // protozero
 #include <protozero/pbf_writer.hpp>
