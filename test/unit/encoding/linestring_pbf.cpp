@@ -26,9 +26,9 @@
 TEST_CASE("encode pbf simple line_string")
 {
     mapnik::geometry::line_string<std::int64_t> line;
-    line.add_coord(10,10);
-    line.add_coord(20,20);
-    line.add_coord(30,30);
+    line.emplace_back(10,10);
+    line.emplace_back(20,20);
+    line.emplace_back(30,30);
     
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -59,9 +59,9 @@ TEST_CASE("encode pbf simple line_string")
 TEST_CASE("encode pbf simple line_string -- geometry type")
 {
     mapnik::geometry::line_string<std::int64_t> line;
-    line.add_coord(10,10);
-    line.add_coord(20,20);
-    line.add_coord(30,30);
+    line.emplace_back(10,10);
+    line.emplace_back(20,20);
+    line.emplace_back(30,30);
     mapnik::geometry::geometry<std::int64_t> geom(line);
     
     std::int32_t x = 0;
@@ -93,9 +93,9 @@ TEST_CASE("encode pbf simple line_string -- geometry type")
 TEST_CASE("encode pbf overlapping line_string")
 {
     mapnik::geometry::line_string<std::int64_t> line;
-    line.add_coord(10,10);
-    line.add_coord(20,20);
-    line.add_coord(10,10);
+    line.emplace_back(10,10);
+    line.emplace_back(20,20);
+    line.emplace_back(10,10);
     
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -126,15 +126,15 @@ TEST_CASE("encode pbf overlapping line_string")
 TEST_CASE("encode pbf line_string with repeated points")
 {
     mapnik::geometry::line_string<std::int64_t> line;
-    line.add_coord(10,10);
-    line.add_coord(10,10);
-    line.add_coord(10,10);
-    line.add_coord(20,20);
-    line.add_coord(20,20);
-    line.add_coord(20,20);
-    line.add_coord(30,30);
-    line.add_coord(30,30);
-    line.add_coord(30,30);
+    line.emplace_back(10,10);
+    line.emplace_back(10,10);
+    line.emplace_back(10,10);
+    line.emplace_back(20,20);
+    line.emplace_back(20,20);
+    line.emplace_back(20,20);
+    line.emplace_back(30,30);
+    line.emplace_back(30,30);
+    line.emplace_back(30,30);
     
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -166,7 +166,7 @@ TEST_CASE("encode pbf line_string with repeated points")
 TEST_CASE("encode pbf degenerate line_string")
 {
     mapnik::geometry::line_string<std::int64_t> line;
-    line.add_coord(10,10);
+    line.emplace_back(10,10);
     
     // since the line is degenerate the whole line should be culled during encoding
     std::int32_t x = 0;
@@ -184,10 +184,10 @@ TEST_CASE("encode pbf degenerate line_string")
 TEST_CASE("encode pbf degenerate line_string all repeated points")
 {
     mapnik::geometry::line_string<std::int64_t> line;
-    line.add_coord(10,10);
-    line.add_coord(10,10);
-    line.add_coord(10,10);
-    line.add_coord(10,10);
+    line.emplace_back(10,10);
+    line.emplace_back(10,10);
+    line.emplace_back(10,10);
+    line.emplace_back(10,10);
     
     // since the line is degenerate the whole line should be culled during encoding
     std::int32_t x = 0;
@@ -208,9 +208,9 @@ TEST_CASE("encode pbf incredibly large segments")
     // within the encoder. 
     std::int64_t val = std::numeric_limits<std::int64_t>::max();
     mapnik::geometry::line_string<std::int64_t> line;
-    line.add_coord(0,0);
-    line.add_coord(val,val);
-    line.add_coord(0,0);
+    line.emplace_back(0,0);
+    line.emplace_back(val,val);
+    line.emplace_back(0,0);
 
     std::int32_t x = 0;
     std::int32_t y = 0;
@@ -241,13 +241,13 @@ TEST_CASE("encode pbf simple multi_line_string")
 {
     mapnik::geometry::multi_line_string<std::int64_t> g;
     mapnik::geometry::line_string<std::int64_t> l1;
-    l1.add_coord(0,0);
-    l1.add_coord(1,1);
-    l1.add_coord(2,2);
+    l1.emplace_back(0,0);
+    l1.emplace_back(1,1);
+    l1.emplace_back(2,2);
     g.push_back(std::move(l1));
     mapnik::geometry::line_string<std::int64_t> l2;
-    l2.add_coord(5,5);
-    l2.add_coord(0,0);
+    l2.emplace_back(5,5);
+    l2.emplace_back(0,0);
     g.push_back(std::move(l2));
 
     std::int32_t x = 0;
@@ -290,13 +290,13 @@ TEST_CASE("encode pbf simple multi_line_string -- geometry type")
 {
     mapnik::geometry::multi_line_string<std::int64_t> g;
     mapnik::geometry::line_string<std::int64_t> l1;
-    l1.add_coord(0,0);
-    l1.add_coord(1,1);
-    l1.add_coord(2,2);
+    l1.emplace_back(0,0);
+    l1.emplace_back(1,1);
+    l1.emplace_back(2,2);
     g.push_back(std::move(l1));
     mapnik::geometry::line_string<std::int64_t> l2;
-    l2.add_coord(5,5);
-    l2.add_coord(0,0);
+    l2.emplace_back(5,5);
+    l2.emplace_back(0,0);
     g.push_back(std::move(l2));
     mapnik::geometry::geometry<std::int64_t> geom(g);
 
@@ -340,23 +340,23 @@ TEST_CASE("encode pbf multi_line_string with repeated points")
 {
     mapnik::geometry::multi_line_string<std::int64_t> g;
     mapnik::geometry::line_string<std::int64_t> l1;
-    l1.add_coord(0,0);
-    l1.add_coord(0,0);
-    l1.add_coord(0,0);
-    l1.add_coord(1,1);
-    l1.add_coord(1,1);
-    l1.add_coord(1,1);
-    l1.add_coord(2,2);
-    l1.add_coord(2,2);
-    l1.add_coord(2,2);
+    l1.emplace_back(0,0);
+    l1.emplace_back(0,0);
+    l1.emplace_back(0,0);
+    l1.emplace_back(1,1);
+    l1.emplace_back(1,1);
+    l1.emplace_back(1,1);
+    l1.emplace_back(2,2);
+    l1.emplace_back(2,2);
+    l1.emplace_back(2,2);
     g.push_back(std::move(l1));
     mapnik::geometry::line_string<std::int64_t> l2;
-    l2.add_coord(5,5);
-    l2.add_coord(5,5);
-    l2.add_coord(5,5);
-    l2.add_coord(0,0);
-    l2.add_coord(0,0);
-    l2.add_coord(0,0);
+    l2.emplace_back(5,5);
+    l2.emplace_back(5,5);
+    l2.emplace_back(5,5);
+    l2.emplace_back(0,0);
+    l2.emplace_back(0,0);
+    l2.emplace_back(0,0);
     g.push_back(std::move(l2));
 
     std::int32_t x = 0;
@@ -400,16 +400,16 @@ TEST_CASE("encode pbf multi_line_string with two degenerate linestrings")
 {
     mapnik::geometry::multi_line_string<std::int64_t> g;
     mapnik::geometry::line_string<std::int64_t> l1;
-    l1.add_coord(0,0);
+    l1.emplace_back(0,0);
     g.push_back(std::move(l1));
     mapnik::geometry::line_string<std::int64_t> l2;
-    l2.add_coord(5,0);
-    l2.add_coord(5,0);
-    l2.add_coord(5,0);
+    l2.emplace_back(5,0);
+    l2.emplace_back(5,0);
+    l2.emplace_back(5,0);
     g.push_back(std::move(l2));
     mapnik::geometry::line_string<std::int64_t> l3;
-    l3.add_coord(5,5);
-    l3.add_coord(0,0);
+    l3.emplace_back(5,5);
+    l3.emplace_back(0,0);
     g.push_back(std::move(l3));
 
     // Should remove first line string as it does not have enough points

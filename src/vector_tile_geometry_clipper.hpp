@@ -45,16 +45,19 @@ inline ClipperLib::PolyFillType get_angus_fill_type(polygon_fill_type type)
     }
 }
 
+#define CAST_TO_LINE_STRING(g) reinterpret_cast<mapbox::geometry::line_string<std::int64_t> const&>(g)
+#define CAST_TO_LINE_STRING_NONCONST(g) reinterpret_cast<mapbox::geometry::line_string<std::int64_t> &>(g)
+#define CAST_TO_LINEAR(g) reinterpret_cast<mapbox::geometry::linear_ring<std::int64_t> &&>(g)
 
 inline void process_polynode_branch(ClipperLib::PolyNode* polynode, 
                                     mapnik::geometry::multi_polygon<std::int64_t> & mp,
                                     double area_threshold)
 {
     mapnik::geometry::polygon<std::int64_t> polygon;
-    polygon.set_exterior_ring(std::move(polynode->Contour));
+    polygon.set_exterior_ring(std::move(CAST_TO_LINEAR(polynode->Contour)));
     if (polygon.exterior_ring.size() > 2) // Throw out invalid polygons
     {
-        double outer_area = ClipperLib::Area(polygon.exterior_ring);
+        double outer_area = ClipperLib::Area(CAST_TO_LINE_STRING(polygon.exterior_ring));
         if (std::abs(outer_area) >= area_threshold)
         {
             // The view transform inverts the y axis so this should be positive still despite now
@@ -71,7 +74,7 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
                 {
                     continue; // Throw out invalid holes
                 }
-                double inner_area = ClipperLib::Area(ring->Contour);
+                double inner_area = ClipperLib::Area(CAST_TO_LINE_STRING(ring->Contour));
                 if (std::abs(inner_area) < area_threshold)
                 {
                     continue;
@@ -81,7 +84,7 @@ inline void process_polynode_branch(ClipperLib::PolyNode* polynode,
                 {
                     std::reverse(ring->Contour.begin(), ring->Contour.end());
                 }
-                polygon.add_hole(std::move(ring->Contour));
+                polygon.add_hole(std::move(CAST_TO_LINEAR(ring->Contour)));
             }
             mp.push_back(std::move(polygon));
         }
@@ -126,7 +129,7 @@ public:
     {
     }
 
-    void operator() (mapnik::geometry::geometry_empty &)
+    void operator() (mapnik::geometry::geometry_empty<std::int64_t> &)
     {
         return;
     }
@@ -228,8 +231,8 @@ public:
         // if proces_all_rings is true even if the exterior
         // ring is invalid we will continue to insert all polygon
         // rings into the clipper
-        ClipperLib::CleanPolygon(geom.exterior_ring, clean_distance);
-        double outer_area = ClipperLib::Area(geom.exterior_ring);
+        ClipperLib::CleanPolygon(CAST_TO_LINE_STRING_NONCONST(geom.exterior_ring), clean_distance);
+        double outer_area = ClipperLib::Area(CAST_TO_LINE_STRING(geom.exterior_ring));
         if ((std::abs(outer_area) < area_threshold_)  && !process_all_rings_)
         {
             return;
@@ -242,7 +245,7 @@ public:
             std::reverse(geom.exterior_ring.begin(), geom.exterior_ring.end());
         }
 
-        if (!clipper.AddPath(geom.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
+        if (!clipper.AddPath(CAST_TO_LINE_STRING(geom.exterior_ring), ClipperLib::ptSubject, true) && !process_all_rings_)
         {
             return;
         }
@@ -253,8 +256,8 @@ public:
             {
                 continue;
             }
-            ClipperLib::CleanPolygon(ring, clean_distance);
-            double inner_area = ClipperLib::Area(ring);
+            ClipperLib::CleanPolygon(CAST_TO_LINE_STRING_NONCONST(ring), clean_distance);
+            double inner_area = ClipperLib::Area(CAST_TO_LINE_STRING(ring));
             if (std::abs(inner_area) < area_threshold_)
             {
                 continue;
@@ -265,14 +268,14 @@ public:
             {
                 std::reverse(ring.begin(), ring.end());
             }
-            if (!clipper.AddPath(ring, ClipperLib::ptSubject, true))
+            if (!clipper.AddPath(CAST_TO_LINE_STRING(ring), ClipperLib::ptSubject, true))
             {
                 continue;
             }
         }
 
         // Setup the box for clipping
-        mapnik::geometry::linear_ring<std::int64_t> clip_box;
+        mapnik::geometry::line_string<std::int64_t> clip_box;
         clip_box.reserve(5);
         clip_box.emplace_back(tile_clipping_extent_.minx(), tile_clipping_extent_.miny());
         clip_box.emplace_back(tile_clipping_extent_.maxx(), tile_clipping_extent_.miny());
@@ -313,7 +316,7 @@ public:
         }
         
         double clean_distance = 1.415;
-        mapnik::geometry::linear_ring<std::int64_t> clip_box;
+        mapnik::geometry::line_string<std::int64_t> clip_box;
         clip_box.reserve(5);
         clip_box.emplace_back(tile_clipping_extent_.minx(),tile_clipping_extent_.miny());
         clip_box.emplace_back(tile_clipping_extent_.maxx(),tile_clipping_extent_.miny());
@@ -345,8 +348,8 @@ public:
                 {
                     continue;
                 }
-                ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
-                double outer_area = ClipperLib::Area(poly.exterior_ring);
+                ClipperLib::CleanPolygon(CAST_TO_LINE_STRING_NONCONST(poly.exterior_ring), clean_distance);
+                double outer_area = ClipperLib::Area(CAST_TO_LINE_STRING(poly.exterior_ring));
                 if ((std::abs(outer_area) < area_threshold_) && !process_all_rings_)
                 {
                     continue;
@@ -357,7 +360,7 @@ public:
                 {
                     std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
                 }
-                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
+                if (!clipper.AddPath(CAST_TO_LINE_STRING(poly.exterior_ring), ClipperLib::ptSubject, true) && !process_all_rings_)
                 {
                     continue;
                 }
@@ -368,8 +371,8 @@ public:
                     {
                         continue;
                     }
-                    ClipperLib::CleanPolygon(ring, clean_distance);
-                    double inner_area = ClipperLib::Area(ring);
+                    ClipperLib::CleanPolygon(CAST_TO_LINE_STRING_NONCONST(ring), clean_distance);
+                    double inner_area = ClipperLib::Area(CAST_TO_LINE_STRING(ring));
                     if (std::abs(inner_area) < area_threshold_)
                     {
                         continue;
@@ -380,7 +383,7 @@ public:
                     {
                         std::reverse(ring.begin(), ring.end());
                     }
-                    clipper.AddPath(ring, ClipperLib::ptSubject, true);
+                    clipper.AddPath(CAST_TO_LINE_STRING(ring), ClipperLib::ptSubject, true);
                 }
             }
             if (!clipper.AddPath( clip_box, ClipperLib::ptClip, true ))
@@ -409,8 +412,8 @@ public:
                 {
                     continue;
                 }
-                ClipperLib::CleanPolygon(poly.exterior_ring, clean_distance);
-                double outer_area = ClipperLib::Area(poly.exterior_ring);
+                ClipperLib::CleanPolygon(CAST_TO_LINE_STRING_NONCONST(poly.exterior_ring), clean_distance);
+                double outer_area = ClipperLib::Area(CAST_TO_LINE_STRING(poly.exterior_ring));
                 if ((std::abs(outer_area) < area_threshold_) && !process_all_rings_)
                 {
                     continue;
@@ -421,7 +424,7 @@ public:
                 {
                     std::reverse(poly.exterior_ring.begin(), poly.exterior_ring.end());
                 }
-                if (!clipper.AddPath(poly.exterior_ring, ClipperLib::ptSubject, true) && !process_all_rings_)
+                if (!clipper.AddPath(CAST_TO_LINE_STRING(poly.exterior_ring), ClipperLib::ptSubject, true) && !process_all_rings_)
                 {
                     continue;
                 }
@@ -431,8 +434,8 @@ public:
                     {
                         continue;
                     }
-                    ClipperLib::CleanPolygon(ring, clean_distance);
-                    double inner_area = ClipperLib::Area(ring);
+                    ClipperLib::CleanPolygon(CAST_TO_LINE_STRING_NONCONST(ring), clean_distance);
+                    double inner_area = ClipperLib::Area(CAST_TO_LINE_STRING(ring));
                     if (std::abs(inner_area) < area_threshold_)
                     {
                         continue;
@@ -443,7 +446,7 @@ public:
                     {
                         std::reverse(ring.begin(), ring.end());
                     }
-                    if (!clipper.AddPath(ring, ClipperLib::ptSubject, true))
+                    if (!clipper.AddPath(CAST_TO_LINE_STRING(ring), ClipperLib::ptSubject, true))
                     {
                         continue;
                     }

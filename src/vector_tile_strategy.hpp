@@ -218,7 +218,7 @@ struct transform_visitor
         }
         for (auto const& ring : geom.interior_rings)
         {
-            mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(static_cast<mapnik::geometry::line_string<double> const&>(ring));
+            mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(ring);
             if (!target_clipping_extent_.intersects(ring_bbox)) 
             {
                 continue;
@@ -261,7 +261,7 @@ struct transform_visitor
             }
             for (auto const& ring : poly.interior_rings)
             {
-                mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(static_cast<mapnik::geometry::line_string<double> const&>(ring));
+                mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(ring);
                 if (!target_clipping_extent_.intersects(ring_bbox))
                 {
                     continue;
@@ -295,7 +295,7 @@ struct transform_visitor
         }
      }
 
-    inline void operator() (mapnik::geometry::geometry_empty const&)
+    inline void operator() (mapnik::geometry::geometry_empty<double> const&)
     {
         return;
     }

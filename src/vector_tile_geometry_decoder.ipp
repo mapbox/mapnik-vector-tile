@@ -87,7 +87,7 @@ void decode_point(mapnik::geometry::geometry<geom_value_type> & geom,
         geom_value_type y1_ = get_point_value<geom_value_type>(y1, scale_y, tile_y);
         if (cmd == GeometryPBF::end)
         {
-            geom = mapnik::geometry::geometry_empty();
+            geom = mapnik::geometry::geometry_empty<geom_value_type>();
             return;
         } 
         else if (bbox.intersects(x1_, y1_))
@@ -131,7 +131,7 @@ void decode_point(mapnik::geometry::geometry<geom_value_type> & geom,
     std::size_t num_points = mp.size();
     if (num_points == 0)
     {
-        geom = mapnik::geometry::geometry_empty();
+        geom = mapnik::geometry::geometry_empty<geom_value_type>();
     }
     else if (num_points == 1)
     {
@@ -168,7 +168,7 @@ void decode_linestring(mapnik::geometry::geometry<geom_value_type> & geom,
     cmd = paths.line_next(x0, y0, false);
     if (cmd == GeometryPBF::end)
     {
-        geom = mapnik::geometry::geometry_empty();
+        geom = mapnik::geometry::geometry_empty<geom_value_type>();
         return;
     }
     else if (cmd != GeometryPBF::move_to)
@@ -220,12 +220,12 @@ void decode_linestring(mapnik::geometry::geometry<geom_value_type> & geom,
         // add moveto command position
         x0_ = get_point_value<geom_value_type>(x0, scale_x, tile_x);
         y0_ = get_point_value<geom_value_type>(y0, scale_y, tile_y);
-        line.add_coord(x0_, y0_);
+        line.emplace_back(x0_, y0_);
         part_env.init(x0_, y0_, x0_, y0_);
         // add first lineto
         x1_ = get_point_value<geom_value_type>(x1, scale_x, tile_x);
         y1_ = get_point_value<geom_value_type>(y1, scale_y, tile_y);
-        line.add_coord(x1_, y1_);
+        line.emplace_back(x1_, y1_);
         part_env.expand_to_include(x1_, y1_);
         #if defined(DEBUG)
         previous_len = paths.get_length();
@@ -234,7 +234,7 @@ void decode_linestring(mapnik::geometry::geometry<geom_value_type> & geom,
         {
             x1_ = get_point_value<geom_value_type>(x1, scale_x, tile_x);
             y1_ = get_point_value<geom_value_type>(y1, scale_y, tile_y);
-            line.add_coord(x1_, y1_);
+            line.emplace_back(x1_, y1_);
             part_env.expand_to_include(x1_, y1_);
             #if defined(DEBUG)
             if (previous_len <= paths.get_length() && !paths.already_had_error)
@@ -262,7 +262,7 @@ void decode_linestring(mapnik::geometry::geometry<geom_value_type> & geom,
     std::size_t num_lines = multi_line.size();
     if (num_lines == 0)
     {
-        geom = mapnik::geometry::geometry_empty();
+        geom = mapnik::geometry::geometry_empty<geom_value_type>();
     }
     else if (num_lines == 1)
     {
@@ -273,7 +273,7 @@ void decode_linestring(mapnik::geometry::geometry<geom_value_type> & geom,
         }
         else
         {
-            geom = mapnik::geometry::geometry_empty();
+            geom = mapnik::geometry::geometry_empty<geom_value_type>();
         }
     }
     else if (num_lines > 1)
@@ -313,7 +313,7 @@ void decode_polygon(mapnik::geometry::geometry<geom_value_type> & geom,
     cmd = paths.ring_next(x0, y0, false);
     if (cmd == GeometryPBF::end)
     {
-        geom = mapnik::geometry::geometry_empty();
+        geom = mapnik::geometry::geometry_empty<geom_value_type>();
         return;
     }
     else if (cmd != GeometryPBF::move_to)
@@ -394,18 +394,18 @@ void decode_polygon(mapnik::geometry::geometry<geom_value_type> & geom,
         // add moveto command position
         x0_ = get_point_value<geom_value_type>(x0, scale_x, tile_x);
         y0_ = get_point_value<geom_value_type>(y0, scale_y, tile_y);
-        ring.add_coord(x0_, y0_);
+        ring.emplace_back(x0_, y0_);
         part_env.init(x0_, y0_, x0_, y0_);
         // add first lineto
         x1_ = get_point_value<geom_value_type>(x1, scale_x, tile_x);
         y1_ = get_point_value<geom_value_type>(y1, scale_y, tile_y);
-        ring.add_coord(x1_, y1_);
+        ring.emplace_back(x1_, y1_);
         part_env.expand_to_include(x1_, y1_);
         ring_area += calculate_segment_area(x0, y0, x1, y1);
         // add second lineto
         x2_ = get_point_value<geom_value_type>(x2, scale_x, tile_x);
         y2_ = get_point_value<geom_value_type>(y2, scale_y, tile_y);
-        ring.add_coord(x2_, y2_);
+        ring.emplace_back(x2_, y2_);
         part_env.expand_to_include(x2_, y2_);
         ring_area += calculate_segment_area(x1, y1, x2, y2);
         x1 = x2;
@@ -422,7 +422,7 @@ void decode_polygon(mapnik::geometry::geometry<geom_value_type> & geom,
         {
             x2_ = get_point_value<geom_value_type>(x2, scale_x, tile_x);
             y2_ = get_point_value<geom_value_type>(y2, scale_y, tile_y);
-            ring.add_coord(x2_, y2_);
+            ring.emplace_back(x2_, y2_);
             part_env.expand_to_include(x2_, y2_);
             ring_area += calculate_segment_area(x1, y1, x2, y2);
             x1 = x2;
@@ -445,7 +445,7 @@ void decode_polygon(mapnik::geometry::geometry<geom_value_type> & geom,
         {
             // If the previous lineto didn't already close the polygon (WHICH IT SHOULD NOT)
             // close out the polygon ring.
-            ring.add_coord(x0_, y0_);
+            ring.emplace_back(x0_, y0_);
             ring_area += calculate_segment_area(x1, y1, x0, y0);
         }
         if (ring.size() > 3)
@@ -504,7 +504,7 @@ void decode_polygon(mapnik::geometry::geometry<geom_value_type> & geom,
 
     if (rings.size() == 0)
     {   
-        geom = mapnik::geometry::geometry_empty();
+        geom = mapnik::geometry::geometry_empty<geom_value_type>();
         return;
     }
     std::size_t i = 0;
@@ -806,7 +806,7 @@ MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<value_type> decode_geometry(Geom
         {
             // This was changed to not throw as unknown according to v2 of spec can simply be ignored and doesn't require
             // it failing the processing
-            geom = mapnik::geometry::geometry_empty();
+            geom = mapnik::geometry::geometry_empty<value_type>();
             break;
         }
     }

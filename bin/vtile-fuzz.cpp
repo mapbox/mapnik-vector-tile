@@ -59,7 +59,7 @@ int main() {
                                 std::int64_t x = std::rand() % 4096;
                                 std::int64_t y = std::rand() % 4096;
 
-                                ring.add_coord(x,y);
+                                ring.emplace_back(x,y);
                                 if (first) {
                                     first = false;
                                     geom_extent.init(x,y,x,y);

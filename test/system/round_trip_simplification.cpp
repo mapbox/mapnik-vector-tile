@@ -34,10 +34,10 @@ TEST_CASE("vector tile mulit_point correctly passed through simplification code 
 TEST_CASE("vector tile line_string is simplified")
 {
     mapnik::geometry::line_string<double> line;
-    line.add_coord(0,0);
-    line.add_coord(1,1);
-    line.add_coord(2,2);
-    line.add_coord(100,100);
+    line.emplace_back(0,0);
+    line.emplace_back(1,1);
+    line.emplace_back(2,2);
+    line.emplace_back(100,100);
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(line,500);
     std::string wkt;
     CHECK( test_utils::to_wkt(wkt, new_geom) );
@@ -52,10 +52,10 @@ TEST_CASE("vector tile multi_line_string is simplified")
 {
     mapnik::geometry::multi_line_string<double> geom;
     mapnik::geometry::line_string<double> line;
-    line.add_coord(0,0);
-    line.add_coord(1,1);
-    line.add_coord(2,2);
-    line.add_coord(100,100);
+    line.emplace_back(0,0);
+    line.emplace_back(1,1);
+    line.emplace_back(2,2);
+    line.emplace_back(100,100);
     geom.emplace_back(std::move(line));
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(geom,500);
     std::string wkt;
@@ -73,18 +73,18 @@ TEST_CASE("vector tile polygon is simplified")
     polygon<double> poly;
     {
         linear_ring<double> ring;
-        ring.add_coord(0,0);
-        ring.add_coord(-10,0);
-        ring.add_coord(-10,10);
-        ring.add_coord(0,10);
-        ring.add_coord(0,0);
+        ring.emplace_back(0,0);
+        ring.emplace_back(-10,0);
+        ring.emplace_back(-10,10);
+        ring.emplace_back(0,10);
+        ring.emplace_back(0,0);
         poly.set_exterior_ring(std::move(ring));
         linear_ring<double> hole;
-        hole.add_coord(-7,7);
-        hole.add_coord(-7,3);
-        hole.add_coord(-3,3);
-        hole.add_coord(-3,7);
-        hole.add_coord(-7,7);
+        hole.emplace_back(-7,7);
+        hole.emplace_back(-7,3);
+        hole.emplace_back(-3,3);
+        hole.emplace_back(-3,7);
+        hole.emplace_back(-7,7);
         poly.add_hole(std::move(hole));
     }
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(poly,500);
@@ -101,18 +101,18 @@ TEST_CASE("vector tile mulit_polygon is simplified")
     polygon<double> poly;
     {
         linear_ring<double> ring;
-        ring.add_coord(0,0);
-        ring.add_coord(-10,0);
-        ring.add_coord(-10,10);
-        ring.add_coord(0,10);
-        ring.add_coord(0,0);
+        ring.emplace_back(0,0);
+        ring.emplace_back(-10,0);
+        ring.emplace_back(-10,10);
+        ring.emplace_back(0,10);
+        ring.emplace_back(0,0);
         poly.set_exterior_ring(std::move(ring));
         linear_ring<double> hole;
-        hole.add_coord(-7,7);
-        hole.add_coord(-7,3);
-        hole.add_coord(-3,3);
-        hole.add_coord(-3,7);
-        hole.add_coord(-7,7);
+        hole.emplace_back(-7,7);
+        hole.emplace_back(-7,3);
+        hole.emplace_back(-3,3);
+        hole.emplace_back(-3,7);
+        hole.emplace_back(-7,7);
         poly.add_hole(std::move(hole));
     }
     multi_polygon<double> mp;
@@ -128,9 +128,9 @@ TEST_CASE("vector tile mulit_polygon is simplified")
 TEST_CASE("vector tile line_string is simplified when outside bounds", "should create vector tile with data" ) {
     mapnik::geometry::multi_line_string<double> geom;
     mapnik::geometry::line_string<double> line;
-    line.add_coord(-10000,0);
-    line.add_coord(-10000.1,0);
-    line.add_coord(100000,0);
+    line.emplace_back(-10000,0);
+    line.emplace_back(-10000.1,0);
+    line.emplace_back(100000,0);
     geom.emplace_back(std::move(line));
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(geom,100);
     std::string wkt;
