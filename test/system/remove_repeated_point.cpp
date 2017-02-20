@@ -3,6 +3,7 @@
 // test-utils
 #include "round_trip.hpp"
 #include "geom_to_wkt.hpp"
+#include <mapnik/version.hpp>
 
 // mapnik
 #if MAPNIK_VERSION >= 300100
