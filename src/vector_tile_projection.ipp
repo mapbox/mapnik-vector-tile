@@ -27,9 +27,9 @@ MAPNIK_VECTOR_INLINE void spherical_mercator::from_pixels(double shift, double &
     y = R2D * (2.0 * std::atan(std::exp(g)) - M_PI_by2);
 }
 
-MAPNIK_VECTOR_INLINE void spherical_mercator::xyz(int x,
-                                                  int y,
-                                                  int z,
+MAPNIK_VECTOR_INLINE void spherical_mercator::xyz(std::uint64_t x,
+                                                  std::uint64_t y,
+                                                  std::uint64_t z,
                                                   double & minx,
                                                   double & miny,
                                                   double & maxx,
@@ -46,7 +46,10 @@ MAPNIK_VECTOR_INLINE void spherical_mercator::xyz(int x,
     lonlat2merc(&maxx,&maxy,1);
 }
 
-MAPNIK_VECTOR_INLINE mapnik::box2d<double> merc_extent(std::uint32_t tile_size, int x, int y, int z)
+MAPNIK_VECTOR_INLINE mapnik::box2d<double> merc_extent(std::uint32_t tile_size, 
+                                                       std::uint64_t x, 
+                                                       std::uint64_t y, 
+                                                       std::uint64_t z)
 {
     spherical_mercator merc(tile_size);
     double minx,miny,maxx,maxy;

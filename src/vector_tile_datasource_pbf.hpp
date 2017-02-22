@@ -22,9 +22,9 @@ class tile_datasource_pbf : public datasource
 {
 public:
     tile_datasource_pbf(protozero::pbf_reader const& layer,
-                    unsigned x,
-                    unsigned y,
-                    unsigned z,
+                    std::uint64_t x,
+                    std::uint64_t y,
+                    std::uint64_t z,
                     bool use_tile_extent = false);
     virtual ~tile_datasource_pbf();
     datasource::datasource_t type() const;
@@ -42,9 +42,9 @@ private:
     mutable bool attributes_added_;
     mutable bool valid_layer_;
     protozero::pbf_reader layer_;
-    unsigned x_;
-    unsigned y_;
-    unsigned z_;
+    std::uint64_t x_;
+    std::uint64_t y_;
+    std::uint64_t z_;
     std::uint32_t tile_size_;
     mutable bool extent_initialized_;
     mutable mapnik::box2d<double> extent_;

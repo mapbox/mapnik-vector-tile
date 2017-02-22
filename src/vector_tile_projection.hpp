@@ -23,16 +23,19 @@ public:
 
     MAPNIK_VECTOR_INLINE void from_pixels(double shift, double & x, double & y);
 
-    MAPNIK_VECTOR_INLINE void xyz(int x,
-                                  int y,
-                                  int z,
+    MAPNIK_VECTOR_INLINE void xyz(std::uint64_t x,
+                                  std::uint64_t y,
+                                  std::uint64_t z,
                                   double & minx,
                                   double & miny,
                                   double & maxx,
                                   double & maxy);
 };
 
-MAPNIK_VECTOR_INLINE mapnik::box2d<double> merc_extent(std::uint32_t tile_size, int x, int y, int z);
+MAPNIK_VECTOR_INLINE mapnik::box2d<double> merc_extent(std::uint32_t tile_size, 
+                                                       std::uint64_t x, 
+                                                       std::uint64_t y, 
+                                                       std::uint64_t z);
 
 } // end vector_tile_impl ns
 

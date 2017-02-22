@@ -33,9 +33,9 @@ namespace vector_tile_impl
 
 // tile_datasource impl
 tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
-                                         unsigned x,
-                                         unsigned y,
-                                         unsigned z,
+                                         std::uint64_t x,
+                                         std::uint64_t y,
+                                         std::uint64_t z,
                                          bool use_tile_extent)
     : datasource(parameters()),
       desc_("in-memory PBF encoded datasource","utf-8"),
