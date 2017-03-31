@@ -9,7 +9,7 @@ test/run-test
 *pyc
 archive
 TODO.md
-.mason
+mason
 mason_packages
 deps
 build
@@ -19,5 +19,6 @@ gyp
 test
 CONTRIBUTING.md
 bootstrap.sh
+install_mason.sh
 bin
 bench
