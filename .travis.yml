@@ -46,13 +46,14 @@ matrix:
 
 before_install:
  - source ./bootstrap.sh
+ - ./install_mason.sh
  - |
    if [[ $(uname -s) == 'Linux' ]]; then
-     mason install llvm-cov 3.8.1
-     mason install clang++ 3.8.1
-     export PATH=$(mason prefix clang++ 3.8.1)/bin:${PATH}
+     ./mason/mason install llvm-cov 3.8.1
+     ./mason/mason install clang++ 3.8.1
+     export PATH=$(./mason/mason prefix clang++ 3.8.1)/bin:${PATH}
      which clang++
-     export LLVM_COV="$(mason prefix llvm-cov 3.8.1)/bin/llvm-cov"
+     export LLVM_COV="$(./mason/mason prefix llvm-cov 3.8.1)/bin/llvm-cov"
    fi
 
 install:
