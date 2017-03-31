@@ -1,4 +1,4 @@
-MAPNIK_PLUGINDIR := $(shell mapnik-config --input-plugins)
+MAPNIK_PLUGINDIR = $(shell mason_packages/.link/bin/mapnik-config --input-plugins)
 BUILDTYPE ?= Release
 
 GEOMETRY_REVISION=v0.9.0
@@ -8,19 +8,13 @@ GYP_REVISION=3464008
 
 all: libvtile
 
+mason_packages/.link/bin/mapnik-config:
+	./install_mason.sh
+
 ./deps/gyp:
 	git clone https://chromium.googlesource.com/external/gyp.git ./deps/gyp && cd ./deps/gyp && git checkout $(GYP_REVISION)
 
-./deps/protozero:
-	git clone https://github.com/mapbox/protozero.git ./deps/protozero && cd ./deps/protozero && git checkout $(PROTOZERO_REVISION)
-
-./deps/geometry:
-	git clone https://github.com/mapbox/geometry.hpp.git ./deps/geometry && cd ./deps/geometry && git checkout $(GEOMETRY_REVISION)
-
-./deps/wagyu:
-	git clone https://github.com/mapbox/wagyu.git ./deps/wagyu && cd ./deps/wagyu && git checkout $(WAGYU_REVISION)
-
-build/Makefile: ./deps/gyp ./deps/protozero ./deps/wagyu ./deps/geometry gyp/build.gyp test/*
+build/Makefile: mason_packages/.link/bin/mapnik-config ./deps/gyp gyp/build.gyp test/*
 	deps/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(MAPNIK_PLUGINDIR)\" -Goutput_dir=. --generator-output=./build -f make
 
 libvtile: build/Makefile Makefile
