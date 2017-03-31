@@ -34,8 +34,7 @@ testpack:
 
 clean:
 	rm -rf ./build
-	rm -rf ./deps/protozero
-	rm -rf ./deps/wagyu
+	rm -rf ./mason_packages
 
 .PHONY: test
 

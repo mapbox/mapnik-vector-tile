@@ -41,4 +41,5 @@ if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
     install protozero 1.5.1
     install geometry 0.9.0
     install wagyu 0.4.1
+    install protobuf 2.6.1
 fi
