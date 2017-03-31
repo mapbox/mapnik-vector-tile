@@ -30,14 +30,6 @@ matrix:
         apt:
           sources: ['ubuntu-toolchain-r-test']
           packages: [ 'libstdc++-5-dev', 'xutils-dev']
-    - os: linux
-      sudo: false
-      compiler: ": clang-coverage"
-      env: JOBS=10 CXX="ccache clang++-3.8 -Qunused-arguments" COVERAGE=true BUILDTYPE=Debug
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test']
-          packages: [ 'libstdc++-5-dev', 'xutils-dev']
     - os: osx
       compiler: clang
       env: JOBS=10

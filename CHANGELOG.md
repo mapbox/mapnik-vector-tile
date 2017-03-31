@@ -1,8 +1,15 @@
 # Changelog
 
+## 1.3.0
+
+- Updated protozero to 1.5.1
+- Changed build system to build against preset version of mapnik and dependencies in mason
+- Changed to use wagyu rather then the angus clipper.
+- Fixed bug associated with reprojections.
+
 ## 1.2.2
 
-- Upgraded to protozer 1.4.2
+- Upgraded to protozero 1.4.2
 - Added ability to dynamically get include paths by requiring module in node.js
 
 ## 1.2.1
