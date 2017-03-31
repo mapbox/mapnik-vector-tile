@@ -13,15 +13,26 @@
 #include <mapnik/vertex_adapters.hpp>
 #include <mapnik/projection.hpp>
 #include <mapnik/proj_transform.hpp>
-#include <mapnik/geometry_is_empty.hpp>
 #include <mapnik/util/file_io.hpp>
 #include <mapnik/util/geometry_to_geojson.hpp>
+#include <mapnik/version.hpp>
+#if MAPNIK_VERSION >= 300100
+#include <mapnik/geometry/is_empty.hpp>
+#include <mapnik/geometry/reprojection.hpp>
+#include <mapnik/geometry/transform.hpp>
+#include <mapnik/geometry/strategy.hpp>
+#else
+#include <mapnik/geometry_is_empty.hpp>
 #include <mapnik/geometry_reprojection.hpp>
 #include <mapnik/geometry_transform.hpp>
 #include <mapnik/geometry_strategy.hpp>
+#endif
 #include <mapnik/proj_strategy.hpp>
 #include <mapnik/geometry.hpp>
 #include <mapnik/datasource_cache.hpp>
+
+// mapbox
+#include <mapbox/geometry/geometry.hpp>
 
 // boost
 #include <boost/optional/optional_io.hpp>
@@ -214,17 +225,17 @@ TEST_CASE("pbf vector tile datasource")
 
 TEST_CASE("pbf encoding multi line")
 {
-    mapnik::geometry::multi_line_string<std::int64_t> geom;
+    mapbox::geometry::multi_line_string<std::int64_t> geom;
     {
-        mapnik::geometry::line_string<std::int64_t> ring;
-        ring.add_coord(0,0);
-        ring.add_coord(2,2);
+        mapbox::geometry::line_string<std::int64_t> ring;
+        ring.emplace_back(0,0);
+        ring.emplace_back(2,2);
         geom.emplace_back(std::move(ring));
     }
     {
-        mapnik::geometry::line_string<std::int64_t> ring;
-        ring.add_coord(1,1);
-        ring.add_coord(2,2);
+        mapbox::geometry::line_string<std::int64_t> ring;
+        ring.emplace_back(1,1);
+        ring.emplace_back(2,2);
         geom.emplace_back(std::move(ring));
     }
     vector_tile::Tile tile;
@@ -373,7 +384,7 @@ TEST_CASE("pbf decoding some truncated buffers")
 
 TEST_CASE("pbf vector tile from simplified geojson")
 {
-    unsigned tile_size = 256 * 1000;
+    unsigned tile_size = 256 * 100;
     mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
     mapnik::layer lyr("layer","+init=epsg:4326");
     std::shared_ptr<mapnik::memory_datasource> ds = testing::build_geojson_ds("./test/data/poly.geojson");
@@ -427,15 +438,14 @@ TEST_CASE("pbf vector tile from simplified geojson")
           CHECK( mapnik::util::to_geojson(geojson_string,projected_geom) );
           std::string geojson_file = "./test/data/simplified_geometry_pbf.geojson";
           mapnik::util::file input(geojson_file);
-          if (input.is_open())
-          {
-              std::string json_string(input.data().get(), input.size());
-              CHECK (geojson_string == json_string);
-          }
           if (!mapnik::util::exists(geojson_file) || (std::getenv("UPDATE") != nullptr))
           {
               std::ofstream out(geojson_file);
               out << geojson_string;
+          } else if (input.is_open())
+          {
+              std::string json_string(input.data().get(), input.size());
+              CHECK (geojson_string == json_string);
           }
           break;
       }

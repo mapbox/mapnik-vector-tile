@@ -3,13 +3,20 @@
 // test utils
 #include "test_utils.hpp"
 
+
 // mapnik
 #include <mapnik/agg_renderer.hpp>
 #include <mapnik/datasource_cache.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/geometry.hpp>
+#include <mapnik/version.hpp>
+#if MAPNIK_VERSION >= 300100
+#include <mapnik/geometry/is_empty.hpp>
+#include <mapnik/geometry/reprojection.hpp>
+#else
 #include <mapnik/geometry_is_empty.hpp>
 #include <mapnik/geometry_reprojection.hpp>
+#endif
 #include <mapnik/image_util.hpp>
 #include <mapnik/load_map.hpp>
 #include <mapnik/memory_datasource.hpp>
@@ -40,7 +47,7 @@
 
 TEST_CASE("vector tile from simplified geojson")
 {
-    unsigned tile_size = 256 * 1000;
+    unsigned tile_size = 256 * 100;
     mapnik::Map map(256,256,"+init=epsg:3857");
     mapnik::layer lyr("layer","+init=epsg:4326");
     std::shared_ptr<mapnik::memory_datasource> ds = testing::build_geojson_ds("./test/data/poly.geojson");
@@ -137,7 +144,7 @@ TEST_CASE("vector tile transform -- should not throw on coords outside merc rang
     // serialize to message
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    CHECK(70 == buffer.size());
+    CHECK(71 == buffer.size());
     // now create new objects
     mapnik::Map map2(256,256,"+init=epsg:3857");
     vector_tile::Tile tile2;

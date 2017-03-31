@@ -1,5 +1,4 @@
-#ifndef __MAPNIK_VECTOR_TILE_DOUGLAS_PEUCKER_H__
-#define __MAPNIK_VECTOR_TILE_DOUGLAS_PEUCKER_H__
+#pragma once
 
 // Some concepts and code layout borrowed from boost geometry
 // so boost license is included for this header.
@@ -37,8 +36,7 @@
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-// mapnik
-#include <mapnik/geometry.hpp>
+#include <mapbox/geometry/geometry.hpp>
 
 // std
 #include <vector>
@@ -55,10 +53,10 @@ namespace detail
 template<typename T>
 struct douglas_peucker_point
 {
-    mapnik::geometry::point<T> const& p;
+    mapbox::geometry::point<T> const& p;
     bool included;
 
-    inline douglas_peucker_point(mapnik::geometry::point<T> const& ap)
+    inline douglas_peucker_point(mapbox::geometry::point<T> const& ap)
         : p(ap)
         , included(false)
     {}
@@ -192,5 +190,3 @@ inline void douglas_peucker(Range const& range,
 } // end ns vector_tile_impl
 
 } // end ns mapnik
-
-#endif // __MAPNIK_VECTOR_TILE_SIMPLIFY_H__

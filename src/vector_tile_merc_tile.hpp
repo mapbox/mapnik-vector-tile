@@ -14,13 +14,13 @@ namespace vector_tile_impl
 class merc_tile : public tile
 {
 private:
-    std::uint32_t x_;
-    std::uint32_t y_;
-    std::uint32_t z_;
+    std::uint64_t x_;
+    std::uint64_t y_;
+    std::uint64_t z_;
 public:
-    merc_tile(std::uint32_t x,
-              std::uint32_t y,
-              std::uint32_t z,
+    merc_tile(std::uint64_t x,
+              std::uint64_t y,
+              std::uint64_t z,
               std::uint32_t tile_size = 4096,
               std::int32_t buffer_size = 128)
         : tile(merc_extent(tile_size, x, y, z), tile_size, buffer_size),
@@ -39,34 +39,34 @@ public:
                z_ == other.z_;
     }
     
-    std::uint32_t x() const
+    std::uint64_t x() const
     {
         return x_;
     }
 
-    void x(std::uint32_t x)
+    void x(std::uint64_t x)
     {
         x_ = x;
         extent_ = merc_extent(tile_size_, x_, y_, z_);
     }
     
-    std::uint32_t y() const
+    std::uint64_t y() const
     {
         return y_;
     }
     
-    void y(std::uint32_t y)
+    void y(std::uint64_t y)
     {
         y_ = y;
         extent_ = merc_extent(tile_size_, x_, y_, z_);
     }
     
-    std::uint32_t z() const
+    std::uint64_t z() const
     {
         return z_;
     }
     
-    void z(std::uint32_t z)
+    void z(std::uint64_t z)
     {
         z_ = z;
         extent_ = merc_extent(tile_size_, x_, y_, z_);

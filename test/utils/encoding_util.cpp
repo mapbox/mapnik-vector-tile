@@ -56,7 +56,7 @@ std::string decode_to_path_string(mapnik::geometry::geometry<T> const& g)
     return out;
 }
 
-std::string compare_pbf(mapnik::geometry::geometry<std::int64_t> const& g, unsigned version)
+std::string compare_pbf(mapbox::geometry::geometry<std::int64_t> const& g, unsigned version)
 {
     std::int32_t x = 0;
     std::int32_t y = 0;

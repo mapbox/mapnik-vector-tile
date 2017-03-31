@@ -1,5 +1,4 @@
-#ifndef __MAPNIK_VECTOR_TILE_CONFIG_H__
-#define __MAPNIK_VECTOR_TILE_CONFIG_H__
+#pragma once
 
 #if !defined(MAPNIK_VECTOR_TILE_LIBRARY)
 #define MAPNIK_VECTOR_INLINE inline
@@ -71,5 +70,3 @@ enum polygon_fill_type : std::uint8_t {
 } // end ns vector_tile_impl
 
 } // end ns mapnik
-
-#endif // __MAPNIK_VECTOR_TILE_CONFIG_H__

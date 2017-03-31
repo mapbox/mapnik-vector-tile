@@ -14,7 +14,7 @@ if [[ ${COVERAGE} == true ]]; then
         export PYTHONPATH=$(pwd)/mason_packages/.link/lib/python/site-packages
     fi
     ./mason_packages/.link/bin/cpp-coveralls \
-        --gcov /usr/bin/llvm-cov-3.5 \
+        --gcov ${LLVM_COV} \
         --build-root build \
         --gcov-options '\-lp' \
         --exclude examples \

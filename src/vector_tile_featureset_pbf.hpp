@@ -1,5 +1,4 @@
-#ifndef __MAPNIK_VECTOR_TILE_FEATURESET_PBF_H__
-#define __MAPNIK_VECTOR_TILE_FEATURESET_PBF_H__
+#pragma once
 
 // protozero
 #include <protozero/pbf_reader.hpp>
@@ -69,5 +68,3 @@ private:
 #if !defined(MAPNIK_VECTOR_TILE_LIBRARY)
 #include "vector_tile_featureset_pbf.ipp"
 #endif
-
-#endif // __MAPNIK_VECTOR_TILE_FEATURESET_PBF_H__

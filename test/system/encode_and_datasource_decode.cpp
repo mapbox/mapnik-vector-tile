@@ -2,12 +2,19 @@
 
 // mapnik
 #include <mapnik/geometry.hpp>
+#include <mapnik/version.hpp>
+#if MAPNIK_VERSION >= 300100
+#include <mapnik/geometry/strategy.hpp>
+#include <mapnik/geometry/transform.hpp>
+#else
 #include <mapnik/geometry_strategy.hpp>
 #include <mapnik/geometry_transform.hpp>
+#endif
 
 // mapnik-vector-tile
 #include "vector_tile_geometry_encoder_pbf.hpp"
 #include "vector_tile_datasource_pbf.hpp"
+#include "convert_geometry_types.hpp"
 
 // vector tile
 #pragma GCC diagnostic push
@@ -18,17 +25,17 @@
 
 TEST_CASE("encoding multi line string and check output datasource")
 {
-    mapnik::geometry::multi_line_string<std::int64_t> geom;
+    mapbox::geometry::multi_line_string<std::int64_t> geom;
     {
-        mapnik::geometry::line_string<std::int64_t> ring;
-        ring.add_coord(0,0);
-        ring.add_coord(2,2);
+        mapbox::geometry::line_string<std::int64_t> ring;
+        ring.emplace_back(0,0);
+        ring.emplace_back(2,2);
         geom.emplace_back(std::move(ring));
     }
     {
-        mapnik::geometry::line_string<std::int64_t> ring;
-        ring.add_coord(1,1);
-        ring.add_coord(2,2);
+        mapbox::geometry::line_string<std::int64_t> ring;
+        ring.emplace_back(1,1);
+        ring.emplace_back(2,2);
         geom.emplace_back(std::move(ring));
     }
     
@@ -97,7 +104,9 @@ TEST_CASE("encoding and decoding with datasource simple polygon")
     
     unsigned path_multiplier = 16;
     mapnik::geometry::scale_rounding_strategy scale_strat(path_multiplier);
-    mapnik::geometry::geometry<std::int64_t> geom2 = mapnik::geometry::transform<std::int64_t>(geom, scale_strat);
+    mapnik::geometry::polygon<std::int64_t> geom2 = mapnik::geometry::transform<std::int64_t>(geom, scale_strat);
+
+    auto geom3 = mapnik::vector_tile_impl::mapnik_to_mapbox(geom2);
 
     // encode geometry
     vector_tile::Tile tile;
@@ -107,7 +116,7 @@ TEST_CASE("encoding and decoding with datasource simple polygon")
     std::int32_t y = 0;
     std::string feature_str;
     protozero::pbf_writer feature_writer(feature_str);
-    CHECK(mapnik::vector_tile_impl::encode_geometry_pbf(geom2, feature_writer, x, y));
+    CHECK(mapnik::vector_tile_impl::encode_geometry_pbf(geom3, feature_writer, x, y));
     t_feature->ParseFromString(feature_str);
     
     // test results

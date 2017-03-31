@@ -5,7 +5,12 @@
 #include "geom_to_wkt.hpp"
 
 // mapnik
+#include <mapnik/version.hpp>
+#if MAPNIK_VERSION >= 300100
+#include <mapnik/geometry/is_empty.hpp>
+#else
 #include <mapnik/geometry_is_empty.hpp>
+#endif
 
 TEST_CASE("vector tile round trip point encoding")
 {
@@ -131,7 +136,7 @@ TEST_CASE("vector tile polygon encoding")
     CHECK( new_geom.is<mapnik::geometry::polygon<double> >() );
     std::string wkt;
     CHECK( test_utils::to_wkt(wkt, new_geom) );
-    CHECK( wkt == "POLYGON((128 -128,128 -113.778,120.889 -113.778,120.889 -128,128 -128))");
+    CHECK( wkt == "POLYGON((128 -113.778,120.889 -113.778,120.889 -128,128 -128,128 -113.778))");
 }
 
 TEST_CASE("vector tile multi_polygon encoding of single polygon")
@@ -147,7 +152,7 @@ TEST_CASE("vector tile multi_polygon encoding of single polygon")
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(geom);
     std::string wkt;
     CHECK( test_utils::to_wkt(wkt, new_geom) );
-    CHECK( wkt == "POLYGON((128 -128,128 -113.778,120.889 -113.778,120.889 -128,128 -128))");
+    CHECK( wkt == "POLYGON((128 -113.778,120.889 -113.778,120.889 -128,128 -128,128 -113.778))");
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::polygon<double> >() );
 }
@@ -172,7 +177,7 @@ TEST_CASE("vector tile multi_polygon with multipolygon union")
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(geom, 0, mapnik::vector_tile_impl::non_zero_fill, true);
     std::string wkt;
     CHECK( test_utils::to_wkt(wkt, new_geom) );
-    CHECK( wkt == "POLYGON((128 -128,128 -113.778,120.889 -113.778,120.889 -128,128 -128))");
+    CHECK( wkt == "POLYGON((128 -113.778,120.889 -113.778,120.889 -128,128 -128,128 -113.778))");
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::polygon<double> >() );
 }
@@ -197,7 +202,7 @@ TEST_CASE("vector tile multi_polygon with out multipolygon union")
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(geom, 0, mapnik::vector_tile_impl::non_zero_fill, false);
     std::string wkt;
     CHECK( test_utils::to_wkt(wkt, new_geom) );
-    CHECK( wkt == "MULTIPOLYGON(((128 -128,128 -113.778,120.889 -113.778,120.889 -128,128 -128)),((128 -128,128 -113.778,120.889 -113.778,120.889 -128,128 -128)))");
+    CHECK( wkt == "MULTIPOLYGON(((128 -113.778,120.889 -113.778,120.889 -128,128 -128,128 -113.778)),((128 -113.778,120.889 -113.778,120.889 -128,128 -128,128 -113.778)))");
     CHECK( !mapnik::geometry::is_empty(new_geom) );
     CHECK( new_geom.is<mapnik::geometry::multi_polygon<double> >() );
 }

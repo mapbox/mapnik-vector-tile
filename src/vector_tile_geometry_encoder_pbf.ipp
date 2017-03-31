@@ -1,8 +1,8 @@
 // mapnik-vector-tile
 #include "vector_tile_config.hpp"
 
-// mapnik
-#include <mapnik/geometry.hpp>
+// mapbox
+#include <mapbox/geometry/geometry.hpp>
 
 // protozero
 #include <protozero/varint.hpp>
@@ -59,12 +59,7 @@ struct encoder_visitor
           x_(x),
           y_(y) {}
 
-    bool operator() (mapnik::geometry::geometry_empty const&)
-    {
-        return false;
-    }
-
-    bool operator() (mapnik::geometry::geometry_collection<std::int64_t> const&)
+    bool operator() (mapbox::geometry::geometry_collection<std::int64_t> const&)
     {
         throw std::runtime_error("Geometry collections can not be encoded as they may contain different geometry types");
     }
@@ -76,7 +71,7 @@ struct encoder_visitor
     }
 };
 
-inline bool encode_linestring(mapnik::geometry::line_string<std::int64_t> const& line,
+inline bool encode_linestring(mapbox::geometry::line_string<std::int64_t> const& line,
                               protozero::packed_field_uint32 & geometry,
                               int32_t & start_x,
                               int32_t & start_y)
@@ -113,7 +108,7 @@ inline bool encode_linestring(mapnik::geometry::line_string<std::int64_t> const&
     return true;
 }
 
-inline bool encode_linearring(mapnik::geometry::linear_ring<std::int64_t> const& ring,
+inline bool encode_linearring(mapbox::geometry::linear_ring<std::int64_t> const& ring,
                               protozero::packed_field_uint32 & geometry,
                               int32_t & start_x,
                               int32_t & start_y)
@@ -160,25 +155,33 @@ inline bool encode_linearring(mapnik::geometry::linear_ring<std::int64_t> const&
     return true;
 }
 
-inline bool encode_polygon(mapnik::geometry::polygon<std::int64_t> const& poly,
+inline bool encode_polygon(mapbox::geometry::polygon<std::int64_t> const& poly,
                            protozero::packed_field_uint32 & geometry,
                            int32_t & start_x,
                            int32_t & start_y)
 {
-    if (!encode_linearring(poly.exterior_ring, geometry, start_x, start_y))
-    {
+    if (poly.empty()) {
         return false;
     }
-    for (auto const& ring : poly.interior_rings)
+    bool first = true;
+    for (auto const& ring : poly)
     {
-        encode_linearring(ring, geometry, start_x, start_y);
+        if (first) {
+            first = false;
+            if (!encode_linearring(ring, geometry, start_x, start_y))
+            {
+                return false;
+            }
+        } else {
+            encode_linearring(ring, geometry, start_x, start_y);
+        }
     }
     return true;
 }
 
 } // end ns detail
 
-MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapnik::geometry::point<std::int64_t> const& pt,
+MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapbox::geometry::point<std::int64_t> const& pt,
                                               protozero::pbf_writer & current_feature,
                                               int32_t & start_x,
                                               int32_t & start_y)
@@ -198,7 +201,7 @@ MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapnik::geometry::point<std::int64
     return true;
 }
 
-MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapnik::geometry::multi_point<std::int64_t> const& geom,
+MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapbox::geometry::multi_point<std::int64_t> const& geom,
                                               protozero::pbf_writer & current_feature,
                                               int32_t & start_x,
                                               int32_t & start_y)
@@ -226,7 +229,7 @@ MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapnik::geometry::multi_point<std:
     return true;
 }
 
-MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapnik::geometry::line_string<std::int64_t> const& line,
+MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapbox::geometry::line_string<std::int64_t> const& line,
                                               protozero::pbf_writer & current_feature,
                                               int32_t & start_x,
                                               int32_t & start_y)
@@ -240,7 +243,7 @@ MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapnik::geometry::line_string<std:
     return success;
 }
 
-MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapnik::geometry::multi_line_string<std::int64_t> const& geom,
+MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapbox::geometry::multi_line_string<std::int64_t> const& geom,
                                               protozero::pbf_writer & current_feature,
                                               int32_t & start_x,
                                               int32_t & start_y)
@@ -259,7 +262,7 @@ MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapnik::geometry::multi_line_strin
     }
     return success;
 }
-MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapnik::geometry::polygon<std::int64_t> const& poly,
+MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapbox::geometry::polygon<std::int64_t> const& poly,
                                               protozero::pbf_writer & current_feature,
                                               int32_t & start_x,
                                               int32_t & start_y)
@@ -273,7 +276,7 @@ MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapnik::geometry::polygon<std::int
     return success;
 }
 
-MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapnik::geometry::multi_polygon<std::int64_t> const& geom,
+MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapbox::geometry::multi_polygon<std::int64_t> const& geom,
                                               protozero::pbf_writer & current_feature,
                                               int32_t & start_x,
                                               int32_t & start_y)
@@ -293,13 +296,13 @@ MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapnik::geometry::multi_polygon<st
     return success;
 }
 
-MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapnik::geometry::geometry<std::int64_t> const& geom,
+MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapbox::geometry::geometry<std::int64_t> const& geom,
                                               protozero::pbf_writer & current_feature,
                                               int32_t & start_x,
                                               int32_t & start_y)
 {
     detail_pbf::encoder_visitor ap(current_feature, start_x, start_y);
-    return mapnik::util::apply_visitor(ap, geom);
+    return mapbox::util::apply_visitor(ap, geom);
 }
 
 } // end ns vector_tile_impl

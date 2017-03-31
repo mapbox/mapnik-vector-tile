@@ -1,6 +1,14 @@
+#include <mapnik/version.hpp>
+
+#if MAPNIK_VERSION >= 300100
+#include <mapnik/geometry/correct.hpp>
+#include <mapnik/geometry/transform.hpp>
+#else
 #include <mapnik/geometry_correct.hpp>
-#include <mapnik/projection.hpp>
 #include <mapnik/geometry_transform.hpp>
+#endif
+
+#include <mapnik/projection.hpp>
 #include <mapnik/util/file_io.hpp>
 #include <mapnik/json/geometry_parser.hpp>
 #include <mapnik/timer.hpp>
@@ -61,7 +69,7 @@ int main()
         for (unsigned i=0;i<10000;++i)
         {
             mapnik::geometry::geometry<std::int64_t> new_geom = mapnik::geometry::transform<std::int64_t>(geom, vs);
-            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(new_geom);
+            auto const& poly = mapbox::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(new_geom);
             count += poly.size();
         }
     }
@@ -79,8 +87,8 @@ int main()
                                     > transit(vs, clip_extent, out_geom);
         for (unsigned i=0;i<10000;++i)
         {
-            mapnik::util::apply_visitor(transit,geom);        
-            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(out_geom.geom);
+            mapbox::util::apply_visitor(transit,geom);
+            auto const& poly = mapbox::util::get<mapbox::geometry::multi_polygon<std::int64_t>>(*out_geom.geom);
             count2 += poly.size();
         }
         if (count != count2)
@@ -103,8 +111,8 @@ int main()
                                     > transit(vs, clip_extent, out_geom);
         for (unsigned i=0;i<10000;++i)
         {
-            mapnik::util::apply_visitor(transit,geom);        
-            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(out_geom.geom);
+            mapbox::util::apply_visitor(transit,geom);        
+            auto const& poly = mapbox::util::get<mapbox::geometry::multi_polygon<std::int64_t>>(*out_geom.geom);
             count4 += poly.size();
         }
         if (count != count4)
@@ -128,7 +136,7 @@ int main()
         for (unsigned i=0;i<10000;++i)
         {
             mapnik::util::apply_visitor(transit,geom);
-            auto const& poly = mapnik::util::get<mapnik::geometry::multi_polygon<std::int64_t>>(out_geom.geom);
+            auto const& poly = mapbox::util::get<mapbox::geometry::multi_polygon<std::int64_t>>(*out_geom.geom);
             count3 += poly.size();
         }
         if (count != count3)

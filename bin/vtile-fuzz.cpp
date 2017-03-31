@@ -48,8 +48,8 @@ int main() {
                                                 mapnik::vector_tile_impl::positive_fill,
                                                 mapnik::vector_tile_impl::negative_fill })
                         {
-                            mapnik::geometry::polygon<std::int64_t> poly;
-                            mapnik::geometry::linear_ring<std::int64_t> ring;
+                            mapbox::geometry::polygon<std::int64_t> poly;
+                            mapbox::geometry::linear_ring<std::int64_t> ring;
                             mapnik::box2d<int> geom_extent;
 
                             bool added_exterior = false;
@@ -59,7 +59,7 @@ int main() {
                                 std::int64_t x = std::rand() % 4096;
                                 std::int64_t y = std::rand() % 4096;
 
-                                ring.add_coord(x,y);
+                                ring.emplace_back(x,y);
                                 if (first) {
                                     first = false;
                                     geom_extent.init(x,y,x,y);
@@ -68,17 +68,17 @@ int main() {
                                 }
 
                                 if (!added_exterior && i > 100) {
-                                    poly.set_exterior_ring(std::move(ring));
-                                    ring = mapnik::geometry::linear_ring<std::int64_t>();
+                                    poly.push_back(ring);
+                                    ring.clear();
                                     added_exterior = true;
                                 }
 
                                 if (added_exterior && std::rand() % 50 == 0 && ring.size() >= 3) {
-                                    poly.add_hole(std::move(ring));
-                                    ring = mapnik::geometry::linear_ring<std::int64_t>();
+                                    poly.push_back(ring);
+                                    ring.clear();
                                 }
                             }
-                            std::clog << "size: " << poly.num_rings() << "\n";
+                            std::clog << "size: " << poly.size() << "\n";
                             // clip with max extent: should result in nothing being clipped
                             {
                                 clipping_process clipper(no_op_max_extent,

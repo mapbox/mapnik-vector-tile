@@ -8,8 +8,10 @@
 
 // mapnik
 #include <mapnik/feature.hpp>
-#include <mapnik/geometry.hpp>
 #include <mapnik/util/variant.hpp>
+
+// Mapbox
+#include <mapbox/geometry/geometry.hpp>
 
 
 namespace mapnik
@@ -41,11 +43,6 @@ struct geometry_to_feature_pbf_visitor
         : mapnik_feature_(mapnik_feature),
           builder_(builder) {}
 
-    void operator() (mapnik::geometry::geometry_empty const&)
-    {
-        return;
-    }
-
     template <typename T>
     void operator() (T const& geom)
     {
@@ -70,11 +67,11 @@ struct geometry_to_feature_pbf_visitor
         }   
     }
 
-    void operator() (mapnik::geometry::geometry_collection<std::int64_t> const& collection)
+    void operator() (mapbox::geometry::geometry_collection<std::int64_t> const& collection)
     {
         for (auto & g : collection)
         {
-            mapnik::util::apply_visitor((*this), g);
+            mapbox::util::apply_visitor((*this), g);
         }
     }
 };
