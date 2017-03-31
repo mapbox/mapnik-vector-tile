@@ -1,9 +1,6 @@
 MAPNIK_PLUGINDIR = $(shell mason_packages/.link/bin/mapnik-config --input-plugins)
 BUILDTYPE ?= Release
 
-GEOMETRY_REVISION=v0.9.0
-WAGYU_REVISION=0.4.0
-PROTOZERO_REVISION=v1.5.1
 GYP_REVISION=3464008
 
 all: libvtile
