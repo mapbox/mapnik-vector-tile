@@ -25,7 +25,15 @@ matrix:
     - os: linux
       sudo: false
       compiler: ": clang"
-      env: JOBS=10 CXX="ccache clang++-3.8 -Qunused-arguments"
+      env: JOBS=10 CXX="ccache clang++-3.9 -Qunused-arguments"
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: [ 'libstdc++-5-dev', 'xutils-dev']
+    - os: linux
+      sudo: false
+      compiler: ": clang-coverage"
+      env: JOBS=10 CXX="ccache clang++-3.9 -Qunused-arguments" COVERAGE=true BUILDTYPE=Debug
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
@@ -41,11 +49,12 @@ before_install:
  - ./install_mason.sh
  - |
    if [[ $(uname -s) == 'Linux' ]]; then
-     ./mason/mason install llvm-cov 3.8.1
-     ./mason/mason install clang++ 3.8.1
-     export PATH=$(./mason/mason prefix clang++ 3.8.1)/bin:${PATH}
+     ./mason/mason install llvm-cov 3.9.1
+     ./mason/mason install clang++ 3.9.1
+     export PATH=$(./mason/mason prefix clang++ 3.9.1)/bin:${PATH}
      which clang++
-     export LLVM_COV="$(./mason/mason prefix llvm-cov 3.8.1)/bin/llvm-cov"
+     export PATH=$(./mason/mason prefix llvm-cov 3.9.1)/bin:${PATH}
+     which llvm-cov
    fi
 
 install:

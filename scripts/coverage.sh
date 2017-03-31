@@ -3,27 +3,8 @@
 set -e -u
 set -o pipefail
 
-COVERAGE=${COVERAGE:-false}
-
-if [[ ${COVERAGE} == true ]]; then
-
-    PYTHONUSERBASE=$(pwd)/mason_packages/.link pip install --user cpp-coveralls
-    if [[ $(uname -s) == 'Linux' ]]; then
-        export PYTHONPATH=$(pwd)/mason_packages/.link/lib/python2.7/site-packages
-    else
-        export PYTHONPATH=$(pwd)/mason_packages/.link/lib/python/site-packages
-    fi
-    ./mason_packages/.link/bin/cpp-coveralls \
-        --gcov ${LLVM_COV} \
-        --build-root build \
-        --gcov-options '\-lp' \
-        --exclude examples \
-        --exclude deps \
-        --exclude test \
-        --exclude bench \
-        --exclude build/Debug/obj/gen/ \
-        --exclude mason_packages \
-        --exclude scripts > /dev/null
+if [[ ${COVERAGE:-false} != false ]]; then
+    curl -S -f https://codecov.io/bash -o codecov
+    chmod +x codecov
+    ./codecov -x "llvm-cov gcov" -Z
 fi
-
-set +e +u
