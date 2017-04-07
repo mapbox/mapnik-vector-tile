@@ -12,7 +12,7 @@ ICU_VERSION="57.1"
 
 if [ ! -f ./mason/mason.sh ]; then
     mkdir -p ./mason
-    curl -sSfL https://github.com/mapbox/mason/archive/0ba3b42.tar.gz | tar --gunzip --extract --strip-components=1 --exclude="*md" --exclude="test*" --directory=./mason
+    curl -sSfL https://github.com/mapbox/mason/archive/d1a9856.tar.gz | tar --gunzip --extract --strip-components=1 --exclude="*md" --exclude="test*" --directory=./mason
 fi
 
 if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
@@ -35,7 +35,7 @@ if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
     install harfbuzz 1.4.2-ft
 
     # mapnik
-    install mapnik 3.0.13
+    install mapnik 3.0.13-1
 
     # other deps
     install protozero 1.5.1
