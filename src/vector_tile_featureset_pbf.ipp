@@ -237,6 +237,12 @@ feature_ptr tile_featureset_pbf<Filter>::next()
                             end_y = image_height;
                         int width = end_x - x_off;
                         int height = end_y - y_off;
+                        if (width < 1) {
+                            width = 1;
+                        }
+                        if (height < 1) {
+                            height = 1;
+                        }
                         box2d<double> feature_raster_extent(x_off,
                                                             y_off,
                                                             x_off + width,
