@@ -1,0 +1,21 @@
+<Map srs="+init=epsg:3857">
+    <Layer name="1" srs="+init=epsg:3857">
+        <Datasource>
+            <Parameter name="type">csv</Parameter>
+            <Parameter name="inline">
+                x, y
+                1, 2
+            </Parameter>
+        </Datasource>
+    </Layer>
+    <Layer name="2" srs="+init=epsg:3857" maximum-scale-denominator="200000">
+        <Datasource>
+            <Parameter name="type">csv</Parameter>
+            <Parameter name="inline">
+                x, y
+                3, 4
+                1, 4
+            </Parameter>
+        </Datasource>
+    </Layer>
+</Map>
