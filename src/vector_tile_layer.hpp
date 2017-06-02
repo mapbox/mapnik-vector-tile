@@ -263,8 +263,8 @@ public:
             // if no intersection then nothing to do for layer
             valid_ = false;    
         }
-        double qw = query_extent.width() > 0 ? query_extent.width() : 1;
-        double qh = query_extent.height() > 0 ? query_extent.height() : 1;
+        double qw = tile_extent_bbox.width() > 0 ? tile_extent_bbox.width() : 1;
+        double qh = tile_extent_bbox.height() > 0 ? tile_extent_bbox.height() : 1;
         if (!ds_ || ds_->type() == datasource::Vector)
         {
             qw = VT_LEGACY_IMAGE_SIZE / qw;
