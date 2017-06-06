@@ -99,7 +99,7 @@ TEST_CASE("raster tile output 1")
         mapnik::save_to_file(im_data,"test/fixtures/actual-2.jpeg","jpeg");
     }
 
-    std::size_t expected_image_size = 42977;
+    std::size_t expected_image_size = 45660;
     std::size_t expected_vtile_size = expected_image_size + 26;
     if (!debug)
     {
