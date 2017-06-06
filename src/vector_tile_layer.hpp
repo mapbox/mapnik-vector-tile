@@ -236,6 +236,14 @@ public:
         }
 
         mapnik::box2d<double> query_extent(lay.envelope()); // source projection
+        mapnik::box2d<double> unbuffered_query_extent(tile_extent_bbox);
+        if (!prj_trans_.equal())
+        {
+            if (!prj_trans_.forward(unbuffered_query_extent, PROJ_ENVELOPE_POINTS))
+            {
+                throw std::runtime_error("vector_tile_processor: unbuffered query extent did not repoject back to map projection");
+            }
+        }
 
         // first, try intersection of map extent forward projected into layer srs
         if (source_buffered_extent_.intersects(query_extent))
@@ -255,7 +263,7 @@ public:
             // forward project layer extent back into native projection
             if (!prj_trans_.forward(query_extent, PROJ_ENVELOPE_POINTS))
             {
-                throw std::runtime_error("vector_tile_processor: layer extent did not repoject back to map projection");
+                throw std::runtime_error("vector_tile_processor: query extent did not repoject back to map projection");
             }
         }
         else
@@ -263,8 +271,8 @@ public:
             // if no intersection then nothing to do for layer
             valid_ = false;    
         }
-        double qw = query_extent.width() > 0 ? query_extent.width() : 1;
-        double qh = query_extent.height() > 0 ? query_extent.height() : 1;
+        double qw = unbuffered_query_extent.width() > 0 ? unbuffered_query_extent.width() : 1;
+        double qh = unbuffered_query_extent.height() > 0 ? unbuffered_query_extent.height() : 1;
         if (!ds_ || ds_->type() == datasource::Vector)
         {
             qw = VT_LEGACY_IMAGE_SIZE / qw;
@@ -276,7 +284,7 @@ public:
             qh = static_cast<double>(layer_extent_) / qh;
         }
         mapnik::query::resolution_type res(qw, qh);
-        mapnik::query q(query_extent, res, scale_denom, tile_extent_bbox);
+        mapnik::query q(query_extent, res, scale_denom, unbuffered_query_extent);
         if (ds_)
         {
             mapnik::layer_descriptor lay_desc = ds_->get_descriptor();
