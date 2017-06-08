@@ -218,34 +218,36 @@ feature_ptr tile_featureset_pbf<Filter>::next()
                     mapnik::view_transform t(image_width, image_height, tile_extent_, 0, 0);
                     box2d<double> intersect = tile_extent_.intersect(unbuffered_query_);
                     box2d<double> ext = t.forward(intersect);
-                    if (ext.width() > 0.5 && ext.height() > 0.5 )
+                    if (ext.width() > std::numeric_limits<double>::epsilon() * 5.0
+                        && ext.height() > std::numeric_limits<double>::epsilon() * 5.0)
                     {
                         // select minimum raster containing whole ext
-                        int x_off = static_cast<int>(std::floor(ext.minx() +.5));
-                        int y_off = static_cast<int>(std::floor(ext.miny() +.5));
-                        int end_x = static_cast<int>(std::floor(ext.maxx() +.5));
-                        int end_y = static_cast<int>(std::floor(ext.maxy() +.5));
+                        int x_off = static_cast<int>(std::floor(ext.minx()));
+                        int y_off = static_cast<int>(std::floor(ext.miny()));
+                        int end_x = static_cast<int>(std::ceil(ext.maxx()));
+                        int end_y = static_cast<int>(std::ceil(ext.maxy()));
 
                         // clip to available data
-                        if (x_off < 0)
-                            x_off = 0;
-                        if (y_off < 0)
-                            y_off = 0;
-                        if (end_x > image_width)
-                            end_x = image_width;
-                        if (end_y > image_height)
-                            end_y = image_height;
+                        if (x_off >= image_width) x_off = image_width - 1;
+                        if (y_off >= image_height) y_off = image_height - 1;
+                        if (x_off < 0) x_off = 0;
+                        if (y_off < 0) y_off = 0;
+                        if (end_x > image_width) end_x = image_width;
+                        if (end_y > image_height) end_y = image_height;
                         int width = end_x - x_off;
                         int height = end_y - y_off;
+                        if (width < 1) width = 1;
+                        if (height < 1) height = 1;
                         box2d<double> feature_raster_extent(x_off,
                                                             y_off,
                                                             x_off + width,
                                                             y_off + height);
-                        intersect = t.backward(feature_raster_extent);
+                        feature_raster_extent = t.backward(feature_raster_extent);
                         double filter_factor = 1.0;
                         mapnik::image_any data = reader->read(x_off, y_off, width, height);
-                        mapnik::raster_ptr raster = std::make_shared<mapnik::raster>(intersect,
-                                                      data,
+                        mapnik::raster_ptr raster = std::make_shared<mapnik::raster>(feature_raster_extent,
+                                                      intersect,
+                                                      std::move(data),
                                                       filter_factor
                                                       );
                         feature->set_raster(raster);

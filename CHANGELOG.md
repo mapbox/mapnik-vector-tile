@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1
+
+- Fixed a bug associated with image height and width when reading from an image resulting in a size of zero causing exceptions.
+
 ## 1.3.0
 
 - Updated protozero to 1.5.1
