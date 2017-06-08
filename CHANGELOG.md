@@ -1,8 +1,12 @@
 # Changelog
 
-## 1.3.1
+## 1.4.0
 
 - Fixed a bug associated with image height and width when reading from an image resulting in a size of zero causing exceptions.
+- Updated to use mapnik 3.0.14, previous version of mapnik will not work properly with this newest version.
+- Corrected issues with resolution associated with mapnik queries that was allowing the buffer size of the vector tile to affect the resolution.
+- Removed some duplicate code
+- Removed fuzzer from library
 
 ## 1.3.0
 
