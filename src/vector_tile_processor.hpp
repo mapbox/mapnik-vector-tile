@@ -6,6 +6,7 @@
 #include <mapnik/image_scaling.hpp>
 #include <mapnik/layer.hpp>
 #include <mapnik/map.hpp>
+#include <mapnik/attribute.hpp>
 #include <mapnik/request.hpp>
 #include <mapnik/util/noncopyable.hpp>
 
@@ -46,9 +47,10 @@ private:
     bool multi_polygon_union_;
     bool process_all_rings_;
     std::launch threading_mode_;
+    mapnik::attributes vars_;
 
 public:
-    processor(mapnik::Map const& map)
+    processor(mapnik::Map const& map, mapnik::attributes const& vars = mapnik::attributes())
         : m_(map),
           image_format_("webp"),
           scale_factor_(1.0),
@@ -59,7 +61,8 @@ public:
           strictly_simple_(true),
           multi_polygon_union_(false),
           process_all_rings_(false),
-          threading_mode_(std::launch::deferred) {}
+          threading_mode_(std::launch::deferred),
+          vars_(vars) {}
 
     MAPNIK_VECTOR_INLINE void update_tile(tile & t,
                                           double scale_denom = 0.0,

@@ -95,7 +95,8 @@ public:
                double scale_factor,
                double scale_denom,
                int offset_x,
-               int offset_y)
+               int offset_y,
+               mapnik::attributes const& vars)
         : valid_(true),
           ds_(lay.datasource()),
           target_proj_(map.srs(), true),
@@ -106,7 +107,7 @@ public:
           layer_extent_(calc_extent(tile_size)),
           target_buffered_extent_(calc_target_buffered_extent(tile_extent_bbox, buffer_size, lay, map)),
           source_buffered_extent_(calc_source_buffered_extent()),
-          query_(calc_query(scale_factor, scale_denom, tile_extent_bbox, lay)),
+          query_(calc_query(scale_factor, scale_denom, tile_extent_bbox, lay, vars)),
           view_trans_(layer_extent_, layer_extent_, tile_extent_bbox, offset_x, offset_y),
           empty_(true),
           painted_(false)
@@ -221,7 +222,8 @@ public:
     mapnik::query calc_query(double scale_factor,
                              double scale_denom,
                              mapnik::box2d<double> const& tile_extent_bbox,
-                             mapnik::layer const& lay)
+                             mapnik::layer const& lay,
+                             mapnik::attributes const& vars)
     {
         // Adjust the scale denominator if required
         if (scale_denom <= 0.0)
@@ -293,6 +295,7 @@ public:
                 q.add_property_name(desc.get_name());
             }
         }
+        q.set_variables(vars);
         return q;
     }
 
