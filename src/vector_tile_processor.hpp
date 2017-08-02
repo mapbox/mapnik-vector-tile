@@ -185,6 +185,11 @@ public:
         return image_format_;
     }
 
+    mapnik::attributes const& get_variables() const
+    {
+        return vars_;
+    }
+
     void set_threading_mode(std::launch mode)
     {
         threading_mode_ = mode;
