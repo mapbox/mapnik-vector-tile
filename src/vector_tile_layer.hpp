@@ -309,6 +309,11 @@ public:
         return ds_->features(query_);
     }
 
+    mapnik::query const& get_query() const
+    {
+        return query_;
+    }
+
     mapnik::view_transform const& get_view_transform() const
     {
         return view_trans_;
