@@ -209,7 +209,11 @@ int main(int argc, char** argv)
                  for (std::size_t l=0;l<static_cast<std::size_t>(layer.features_size());++l)
                  {
                      vector_tile::Tile_Feature const & feat = layer.features(l);
-                     std::cout << "  feature: " << feat.id() << "\n";
+                     if (feat.has_id()) {
+                         std::cout << "  feature: " << feat.id() << "\n";
+                     } else {
+                         std::cout << "  feature: (no id set)\n";
+                     }
                      std::cout << "    type: ";
                      unsigned feat_type = feat.type();
                      if (feat_type == 0) {
