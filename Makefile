@@ -17,10 +17,10 @@ build/Makefile: mason_packages/.link/bin/mapnik-config ./deps/gyp gyp/build.gyp 
 libvtile: build/Makefile Makefile
 	PATH="`pwd`/mason_packages/.link/bin/:${PATH}" $(MAKE) -C build/ BUILDTYPE=$(BUILDTYPE) V=$(V)
 
-test/geometry-test-data:
+test/geometry-test-data/README.md:
 	git submodule update --init
 
-test: libvtile test/geometry-test-data
+test: libvtile test/geometry-test-data/README.md
 	BUILDTYPE=$(BUILDTYPE) ./test/run.sh
 
 testpack:
