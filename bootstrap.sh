@@ -12,7 +12,7 @@ function setup_runtime_settings() {
         # differently named variable
         export MVT_LIBRARY_PATH=${DYLD_LIBRARY_PATH}
     else
-        export LD_LIBRARY_PATH=$(pwd)/mason_packages/.link/lib:${LD_LIBRARY_PATH}
+        export LD_LIBRARY_PATH=$(pwd)/mason_packages/.link/lib:${LD_LIBRARY_PATH:-}
     fi
     export PATH=$(pwd)/mason_packages/.link/bin:${PATH}
 }
