@@ -15,13 +15,13 @@ build/Makefile: mason_packages/.link/bin/mapnik-config ./deps/gyp gyp/build.gyp 
 	deps/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(MAPNIK_PLUGINDIR)\" -Goutput_dir=. --generator-output=./build -f make
 
 libvtile: build/Makefile Makefile
-	@$(MAKE) -C build/ BUILDTYPE=$(BUILDTYPE) V=$(V)
+	PATH="`pwd`/mason_packages/.link/bin/:${PATH}" $(MAKE) -C build/ BUILDTYPE=$(BUILDTYPE) V=$(V)
 
-test/geometry-test-data:
+test/geometry-test-data/README.md:
 	git submodule update --init
 
-test: libvtile test/geometry-test-data
-	DYLD_LIBRARY_PATH=$(MVT_LIBRARY_PATH) ./build/$(BUILDTYPE)/tests
+test: libvtile test/geometry-test-data/README.md
+	BUILDTYPE=$(BUILDTYPE) ./test/run.sh
 
 testpack:
 	rm -f ./*tgz

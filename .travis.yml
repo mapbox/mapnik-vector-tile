@@ -45,7 +45,6 @@ matrix:
       osx_image: xcode8.3 # upgrades clang from 6 -> 7
 
 before_install:
- - source ./bootstrap.sh
  - ./install_mason.sh
  - |
    if [[ $(uname -s) == 'Linux' ]]; then
