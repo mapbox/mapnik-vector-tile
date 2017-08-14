@@ -21,7 +21,7 @@ test/geometry-test-data:
 	git submodule update --init
 
 test: libvtile test/geometry-test-data
-	BUILDTYPE=$(BUILDTYPE) ./run_tests.sh
+	BUILDTYPE=$(BUILDTYPE) ./test/run.sh
 
 testpack:
 	rm -f ./*tgz
