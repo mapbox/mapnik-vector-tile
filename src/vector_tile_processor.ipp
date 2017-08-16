@@ -178,6 +178,7 @@ inline void create_raster_layer(tile_layer & layer,
                                 std::string const& image_format,
                                 scaling_method_e scaling_method)
 {
+    std::clog << "db:processor1 creating raster layer in vtile '" << layer.name() << "'\n";
     layer_builder_pbf builder(layer.name(), layer.layer_extent(), layer.get_data());
 
     // query for the features
@@ -201,9 +202,14 @@ inline void create_raster_layer(tile_layer & layer,
         return;
     }
 
+    auto const& data = source->data_;
+    std::clog << "db:processor2 '" << layer.name() << "' queried raster w:" << data.width() << " h:" << data.height() << "\n";
+
     mapnik::box2d<double> target_ext = box2d<double>(source->ext_);
     
-    layer.get_proj_transform().backward(target_ext, PROJ_ENVELOPE_POINTS);
+    if (!layer.get_proj_transform().backward(target_ext, PROJ_ENVELOPE_POINTS)) {
+      std::clog << "WARNING: hit error backwarding raster '" << layer.name() << "'\n";
+    }
     mapnik::box2d<double> ext = layer.get_view_transform().forward(target_ext);
 
     int start_x = static_cast<int>(std::floor(ext.minx()+.5));

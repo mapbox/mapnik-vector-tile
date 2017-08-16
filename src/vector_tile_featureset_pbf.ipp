@@ -213,6 +213,7 @@ feature_ptr tile_featureset_pbf<Filter>::next()
             {
                 int image_width = reader->width();
                 int image_height = reader->height();
+                std::clog << "db:featureset_pbf - queried raster w:" << image_width << " h:" << image_height << "\n";
                 if (image_width > 0 && image_height > 0)
                 {
                     mapnik::view_transform t(image_width, image_height, tile_extent_, 0, 0);
@@ -245,6 +246,7 @@ feature_ptr tile_featureset_pbf<Filter>::next()
                         feature_raster_extent = t.backward(feature_raster_extent);
                         double filter_factor = 1.0;
                         mapnik::image_any data = reader->read(x_off, y_off, width, height);
+                        std::clog << "db:featureset_pbf - selected w:" << data.width() << " h:" << data.height() << "\n";
                         mapnik::raster_ptr raster = std::make_shared<mapnik::raster>(feature_raster_extent,
                                                       intersect,
                                                       std::move(data),
