@@ -2,7 +2,7 @@
 #include "vector_tile_geometry_decoder.hpp"
 
 // mapnik
-#include <mapnik/box2d.hpp>
+#include <mapnik/geometry/box2d.hpp>
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/geometry.hpp>
 #include <mapnik/image.hpp>
@@ -17,10 +17,10 @@
 // protozero
 #include <protozero/pbf_reader.hpp>
 
-namespace mapnik 
-{ 
+namespace mapnik
+{
 
-namespace vector_tile_impl 
+namespace vector_tile_impl
 {
 
 template <typename Filter>
@@ -78,7 +78,7 @@ struct value_visitor
         : tr_(tr),
           feature_(feature),
           name_(name) {}
-    
+
     void operator() (std::string const& val)
     {
         feature_->put(name_, tr_.transcode(val.data(), val.length()));

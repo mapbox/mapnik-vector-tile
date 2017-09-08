@@ -4,7 +4,7 @@
 #include "vector_tile_config.hpp"
 
 // mapnik
-#include <mapnik/box2d.hpp>
+#include <mapnik/geometry/box2d.hpp>
 #include <mapnik/coord.hpp>
 #include <mapnik/datasource.hpp>
 #include <mapnik/feature.hpp>

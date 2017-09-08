@@ -5,12 +5,12 @@
 #include "vector_tile_config.hpp"
 
 // mapnik
-#include <mapnik/box2d.hpp>
+#include <mapnik/geometry/box2d.hpp>
 
-namespace mapnik 
-{ 
+namespace mapnik
+{
 
-namespace vector_tile_impl 
+namespace vector_tile_impl
 {
 
 class spherical_mercator
@@ -32,9 +32,9 @@ public:
                                   double & maxy);
 };
 
-MAPNIK_VECTOR_INLINE mapnik::box2d<double> merc_extent(std::uint32_t tile_size, 
-                                                       std::uint64_t x, 
-                                                       std::uint64_t y, 
+MAPNIK_VECTOR_INLINE mapnik::box2d<double> merc_extent(std::uint32_t tile_size,
+                                                       std::uint64_t x,
+                                                       std::uint64_t y,
                                                        std::uint64_t z);
 
 } // end vector_tile_impl ns

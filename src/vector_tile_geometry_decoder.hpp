@@ -7,7 +7,7 @@
 #include <protozero/pbf_reader.hpp>
 
 //mapnik
-#include <mapnik/box2d.hpp>
+#include <mapnik/geometry/box2d.hpp>
 #include <mapnik/geometry.hpp>
 #if defined(DEBUG)
 #include <mapnik/debug.hpp>
@@ -18,21 +18,21 @@
 #include <cmath>
 #include <stdexcept>
 
-namespace mapnik 
-{ 
-    
-namespace vector_tile_impl 
+namespace mapnik
+{
+
+namespace vector_tile_impl
 {
 
 // NOTE: this object is for one-time use.  Once you've progressed to the end
 //       by calling next(), to re-iterate, you must construct a new object
-class GeometryPBF 
+class GeometryPBF
 {
 public:
     using value_type = std::int64_t;
     using iterator_type = protozero::pbf_reader::const_uint32_iterator;
     using pbf_itr = protozero::iterator_range<iterator_type>;
-    
+
     explicit GeometryPBF(pbf_itr const& geo_iterator);
 
     enum command : uint8_t
@@ -66,8 +66,8 @@ public:
 };
 
 template <typename value_type>
-MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<value_type> decode_geometry(GeometryPBF & paths, 
-                                                                            std::int32_t geom_type, 
+MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<value_type> decode_geometry(GeometryPBF & paths,
+                                                                            std::int32_t geom_type,
                                                                             unsigned version,
                                                                             value_type tile_x,
                                                                             value_type tile_y,
@@ -76,8 +76,8 @@ MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<value_type> decode_geometry(Geom
                                                                             mapnik::box2d<double> const& bbox);
 
 template <typename value_type>
-MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<value_type> decode_geometry(GeometryPBF & paths, 
-                                                                            std::int32_t geom_type, 
+MAPNIK_VECTOR_INLINE mapnik::geometry::geometry<value_type> decode_geometry(GeometryPBF & paths,
+                                                                            std::int32_t geom_type,
                                                                             unsigned version,
                                                                             value_type tile_x,
                                                                             value_type tile_y,

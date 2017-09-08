@@ -13,7 +13,7 @@
 #include <fstream>
 
 // mapnik
-#include <mapnik/box2d.hpp>
+#include <mapnik/geometry/box2d.hpp>
 #include <mapnik/datasource_cache.hpp>
 #include <mapnik/global.hpp>
 #include <mapnik/well_known_srs.hpp>
@@ -121,7 +121,7 @@ int main(int argc, char** argv)
         else
         {
             mapnik::feature_ptr feature = json_fs->next();
-        
+
             while (feature)
             {
                 ds->push(feature);
@@ -129,7 +129,7 @@ int main(int argc, char** argv)
             }
         }
 
-        // Create tile 
+        // Create tile
         unsigned tile_size = layer_extent;
         int buffer_size = 0;
 

@@ -20,7 +20,6 @@
 
 #pragma GCC diagnostic push
 #include <mapnik/warning_ignore.hpp>
-#include "boost_geometry_adapters.hpp"
 #include <boost/geometry/core/coordinate_type.hpp>
 #include <boost/geometry/core/access.hpp>
 #pragma GCC diagnostic pop
@@ -91,7 +90,7 @@ struct vector_tile_strategy_proj
         boost::geometry::set<1>(p2, static_cast<p2_type>(y));
         return true;
     }
-    
+
     template <typename P1, typename P2>
     inline P2 execute(P1 const& p1, bool & status) const
     {
@@ -124,7 +123,7 @@ struct transform_visitor
     NextProcessor & next_;
     box2d<double> const& target_clipping_extent_;
 
-    transform_visitor(TransformType const& tr, 
+    transform_visitor(TransformType const& tr,
                       box2d<double> const& target_clipping_extent,
                       NextProcessor & next) :
       tr_(tr),
@@ -167,7 +166,7 @@ struct transform_visitor
     inline void operator() (mapnik::geometry::line_string<double> const& geom)
     {
         mapnik::box2d<double> geom_bbox = mapnik::geometry::envelope(geom);
-        if (!target_clipping_extent_.intersects(geom_bbox)) 
+        if (!target_clipping_extent_.intersects(geom_bbox))
         {
             return;
         }
@@ -213,30 +212,17 @@ struct transform_visitor
 
     inline void operator() (mapnik::geometry::polygon<double> const& geom)
     {
-        mapnik::box2d<double> ext_bbox = mapnik::geometry::envelope(geom);
-        if (!target_clipping_extent_.intersects(ext_bbox))
-        {
-            return;
-        }
+        bool exterior = true;
         mapbox::geometry::polygon<std::int64_t> new_geom;
-        mapbox::geometry::linear_ring<std::int64_t> exterior_ring;
-        exterior_ring.reserve(geom.exterior_ring.size());
-        for (auto const& pt : geom.exterior_ring)
+        for (auto const& ring : geom)
         {
-            mapbox::geometry::point<std::int64_t> pt2;
-            if (tr_.apply(pt,pt2))
+            mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(ring);
+            if (!target_clipping_extent_.intersects(ring_bbox))
             {
-                exterior_ring.push_back(std::move(pt2));
+                if (exterior) return;
+                else continue;
             }
-        }
-        new_geom.push_back(std::move(exterior_ring));
-        for (auto const& ring : geom.interior_rings)
-        {
-            mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(static_cast<mapnik::geometry::line_string<double> const&>(ring));
-            if (!target_clipping_extent_.intersects(ring_bbox)) 
-            {
-                continue;
-            }
+            exterior = false;
             mapbox::geometry::linear_ring<std::int64_t> new_ring;
             new_ring.reserve(ring.size());
             for (auto const& pt : ring)
@@ -259,25 +245,14 @@ struct transform_visitor
         for (auto const& poly : geom)
         {
             mapnik::box2d<double> ext_bbox = mapnik::geometry::envelope(poly);
-            if (!target_clipping_extent_.intersects(ext_bbox)) 
+            if (!target_clipping_extent_.intersects(ext_bbox))
             {
                 continue;
             }
             mapbox::geometry::polygon<std::int64_t> new_poly;
-            mapbox::geometry::linear_ring<std::int64_t> exterior_ring;
-            exterior_ring.reserve(poly.exterior_ring.size());
-            for (auto const& pt : poly.exterior_ring)
+            for (auto const& ring : poly)
             {
-                mapbox::geometry::point<std::int64_t> pt2;
-                if (tr_.apply(pt,pt2))
-                {
-                    exterior_ring.push_back(std::move(pt2));
-                }
-            }
-            new_poly.push_back(std::move(exterior_ring));
-            for (auto const& ring : poly.interior_rings)
-            {
-                mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(static_cast<mapnik::geometry::line_string<double> const&>(ring));
+                mapnik::box2d<double> ring_bbox = mapnik::geometry::envelope(ring);
                 if (!target_clipping_extent_.intersects(ring_bbox))
                 {
                     continue;
