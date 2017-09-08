@@ -4,7 +4,7 @@
 #include <protozero/pbf_reader.hpp>
 
 // mapnik
-#include <mapnik/box2d.hpp>
+//#include <mapnik/geometry/box2d.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/featureset.hpp>
 #include <mapnik/unicode.hpp>
@@ -14,10 +14,10 @@
 // std
 #include <set>
 
-namespace mapnik 
-{ 
+namespace mapnik
+{
 
-namespace vector_tile_impl 
+namespace vector_tile_impl
 {
 
 using pbf_attr_value_type = mapnik::util::variant<std::string, float, double, int64_t, uint64_t, bool>;
@@ -38,7 +38,7 @@ public:
                     std::vector<std::string> const& layer_keys,
                     layer_pbf_attr_type const& layer_values,
                     unsigned version);
-    
+
     virtual ~tile_featureset_pbf() {}
 
     feature_ptr next();

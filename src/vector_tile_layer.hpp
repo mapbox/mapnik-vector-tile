@@ -5,7 +5,7 @@
 #include "vector_tile_config.hpp"
 
 // mapnik
-#include <mapnik/box2d.hpp>
+#include <mapnik/geometry/box2d.hpp>
 #include <mapnik/datasource.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/layer.hpp>
@@ -199,7 +199,7 @@ public:
         }
         ext.width(buffered_width);
         ext.height(buffered_height);
-        
+
         boost::optional<box2d<double> > const& maximum_extent = map.maximum_extent();
         if (maximum_extent)
         {
@@ -207,7 +207,7 @@ public:
         }
         return ext;
     }
-    
+
     mapnik::box2d<double> calc_source_buffered_extent()
     {
         mapnik::box2d<double> new_extent(target_buffered_extent_);
@@ -271,7 +271,7 @@ public:
         else
         {
             // if no intersection then nothing to do for layer
-            valid_ = false;    
+            valid_ = false;
         }
         double qw = unbuffered_query_extent.width() > 0 ? unbuffered_query_extent.width() : 1;
         double qh = unbuffered_query_extent.height() > 0 ? unbuffered_query_extent.height() : 1;
@@ -348,7 +348,7 @@ public:
     {
         return name_;
     }
-    
+
     void name(std::string const& val)
     {
         name_ = val;
@@ -358,12 +358,12 @@ public:
     {
         return empty_;
     }
-     
+
     bool is_painted() const
     {
         return painted_;
     }
-    
+
     void make_painted()
     {
         painted_ = true;

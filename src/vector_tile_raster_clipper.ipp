@@ -1,5 +1,5 @@
 // mapnik
-#include <mapnik/box2d.hpp>
+#include <mapnik/geometry/box2d.hpp>
 #include <mapnik/image.hpp>
 #include <mapnik/image_any.hpp>
 #include <mapnik/image_scaling.hpp>
@@ -37,7 +37,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_rgba8
     else if ((raster_width_ == source_data.width()) && (raster_height_ == source_data.height()))
     {
         mapnik::demultiply_alpha(source_data);
-        return mapnik::save_to_string(source_data, image_format_);    
+        return mapnik::save_to_string(source_data, image_format_);
     }
     else
     {
@@ -65,7 +65,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_rgba8
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
     mapnik::demultiply_alpha(im_tile);
-    return mapnik::save_to_string(im_tile, image_format_);    
+    return mapnik::save_to_string(im_tile, image_format_);
 }
 
 MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray8 & source_data)
@@ -84,7 +84,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray8
     else if ((raster_width_ == source_data.width()) && (raster_height_ == source_data.height()))
     {
         mapnik::image_any any(source_data);
-        return mapnik::save_to_string(any, image_format_);    
+        return mapnik::save_to_string(any, image_format_);
     }
     else
     {
@@ -110,7 +110,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray8
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    return mapnik::save_to_string(im_tile, image_format_);    
+    return mapnik::save_to_string(im_tile, image_format_);
 }
 
 MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray8s & source_data)
@@ -129,7 +129,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray8
     else if ((raster_width_ == source_data.width()) && (raster_height_ == source_data.height()))
     {
         mapnik::image_any any(source_data);
-        return mapnik::save_to_string(any, image_format_);    
+        return mapnik::save_to_string(any, image_format_);
     }
     else
     {
@@ -155,7 +155,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray8
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    return mapnik::save_to_string(im_tile, image_format_);    
+    return mapnik::save_to_string(im_tile, image_format_);
 }
 
 MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray16 & source_data)
@@ -174,7 +174,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray1
     else if ((raster_width_ == source_data.width()) && (raster_height_ == source_data.height()))
     {
         mapnik::image_any any(source_data);
-        return mapnik::save_to_string(any, image_format_);    
+        return mapnik::save_to_string(any, image_format_);
     }
     else
     {
@@ -200,7 +200,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray1
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    return mapnik::save_to_string(im_tile, image_format_);    
+    return mapnik::save_to_string(im_tile, image_format_);
 }
 
 MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray16s & source_data)
@@ -219,7 +219,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray1
     else if ((raster_width_ == source_data.width()) && (raster_height_ == source_data.height()))
     {
         mapnik::image_any any(source_data);
-        return mapnik::save_to_string(any, image_format_);    
+        return mapnik::save_to_string(any, image_format_);
     }
     else
     {
@@ -245,7 +245,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray1
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    return mapnik::save_to_string(im_tile, image_format_);    
+    return mapnik::save_to_string(im_tile, image_format_);
 }
 
 MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray32 & source_data)
@@ -264,7 +264,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray3
     else if ((raster_width_ == source_data.width()) && (raster_height_ == source_data.height()))
     {
         mapnik::image_any any(source_data);
-        return mapnik::save_to_string(any, image_format_);    
+        return mapnik::save_to_string(any, image_format_);
     }
     else
     {
@@ -290,7 +290,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray3
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    return mapnik::save_to_string(im_tile, image_format_);    
+    return mapnik::save_to_string(im_tile, image_format_);
 }
 
 MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray32s & source_data)
@@ -309,7 +309,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray3
     else if ((raster_width_ == source_data.width()) && (raster_height_ == source_data.height()))
     {
         mapnik::image_any any(source_data);
-        return mapnik::save_to_string(any, image_format_);    
+        return mapnik::save_to_string(any, image_format_);
     }
     else
     {
@@ -335,7 +335,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray3
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    return mapnik::save_to_string(im_tile, image_format_);    
+    return mapnik::save_to_string(im_tile, image_format_);
 }
 
 MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray32f & source_data)
@@ -354,7 +354,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray3
     else if ((raster_width_ == source_data.width()) && (raster_height_ == source_data.height()))
     {
         mapnik::image_any any(source_data);
-        return mapnik::save_to_string(any, image_format_);    
+        return mapnik::save_to_string(any, image_format_);
     }
     else
     {
@@ -380,7 +380,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray3
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    return mapnik::save_to_string(im_tile, image_format_);    
+    return mapnik::save_to_string(im_tile, image_format_);
 }
 
 MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray64 & source_data)
@@ -399,7 +399,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray6
     else if ((raster_width_ == source_data.width()) && (raster_height_ == source_data.height()))
     {
         mapnik::image_any any(source_data);
-        return mapnik::save_to_string(any, image_format_);    
+        return mapnik::save_to_string(any, image_format_);
     }
     else
     {
@@ -425,7 +425,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray6
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    return mapnik::save_to_string(im_tile, image_format_);    
+    return mapnik::save_to_string(im_tile, image_format_);
 }
 
 MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray64s & source_data)
@@ -444,7 +444,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray6
     else if ((raster_width_ == source_data.width()) && (raster_height_ == source_data.height()))
     {
         mapnik::image_any any(source_data);
-        return mapnik::save_to_string(any, image_format_);    
+        return mapnik::save_to_string(any, image_format_);
     }
     else
     {
@@ -470,7 +470,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray6
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    return mapnik::save_to_string(im_tile, image_format_);    
+    return mapnik::save_to_string(im_tile, image_format_);
 }
 
 MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray64f & source_data)
@@ -489,7 +489,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray6
     else if ((raster_width_ == source_data.width()) && (raster_height_ == source_data.height()))
     {
         mapnik::image_any any(source_data);
-        return mapnik::save_to_string(any, image_format_);    
+        return mapnik::save_to_string(any, image_format_);
     }
     else
     {
@@ -515,7 +515,7 @@ MAPNIK_VECTOR_INLINE std::string raster_clipper::operator() (mapnik::image_gray6
     pixfmt_type dst_pixf(dst_buffer);
     renderer_type ren(dst_pixf);
     ren.copy_from(src_pixf,0,start_x_, start_y_);
-    return mapnik::save_to_string(im_tile, image_format_);    
+    return mapnik::save_to_string(im_tile, image_format_);
 }
 
 } // end ns vector_tile_impl

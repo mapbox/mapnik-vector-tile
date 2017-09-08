@@ -8,7 +8,7 @@
 #include "vector_tile_layer.hpp"
 
 // mapnik
-#include <mapnik/box2d.hpp>
+#include <mapnik/geometry/box2d.hpp>
 #include <mapnik/datasource.hpp>
 #include <mapnik/feature.hpp>
 #include <mapnik/image_scaling.hpp>
@@ -29,10 +29,10 @@
 // std
 #include <future>
 
-namespace mapnik 
+namespace mapnik
 {
 
-namespace vector_tile_impl 
+namespace vector_tile_impl
 {
 
 namespace detail
@@ -62,7 +62,7 @@ inline void create_geom_layer(tile_layer & layer,
     {
         return;
     }
-    
+
     using encoding_process = mapnik::vector_tile_impl::geometry_to_feature_pbf_visitor;
     using clipping_process = mapnik::vector_tile_impl::geometry_clipper<encoding_process>;
 
@@ -89,10 +89,10 @@ inline void create_geom_layer(tile_layer & layer,
             {
                 mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
                 encoding_process encoder(*feature, builder);
-                clipping_process clipper(tile_clipping_extent, 
-                                         area_threshold, 
-                                         strictly_simple, 
-                                         multi_polygon_union, 
+                clipping_process clipper(tile_clipping_extent,
+                                         area_threshold,
+                                         strictly_simple,
+                                         multi_polygon_union,
                                          fill_type,
                                          process_all_rings,
                                          encoder);
@@ -112,10 +112,10 @@ inline void create_geom_layer(tile_layer & layer,
             {
                 mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
                 encoding_process encoder(*feature, builder);
-                clipping_process clipper(tile_clipping_extent, 
-                                         area_threshold, 
-                                         strictly_simple, 
-                                         multi_polygon_union, 
+                clipping_process clipper(tile_clipping_extent,
+                                         area_threshold,
+                                         strictly_simple,
+                                         multi_polygon_union,
                                          fill_type,
                                          process_all_rings,
                                          encoder);
@@ -136,10 +136,10 @@ inline void create_geom_layer(tile_layer & layer,
             {
                 mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
                 encoding_process encoder(*feature, builder);
-                clipping_process clipper(tile_clipping_extent, 
-                                         area_threshold, 
-                                         strictly_simple, 
-                                         multi_polygon_union, 
+                clipping_process clipper(tile_clipping_extent,
+                                         area_threshold,
+                                         strictly_simple,
+                                         multi_polygon_union,
                                          fill_type,
                                          process_all_rings,
                                          encoder);
@@ -158,10 +158,10 @@ inline void create_geom_layer(tile_layer & layer,
             {
                 mapnik::geometry::geometry<double> const& geom = feature->get_geometry();
                 encoding_process encoder(*feature, builder);
-                clipping_process clipper(tile_clipping_extent, 
-                                         area_threshold, 
-                                         strictly_simple, 
-                                         multi_polygon_union, 
+                clipping_process clipper(tile_clipping_extent,
+                                         area_threshold,
+                                         strictly_simple,
+                                         multi_polygon_union,
                                          fill_type,
                                          process_all_rings,
                                          encoder);
@@ -195,7 +195,7 @@ inline void create_raster_layer(tile_layer & layer,
     {
         return;
     }
-    
+
     mapnik::raster_ptr const& source = feature->get_raster();
     if (!source)
     {
@@ -203,7 +203,7 @@ inline void create_raster_layer(tile_layer & layer,
     }
 
     mapnik::box2d<double> target_ext = box2d<double>(source->ext_);
-    
+
     layer.get_proj_transform().backward(target_ext, PROJ_ENVELOPE_POINTS);
     mapnik::box2d<double> ext = layer.get_view_transform().forward(target_ext);
 
@@ -244,7 +244,7 @@ MAPNIK_VECTOR_INLINE void processor::update_tile(tile & t,
 {
     // Futures
     std::vector<tile_layer> tile_layers;
-    
+
     for (mapnik::layer const& lay : m_.layers())
     {
         if (t.has_layer(lay.name()))
@@ -268,7 +268,7 @@ MAPNIK_VECTOR_INLINE void processor::update_tile(tile & t,
             continue;
         }
     }
- 
+
     if (threading_mode_ == std::launch::deferred)
     {
         for (auto & layer_ref : tile_layers)
@@ -338,7 +338,7 @@ MAPNIK_VECTOR_INLINE void processor::update_tile(tile & t,
 
     for (auto & layer_ref : tile_layers)
     {
-        t.add_layer(layer_ref); 
+        t.add_layer(layer_ref);
     }
 }
 

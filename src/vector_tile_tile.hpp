@@ -8,7 +8,7 @@
 #include <protozero/pbf_reader.hpp>
 
 // mapnik
-#include <mapnik/box2d.hpp>
+#include <mapnik/geometry/box2d.hpp>
 
 // std
 #include <set>
@@ -64,7 +64,7 @@ public:
     {
         return buffer_.data();
     }
-    
+
     std::size_t size() const
     {
         return buffer_.size();
@@ -102,7 +102,7 @@ public:
         ext.height(extra_height);
         return ext;
     }
-    
+
     void append_to_string(std::string & str) const
     {
         str.append(buffer_);
@@ -159,7 +159,7 @@ public:
     {
         return empty_layers_;
     }
-    
+
     std::vector<std::string> const& get_layers() const
     {
         return layers_;
@@ -183,7 +183,7 @@ public:
         layers_set_.clear();
         painted_layers_.clear();
     }
-    
+
     bool has_layer(std::string const& name)
     {
         auto itr = layers_set_.find(name);

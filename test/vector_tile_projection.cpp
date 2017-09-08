@@ -1,7 +1,7 @@
 #include "catch.hpp"
 
 #include <mapnik/projection.hpp>
-#include <mapnik/box2d.hpp>
+#include <mapnik/geometry/box2d.hpp>
 #include <mapnik/well_known_srs.hpp>
 #include <mapnik/proj_transform.hpp>
 #include "vector_tile_projection.hpp"

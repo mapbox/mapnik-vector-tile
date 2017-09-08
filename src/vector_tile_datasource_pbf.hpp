@@ -1,7 +1,7 @@
 #pragma once
 
 // mapnik
-#include <mapnik/box2d.hpp>
+//#include <mapnik/geometry/box2d.hpp>
 #include <mapnik/datasource.hpp>
 #include <mapnik/util/variant.hpp>
 
@@ -10,7 +10,7 @@
 
 namespace mapnik
 {
-    
+
 namespace vector_tile_impl
 {
 

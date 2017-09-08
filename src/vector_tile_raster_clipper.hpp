@@ -5,7 +5,7 @@
 #include "vector_tile_config.hpp"
 
 // mapnik
-#include <mapnik/box2d.hpp>
+#include <mapnik/geometry/box2d.hpp>
 #include <mapnik/image_scaling.hpp>
 #include <mapnik/proj_transform.hpp>
 #include <mapnik/raster.hpp>
@@ -58,12 +58,12 @@ public:
           raster_width_(raster_width),
           raster_height_(raster_height),
           start_x_(start_x),
-          start_y_(start_y) 
+          start_y_(start_y)
     {
     }
-    
+
     MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_rgba8 & source_data);
-    
+
     MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray8 & source_data);
 
     MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray8s & source_data);
@@ -77,9 +77,9 @@ public:
     MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray32s & source_data);
 
     MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray32f & source_data);
-    
+
     MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray64 & source_data);
-   
+
     MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray64s & source_data);
 
     MAPNIK_VECTOR_INLINE std::string operator() (mapnik::image_gray64f & source_data);
