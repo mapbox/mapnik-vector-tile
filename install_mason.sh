@@ -15,7 +15,14 @@ if [ ! -f ./mason/mason.sh ]; then
     curl -sSfL https://github.com/mapbox/mason/archive/9eac60614fda7cfeb8a9e81d18e8cca5c1ae8fbc.tar.gz | tar --gunzip --extract --strip-components=1 --exclude="*md" --exclude="test*" --directory=./mason
 fi
 
-if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
+# core deps
+install protozero 1.5.1
+install geometry 0.9.1
+install wagyu 0.4.2
+install protobuf 2.6.1
+
+# mapnik
+if [[ ! ${SKIP_MAPNIK_INSTALL} ]] && [[ ! -f ./mason_packages/.link/bin/mapnik-config ]]; then
 
     # mapnik deps
     install jpeg_turbo 1.5.1
@@ -37,9 +44,4 @@ if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
     # mapnik
     install mapnik 3.0.14
 
-    # other deps
-    install protozero 1.5.1
-    install geometry 0.9.1
-    install wagyu 0.4.2
-    install protobuf 2.6.1
 fi

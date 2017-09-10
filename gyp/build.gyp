@@ -38,17 +38,18 @@
       ],
       'include_dirs': [
         '<(SHARED_INTERMEDIATE_DIR)/',
+        '../mason_packages/.link/include/'
       ],
       'cflags_cc' : [
           '-D_THREAD_SAFE',
-          '<!@(../mason_packages/.link/bin/mapnik-config --cflags)', # assume protobuf headers are here
+          '<!@(mapnik-config --cflags)', # assume protobuf headers are here
           '-Wno-sign-compare',
           '-Wno-sign-conversion'
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS':[
            '-D_THREAD_SAFE',
-           '<!@(../mason_packages/.link/bin/mapnik-config --cflags)', # assume protobuf headers are here
+           '<!@(mapnik-config --cflags)', # assume protobuf headers are here
            '-Wno-sign-compare',
            '-Wno-sign-conversion'
         ],
@@ -56,6 +57,7 @@
       'direct_dependent_settings': {
         'include_dirs': [
           '<(SHARED_INTERMEDIATE_DIR)/',
+          '../mason_packages/.link/include/'
         ],
         'libraries':[
           '-lprotobuf-lite'
@@ -82,34 +84,35 @@
         "<@(common_defines)"
       ],
       'cflags_cc' : [
-          '<!@(../mason_packages/.link/bin/mapnik-config --cflags)'
+          '<!@(mapnik-config --cflags)'
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS':[
-           '<!@(../mason_packages/.link/bin/mapnik-config --cflags)'
+           '<!@(mapnik-config --cflags)'
         ],
       },
       'direct_dependent_settings': {
         'include_dirs': [
           '<(SHARED_INTERMEDIATE_DIR)/',
+          '../mason_packages/.link/include/'
         ],
         'defines' : [
           "<@(common_defines)"
         ],
         'cflags_cc' : [
-            '<!@(../mason_packages/.link/bin/mapnik-config --cflags)'
+            '<!@(mapnik-config --cflags)'
         ],
         'xcode_settings': {
           'OTHER_CPLUSPLUSFLAGS':[
-             '<!@(../mason_packages/.link/bin/mapnik-config --cflags)'
+             '<!@(mapnik-config --cflags)'
           ],
         },
         'libraries':[
-          '<!@(../mason_packages/.link/bin/mapnik-config --libs)',
-          '<!@(../mason_packages/.link/bin/mapnik-config --ldflags)',
+          '<!@(mapnik-config --libs)',
+          '<!@(mapnik-config --ldflags)',
           '-lmapnik-wkt',
           '-lmapnik-json',
-          '<!@(../mason_packages/.link/bin/mapnik-config --dep-libs)',
+          '<!@(mapnik-config --dep-libs)',
           '-lprotobuf-lite',
           '-lz'
         ],
@@ -203,18 +206,18 @@
         "../src"
       ],
       'libraries':[
-        '-L<!@(../mason_packages/.link/bin/mapnik-config --prefix)/lib',
-        '<!@(../mason_packages/.link/bin/mapnik-config --ldflags)',
+        '-L<!@(mapnik-config --prefix)/lib',
+        '<!@(mapnik-config --ldflags)',
         '-lz'
       ],
       'cflags_cc' : [
           '-D_THREAD_SAFE',
-          '<!@(../mason_packages/.link/bin/mapnik-config --cflags)' # assume protobuf headers are here
+          '<!@(mapnik-config --cflags)' # assume protobuf headers are here
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS':[
            '-D_THREAD_SAFE',
-           '<!@(../mason_packages/.link/bin/mapnik-config --cflags)' # assume protobuf headers are here
+           '<!@(mapnik-config --cflags)' # assume protobuf headers are here
         ],
       }
     }    

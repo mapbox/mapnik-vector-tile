@@ -11,7 +11,29 @@ Provides C++ headers that support rendering geodata into vector tiles and render
 
 ## Depends
 
-Mapnik Vector Tile does not currently support Mapnik 3.1.x.
+## Implementation details
+
+Vector tiles in this code represent a direct serialization of Mapnik layers optimized for space efficient storage and fast deserialization. For those familiar with the Mapnik API vector tiles here can be considered a named array of `mapnik::featureset_ptr` whose geometries have been pre-tiled.
+
+For more details see [vector-tile-spec](https://github.com/mapbox/vector-tile-spec).
+
+## Building from source
+
+If you do not need to build against an external mapnik, just type:
+
+    make
+
+This will download all deps (including Mapnik) and compile against them.
+
+To build and test in debug mode do:
+
+    make debug test-debug
+
+If you have Mapnik, libprotobuf, and all the Mapnik deps already installed on your system then you can build against them with:
+
+    make release_base
+
+If building against an external Mapnik please know that Mapnik Vector Tile does not currently support Mapnik 3.1.x.
 
  - mapnik-vector-tile >=1.4.x depends on Mapnik >=v3.0.14
  - mapnik-vector-tile >=1.0.x depends on Mapnik >=v3.0.11
@@ -20,33 +42,6 @@ Mapnik Vector Tile does not currently support Mapnik 3.1.x.
  - You will need `libmapnik` and `mapnik-config` available
  - Protobuf: `libprotobuf` and `protoc`
 
-## Implementation details
-
-Vector tiles in this code represent a direct serialization of Mapnik layers optimized for space efficient storage and fast deserialization. For those familiar with the Mapnik API vector tiles here can be considered a named array of `mapnik::featureset_ptr` whose geometries have been pre-tiled.
-
-For more details see [vector-tile-spec](https://github.com/mapbox/vector-tile-spec).
-
-### Ubuntu Dependencies Installation
-
-    sudo apt-get install -y libprotobuf7 libprotobuf-dev protobuf-compiler
-    sudo apt-add-repository --yes ppa:mapnik/nightly-2.3
-    sudo apt-get update -y
-    sudo apt-get -y install libmapnik=2.3.0* mapnik-utils=2.3.0* libmapnik-dev=2.3.0* mapnik-input-plugin*=2.3.0*
-
-### OS X Dependencies Installation
-
-    brew install protobuf
-    brew install mapnik
-
-## Building
-
-Just type:
-
-    make
-
-This builds the protobuf C++ wrappers: `vector_tile.pb.cc` and `vector_tile.pb.h`
-
-Then include `vector_tile.pb.cc` in your code. The rest is header only.
 
 ## Tests
 

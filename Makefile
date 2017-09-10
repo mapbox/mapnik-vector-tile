@@ -1,27 +1,43 @@
-MAPNIK_PLUGINDIR = $(shell mason_packages/.link/bin/mapnik-config --input-plugins)
-BUILDTYPE ?= Release
-
 GYP_REVISION=3464008
 
-all: libvtile
+default: release
+
+mason_packages/.link/bin:
+	./install_mason.sh
 
 mason_packages/.link/bin/mapnik-config:
-	./install_mason.sh
+	SKIP_MAPNIK_INSTALL=YES ./install_mason.sh
+
+pre_build_check:
+	@echo "Looking for mapnik-config on your PATH..."
+	mapnik-config -v
 
 ./deps/gyp:
 	git clone https://chromium.googlesource.com/external/gyp.git ./deps/gyp && cd ./deps/gyp && git checkout $(GYP_REVISION)
 
-build/Makefile: mason_packages/.link/bin/mapnik-config ./deps/gyp gyp/build.gyp test/*
-	deps/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(MAPNIK_PLUGINDIR)\" -Goutput_dir=. --generator-output=./build -f make
+build/Makefile: ./deps/gyp gyp/build.gyp test/*
+	deps/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(shell mapnik-config --input-plugins)\" -Goutput_dir=. --generator-output=./build -f make
 
-libvtile: build/Makefile Makefile
-	PATH="`pwd`/mason_packages/.link/bin/:${PATH}" $(MAKE) -C build/ BUILDTYPE=$(BUILDTYPE) V=$(V)
+release: mason_packages/.link/bin/mapnik-config build/Makefile Makefile
+	CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" PATH="`pwd`/mason_packages/.link/bin/:${PATH}" $(MAKE) -C build/ BUILDTYPE=Release V=$(V)
+
+debug: mason_packages/.link/bin/mapnik-config build/Makefile Makefile
+	CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" PATH="`pwd`/mason_packages/.link/bin/:${PATH}" $(MAKE) -C build/ BUILDTYPE=Debug V=$(V)
+
+release_base: pre_build_check mason_packages/.link/bin build/Makefile Makefile
+	$(MAKE) -C build/ BUILDTYPE=Release V=$(V)
+
+debug_base: pre_build_check mason_packages/.link/bin build/Makefile Makefile
+	$(MAKE) -C build/ BUILDTYPE=Debug V=$(V)
 
 test/geometry-test-data/README.md:
 	git submodule update --init
 
-test: libvtile test/geometry-test-data/README.md
-	BUILDTYPE=$(BUILDTYPE) ./test/run.sh
+test: test/geometry-test-data/README.md
+	BUILDTYPE=Release ./test/run.sh
+
+test-debug: test/geometry-test-data/README.md
+	BUILDTYPE=Debug ./test/run.sh
 
 testpack:
 	rm -f ./*tgz
@@ -31,6 +47,8 @@ testpack:
 
 clean:
 	rm -rf ./build
+
+distclean: clean
 	rm -rf ./mason_packages
 
 .PHONY: test
