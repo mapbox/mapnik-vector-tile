@@ -15,6 +15,7 @@
 #include <mapnik/layer.hpp>
 #include <mapnik/map.hpp>
 #include <mapnik/version.hpp>
+#include <mapnik/attribute.hpp>
 
 #if MAPNIK_VERSION >= 300100
 #include <mapnik/geometry/transform.hpp>
@@ -258,7 +259,8 @@ MAPNIK_VECTOR_INLINE void processor::update_tile(tile & t,
                              scale_factor_,
                              scale_denom,
                              offset_x,
-                             offset_y);
+                             offset_y,
+                             vars_);
         if (!tile_layers.back().is_valid())
         {
             t.add_empty_layer(lay.name());

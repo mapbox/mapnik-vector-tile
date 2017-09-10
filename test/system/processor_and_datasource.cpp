@@ -64,6 +64,42 @@ TEST_CASE("vector tile output -- simple two points")
     CHECK(190 == buffer.size());
 }
 
+TEST_CASE("processor -- can deal with (optional) variables")
+{
+    // Build Map
+    mapnik::Map map(256, 256, "+init=epsg:3857");
+    mapnik::layer lyr("layer",map.srs());
+    lyr.set_datasource(testing::build_ds(0,0,true));
+    map.add_layer(lyr);
+
+    // Create processor
+    const mapnik::attributes vars { {"zoom_level", 20} };
+    mapnik::vector_tile_impl::processor ren(map, vars);
+
+    // Request Tile
+    mapnik::vector_tile_impl::merc_tile out_tile = ren.create_tile(0,0,0);
+    CHECK(out_tile.is_painted() == true);
+    CHECK(out_tile.is_empty() == false);
+
+    // Now check that the tile is correct.
+    vector_tile::Tile tile;
+    tile.ParseFromString(out_tile.get_buffer());
+    REQUIRE(1 == tile.layers_size());
+    vector_tile::Tile_Layer const& layer = tile.layers(0);
+    CHECK(std::string("layer") == layer.name());
+    REQUIRE(2 == layer.features_size());
+    vector_tile::Tile_Feature const& f = layer.features(0);
+    CHECK(static_cast<mapnik::value_integer>(1) == static_cast<mapnik::value_integer>(f.id()));
+    REQUIRE(3 == f.geometry_size());
+    CHECK(9 == f.geometry(0));
+    CHECK(4096 == f.geometry(1));
+    CHECK(4096 == f.geometry(2));
+    CHECK(190 == tile.ByteSize());
+    std::string buffer;
+    CHECK(tile.SerializeToString(&buffer));
+    CHECK(190 == buffer.size());
+}
+
 TEST_CASE("vector tile output -- empty tile")
 {
     // test adding empty layers should result in empty tile
