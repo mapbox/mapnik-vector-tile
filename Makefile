@@ -20,10 +20,10 @@ build/Makefile: ./deps/gyp gyp/build.gyp test/*
 	$(MAKE) -C build/ V=$(V)
 
 release: mason_packages/.link/bin/mapnik-config Makefile
-	CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" PATH="`pwd`/mason_packages/.link/bin/:${PATH}" $(MAKE) release_base
+	CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 $(CXXFLAGS)" PATH="`pwd`/mason_packages/.link/bin/:${PATH}" $(MAKE) release_base
 
 debug: mason_packages/.link/bin/mapnik-config Makefile
-	CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" PATH="`pwd`/mason_packages/.link/bin/:${PATH}" $(MAKE) debug_base
+	CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 $(CXXFLAGS)" PATH="`pwd`/mason_packages/.link/bin/:${PATH}" $(MAKE) debug_base
 
 release_base: pre_build_check mason_packages/.link/bin Makefile
 	BUILDTYPE=Release $(MAKE) build/Makefile
