@@ -17,18 +17,19 @@ pre_build_check:
 
 build/Makefile: ./deps/gyp gyp/build.gyp test/*
 	deps/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(shell mapnik-config --input-plugins)\" -Goutput_dir=. --generator-output=./build -f make
+	$(MAKE) -C build/ V=$(V)
 
-release: mason_packages/.link/bin/mapnik-config build/Makefile Makefile
-	CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" PATH="`pwd`/mason_packages/.link/bin/:${PATH}" $(MAKE) -C build/ BUILDTYPE=Release V=$(V)
+release: mason_packages/.link/bin/mapnik-config Makefile
+	CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" PATH="`pwd`/mason_packages/.link/bin/:${PATH}" $(MAKE) release_base
 
-debug: mason_packages/.link/bin/mapnik-config build/Makefile Makefile
-	CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" PATH="`pwd`/mason_packages/.link/bin/:${PATH}" $(MAKE) -C build/ BUILDTYPE=Debug V=$(V)
+debug: mason_packages/.link/bin/mapnik-config Makefile
+	CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" PATH="`pwd`/mason_packages/.link/bin/:${PATH}" $(MAKE) debug_base
 
-release_base: pre_build_check mason_packages/.link/bin build/Makefile Makefile
-	$(MAKE) -C build/ BUILDTYPE=Release V=$(V)
+release_base: pre_build_check mason_packages/.link/bin Makefile
+	BUILDTYPE=Release $(MAKE) build/Makefile
 
-debug_base: pre_build_check mason_packages/.link/bin build/Makefile Makefile
-	$(MAKE) -C build/ BUILDTYPE=Debug V=$(V)
+debug_base: pre_build_check mason_packages/.link/bin Makefile
+	BUILDTYPE=Debug $(MAKE) build/Makefile
 
 test/geometry-test-data/README.md:
 	git submodule update --init
@@ -49,6 +50,8 @@ clean:
 	rm -rf ./build
 
 distclean: clean
+	rm -rf ./mason
+	rm -rf ./deps/gyp
 	rm -rf ./mason_packages
 
 .PHONY: test
