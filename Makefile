@@ -3,10 +3,10 @@ GYP_REVISION=3464008
 default: release
 
 mason_packages/.link/bin:
-	./install_mason.sh
+	SKIP_MAPNIK_INSTALL=YES ./install_mason.sh
 
 mason_packages/.link/bin/mapnik-config:
-	SKIP_MAPNIK_INSTALL=YES ./install_mason.sh
+	./install_mason.sh
 
 pre_build_check:
 	@echo "Looking for mapnik-config on your PATH..."
