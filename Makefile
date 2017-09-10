@@ -54,6 +54,6 @@ distclean: clean
 	rm -rf ./deps/gyp
 	rm -rf ./mason_packages
 
-.PHONY: test
+.PHONY: test build/Makefile
 
 
