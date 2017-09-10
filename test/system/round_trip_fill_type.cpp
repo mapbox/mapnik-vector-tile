@@ -18,19 +18,19 @@ TEST_CASE("vector tile polygon even odd fill")
     polygon<double> poly;
     {
         linear_ring<double> ring;
-        ring.add_coord(0,0);
-        ring.add_coord(-10,0);
-        ring.add_coord(-10,10);
-        ring.add_coord(0,10);
-        ring.add_coord(0,0);
-        poly.set_exterior_ring(std::move(ring));
+        ring.emplace_back(0,0);
+        ring.emplace_back(-10,0);
+        ring.emplace_back(-10,10);
+        ring.emplace_back(0,10);
+        ring.emplace_back(0,0);
+        poly.emplace_back(std::move(ring));
         linear_ring<double> hole;
-        hole.add_coord(-7,7);
-        hole.add_coord(-7,3);
-        hole.add_coord(-3,3);
-        hole.add_coord(-3,7);
-        hole.add_coord(-7,7);
-        poly.add_hole(std::move(hole));
+        hole.emplace_back(-7,7);
+        hole.emplace_back(-7,3);
+        hole.emplace_back(-3,3);
+        hole.emplace_back(-3,7);
+        hole.emplace_back(-7,7);
+        poly.emplace_back(std::move(hole));
     }
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(poly,0,mapnik::vector_tile_impl::even_odd_fill);
     std::string wkt;
@@ -46,19 +46,19 @@ TEST_CASE("vector tile polygon non zero fill")
     polygon<double> poly;
     {
         linear_ring<double> ring;
-        ring.add_coord(0,0);
-        ring.add_coord(-10,0);
-        ring.add_coord(-10,10);
-        ring.add_coord(0,10);
-        ring.add_coord(0,0);
-        poly.set_exterior_ring(std::move(ring));
+        ring.emplace_back(0,0);
+        ring.emplace_back(-10,0);
+        ring.emplace_back(-10,10);
+        ring.emplace_back(0,10);
+        ring.emplace_back(0,0);
+        poly.emplace_back(std::move(ring));
         linear_ring<double> hole;
-        hole.add_coord(-7,7);
-        hole.add_coord(-7,3);
-        hole.add_coord(-3,3);
-        hole.add_coord(-3,7);
-        hole.add_coord(-7,7);
-        poly.add_hole(std::move(hole));
+        hole.emplace_back(-7,7);
+        hole.emplace_back(-7,3);
+        hole.emplace_back(-3,3);
+        hole.emplace_back(-3,7);
+        hole.emplace_back(-7,7);
+        poly.emplace_back(std::move(hole));
     }
     mapnik::geometry::geometry<double> new_geom = test_utils::round_trip(poly,0,mapnik::vector_tile_impl::non_zero_fill);
     std::string wkt;
