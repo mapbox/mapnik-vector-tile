@@ -33,7 +33,7 @@ matrix:
     - os: linux
       sudo: false
       compiler: ": clang-coverage"
-      env: JOBS=10 CXX="ccache clang++-3.9 -Qunused-arguments" COVERAGE=true BUILDTYPE=Debug
+      env: JOBS=10 CXX="ccache clang++-3.9 -Qunused-arguments" COVERAGE=true
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
@@ -48,11 +48,11 @@ before_install:
  - ./install_mason.sh
  - |
    if [[ $(uname -s) == 'Linux' ]]; then
-     ./mason/mason install llvm-cov 3.9.1
-     ./mason/mason install clang++ 3.9.1
-     export PATH=$(./mason/mason prefix clang++ 3.9.1)/bin:${PATH}
+     ./mason/mason install llvm-cov 4.0.1
+     ./mason/mason install clang++ 4.0.1
+     export PATH=$(./mason/mason prefix clang++ 4.0.1)/bin:${PATH}
      which clang++
-     export PATH=$(./mason/mason prefix llvm-cov 3.9.1)/bin:${PATH}
+     export PATH=$(./mason/mason prefix llvm-cov 4.0.1)/bin:${PATH}
      which llvm-cov
    fi
 
