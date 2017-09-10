@@ -15,7 +15,7 @@ pre_build_check:
 ./deps/gyp:
 	git clone https://chromium.googlesource.com/external/gyp.git ./deps/gyp && cd ./deps/gyp && git checkout $(GYP_REVISION)
 
-build/Makefile: ./deps/gyp gyp/build.gyp test/*
+build/Makefile: pre_build_check ./deps/gyp gyp/build.gyp test/*
 	deps/gyp/gyp gyp/build.gyp --depth=. -DMAPNIK_PLUGINDIR=\"$(shell mapnik-config --input-plugins)\" -Goutput_dir=. --generator-output=./build -f make
 	$(MAKE) -C build/ V=$(V)
 
@@ -28,13 +28,13 @@ debug: mason_packages/.link/bin/mapnik-config Makefile
 # note: we set PATH to the mason bins to pick up protoc
 # and CXXFLAGS/LDFLAGS to find protobuf headers/libs
 # This will only find mason installed mapnik-config if run via the `release` or `debug` targets
-release_base: pre_build_check mason_packages/.link/bin Makefile
+release_base: mason_packages/.link/bin Makefile
 	CXXFLAGS="-isystem `pwd`/mason_packages/.link/include $(CXXFLAGS)" \
 	 LDFLAGS="-L`pwd`/mason_packages/.link/lib $(LDFLAGS)" \
 	 PATH="`pwd`/mason_packages/.link/bin/:${PATH}" \
 	 BUILDTYPE=Release $(MAKE) build/Makefile
 
-debug_base: pre_build_check mason_packages/.link/bin Makefile
+debug_base: mason_packages/.link/bin Makefile
 	CXXFLAGS="-isystem `pwd`/mason_packages/.link/include $(CXXFLAGS)" \
 	 LDFLAGS="-L`pwd`/mason_packages/.link/lib $(LDFLAGS)" \
 	 PATH="`pwd`/mason_packages/.link/bin/:${PATH}" \
