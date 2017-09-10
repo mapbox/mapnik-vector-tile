@@ -22,7 +22,7 @@ install wagyu 0.4.2
 install protobuf 2.6.1
 
 # mapnik
-if [[ ! ${SKIP_MAPNIK_INSTALL} ]] && [[ ! -f ./mason_packages/.link/bin/mapnik-config ]]; then
+if [[ ! ${SKIP_MAPNIK_INSTALL:-true} ]] && [[ ! -f ./mason_packages/.link/bin/mapnik-config ]]; then
 
     # mapnik deps
     install jpeg_turbo 1.5.1
