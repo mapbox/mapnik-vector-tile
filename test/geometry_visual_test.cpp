@@ -162,7 +162,6 @@ void clip_geometry(mapnik::Map const& map,
         }
         std::string expected_string(input.data().get(), input.size());
         mapnik::geometry::geometry<double> geom_expected;
-        CHECK(expected_string == geojson_string);
         if (mapnik::json::from_geojson(expected_string, geom_expected))
         {
             assert_g_equal(geom_expected, geom4326_pbf);

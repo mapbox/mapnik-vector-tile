@@ -17,7 +17,7 @@ matrix:
     - os: linux
       sudo: false
       compiler: ": gcc5"
-      env: JOBS=10 CXX="ccache g++-5" CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0"
+      env: JOBS=10 CXX="ccache g++-5"
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
@@ -25,7 +25,7 @@ matrix:
     - os: linux
       sudo: false
       compiler: ": clang"
-      env: JOBS=10 CXX="ccache clang++-3.9 -Qunused-arguments"
+      env: JOBS=10 CXX="ccache clang++-4.0 -Qunused-arguments"
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
@@ -33,7 +33,7 @@ matrix:
     - os: linux
       sudo: false
       compiler: ": clang-coverage"
-      env: JOBS=10 CXX="ccache clang++-3.9 -Qunused-arguments" COVERAGE=true BUILDTYPE=Debug
+      env: JOBS=10 CXX="ccache clang++-4.0 -Qunused-arguments" COVERAGE=true
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
@@ -48,11 +48,11 @@ before_install:
  - ./install_mason.sh
  - |
    if [[ $(uname -s) == 'Linux' ]]; then
-     ./mason/mason install llvm-cov 3.9.1
-     ./mason/mason install clang++ 3.9.1
-     export PATH=$(./mason/mason prefix clang++ 3.9.1)/bin:${PATH}
+     ./mason/mason install llvm-cov 4.0.1
+     ./mason/mason install clang++ 4.0.1
+     export PATH=$(./mason/mason prefix clang++ 4.0.1)/bin:${PATH}
      which clang++
-     export PATH=$(./mason/mason prefix llvm-cov 3.9.1)/bin:${PATH}
+     export PATH=$(./mason/mason prefix llvm-cov 4.0.1)/bin:${PATH}
      which llvm-cov
    fi
 
@@ -64,8 +64,4 @@ before_script:
 
 script:
  # make sure tileinfo command works
- - ./build/${BUILDTYPE:-Release}/tileinfo examples/data/14_2620_6331.vector.mvt.z
-
-notifications:
-  slack:
-    secure: eP79cXpZ3zyVarMooLYi75C5XBS65SJkf12h25hLDmoaQD+aX0u3+/hivE3jxi8KI8v1Izpzf06aCGHL1lx/xXGg2uuiM6dtZTou1mJJ4oFsxzOJFfLXhsUO1+qXkJJG1xoaLpbSdX/y+2dfe0xKTm4zAlluj2DvwZO+R9djLGM=
+ - ./build/Debug/tileinfo examples/data/14_2620_6331.vector.mvt.z

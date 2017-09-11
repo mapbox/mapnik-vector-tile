@@ -9,13 +9,21 @@ function install() {
 }
 
 ICU_VERSION="57.1"
+MASON_VERSION="v0.14.2"
 
 if [ ! -f ./mason/mason.sh ]; then
     mkdir -p ./mason
-    curl -sSfL https://github.com/mapbox/mason/archive/9eac60614fda7cfeb8a9e81d18e8cca5c1ae8fbc.tar.gz | tar --gunzip --extract --strip-components=1 --exclude="*md" --exclude="test*" --directory=./mason
+    curl -sSfL https://github.com/mapbox/mason/archive/${MASON_VERSION}.tar.gz | tar --gunzip --extract --strip-components=1 --exclude="*md" --exclude="test*" --directory=./mason
 fi
 
-if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
+# core deps
+install protozero 1.5.2
+install geometry 0.9.2
+install wagyu 0.4.3
+install protobuf 3.3.0
+
+# mapnik
+if [[ ${SKIP_MAPNIK_INSTALL:-} != 'YES' ]] && [[ ! -f ./mason_packages/.link/bin/mapnik-config ]]; then
 
     # mapnik deps
     install jpeg_turbo 1.5.1
@@ -37,9 +45,4 @@ if [ ! -f ./mason_packages/.link/bin/mapnik-config ]; then
     # mapnik
     install mapnik 3.0.14
 
-    # other deps
-    install protozero 1.5.1
-    install geometry 0.9.1
-    install wagyu 0.4.2
-    install protobuf 2.6.1
 fi
