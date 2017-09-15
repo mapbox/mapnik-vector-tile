@@ -19,7 +19,7 @@ namespace mapnik
 namespace vector_tile_impl
 {
 
-void composite(merc_tile & target_vt,
+inline void composite(merc_tile & target_vt,
                std::vector<merc_tile_ptr> const& vtiles,
                mapnik::Map & map,
                processor & ren, // processor should be on map object provided
