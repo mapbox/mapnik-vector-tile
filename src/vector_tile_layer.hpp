@@ -243,7 +243,7 @@ public:
         {
             if (!prj_trans_.forward(unbuffered_query_extent, PROJ_ENVELOPE_POINTS))
             {
-                throw std::runtime_error("vector_tile_processor: unbuffered query extent did not repoject back to map projection");
+                throw std::runtime_error("vector_tile_processor: unbuffered query extent did not reproject back to map projection");
             }
         }
 
@@ -265,7 +265,7 @@ public:
             // forward project layer extent back into native projection
             if (!prj_trans_.forward(query_extent, PROJ_ENVELOPE_POINTS))
             {
-                throw std::runtime_error("vector_tile_processor: query extent did not repoject back to map projection");
+                throw std::runtime_error("vector_tile_processor: query extent did not reproject back to map projection");
             }
         }
         else
