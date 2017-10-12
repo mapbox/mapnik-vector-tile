@@ -29,7 +29,7 @@ namespace mapnik
 namespace vector_tile_impl
 {
 
-std::pair<std::string,std::uint32_t> get_layer_name_and_version(protozero::pbf_reader & layer_msg)
+inline std::pair<std::string,std::uint32_t> get_layer_name_and_version(protozero::pbf_reader & layer_msg)
 {
     std::string name;
     std::uint32_t version = 1;
@@ -51,7 +51,7 @@ std::pair<std::string,std::uint32_t> get_layer_name_and_version(protozero::pbf_r
     return std::make_pair(name,version);
 }
 
-void merge_from_buffer(merc_tile & t, const char * data, std::size_t size, bool validate = false, bool upgrade = false)
+inline void merge_from_buffer(merc_tile & t, const char * data, std::size_t size, bool validate = false, bool upgrade = false)
 {
     using ds_ptr = std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf>;
     protozero::pbf_reader tile_msg(data, size);
@@ -137,7 +137,7 @@ void merge_from_buffer(merc_tile & t, const char * data, std::size_t size, bool 
     t.buffer_size(prev_buffer_size);
 }
 
-void merge_from_compressed_buffer(merc_tile & t, const char * data, std::size_t size, bool validate = false, bool upgrade = false)
+inline void merge_from_compressed_buffer(merc_tile & t, const char * data, std::size_t size, bool validate = false, bool upgrade = false)
 {
     if (mapnik::vector_tile_impl::is_gzip_compressed(data,size) ||
         mapnik::vector_tile_impl::is_zlib_compressed(data,size))
@@ -152,7 +152,7 @@ void merge_from_compressed_buffer(merc_tile & t, const char * data, std::size_t 
     }
 }
 
-void add_image_buffer_as_tile_layer(merc_tile & t, std::string const& layer_name, const char * data, std::size_t size)
+inline void add_image_buffer_as_tile_layer(merc_tile & t, std::string const& layer_name, const char * data, std::size_t size)
 {
     std::string layer_buffer;
     protozero::pbf_writer layer_writer(layer_buffer);

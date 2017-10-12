@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.0
+
+- Added back ability to build against external mapnik (see docs for instructions)
+- Added support for variables @rafatower: https://github.com/mapbox/mapnik-vector-tile/pull/248
+
 ## 1.4.0
 
 - Fixed a bug associated with image height and width when reading from an image resulting in a size of zero causing exceptions.
