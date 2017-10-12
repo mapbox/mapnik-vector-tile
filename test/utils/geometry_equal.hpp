@@ -127,6 +127,27 @@ struct geometry_equal_visitor
     template <typename T>
     void operator() (mapnik::geometry::line_string<T> const& ls1, mapnik::geometry::line_string<T> const& ls2)
     {
+        using ct = typename mapnik::geometry::line_string<T>::container_type;
+        (*this)(static_cast<ct const&>(ls1), static_cast<ct const&>(ls2));
+    }
+
+    template <typename T>
+    void operator() (mapnik::geometry::polygon<T> const& p1, mapnik::geometry::polygon<T> const& p2)
+    {
+        if (p1.size() != p2.size())
+        {
+            REQUIRE(false);
+        }
+
+        for (auto const& p : zip_crange(p1, p2))
+        {
+            (*this)(p.template get<0>(), p.template get<1>());
+        }
+    }
+
+    template <typename T>
+    void operator() (std::vector<mapnik::geometry::point<T>> const& ls1, std::vector<mapnik::geometry::point<T>> const& ls2)
+    {
         if (ls1.size() != ls2.size())
         {
             REQUIRE(false);
@@ -140,25 +161,17 @@ struct geometry_equal_visitor
     }
 
     template <typename T>
-    void operator() (mapnik::geometry::polygon<T> const& p1, mapnik::geometry::polygon<T> const& p2)
+    void operator() (mapnik::geometry::linear_ring<T> const& mp1, mapnik::geometry::linear_ring<T> const& mp2)
     {
-        (*this)(static_cast<mapnik::geometry::line_string<T> const&>(p1.exterior_ring), static_cast<mapnik::geometry::line_string<T> const&>(p2.exterior_ring));
-
-        if (p1.interior_rings.size() != p2.interior_rings.size())
-        {
-            REQUIRE(false);
-        }
-
-        for (auto const& p : zip_crange(p1.interior_rings, p2.interior_rings))
-        {
-            (*this)(static_cast<mapnik::geometry::line_string<T> const&>(p.template get<0>()),static_cast<mapnik::geometry::line_string<T> const&>(p.template get<1>()));
-        }
+        using ct = typename mapnik::geometry::linear_ring<T>::container_type;
+        (*this)(static_cast<ct const&>(mp1), static_cast<ct const&>(mp2));
     }
 
     template <typename T>
     void operator() (mapnik::geometry::multi_point<T> const& mp1, mapnik::geometry::multi_point<T> const& mp2)
     {
-        (*this)(static_cast<mapnik::geometry::line_string<T> const&>(mp1), static_cast<mapnik::geometry::line_string<T> const&>(mp2));
+        using ct = typename mapnik::geometry::multi_point<T>::container_type;
+        (*this)(static_cast<ct const&>(mp1), static_cast<ct const&>(mp2));
     }
 
     template <typename T>

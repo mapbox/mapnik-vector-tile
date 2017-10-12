@@ -14,7 +14,6 @@
 // mapnik-vector-tile
 #include "vector_tile_geometry_encoder_pbf.hpp"
 #include "vector_tile_datasource_pbf.hpp"
-#include "convert_geometry_types.hpp"
 
 // vector tile
 #pragma GCC diagnostic push
@@ -94,19 +93,17 @@ TEST_CASE("encoding and decoding with datasource simple polygon")
     mapnik::geometry::polygon<double> geom;
     {
         mapnik::geometry::linear_ring<double> ring;
-        ring.add_coord(168.267850,-24.576888);
-        ring.add_coord(167.982618,-24.697145);
-        ring.add_coord(168.114561,-24.783548);
-        ring.add_coord(168.267850,-24.576888);
-        ring.add_coord(168.267850,-24.576888);
-        geom.set_exterior_ring(std::move(ring));
+        ring.emplace_back(168.267850,-24.576888);
+        ring.emplace_back(167.982618,-24.697145);
+        ring.emplace_back(168.114561,-24.783548);
+        ring.emplace_back(168.267850,-24.576888);
+        ring.emplace_back(168.267850,-24.576888);
+        geom.push_back(std::move(ring));
     }
     
     unsigned path_multiplier = 16;
     mapnik::geometry::scale_rounding_strategy scale_strat(path_multiplier);
     mapnik::geometry::polygon<std::int64_t> geom2 = mapnik::geometry::transform<std::int64_t>(geom, scale_strat);
-
-    auto geom3 = mapnik::vector_tile_impl::mapnik_to_mapbox(geom2);
 
     // encode geometry
     vector_tile::Tile tile;
@@ -116,7 +113,7 @@ TEST_CASE("encoding and decoding with datasource simple polygon")
     std::int32_t y = 0;
     std::string feature_str;
     protozero::pbf_writer feature_writer(feature_str);
-    CHECK(mapnik::vector_tile_impl::encode_geometry_pbf(geom3, feature_writer, x, y));
+    CHECK(mapnik::vector_tile_impl::encode_geometry_pbf(geom2, feature_writer, x, y));
     t_feature->ParseFromString(feature_str);
     
     // test results
