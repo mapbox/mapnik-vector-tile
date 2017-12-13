@@ -1619,3 +1619,43 @@ TEST_CASE("decode polygon -- has invalid command first")
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POLYGON, 2, 0.0, 0.0, 1.0, 1.0));
     }
 }
+
+TEST_CASE("decode malicious polygon")
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_POLYGON);
+    // MoveTo(0,0)
+    feature.add_geometry(9); // move_to | (1 << 3)
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    
+    // We are going to massively increase the number of
+    // command counts here to produce a very large 
+    // LineTo command.
+    
+    // LineTo(0,10)
+    feature.add_geometry((((1 << 29) - 1u) << 3u) | 2u);
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    feature.add_geometry(protozero::encode_zigzag32(10));
+    // LineTo(-10,10)
+    feature.add_geometry(protozero::encode_zigzag32(-10));
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    // LineTo(-10,0)
+    feature.add_geometry(protozero::encode_zigzag32(0));
+    feature.add_geometry(protozero::encode_zigzag32(-10));
+    // Close
+    feature.add_geometry(15);
+
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF geoms = feature_to_pbf_geometry(feature_string);
+
+    SECTION("VT Spec v1")
+    {
+        REQUIRE_THROWS(mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, feature.type(), 1, 0.0, 0.0, 1.0, 1.0));
+    }
+
+    SECTION("VT Spec v2")
+    {
+        REQUIRE_THROWS(mapnik::vector_tile_impl::decode_geometry<std::int64_t>(geoms, feature.type(), 2, 0.0, 0.0, 1.0, 1.0));
+    }
+}

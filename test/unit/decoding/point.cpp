@@ -363,3 +363,26 @@ TEST_CASE("multipoint with three movetos with command count 1")
         CHECK( geom.is<mapnik::geometry::multi_point<double> >() );
     }
 }
+
+TEST_CASE("decode malicious point")
+{
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_POINT);
+    // MoveTo(1,1)
+    feature.add_geometry((((1 << 29) - 1u) << 3u) | 1u);
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF geoms = feature_to_pbf_geometry(feature_string);
+    
+    SECTION("VT Spec v1") 
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 1, 0.0, 0.0, 1.0, 1.0));
+    }
+
+    SECTION("VT Spec v2") 
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_POINT, 2, 0.0, 0.0, 1.0, 1.0));
+    }
+}
