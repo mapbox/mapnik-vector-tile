@@ -15,9 +15,13 @@ namespace vector_tile_impl
 
 class spherical_mercator
 {
+private:
+    double tile_size_;
 public:
-    spherical_mercator() = default;
-    spherical_mercator(unsigned tile_size) {}
+    spherical_mercator(unsigned tile_size)
+      : tile_size_(static_cast<double>(tile_size)) {}
+
+    MAPNIK_VECTOR_INLINE void from_pixels(double shift, double & x, double & y);
 
     MAPNIK_VECTOR_INLINE void xyz(std::uint64_t x,
                                   std::uint64_t y,
