@@ -19,6 +19,14 @@ namespace mapnik
 namespace vector_tile_impl 
 {
 
+MAPNIK_VECTOR_INLINE void spherical_mercator::from_pixels(double shift, double & x, double & y)
+{
+    double b = shift/2.0;
+    x = (x - b)/(shift/360.0);
+    double g = (y - b)/-(shift/(2 * M_PI));
+    y = R2D * (2.0 * std::atan(std::exp(g)) - M_PI_by2);
+}
+
 MAPNIK_VECTOR_INLINE void spherical_mercator::xyz(std::uint64_t x,
                                                   std::uint64_t y,
                                                   std::uint64_t z,
@@ -27,12 +35,15 @@ MAPNIK_VECTOR_INLINE void spherical_mercator::xyz(std::uint64_t x,
                                                   double & maxx,
                                                   double & maxy)
 {
-    const double half_of_equator = M_PI * EARTH_RADIUS;
-    const double tile_size = 2.0 * half_of_equator / (1ul << z);
-    minx = -half_of_equator + x * tile_size;
-    miny = half_of_equator - (y + 1.0) * tile_size;
-    maxx = -half_of_equator + (x + 1.0) * tile_size;
-    maxy = half_of_equator - y * tile_size;
+    minx = x * tile_size_;
+    miny = (y + 1.0) * tile_size_;
+    maxx = (x + 1.0) * tile_size_;
+    maxy = y * tile_size_;
+    double shift = std::pow(2.0,z) * tile_size_;
+    from_pixels(shift,minx,miny);
+    from_pixels(shift,maxx,maxy);
+    lonlat2merc(&minx,&miny,1);
+    lonlat2merc(&maxx,&maxy,1);
 }
 
 MAPNIK_VECTOR_INLINE mapnik::box2d<double> merc_extent(std::uint32_t tile_size, 
