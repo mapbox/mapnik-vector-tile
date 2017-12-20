@@ -66,8 +66,8 @@ inline double get_point_value<double>(double const val,
 constexpr std::size_t max_reserve()
 {
     // Based on int64_t geometry being 16 bytes in size and 
-    // maximum allocation size of 10 MB.
-    return (10 * 1024 * 1024) / 16;
+    // maximum allocation size of 1 MB.
+    return (1024 * 1024) / 16;
 }
 
 template <typename geom_value_type>
