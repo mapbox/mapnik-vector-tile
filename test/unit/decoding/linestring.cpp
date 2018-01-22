@@ -552,3 +552,31 @@ TEST_CASE("decode linestring that begins with two moveto commands")
         CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2, 0.0, 0.0, 1.0, 1.0));
     }
 }
+
+TEST_CASE("decode malicious linestring")
+{
+    // This should work with v1 but throw with v2
+    vector_tile::Tile_Feature feature;
+    feature.set_type(vector_tile::Tile_GeomType_LINESTRING);
+    // MoveTo(1,1)
+    feature.add_geometry((1 << 3u) | 1u);
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    // LineTo(2,2)
+    feature.add_geometry((((1 << 29) - 1u) << 3u) | 2u);
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    feature.add_geometry(protozero::encode_zigzag32(1));
+    
+    std::string feature_string = feature.SerializeAsString();
+    mapnik::vector_tile_impl::GeometryPBF geoms = feature_to_pbf_geometry(feature_string);
+    
+    SECTION("VT Spec v1")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 1, 0.0, 0.0, 1.0, 1.0));
+    }
+
+    SECTION("VT Spec v2")
+    {
+        CHECK_THROWS(mapnik::vector_tile_impl::decode_geometry<double>(geoms, vector_tile::Tile_GeomType_LINESTRING, 2, 0.0, 0.0, 1.0, 1.0));
+    }
+}
