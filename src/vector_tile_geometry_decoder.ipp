@@ -63,6 +63,13 @@ inline double get_point_value<double>(double const val,
     return tile_loc + (val / scale_val);
 }
 
+constexpr std::size_t max_reserve()
+{
+    // Based on int64_t geometry being 16 bytes in size and 
+    // maximum allocation size of 1 MB.
+    return (1024 * 1024) / 16;
+}
+
 template <typename geom_value_type>
 void decode_point(mapnik::geometry::geometry<geom_value_type> & geom, 
                   GeometryPBF & paths, 
@@ -100,7 +107,15 @@ void decode_point(mapnik::geometry::geometry<geom_value_type> & geom,
             }
             previous_len = paths.get_length();
             #endif
-            mp.reserve(paths.get_length() + 1);
+            constexpr std::size_t max_size = max_reserve();
+            if (paths.get_length() + 1 < max_size)
+            {
+                mp.reserve(paths.get_length() + 1);
+            }
+            else
+            {
+                mp.reserve(max_size);
+            }
             mp.emplace_back(x1_, y1_);
             break;
         }
@@ -216,7 +231,15 @@ void decode_linestring(mapnik::geometry::geometry<geom_value_type> & geom,
         multi_line.emplace_back();
         auto & line = multi_line.back();
         // reserve prior
-        line.reserve(paths.get_length() + 2);
+        constexpr std::size_t max_size = max_reserve();
+        if (paths.get_length() + 2 < max_size)
+        {
+            line.reserve(paths.get_length() + 2);
+        }
+        else
+        {
+            line.reserve(max_size);
+        }
         // add moveto command position
         x0_ = get_point_value<geom_value_type>(x0, scale_x, tile_x);
         y0_ = get_point_value<geom_value_type>(y0, scale_y, tile_y);
@@ -390,7 +413,15 @@ void decode_polygon(mapnik::geometry::geometry<geom_value_type> & geom,
         rings.emplace_back();
         auto & ring = rings.back();
         // reserve prior
-        ring.reserve(paths.get_length() + 4);
+        constexpr std::size_t max_size = max_reserve();
+        if (paths.get_length() + 4 < max_size)
+        {
+            ring.reserve(paths.get_length() + 4);
+        }
+        else
+        {
+            ring.reserve(max_size);
+        }
         // add moveto command position
         x0_ = get_point_value<geom_value_type>(x0, scale_x, tile_x);
         y0_ = get_point_value<geom_value_type>(y0, scale_y, tile_y);
