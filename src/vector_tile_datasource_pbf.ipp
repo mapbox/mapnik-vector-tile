@@ -219,10 +219,7 @@ void tile_datasource_pbf::set_envelope(box2d<double> const& bbox)
 
 box2d<double> tile_datasource_pbf::get_tile_extent() const
 {
-    spherical_mercator merc(tile_size_);
-    double minx,miny,maxx,maxy;
-    merc.xyz(x_,y_,z_,minx,miny,maxx,maxy);
-    return box2d<double>(minx,miny,maxx,maxy);
+    return tile_mercator_bbox(x_, y_, z_);
 }
 
 box2d<double> tile_datasource_pbf::envelope() const
