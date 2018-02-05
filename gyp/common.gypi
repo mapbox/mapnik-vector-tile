@@ -115,7 +115,7 @@
             "configurations": {
                 "Debug": {
                     "defines": [
-                        "DEBUG", "SSE_MATH"
+                        "DEBUG"
                     ],
                     'defines!': [
                       'NDEBUG'
@@ -142,7 +142,7 @@
                 },
                 "Release": {
                     "defines": [
-                        "NDEBUG", "SSE_MATH"
+                        "NDEBUG"
                     ],
                     "xcode_settings": {
                         "GCC_OPTIMIZATION_LEVEL": "3",
