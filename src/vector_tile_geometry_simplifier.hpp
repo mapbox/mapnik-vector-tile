@@ -41,7 +41,7 @@ struct geometry_simplifier
         else
         {
             mapbox::geometry::line_string<std::int64_t> simplified;
-            douglas_peucker<std::int64_t>(geom, std::back_inserter(simplified), simplify_distance_);
+            douglas_peucker(geom, std::back_inserter(simplified), simplify_distance_);
             next_(simplified);
         }
     }
@@ -58,7 +58,7 @@ struct geometry_simplifier
             else
             {
                 mapbox::geometry::line_string<std::int64_t> simplified_line;
-                douglas_peucker<std::int64_t>(g, std::back_inserter(simplified_line), simplify_distance_);
+                douglas_peucker(g, std::back_inserter(simplified_line), simplify_distance_);
                 simplified.push_back(simplified_line);
             }
         }
@@ -77,7 +77,7 @@ struct geometry_simplifier
             else
             {
                 mapbox::geometry::linear_ring<std::int64_t> simplified_ring;
-                douglas_peucker<std::int64_t>(g, std::back_inserter(simplified_ring), simplify_distance_);
+                douglas_peucker(g, std::back_inserter(simplified_ring), simplify_distance_);
                 simplified.push_back(simplified_ring);
             }
         }
@@ -99,7 +99,7 @@ struct geometry_simplifier
                 else
                 {
                     mapbox::geometry::linear_ring<std::int64_t> simplified_ring;
-                    douglas_peucker<std::int64_t>(g, std::back_inserter(simplified_ring), simplify_distance_);
+                    douglas_peucker(g, std::back_inserter(simplified_ring), simplify_distance_);
                     simplified.push_back(simplified_ring);
                 }
             }
