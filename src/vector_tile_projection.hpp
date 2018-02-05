@@ -14,9 +14,9 @@ namespace mapnik
 namespace vector_tile_impl 
 {
 
-MAPNIK_VECTOR_INLINE mapnik::box2d<double> tile_mercator_bbox(std::uint64_t x,
-                                                              std::uint64_t y,
-                                                              std::uint64_t z)
+inline mapnik::box2d<double> tile_mercator_bbox(std::uint64_t x,
+                                                std::uint64_t y,
+                                                std::uint64_t z)
 {
     const double half_of_equator = M_PI * EARTH_RADIUS;
     const double tile_size = 2.0 * half_of_equator / (1ull << z);
