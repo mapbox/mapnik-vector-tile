@@ -107,8 +107,77 @@ inline void consider(Range const& vec,
         double const v_y = last.y - begin.y;
         double const c2 = v_x * v_x + v_y * v_y;
         std::size_t i = begin_idx + 1;
+        
+        #ifdef SSE_MATH
+        if (size > 4 && size < std::numeric_limits<std::uint32_t>::max())
+        {
+            __m128 begin_x_4 = _mm_set1_ps(begin.x);
+            __m128 begin_y_4 = _mm_set1_ps(begin.y);
+            __m128 last_x_4 = _mm_set1_ps(last.x);
+            __m128 last_y_4 = _mm_set1_ps(last.y);
+            __m128 v_x_4 =  _mm_set1_ps(v_x);
+            __m128 v_y_4 =  _mm_set1_ps(v_y);
+            __m128 c2_4 =  _mm_set1_ps(c2);
+            __m128 zero_4 = _mm_set1_ps(0.0);
+            __m128 true_4 = _mm_castsi128_ps(_mm_set1_epi32(std::numeric_limits<std::uint32_t>::max()));
+            __m128 md_4 = _mm_set1_ps(md);
+            __m128 md_idx = _mm_castsi128_ps(_mm_set1_epi32(i));
 
-        if (size > 2)
+            for (; i + 3 < last_idx; i += 4)
+            {
+                // Setup loop values
+                __m128 it_x_4 = _mm_set_ps(vec[i+3].x, vec[i+2].x, vec[i+1].x, vec[i].x);
+                __m128 it_y_4 = _mm_set_ps(vec[i+3].y, vec[i+2].y, vec[i+1].y, vec[i].y);
+                __m128 it_idx = _mm_castsi128_ps(_mm_set_epi32(i+3, i+2, i+1, i));
+
+                // Calculate c1
+                __m128 w_x_4 = _mm_sub_ps(it_x_4, begin_x_4);
+                __m128 w_y_4 = _mm_sub_ps(it_y_4, begin_y_4);
+                __m128 u_x_4 = _mm_sub_ps(it_x_4, last_x_4);
+                __m128 u_y_4 = _mm_sub_ps(it_y_4, last_y_4);
+                __m128 c1_4 = _mm_add_ps(_mm_mul_ps(w_x_4, v_x_4), _mm_mul_ps(w_y_4, v_y_4));
+
+                // Calculate two optional distance results
+                __m128 dist_1 = _mm_add_ps(_mm_mul_ps(w_x_4, w_x_4), _mm_mul_ps(w_y_4, w_y_4));
+                __m128 dist_2 = _mm_add_ps(_mm_mul_ps(u_x_4, u_x_4), _mm_mul_ps(u_y_4, u_y_4));
+                __m128 bool_dist_1 = _mm_cmple_ps(c1_4, zero_4);
+                __m128 bool_dist_2 = _mm_cmple_ps(c2_4, c1_4);
+
+                // Calculate the default distance solution now
+                __m128 b_4 = _mm_div_ps(c1_4, c2_4);
+                __m128 dx_4 = _mm_sub_ps(w_x_4, _mm_mul_ps(b_4, v_x_4));
+                __m128 dy_4 = _mm_sub_ps(w_y_4, _mm_mul_ps(b_4, v_y_4));
+                __m128 dist_3 = _mm_add_ps(_mm_mul_ps(dx_4, dx_4), _mm_mul_ps(dy_4, dy_4));
+
+                __m128 dist = _mm_and_ps(dist_1, bool_dist_1);
+                dist = _mm_or_ps(dist, _mm_and_ps(_mm_and_ps(_mm_andnot_ps(bool_dist_1, true_4), bool_dist_2), dist_2));
+                dist = _mm_or_ps(dist, _mm_and_ps(_mm_andnot_ps(_mm_or_ps(bool_dist_1, bool_dist_2), true_4), dist_3));
+                __m128 bool_md = _mm_cmplt_ps(md_4, dist);
+                md_4 = _mm_or_ps(_mm_andnot_ps(bool_md, md_4), _mm_and_ps(bool_md, dist));
+                md_idx = _mm_or_ps(_mm_andnot_ps(bool_md, md_idx), _mm_and_ps(bool_md, it_idx));
+            }
+
+            float md_out [4];
+            std::uint32_t md_idx_out [4];
+            _mm_store_ps(md_out, md_4);
+            _mm_store_ps(reinterpret_cast<float*>(md_idx_out), md_idx);
+
+            md = md_out[0];
+            candidate = md_idx_out[0];
+            for (std::size_t j = 1; j < 4; ++j)
+            {
+                if (md < md_out[j])
+                {
+                    md = md_out[j];
+                    candidate = md_idx_out[j];
+                }
+                else if (md == md_out[j] && md_idx_out[j] < candidate)
+                {
+                    candidate = md_idx_out[j];
+                }
+            }
+        } 
+        else if (size > 2)
         {
             __m128d begin_x_2 = _mm_set1_pd(begin.x);
             __m128d begin_y_2 = _mm_set1_pd(begin.y);
@@ -173,6 +242,7 @@ inline void consider(Range const& vec,
                 candidate = md_idx_out[1];
             }
         }
+        #endif
 
         for (; i < last_idx; ++i)
         {
