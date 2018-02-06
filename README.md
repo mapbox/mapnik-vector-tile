@@ -33,6 +33,12 @@ If you have Mapnik, libprotobuf, and all the Mapnik deps already installed on yo
 
     make release_base
 
+Note: SSE optimizations are enabled by default. If you want to turn them off do:
+
+```
+SSE_MATH=false make
+```
+
 If building against an external Mapnik please know that Mapnik Vector Tile does not currently support Mapnik 3.1.x.
 
  - mapnik-vector-tile >=1.4.x depends on Mapnik >=v3.0.14
