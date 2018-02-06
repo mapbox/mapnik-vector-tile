@@ -245,11 +245,7 @@ TEST_CASE("raster tile output 2")
 
     // now read back and render image at larger size
     // and zoomed in
-    double minx,miny,maxx,maxy;
-    mapnik::vector_tile_impl::spherical_mercator merc(256);
-    // 2/0/1.png
-    merc.xyz(0,1,2,minx,miny,maxx,maxy);
-    mapnik::box2d<double> bbox(minx,miny,maxx,maxy);
+    mapnik::box2d<double> bbox = mapnik::vector_tile_impl::tile_mercator_bbox(0,1,2);
     mapnik::Map map2(256,256,"+init=epsg:3857");
     map2.set_buffer_size(1024);
     mapnik::layer lyr2("layer",map2.srs());
