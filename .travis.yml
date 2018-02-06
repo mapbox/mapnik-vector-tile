@@ -30,6 +30,15 @@ matrix:
         apt:
           sources: ['ubuntu-toolchain-r-test']
           packages: [ 'libstdc++-5-dev', 'xutils-dev']
+    # test a build with sse disabled
+    - os: linux
+      sudo: false
+      compiler: ": clang"
+      env: JOBS=10 SSE_MATH=false CXX="ccache clang++-4.0 -Qunused-arguments"
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: [ 'libstdc++-5-dev', 'xutils-dev']
     - os: linux
       sudo: false
       compiler: ": clang-coverage"

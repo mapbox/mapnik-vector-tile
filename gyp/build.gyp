@@ -4,8 +4,9 @@
   ],
   'variables': {
     'MAPNIK_PLUGINDIR%': '',
+    'enable_sse%':'true',
     'common_defines' : [
-        'MAPNIK_VECTOR_TILE_LIBRARY=1',
+        'MAPNIK_VECTOR_TILE_LIBRARY=1'
     ]
   },
   "targets": [
@@ -38,6 +39,11 @@
       ],
       'include_dirs': [
         '<(SHARED_INTERMEDIATE_DIR)/'
+      ],
+      'conditions': [
+        ['enable_sse == "true"', {
+          'defines' : [ 'SSE_MATH' ]
+        }]
       ],
       'cflags_cc' : [
           '-D_THREAD_SAFE',
@@ -81,6 +87,11 @@
       'defines' : [
         "<@(common_defines)"
       ],
+      'conditions': [
+        ['enable_sse == "true"', {
+          'defines' : [ 'SSE_MATH' ]
+        }]
+      ],
       'cflags_cc' : [
           '<!@(mapnik-config --cflags)'
       ],
@@ -123,6 +134,11 @@
         "<@(common_defines)",
         "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
       ],
+      'conditions': [
+        ['enable_sse == "true"', {
+          'defines' : [ 'SSE_MATH' ]
+        }]
+      ],
       "sources": [
         "<!@(find ../test/ -name '*.cpp')"
       ],
@@ -140,6 +156,11 @@
         "<@(common_defines)",
         "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
       ],
+      'conditions': [
+        ['enable_sse == "true"', {
+          'defines' : [ 'SSE_MATH' ]
+        }]
+      ],
       "sources": [
         "../bench/vtile-transform.cpp"
       ],
@@ -154,6 +175,11 @@
       "defines": [
         "<@(common_defines)",
         "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
+      ],
+      'conditions': [
+        ['enable_sse == "true"', {
+          'defines' : [ 'SSE_MATH' ]
+        }]
       ],
       "sources": [
         "../bench/vtile-decode.cpp"
@@ -170,6 +196,11 @@
         "<@(common_defines)",
         "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
       ],
+      'conditions': [
+        ['enable_sse == "true"', {
+          'defines' : [ 'SSE_MATH' ]
+        }]
+      ],
       "sources": [
         "../bench/vtile-encode.cpp"
       ],
@@ -185,6 +216,11 @@
         "<@(common_defines)",
         "MAPNIK_PLUGINDIR=<(MAPNIK_PLUGINDIR)"
       ],
+      'conditions': [
+        ['enable_sse == "true"', {
+          'defines' : [ 'SSE_MATH' ]
+        }]
+      ],
       "sources": [
         "../bin/vtile-edit.cpp"
       ],
@@ -198,6 +234,11 @@
       "type": "executable",
       "sources": [
         "../examples/c++/tileinfo.cpp"
+      ],
+      'conditions': [
+        ['enable_sse == "true"', {
+          'defines' : [ 'SSE_MATH' ]
+        }]
       ],
       "include_dirs": [
         "../src"
