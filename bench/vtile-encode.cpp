@@ -133,7 +133,7 @@ int main(int argc, char** argv)
         unsigned tile_size = layer_extent;
         int buffer_size = 0;
 
-        mapnik::box2d<double> bbox = mapnik::vector_tile_impl::merc_extent(tile_size, x, y, z);
+        mapnik::box2d<double> bbox = mapnik::vector_tile_impl::tile_mercator_bbox(x, y, z);
 
         // Create a fresh map to render into a tile
         mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");

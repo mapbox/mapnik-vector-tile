@@ -23,7 +23,7 @@ public:
               std::uint64_t z,
               std::uint32_t tile_size = 4096,
               std::int32_t buffer_size = 128)
-        : tile(merc_extent(tile_size, x, y, z), tile_size, buffer_size),
+        : tile(tile_mercator_bbox(x, y, z), tile_size, buffer_size),
           x_(x),
           y_(y),
           z_(z) {}
@@ -47,7 +47,7 @@ public:
     void x(std::uint64_t x)
     {
         x_ = x;
-        extent_ = merc_extent(tile_size_, x_, y_, z_);
+        extent_ = tile_mercator_bbox(x_, y_, z_);
     }
     
     std::uint64_t y() const
@@ -58,7 +58,7 @@ public:
     void y(std::uint64_t y)
     {
         y_ = y;
-        extent_ = merc_extent(tile_size_, x_, y_, z_);
+        extent_ = tile_mercator_bbox(x_, y_, z_);
     }
     
     std::uint64_t z() const
@@ -69,7 +69,7 @@ public:
     void z(std::uint64_t z)
     {
         z_ = z;
-        extent_ = merc_extent(tile_size_, x_, y_, z_);
+        extent_ = tile_mercator_bbox(x_, y_, z_);
     }
 };
 
