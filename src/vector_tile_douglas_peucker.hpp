@@ -40,6 +40,13 @@
 
 // std
 #include <vector>
+#include <limits>
+
+#ifdef SSE_MATH
+// simd
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#endif
 
 namespace mapnik 
 {
@@ -67,14 +74,14 @@ struct douglas_peucker_point
     }
 };
 
-template <typename value_type, typename calc_type>
-inline void consider(typename std::vector<douglas_peucker_point<value_type> >::iterator begin,
-                     typename std::vector<douglas_peucker_point<value_type> >::iterator end,
-                     calc_type const& max_dist)
+template <typename Range>
+inline void consider(Range const& vec,
+                     std::vector<bool> & included,
+                     std::size_t begin_idx,
+                     std::size_t last_idx,
+                     double max_dist)
 {
-    typedef typename std::vector<douglas_peucker_point<value_type> >::iterator iterator_type;
-    
-    std::size_t size = end - begin;
+    std::size_t size = last_idx - begin_idx + 1;
 
     // size must be at least 3
     // because we want to consider a candidate point in between
@@ -83,57 +90,190 @@ inline void consider(typename std::vector<douglas_peucker_point<value_type> >::i
         return;
     }
 
-    iterator_type last = end - 1;
-
     // Find most far point, compare to the current segment
-    calc_type md(-1.0); // any value < 0
-    iterator_type candidate;
+    double md = -1.0; // any value < 0
+    std::size_t candidate = begin_idx + 1;
+    /*
+        Algorithm [p: (px,py), p1: (x1,y1), p2: (x2,y2)]
+        VECTOR v(x2 - x1, y2 - y1)
+        VECTOR w(px - x1, py - y1)
+        c1 = w . v
+        c2 = v . v
+        b = c1 / c2
+        RETURN POINT(x1 + b * vx, y1 + b * vy)
+    */
+    auto const& last = vec[last_idx];
+    auto const& begin = vec[begin_idx];
+    double const v_x = last.x - begin.x;
+    double const v_y = last.y - begin.y;
+    double const c2 = v_x * v_x + v_y * v_y;
+    std::size_t i = begin_idx + 1;
+    
+    #ifdef SSE_MATH
+    if (size > 4 && size < std::numeric_limits<std::uint32_t>::max())
     {
-        /*
-            Algorithm [p: (px,py), p1: (x1,y1), p2: (x2,y2)]
-            VECTOR v(x2 - x1, y2 - y1)
-            VECTOR w(px - x1, py - y1)
-            c1 = w . v
-            c2 = v . v
-            b = c1 / c2
-            RETURN POINT(x1 + b * vx, y1 + b * vy)
-        */
-        calc_type const v_x = last->p.x - begin->p.x;
-        calc_type const v_y = last->p.y - begin->p.y;
-        calc_type const c2 = v_x * v_x + v_y * v_y;
-        for(iterator_type it = begin + 1; it != last; ++it)
+        __m128 begin_x_4 = _mm_set1_ps(begin.x);
+        __m128 begin_y_4 = _mm_set1_ps(begin.y);
+        __m128 last_x_4 = _mm_set1_ps(last.x);
+        __m128 last_y_4 = _mm_set1_ps(last.y);
+        __m128 v_x_4 =  _mm_set1_ps(v_x);
+        __m128 v_y_4 =  _mm_set1_ps(v_y);
+        __m128 c2_4 =  _mm_set1_ps(c2);
+        __m128 zero_4 = _mm_set1_ps(0.0);
+        __m128 true_4 = _mm_castsi128_ps(_mm_set1_epi32(std::numeric_limits<std::uint32_t>::max()));
+        __m128 md_4 = _mm_set1_ps(md);
+        __m128 md_idx = _mm_castsi128_ps(_mm_set1_epi32(i));
+
+        for (; i + 3 < last_idx; i += 4)
         {
-            calc_type const w_x = it->p.x - begin->p.x;
-            calc_type const w_y = it->p.y - begin->p.y;
-            calc_type const c1 = w_x * v_x + w_y * v_y;
-            calc_type dist;
-            if (c1 <= 0) // calc_type() should be 0 of the proper calc type format
+            // Setup loop values
+            __m128 it_x_4 = _mm_set_ps(vec[i+3].x, vec[i+2].x, vec[i+1].x, vec[i].x);
+            __m128 it_y_4 = _mm_set_ps(vec[i+3].y, vec[i+2].y, vec[i+1].y, vec[i].y);
+            __m128 it_idx = _mm_castsi128_ps(_mm_set_epi32(i+3, i+2, i+1, i));
+
+            // Calculate c1
+            __m128 w_x_4 = _mm_sub_ps(it_x_4, begin_x_4);
+            __m128 w_y_4 = _mm_sub_ps(it_y_4, begin_y_4);
+            __m128 u_x_4 = _mm_sub_ps(it_x_4, last_x_4);
+            __m128 u_y_4 = _mm_sub_ps(it_y_4, last_y_4);
+            __m128 c1_4 = _mm_add_ps(_mm_mul_ps(w_x_4, v_x_4), _mm_mul_ps(w_y_4, v_y_4));
+
+            // Calculate two optional distance results
+            __m128 dist_1 = _mm_add_ps(_mm_mul_ps(w_x_4, w_x_4), _mm_mul_ps(w_y_4, w_y_4));
+            __m128 dist_2 = _mm_add_ps(_mm_mul_ps(u_x_4, u_x_4), _mm_mul_ps(u_y_4, u_y_4));
+            __m128 bool_dist_1 = _mm_cmple_ps(c1_4, zero_4);
+            __m128 bool_dist_2 = _mm_cmple_ps(c2_4, c1_4);
+
+            // Calculate the default distance solution now
+            __m128 b_4 = _mm_div_ps(c1_4, c2_4);
+            __m128 dx_4 = _mm_sub_ps(w_x_4, _mm_mul_ps(b_4, v_x_4));
+            __m128 dy_4 = _mm_sub_ps(w_y_4, _mm_mul_ps(b_4, v_y_4));
+            __m128 dist_3 = _mm_add_ps(_mm_mul_ps(dx_4, dx_4), _mm_mul_ps(dy_4, dy_4));
+
+            __m128 dist = _mm_and_ps(dist_1, bool_dist_1);
+            dist = _mm_or_ps(dist, _mm_and_ps(_mm_and_ps(_mm_andnot_ps(bool_dist_1, true_4), bool_dist_2), dist_2));
+            dist = _mm_or_ps(dist, _mm_and_ps(_mm_andnot_ps(_mm_or_ps(bool_dist_1, bool_dist_2), true_4), dist_3));
+            __m128 bool_md = _mm_cmplt_ps(md_4, dist);
+            md_4 = _mm_or_ps(_mm_andnot_ps(bool_md, md_4), _mm_and_ps(bool_md, dist));
+            md_idx = _mm_or_ps(_mm_andnot_ps(bool_md, md_idx), _mm_and_ps(bool_md, it_idx));
+        }
+
+        float md_out [4];
+        std::uint32_t md_idx_out [4];
+        _mm_store_ps(md_out, md_4);
+        _mm_store_ps(reinterpret_cast<float*>(md_idx_out), md_idx);
+
+        md = md_out[0];
+        candidate = md_idx_out[0];
+        for (std::size_t j = 1; j < 4; ++j)
+        {
+            if (md < md_out[j])
             {
-                calc_type const dx = it->p.x - begin->p.x;
-                calc_type const dy = it->p.y - begin->p.y;
-                dist = dx * dx + dy * dy;
+                md = md_out[j];
+                candidate = md_idx_out[j];
             }
-            else if (c2 <= c1)
+            else if (md == md_out[j] && md_idx_out[j] < candidate)
             {
-                calc_type const dx = it->p.x - last->p.x;
-                calc_type const dy = it->p.y - last->p.y;
-                dist = dx * dx + dy * dy;
+                candidate = md_idx_out[j];
             }
-            else 
-            {
-                // See above, c1 > 0 AND c2 > c1 so: c2 != 0
-                calc_type const b = c1 / c2;
-                calc_type const p_x = begin->p.x + b * v_x;
-                calc_type const p_y = begin->p.y + b * v_y;
-                calc_type const dx = it->p.x - p_x;
-                calc_type const dy = it->p.y - p_y;
-                dist = dx * dx + dy * dy;
-            }
-            if (md < dist)
-            {
-                md = dist;
-                candidate = it;
-            }
+        }
+    } 
+    else if (size > 2)
+    {
+        __m128d begin_x_2 = _mm_set1_pd(begin.x);
+        __m128d begin_y_2 = _mm_set1_pd(begin.y);
+        __m128d last_x_2 = _mm_set1_pd(last.x);
+        __m128d last_y_2 = _mm_set1_pd(last.y);
+        __m128d v_x_2 =  _mm_set1_pd(v_x);
+        __m128d v_y_2 =  _mm_set1_pd(v_y);
+        __m128d c2_2 =  _mm_set1_pd(c2);
+        __m128d zero_2 = _mm_set1_pd(0.0);
+        __m128d true_2 = _mm_castsi128_pd(_mm_set1_epi64(reinterpret_cast<__m64>(std::numeric_limits<std::uint64_t>::max())));
+        __m128d md_2 = _mm_set1_pd(md);
+        __m128d md_idx = _mm_castsi128_pd(_mm_set1_epi64(reinterpret_cast<__m64>(i)));
+
+        for (; i + 1 < last_idx; i += 2)
+        {
+            // Setup loop values
+            __m128d it_x_2 = _mm_set_pd(vec[i+1].x, vec[i].x);
+            __m128d it_y_2 = _mm_set_pd(vec[i+1].y, vec[i].y);
+            __m128d it_idx = _mm_castsi128_pd(_mm_set_epi64(reinterpret_cast<__m64>(i+1), reinterpret_cast<__m64>(i)));
+
+            // Calculate c1
+            __m128d w_x_2 = _mm_sub_pd(it_x_2, begin_x_2);
+            __m128d w_y_2 = _mm_sub_pd(it_y_2, begin_y_2);
+            __m128d u_x_2 = _mm_sub_pd(it_x_2, last_x_2);
+            __m128d u_y_2 = _mm_sub_pd(it_y_2, last_y_2);
+            __m128d c1_2 = _mm_add_pd(_mm_mul_pd(w_x_2, v_x_2), _mm_mul_pd(w_y_2, v_y_2));
+
+            // Calculate two optional distance results
+            __m128d dist_1 = _mm_add_pd(_mm_mul_pd(w_x_2, w_x_2), _mm_mul_pd(w_y_2, w_y_2));
+            __m128d dist_2 = _mm_add_pd(_mm_mul_pd(u_x_2, u_x_2), _mm_mul_pd(u_y_2, u_y_2));
+            __m128d bool_dist_1 = _mm_cmple_pd(c1_2, zero_2);
+            __m128d bool_dist_2 = _mm_cmple_pd(c2_2, c1_2);
+
+            // Calculate the default distance solution now
+            __m128d b_2 = _mm_div_pd(c1_2, c2_2);
+            __m128d dx_2 = _mm_sub_pd(w_x_2, _mm_mul_pd(b_2, v_x_2));
+            __m128d dy_2 = _mm_sub_pd(w_y_2, _mm_mul_pd(b_2, v_y_2));
+            __m128d dist_3 = _mm_add_pd(_mm_mul_pd(dx_2, dx_2), _mm_mul_pd(dy_2, dy_2));
+
+            __m128d dist = _mm_and_pd(dist_1, bool_dist_1);
+            dist = _mm_or_pd(dist, _mm_and_pd(_mm_and_pd(_mm_andnot_pd(bool_dist_1, true_2), bool_dist_2), dist_2));
+            dist = _mm_or_pd(dist, _mm_and_pd(_mm_andnot_pd(_mm_or_pd(bool_dist_1, bool_dist_2), true_2), dist_3));
+            __m128d bool_md = _mm_cmplt_pd(md_2, dist);
+            md_2 = _mm_or_pd(_mm_andnot_pd(bool_md, md_2), _mm_and_pd(bool_md, dist));
+            md_idx = _mm_or_pd(_mm_andnot_pd(bool_md, md_idx), _mm_and_pd(bool_md, it_idx));
+        }
+
+        double md_out [2];
+        std::size_t md_idx_out [2];
+        _mm_store_pd(md_out, md_2);
+        _mm_store_pd(reinterpret_cast<double*>(md_idx_out), md_idx);
+
+        md = md_out[0];
+        candidate = md_idx_out[0];
+        if (md < md_out[1])
+        {
+            md = md_out[1];
+            candidate = md_idx_out[1];
+        }
+        else if (md == md_out[1] && md_idx_out[1] < candidate)
+        {
+            candidate = md_idx_out[1];
+        }
+    }
+    #endif
+
+    for (; i < last_idx; ++i)
+    {
+        auto const& it = vec[i];
+        double const w_x = it.x - begin.x;
+        double const w_y = it.y - begin.y;
+        double const c1 = w_x * v_x + w_y * v_y;
+        double dist;
+        if (c1 <= 0) // calc_type() should be 0 of the proper calc type format
+        {
+            dist = w_x * w_x + w_y * w_y;
+        }
+        else if (c2 <= c1)
+        {
+            double const dx = it.x - last.x;
+            double const dy = it.y - last.y;
+            dist = dx * dx + dy * dy;
+        }
+        else
+        {
+            // See above, c1 > 0 AND c2 > c1 so: c2 != 0
+            double const b = c1 / c2;
+            double const dx = w_x - b * v_x;
+            double const dy = w_y - b * v_y;
+            dist = dx * dx + dy * dy;
+        }
+        if (md < dist)
+        {
+            md = dist;
+            candidate = i;
         }
     }
 
@@ -141,49 +281,45 @@ inline void consider(typename std::vector<douglas_peucker_point<value_type> >::i
     // and handle segments in between recursively
     if (max_dist < md)
     {
-        candidate->included = true;
-        consider<value_type>(begin, candidate + 1, max_dist);
-        consider<value_type>(candidate, end, max_dist);
+        included[candidate] = true;
+        consider<Range>(vec, included, begin_idx, candidate, max_dist);
+        consider<Range>(vec, included, candidate, last_idx, max_dist);
     }
 }
 
 } // end ns detail
 
-template <typename value_type, typename calc_type, typename Range, typename OutputIterator>
+template <typename Range, typename OutputIterator>
 inline void douglas_peucker(Range const& range,
                             OutputIterator out,
-                            calc_type max_distance)
+                            double max_distance)
 {
-    // Copy coordinates, a vector of references to all points
-    std::vector<detail::douglas_peucker_point<value_type> > ref_candidates(std::begin(range),
-                    std::end(range));
+    std::vector<bool> included(range.size());
 
     // Include first and last point of line,
     // they are always part of the line
-    ref_candidates.front().included = true;
-    ref_candidates.back().included = true;
+    included.front() = true;
+    included.back() = true;
 
     // We will compare to squared of distance so we don't have to do a sqrt
-    calc_type const max_sqrd = max_distance * max_distance;
+    double const max_sqrd = max_distance * max_distance;
 
-    // Get points, recursively, including them if they are further away
-    // than the specified distance
-    detail::consider<value_type, calc_type>(std::begin(ref_candidates), std::end(ref_candidates), max_sqrd);
+    detail::consider<Range>(range, included, 0, range.size() - 1, max_sqrd);
 
     // Copy included elements to the output
-    for(typename std::vector<detail::douglas_peucker_point<value_type> >::const_iterator it
-                    = std::begin(ref_candidates);
-        it != std::end(ref_candidates);
-        ++it)
+    auto data = std::begin(range);
+    auto end_data = std::end(range);
+    auto inc = included.begin();
+    for (; data != end_data; ++data)
     {
-        if (it->included)
+        if (*inc)
         {
             // copy-coordinates does not work because OutputIterator
             // does not model Point (??)
             //geometry::convert(it->p, *out);
-            *out = it->p;
-            out++;
+            *out++ = *data;
         }
+        ++inc;
     }
 }
 
