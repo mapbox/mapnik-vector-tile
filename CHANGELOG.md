@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.0
+
+- Bug fix for possible massive allocations in invalid vector tiles
+- Fixed mercator bounding box code so that it does not require tile size, removed spherical mercator class
+- Added the ability to use SSE code to improve the performance of simplification prior to vector tile creation.
+
 ## 1.5.0
 
 - Added back ability to build against external mapnik (see docs for instructions)
