@@ -106,7 +106,7 @@ public:
           name_(lay.name()),
           layer_extent_(calc_extent(tile_size)),
           target_buffered_extent_(calc_target_buffered_extent(tile_extent_bbox, buffer_size, lay, map)),
-          source_buffered_extent_(calc_source_buffered_extent()),
+          source_buffered_extent_(calc_source_buffered_extent(lay)),
           query_(calc_query(scale_factor, scale_denom, tile_extent_bbox, lay, vars)),
           view_trans_(layer_extent_, layer_extent_, tile_extent_bbox, offset_x, offset_y),
           empty_(true),
@@ -207,14 +207,21 @@ public:
         }
         return ext;
     }
-
-    mapnik::box2d<double> calc_source_buffered_extent()
+    
+    mapnik::box2d<double> calc_source_buffered_extent(mapnik::layer const& lay)
     {
         mapnik::box2d<double> new_extent(target_buffered_extent_);
         if (!prj_trans_.forward(new_extent, PROJ_ENVELOPE_POINTS))
         {
-            // this modifies the layer_ext by clipping to the buffered_ext
-            valid_ = false;
+            if (!ds_ || ds_->type() != datasource::Vector)
+            {
+                throw std::runtime_error("vector_tile_processor: can not project target projection to an extent in the source projection, reproject source data prior to processing");
+            }
+            else
+            {
+                new_extent = lay.envelope();
+            }
+
         }
         return new_extent;
     }
@@ -239,13 +246,6 @@ public:
 
         mapnik::box2d<double> query_extent(lay.envelope()); // source projection
         mapnik::box2d<double> unbuffered_query_extent(tile_extent_bbox);
-        if (!prj_trans_.equal())
-        {
-            if (!prj_trans_.forward(unbuffered_query_extent, PROJ_ENVELOPE_POINTS))
-            {
-                throw std::runtime_error("vector_tile_processor: unbuffered query extent did not reproject back to map projection");
-            }
-        }
 
         // first, try intersection of map extent forward projected into layer srs
         if (source_buffered_extent_.intersects(query_extent))
@@ -265,7 +265,7 @@ public:
             // forward project layer extent back into native projection
             if (!prj_trans_.forward(query_extent, PROJ_ENVELOPE_POINTS))
             {
-                throw std::runtime_error("vector_tile_processor: query extent did not reproject back to map projection");
+                throw std::runtime_error("vector_tile_processor: query extent did not reproject back to source projection");
             }
         }
         else
@@ -273,8 +273,22 @@ public:
             // if no intersection then nothing to do for layer
             valid_ = false;
         }
-        double qw = unbuffered_query_extent.width() > 0 ? unbuffered_query_extent.width() : 1;
-        double qh = unbuffered_query_extent.height() > 0 ? unbuffered_query_extent.height() : 1;
+        if (!prj_trans_.equal())
+        {
+            if (!prj_trans_.forward(unbuffered_query_extent, PROJ_ENVELOPE_POINTS))
+            {
+                if (!ds_ || ds_->type() != datasource::Vector)
+                {
+                    throw std::runtime_error("vector_tile_processor: can not project target projection to an extent in the source projection, reproject source data prior to processing");
+                }
+                else
+                {
+                    unbuffered_query_extent = lay.envelope();
+                }
+            }
+        }
+        double qw = unbuffered_query_extent.width() > 0 ? unbuffered_query_extent.width() : 1.0;
+        double qh = unbuffered_query_extent.height() > 0 ? unbuffered_query_extent.height() : 1.0;
         if (!ds_ || ds_->type() == datasource::Vector)
         {
             qw = VT_LEGACY_IMAGE_SIZE / qw;
@@ -285,6 +299,7 @@ public:
             qw = static_cast<double>(layer_extent_) / qw;
             qh = static_cast<double>(layer_extent_) / qh;
         }
+
         mapnik::query::resolution_type res(qw, qh);
         mapnik::query q(query_extent, res, scale_denom, unbuffered_query_extent);
         if (ds_)
