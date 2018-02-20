@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.1
+
+- Solved problem surrounded odd reprojection issues when dealing with low zoom level tiles and projections covering small geographic areas.
+
 ## 1.6.0
 
 - Bug fix for possible massive allocations in invalid vector tiles
