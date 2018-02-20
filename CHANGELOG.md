@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0
+
+- Release for new mapnik series compatability (3.1.x or possibly 4.0.0). 
+
+## 1.6.1
+
+- Solved problem surrounded odd reprojection issues when dealing with low zoom level tiles and projections covering small geographic areas.
+
 ## 1.6.0
 
 - Bug fix for possible massive allocations in invalid vector tiles
