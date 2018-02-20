@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE Map[]>
+<Map srs="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0.0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs +over" maximum-extent="-20037508.34,-20037508.34,20037508.34,20037508.34">
+  <Parameters>
+    <Parameter name="center">103.92383995989066,1.3312732063470314,0</Parameter>
+    <Parameter name="bounds">103.92116959172444,1.3293149668842956,103.92651032805688,1.3332314458097674</Parameter>
+    <Parameter name="format">pbf</Parameter>
+    <Parameter name="json"><![CDATA[{"vector_layers":[{"id":"zika_cluster","description":"","minzoom":0,"maxzoom":22,"fields":{"OBJECTID":"Number","LOCALITY":"String","CASE_SIZE":"Number","NAME":"String","HYPERLINK":"String","CLUSTER_ID":"String","INC_CRC":"String","FMEL_UPD_D":"String","X_ADDR":"Number","Y_ADDR":"Number","SHAPE_Leng":"Number","SHAPE_Area":"Number"}}]}]]></Parameter>
+    <Parameter name="maxzoom">15</Parameter>
+    <Parameter name="minzoom">0</Parameter>
+  </Parameters>
+
+  <Layer name="zika_cluster" buffer-size="8" srs="+proj=tmerc +lat_0=1.366666666666667 +lon_0=103.8333333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs">
+    <Datasource>
+      <Parameter name="type">shape</Parameter>
+      <Parameter name="file">singapore.shp</Parameter>
+      <Parameter name="layer">zika_cluster</Parameter>
+    </Datasource>
+  </Layer>
+</Map>

@@ -9,7 +9,7 @@ function install() {
 }
 
 ICU_VERSION="57.1"
-MASON_VERSION="9a3f4d1"
+MASON_VERSION="89d9b31"
 
 if [ ! -f ./mason/mason.sh ]; then
     mkdir -p ./mason
@@ -35,14 +35,14 @@ if [[ ${SKIP_MAPNIK_INSTALL:-} != 'YES' ]] && [[ ! -f ./mason_packages/.link/bin
     install cairo 1.14.8
     install webp 0.6.0
     install libgdal 2.1.3
-    install boost 1.63.0
-    install boost_libsystem 1.63.0
-    install boost_libfilesystem 1.63.0
-    install boost_libregex_icu57 1.63.0
+    install boost 1.66.0
+    install boost_libsystem 1.66.0
+    install boost_libfilesystem 1.66.0
+    install boost_libregex_icu57 1.66.0
     install freetype 2.7.1
     install harfbuzz 1.4.2-ft
 
     # mapnik
-    install mapnik f02a25901
+    install mapnik a2f5969
 
 fi
