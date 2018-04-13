@@ -63,7 +63,8 @@ struct mapnikValueEqual
     std::size_t operator() (const mapnik::value &v) const
     {
         // Not sure if XOR (^) is the best here
-        return std::hash<mapnik::value>{}(v) ^ std::hash<Value_Encoding>{}(mapnik_value_type(v));
+        return std::hash<mapnik::value>{}(v) ^ 
+               std::hash<int>{}(static_cast<int>(mapnik_value_type(v)));
     }
 };
 } // end ns detail
