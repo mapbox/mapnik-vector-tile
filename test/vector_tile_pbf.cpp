@@ -44,6 +44,7 @@
 #include "vector_tile_geometry_decoder.hpp"
 #include "vector_tile_geometry_encoder_pbf.hpp"
 #include "vector_tile_datasource_pbf.hpp"
+#include "vector_tile_layer.hpp"
 
 //protozero
 #include "protozero/pbf_reader.hpp"
@@ -602,10 +603,10 @@ TEST_CASE("pbf vector tile from linestring geojson")
     
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     mapnik::query q(bbox);
-    // note: https://github.com/mapbox/mapnik-vector-tile/issues/132 does not occur
-    // if we uncomment these lines
-    //q.add_property_name("x");
-    //q.add_property_name("y");
+    q.add_property_name("x");
+    q.add_property_name("y");
+    q.add_property_name("pbool");
+    
     std::size_t expected_num_attr_returned = q.property_names().size();
     auto fs = ds2->features(q);
     auto f_ptr = fs->next();
@@ -613,17 +614,30 @@ TEST_CASE("pbf vector tile from linestring geojson")
     // no attributes
     CHECK(f_ptr->context()->size() == expected_num_attr_returned);
     CHECK(f_ptr->get_geometry().is<mapnik::geometry::line_string<double> >());
+    
     // second feature
     f_ptr = fs->next();
     REQUIRE(f_ptr != mapnik::feature_ptr());
     CHECK(f_ptr->context()->size() == expected_num_attr_returned);
     CHECK(f_ptr->get_geometry().is<mapnik::geometry::line_string<double> >());
 
-    // third feature
+    // third feature (x : 0, y : 10, pbool : false)
     f_ptr = fs->next();
     REQUIRE(f_ptr != mapnik::feature_ptr());
     CHECK(f_ptr->context()->size() == expected_num_attr_returned);
     CHECK(f_ptr->get_geometry().is<mapnik::geometry::point<double> >());
+
+    CHECK(f_ptr->has_key("x") == true);
+    CHECK_NOTHROW(f_ptr->get("x").get<long int>());
+    CHECK(f_ptr->get("x") == 0);
+
+    CHECK(f_ptr->has_key("y") == true);
+    CHECK_NOTHROW(f_ptr->get("y").get<long int>());
+    CHECK(f_ptr->get("y") == 10);
+
+    CHECK(f_ptr->has_key("pbool") == true);
+    CHECK_NOTHROW(f_ptr->get("pbool").get<bool>());
+    CHECK(f_ptr->get("pbool").get<bool>() == false);
 
     // only three features
     f_ptr = fs->next();
