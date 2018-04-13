@@ -628,16 +628,16 @@ TEST_CASE("pbf vector tile from linestring geojson")
     CHECK(f_ptr->get_geometry().is<mapnik::geometry::point<double> >());
 
     CHECK(f_ptr->has_key("x") == true);
-    CHECK_NOTHROW(f_ptr->get("x").get<long int>());
+    CHECK_NOTHROW(f_ptr->get("x").get<mapnik::value_integer>());
     CHECK(f_ptr->get("x") == 0);
 
     CHECK(f_ptr->has_key("y") == true);
-    CHECK_NOTHROW(f_ptr->get("y").get<long int>());
+    CHECK_NOTHROW(f_ptr->get("y").get<mapnik::value_integer>());
     CHECK(f_ptr->get("y") == 10);
 
     CHECK(f_ptr->has_key("pbool") == true);
-    CHECK_NOTHROW(f_ptr->get("pbool").get<bool>());
-    CHECK(f_ptr->get("pbool").get<bool>() == false);
+    CHECK_NOTHROW(f_ptr->get("pbool").get<mapnik::value_bool>());
+    CHECK(f_ptr->get("pbool") == false);
 
     // only three features
     f_ptr = fs->next();
