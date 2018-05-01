@@ -11,7 +11,6 @@
 // boost
 #pragma GCC diagnostic push
 #include <mapnik/warning_ignore.hpp>
-#include <iostream>
 #include <boost/geometry/algorithms/intersection.hpp>
 #include <boost/geometry/algorithms/unique.hpp>
 #pragma GCC diagnostic pop
