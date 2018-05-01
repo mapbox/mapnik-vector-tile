@@ -68,15 +68,16 @@ inline void create_geom_layer(tile_layer & layer,
 
     mapnik::vector_tile_impl::vector_tile_strategy vs(layer.get_view_transform());
     mapnik::box2d<double> const& buffered_extent = layer.get_target_buffered_extent();
-    const mapnik::geometry::point<double> p1_min(buffered_extent.minx(), buffered_extent.miny());
-    const mapnik::geometry::point<double> p1_max(buffered_extent.maxx(), buffered_extent.maxy());
-    const mapnik::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
-    const mapnik::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
+    const mapbox::geometry::point<double> p1_min(buffered_extent.minx(), buffered_extent.miny());
+    const mapbox::geometry::point<double> p1_max(buffered_extent.maxx(), buffered_extent.maxy());
+    const mapbox::geometry::point<std::int64_t> p2_min = mapnik::geometry::transform<std::int64_t>(p1_min, vs);
+    const mapbox::geometry::point<std::int64_t> p2_max = mapnik::geometry::transform<std::int64_t>(p1_max, vs);
     const double minx = std::min(p2_min.x, p2_max.x);
     const double maxx = std::max(p2_min.x, p2_max.x);
     const double miny = std::min(p2_min.y, p2_max.y);
     const double maxy = std::max(p2_min.y, p2_max.y);
-    const mapnik::box2d<int> tile_clipping_extent(minx, miny, maxx, maxy);
+    const mapbox::geometry::box<std::int64_t> tile_clipping_extent(mapbox::geometry::point<std::int64_t>(minx, miny),
+                                                                   mapbox::geometry::point<std::int64_t>(maxx, maxy));
 
     if (simplify_distance > 0)
     {
