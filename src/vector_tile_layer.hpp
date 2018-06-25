@@ -30,10 +30,49 @@ namespace mapnik
 namespace vector_tile_impl
 {
 
+namespace detail
+{
+
+static Value_Encoding mapnik_value_type(const mapnik::value &val)
+{
+    return val.match(
+        [](value_integer) {return Value_Encoding::INT;},
+        [](mapnik::value_bool){return Value_Encoding::BOOL;},
+        [](mapnik::value_double valr) {
+            float fval = static_cast<float>(valr);
+            if (valr == static_cast<double>(fval))
+            {
+                return Value_Encoding::FLOAT;
+            }
+            return Value_Encoding::DOUBLE;
+        },
+        [](mapnik::value_unicode_string){return Value_Encoding::STRING;},
+        [](mapnik::value_null){return Value_Encoding::INT;}
+    );
+}
+
+struct mapnikValueEqual
+{
+    //Custom comparison to force type equality
+    bool operator() (const mapnik::value &lhs, const mapnik::value &rhs) const
+    {
+        return ((mapnik_value_type(lhs) == mapnik_value_type(rhs)) && (lhs == rhs));
+    }
+
+    //Custom hash to include the type
+    std::size_t operator() (const mapnik::value &v) const
+    {
+        // Not sure if XOR (^) is the best here
+        return std::hash<mapnik::value>{}(v) ^ 
+               std::hash<int>{}(static_cast<int>(mapnik_value_type(v)));
+    }
+};
+} // end ns detail
+
 struct layer_builder_pbf
 {
     typedef std::map<std::string, unsigned> keys_container;
-    typedef std::unordered_map<mapnik::value, unsigned> values_container;
+    typedef std::unordered_map<mapnik::value, unsigned, detail::mapnikValueEqual, detail::mapnikValueEqual> values_container;
 
     keys_container keys;
     values_container values;
