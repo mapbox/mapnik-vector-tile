@@ -1,8 +1,13 @@
 # Changelog
 
+## 2.1.0
+
+- Fixed handling of value type conversion/storage (#280)
+- Minimized geometry conversions to clean up code duplication (#282)
+
 ## 2.0.0
 
-- Release for new mapnik series compatability (3.1.x or possibly 4.0.0). 
+- Release for new mapnik series compatability (3.1.x or possibly 4.0.0).
 
 ## 1.6.1
 
@@ -43,7 +48,7 @@
 
 - Updated clipper
 - Upgrade to clang-3.8
-- Works with latest variant (stricter type matching) 
+- Works with latest variant (stricter type matching)
 
 ## 1.2.0
 
@@ -67,11 +72,11 @@
 ## 1.0.6
 
 - Removed boost simplification and implemented custom douglas peucker for big speed boost.
-- Updated the version of the clipper used. 
+- Updated the version of the clipper used.
 
 ## 1.0.5
 
-- Several updates to the version of the clipper used. 
+- Several updates to the version of the clipper used.
 - Removed the code and its requirements in `vector_tile_geometry_intersects.hpp` as it is no longer used.
 
 ## 1.0.4
@@ -100,7 +105,7 @@ Extensive redesign in mapnik-vector-tile to properly support 2.0 of the [Mapbox 
  - Removed `backend_pbf`
  - Changed `processor` interface
  - Removed requirement on libprotobuf `Tile` class when using the library.
- - Created new `tile` and `merc_tile` class 
+ - Created new `tile` and `merc_tile` class
  - Added different processing logic for v1 and v2 decoding
  - Solved several small bugs around decoding and encoding
  - Added many more exceptions around the processing of invalid tiles.
@@ -135,7 +140,7 @@ Extensive redesign in mapnik-vector-tile to properly support 2.0 of the [Mapbox 
 
 ## 0.13.0
 
- - Updated the geometry decoder so that it now supports a variety of geometry formats with the ability to return mapnik 
+ - Updated the geometry decoder so that it now supports a variety of geometry formats with the ability to return mapnik
    geometries in value types other then doubles.
 
 ## 0.12.1
