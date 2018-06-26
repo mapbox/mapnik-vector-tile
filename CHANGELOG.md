@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.1
+
+- Fixed packaging to include all relevant commits from 2.1.0
+
 ## 2.1.0
 
 - Fixed handling of value type conversion/storage (#280)
