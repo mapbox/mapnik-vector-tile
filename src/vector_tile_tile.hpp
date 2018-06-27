@@ -14,6 +14,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace mapnik
 {
@@ -27,7 +28,7 @@ class tile_layer;
 class tile
 {
 protected:
-    std::string buffer_;
+    std::unique_ptr<std::string> buffer_;
     std::set<std::string> painted_layers_;
     std::set<std::string> empty_layers_;
     std::set<std::string> layers_set_;
@@ -40,7 +41,7 @@ public:
     tile(mapnik::box2d<double> const& extent,
          std::uint32_t tile_size = 4096,
          std::int32_t buffer_size = 128)
-        : buffer_(),
+        : buffer_(std::make_unique<std::string>()),
           painted_layers_(),
           empty_layers_(),
           layers_set_(),
@@ -62,17 +63,17 @@ public:
 
     const char * data() const
     {
-        return buffer_.data();
+        return buffer_->data();
     }
 
     std::size_t size() const
     {
-        return buffer_.size();
+        return buffer_->size();
     }
 
     std::string const& get_buffer() const
     {
-        return buffer_;
+        return *buffer_;
     }
 
     double scale() const
@@ -105,12 +106,12 @@ public:
 
     void append_to_string(std::string & str) const
     {
-        str.append(buffer_);
+        str.append(*buffer_);
     }
 
     void serialize_to_string(std::string & str) const
     {
-        str = buffer_;
+        str = *buffer_;
     }
 
     bool is_painted() const
@@ -177,7 +178,7 @@ public:
 
     void clear()
     {
-        buffer_.clear();
+        buffer_->clear();
         empty_layers_.clear();
         layers_.clear();
         layers_set_.clear();
@@ -192,7 +193,15 @@ public:
 
     protozero::pbf_reader get_reader() const
     {
-        return protozero::pbf_reader(buffer_.data(), buffer_.size());
+        return protozero::pbf_reader(buffer_->data(), buffer_->size());
+    }
+
+    std::unique_ptr<std::string> release_buffer()
+    {
+        std::unique_ptr<std::string> out = std::move(buffer_);
+        buffer_ = std::make_unique<std::string>();
+        clear();
+        return out;
     }
 
     MAPNIK_VECTOR_INLINE bool layer_reader(std::string const& name, protozero::pbf_reader & layer_msg) const;

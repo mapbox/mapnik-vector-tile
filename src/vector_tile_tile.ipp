@@ -37,7 +37,7 @@ MAPNIK_VECTOR_INLINE bool tile::add_layer(tile_layer const& layer)
             return false;
         }
         layers_.push_back(new_name);
-        protozero::pbf_writer tile_writer(buffer_);
+        protozero::pbf_writer tile_writer(*buffer_);
         tile_writer.add_message(Tile_Encoding::LAYERS, layer.get_data());
         auto itr = empty_layers_.find(new_name);
         if (itr != empty_layers_.end())
@@ -58,7 +58,7 @@ MAPNIK_VECTOR_INLINE bool tile::append_layer_buffer(const char * data, std::size
         return false;
     }
     layers_.push_back(name);
-    protozero::pbf_writer writer(buffer_);
+    protozero::pbf_writer writer(*buffer_);
     writer.add_message(3, data, size);
     auto itr = empty_layers_.find(name);
     if (itr != empty_layers_.end())
@@ -70,7 +70,7 @@ MAPNIK_VECTOR_INLINE bool tile::append_layer_buffer(const char * data, std::size
 
 MAPNIK_VECTOR_INLINE bool tile::layer_reader(std::string const& name, protozero::pbf_reader & layer_msg) const
 {
-    protozero::pbf_reader item(buffer_.data(), buffer_.size());
+    protozero::pbf_reader item(buffer_->data(), buffer_->size());
     while (item.next(Tile_Encoding::LAYERS))
     {
         layer_msg = item.get_message();
@@ -88,7 +88,7 @@ MAPNIK_VECTOR_INLINE bool tile::layer_reader(std::string const& name, protozero:
 
 MAPNIK_VECTOR_INLINE bool tile::layer_reader(std::size_t index, protozero::pbf_reader & layer_msg) const
 {
-    protozero::pbf_reader item(buffer_.data(), buffer_.size());
+    protozero::pbf_reader item(buffer_->data(), buffer_->size());
     std::size_t idx = 0;
     while (item.next(Tile_Encoding::LAYERS))
     {
