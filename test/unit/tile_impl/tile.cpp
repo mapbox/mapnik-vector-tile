@@ -350,4 +350,28 @@ TEST_CASE("Vector tile base class")
         CHECK(tile1.same_extent(tile2) == true);
         CHECK(tile2.same_extent(tile1) == true);
     }
+    
+    SECTION("releasing buffer works")
+    {
+        // Newly added layers from buffers are added to the end of
+        // the tile, and are read from the tile in the same order
+        // as they are added
+        mapnik::vector_tile_impl::tile tile(global_extent);
+
+        // Create layers
+        vector_tile::Tile_Layer layer1;
+        layer1.set_version(2);
+        layer1.set_name("layer1");
+
+        std::string layer1_buffer;
+        layer1.SerializePartialToString(&layer1_buffer);
+        tile.append_layer_buffer(layer1_buffer.data(), layer1_buffer.length(), "layer1");
+    
+        CHECK(tile.is_empty() == false);
+        std::size_t size = tile.size();
+        CHECK(size == 12);
+        std::unique_ptr<std::string> out = tile.release_buffer();
+        CHECK(tile.is_empty() == true);
+        CHECK(size == out->size());
+    }
 }
