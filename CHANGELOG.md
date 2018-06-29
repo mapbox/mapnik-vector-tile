@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.0
+
+- Changed the underlying storage of the tile buffer to be a unique ptr controlled string so that it could be passed off if necessary outside the tile class.
+
 ## 2.1.1
 
 - Fixed packaging to include all relevant commits from 2.1.0
