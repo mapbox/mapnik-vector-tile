@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.1
+
+- Fix bug where on linestring and point data the clipping box passed to boost geometry was malformed.
+
 ## 2.2.0
 
 - Changed the underlying storage of the tile buffer to be a unique ptr controlled string so that it could be passed off if necessary outside the tile class.

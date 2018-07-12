@@ -1,10 +1,10 @@
 {
     "name": "mapnik-vector-tile",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "description": "Mapnik Vector Tile API",
     "main": "include_dirs.js",
-    "repository"   :  {
-      "type" : "git",
-      "url"  : "git://github.com/mapbox/mapnik-vector-tile.git"
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/mapbox/mapnik-vector-tile.git"
     }
 }
