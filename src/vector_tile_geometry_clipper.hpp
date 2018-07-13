@@ -65,7 +65,8 @@ inline mapbox::geometry::wagyu::fill_type get_wagyu_fill_type(polygon_fill_type 
 template <typename T>
 mapbox::geometry::linear_ring<T> box_to_ring(mapbox::geometry::box<T> const& box)
 {
-    mapbox::geometry::linear_ring<T> ring(5);
+    mapbox::geometry::linear_ring<T> ring;
+    ring.reserve(5);
     ring.emplace_back(box.min.x, box.min.y);
     ring.emplace_back(box.max.x, box.min.y);
     ring.emplace_back(box.max.x, box.max.y);
