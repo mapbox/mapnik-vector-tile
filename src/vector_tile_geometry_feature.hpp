@@ -53,10 +53,9 @@ struct geometry_to_feature_pbf_visitor
         protozero::pbf_writer layer_writer = builder_.add_feature(mapnik_feature_, feature_tags);
         {
             protozero::pbf_writer feature_writer(layer_writer, Layer_Encoding::FEATURES);
-            success = encode_geometry_pbf(geom, feature_writer, x, y);
+            success = encode_geometry_pbf(geom, feature_writer, x, y, mapnik_feature_.id());
             if (success)
             {
-                feature_writer.add_uint64(Feature_Encoding::ID, static_cast<std::uint64_t>(mapnik_feature_.id()));
                 feature_writer.add_packed_uint32(Feature_Encoding::TAGS, feature_tags.begin(), feature_tags.end());
                 builder_.make_not_empty();
             }
@@ -64,7 +63,7 @@ struct geometry_to_feature_pbf_visitor
             {
                 feature_writer.rollback();
             }
-        }   
+        }
     }
 
     void operator() (mapbox::geometry::geometry_collection<std::int64_t> const& collection)
