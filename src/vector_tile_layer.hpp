@@ -328,16 +328,8 @@ public:
         }
         double qw = unbuffered_query_extent.width() > 0 ? unbuffered_query_extent.width() : 1.0;
         double qh = unbuffered_query_extent.height() > 0 ? unbuffered_query_extent.height() : 1.0;
-        if (!ds_ || ds_->type() == datasource::Vector)
-        {
-            qw = VT_LEGACY_IMAGE_SIZE / qw;
-            qh = VT_LEGACY_IMAGE_SIZE / qh;
-        }
-        else
-        {
-            qw = static_cast<double>(layer_extent_) / qw;
-            qh = static_cast<double>(layer_extent_) / qh;
-        }
+        qw = static_cast<double>(layer_extent_) / qw;
+        qh = static_cast<double>(layer_extent_) / qh;
 
         mapnik::query::resolution_type res(qw, qh);
         mapnik::query q(query_extent, res, scale_denom, unbuffered_query_extent);
