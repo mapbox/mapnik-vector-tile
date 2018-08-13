@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.0
+
+- Set up layer resolution as layer extent (4096 by default) per width or height. Previously, if the layer had a datasource of type Vector the resolution would be set as 256 per layer width or height which caused some incorrect interactions with some Mapnik plugins that use this value to modify geometries. From now on, these operations will be done depending on the layer extent and not the default 256.
+This change will only affect those that are using the Postgis plugin with simplification enabled (`simplify_distance : true`) or the Pgraster plugin using overviews (`use_overviews : true`) or raster prescaling (`prescale_rasters: true`). None of the options above are the default ones for those plugins.
+
 ## 2.2.1
 
 - Fix bug where on linestring and point data the clipping box passed to boost geometry was malformed.
