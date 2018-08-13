@@ -22,3 +22,5 @@ bootstrap.sh
 install_mason.sh
 bin
 bench
+codecov.yml
+proto/
