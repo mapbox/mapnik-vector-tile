@@ -143,6 +143,7 @@ int main(int argc, char** argv)
                             {
                                 if (g_length <= 2) degenerate++;
                                 g_length = 0;
+                                length = 0;
                                 num_close++;
                             }
                             else
