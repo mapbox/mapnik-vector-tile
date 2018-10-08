@@ -9,7 +9,7 @@ function install() {
 }
 
 ICU_VERSION="57.1"
-MASON_VERSION="9a3f4d195614bb30d9ca54dd6070739de605cb14"
+MASON_VERSION="771dc998d41b3e205b2b06738ae645c04e7ed8e2"
 
 if [ ! -f ./mason/mason.sh ]; then
     mkdir -p ./mason
@@ -43,6 +43,6 @@ if [[ ${SKIP_MAPNIK_INSTALL:-} != 'YES' ]] && [[ ! -f ./mason_packages/.link/bin
     install harfbuzz 1.4.2-ft
 
     # mapnik
-    install mapnik 3.0.18
+    install mapnik 3.0.21
 
 fi
