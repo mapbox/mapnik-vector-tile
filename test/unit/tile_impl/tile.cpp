@@ -34,7 +34,7 @@ TEST_CASE("Vector tile base class")
         CHECK(str == "");
         CHECK(default_tile.is_painted() == false);
         CHECK(default_tile.is_empty() == true);
-        
+
         mapnik::box2d<double> global_buffered_extent(-21289852.6142133139073849,-21289852.6142133139073849,21289852.6142133139073849,21289852.6142133139073849);
         CHECK(default_tile.extent() == global_extent);
         CHECK(default_tile.get_buffered_extent() == global_buffered_extent);
@@ -128,13 +128,13 @@ TEST_CASE("Vector tile base class")
         CHECK(blah_blah == "blahblah");
 
         protozero::pbf_reader layer_reader;
-        CHECK_THROWS_AS(tile.layer_reader("bogus", layer_reader), protozero::end_of_buffer_exception);
+        CHECK_THROWS_AS(tile.layer_reader("bogus", layer_reader), protozero::end_of_buffer_exception const&);
 
         protozero::pbf_reader layer_reader_by_index;
         bool status = tile.layer_reader(0, layer_reader_by_index);
 
         CHECK(status == true);
-        CHECK_THROWS_AS(layer_reader_by_index.next(1), protozero::end_of_buffer_exception);
+        CHECK_THROWS_AS(layer_reader_by_index.next(1), protozero::end_of_buffer_exception const&);
 
         vector_tile::Tile bogus_tile;
         bogus_tile.ParseFromString(tile.get_buffer());
@@ -192,7 +192,7 @@ TEST_CASE("Vector tile base class")
         CHECK(parsed_layer.version() == 2);
         CHECK(parsed_layer.name() == "valid");
     }
-    
+
     SECTION("layer_reader by name works by name in buffer")
     {
         // Note - if the names of the layer are different
@@ -350,7 +350,7 @@ TEST_CASE("Vector tile base class")
         CHECK(tile1.same_extent(tile2) == true);
         CHECK(tile2.same_extent(tile1) == true);
     }
-    
+
     SECTION("releasing buffer works")
     {
         // Newly added layers from buffers are added to the end of
@@ -366,7 +366,7 @@ TEST_CASE("Vector tile base class")
         std::string layer1_buffer;
         layer1.SerializePartialToString(&layer1_buffer);
         tile.append_layer_buffer(layer1_buffer.data(), layer1_buffer.length(), "layer1");
-    
+
         CHECK(tile.is_empty() == false);
         std::size_t size = tile.size();
         CHECK(size == 12);
