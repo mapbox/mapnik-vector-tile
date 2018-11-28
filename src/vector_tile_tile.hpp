@@ -50,8 +50,6 @@ public:
           tile_size_(tile_size),
           buffer_size_(buffer_size) {}
 
-    tile(tile const& rhs) = default;
-
     tile(tile && rhs) = default;
 
     MAPNIK_VECTOR_INLINE bool add_layer(tile_layer const& layer);

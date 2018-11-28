@@ -63,7 +63,7 @@ struct mapnikValueEqual
     std::size_t operator() (const mapnik::value &v) const
     {
         // Not sure if XOR (^) is the best here
-        return std::hash<mapnik::value>{}(v) ^ 
+        return std::hash<mapnik::value>{}(v) ^
                std::hash<int>{}(static_cast<int>(mapnik_value_type(v)));
     }
 };
@@ -170,9 +170,6 @@ public:
           empty_(std::move(rhs.empty_)),
           painted_(std::move(rhs.painted_)) {}
 
-    tile_layer& operator=(tile_layer&&) = default;
-
-    tile_layer(tile_layer const& rhs) = delete;
     tile_layer& operator=(const tile_layer&) = delete;
 
     std::uint32_t calc_extent(std::uint32_t layer_extent)
@@ -246,7 +243,7 @@ public:
         }
         return ext;
     }
-    
+
     mapnik::box2d<double> calc_source_buffered_extent(mapnik::layer const& lay)
     {
         mapnik::box2d<double> new_extent(target_buffered_extent_);

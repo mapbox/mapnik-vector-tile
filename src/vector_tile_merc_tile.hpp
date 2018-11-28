@@ -28,17 +28,15 @@ public:
           y_(y),
           z_(z) {}
 
-    merc_tile(merc_tile const& rhs) = default;
-
     merc_tile(merc_tile && rhs) = default;
-    
+
     bool same_extent(merc_tile const& other)
     {
         return x_ == other.x_ &&
                y_ == other.y_ &&
                z_ == other.z_;
     }
-    
+
     std::uint64_t x() const
     {
         return x_;
@@ -49,23 +47,23 @@ public:
         x_ = x;
         extent_ = tile_mercator_bbox(x_, y_, z_);
     }
-    
+
     std::uint64_t y() const
     {
         return y_;
     }
-    
+
     void y(std::uint64_t y)
     {
         y_ = y;
         extent_ = tile_mercator_bbox(x_, y_, z_);
     }
-    
+
     std::uint64_t z() const
     {
         return z_;
     }
-    
+
     void z(std::uint64_t z)
     {
         z_ = z;
