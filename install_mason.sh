@@ -9,7 +9,7 @@ function install() {
 }
 
 ICU_VERSION="57.1"
-MASON_VERSION="6adb140"
+MASON_VERSION="7610b80"
 
 if [ ! -f ./mason/mason.sh ]; then
     mkdir -p ./mason
