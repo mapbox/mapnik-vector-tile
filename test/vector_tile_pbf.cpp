@@ -145,7 +145,7 @@ TEST_CASE("pbf vector tile datasource")
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(testing::build_ds(0,0));
     map.add_layer(lyr);
-    
+
     mapnik::vector_tile_impl::processor ren(map);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
 
@@ -154,11 +154,11 @@ TEST_CASE("pbf vector tile datasource")
     out_tile.serialize_to_string(buffer);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    
+
     // check that vector tile contains proper information
     vector_tile::Tile tile;
     tile.ParseFromString(out_tile.get_buffer());
-    
+
     REQUIRE(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
     CHECK(std::string("layer") == layer.name());
@@ -315,7 +315,7 @@ TEST_CASE( "pbf decoding empty buffer", "should throw exception" ) {
 TEST_CASE( "pbf decoding garbage buffer", "should throw exception" ) {
     std::string buffer("daufyglwi3h7fseuhfas8w3h,dksufasdf");
     protozero::pbf_reader pbf_tile(buffer);
-    REQUIRE_THROWS_AS(pbf_tile.next(), protozero::unknown_pbf_wire_type_exception);
+    REQUIRE_THROWS_AS(pbf_tile.next(), protozero::unknown_pbf_wire_type_exception const&);
     protozero::pbf_reader layer2;
 #if defined(DNDEBUG)
     // throws in release mode
@@ -337,12 +337,12 @@ TEST_CASE("pbf decoding some truncated buffers")
 
     // Create processor
     mapnik::vector_tile_impl::processor ren(map);
-    
+
     // Request Tile
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    
+
     // Now check that the tile is correct.
     vector_tile::Tile tile;
     tile.ParseFromString(out_tile.get_buffer());
@@ -396,7 +396,7 @@ TEST_CASE("pbf vector tile from simplified geojson")
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    
+
     vector_tile::Tile tile;
     tile.ParseFromString(out_tile.get_buffer());
     REQUIRE(1 == tile.layers_size());
@@ -465,7 +465,7 @@ TEST_CASE("pbf raster tile output -- should be able to overzoom raster")
         s << std::fixed << std::setprecision(16)
           << bbox.minx() << ',' << bbox.miny() << ','
           << bbox.maxx() << ',' << bbox.maxy();
-        
+
         // build map
         mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
         map.set_buffer_size(buffer_size);
@@ -477,12 +477,12 @@ TEST_CASE("pbf raster tile output -- should be able to overzoom raster")
         std::shared_ptr<mapnik::datasource> ds = mapnik::datasource_cache::instance().create(params);
         lyr.set_datasource(ds);
         map.add_layer(lyr);
-        
+
         // build processor
         mapnik::vector_tile_impl::processor ren(map);
         ren.set_image_format("jpeg");
         ren.set_scaling_method(mapnik::SCALING_BILINEAR);
-        
+
         // Update the tile
         ren.update_tile(out_tile);
     }
@@ -600,13 +600,13 @@ TEST_CASE("pbf vector tile from linestring geojson")
                                     mapnik::vector_tile_impl::tile_datasource_pbf>(
                                         layer3,0,0,0);
     CHECK(ds2->get_name() == "layer");
-    
+
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
     mapnik::query q(bbox);
     q.add_property_name("x");
     q.add_property_name("y");
     q.add_property_name("pbool");
-    
+
     std::size_t expected_num_attr_returned = q.property_names().size();
     auto fs = ds2->features(q);
     auto f_ptr = fs->next();
@@ -614,7 +614,7 @@ TEST_CASE("pbf vector tile from linestring geojson")
     // no attributes
     CHECK(f_ptr->context()->size() == expected_num_attr_returned);
     CHECK(f_ptr->get_geometry().is<mapnik::geometry::line_string<double> >());
-    
+
     // second feature
     f_ptr = fs->next();
     REQUIRE(f_ptr != mapnik::feature_ptr());
