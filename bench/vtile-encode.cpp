@@ -150,14 +150,18 @@ int main(int argc, char** argv)
 
         // Output buffer
         std::string output_buffer;
+#ifdef DEBUG
         std::size_t expected_size;
+#endif
         {
             mapnik::vector_tile_impl::tile a_tile(bbox, tile_size, buffer_size);
             mapnik::vector_tile_impl::processor ren(map);
             ren.set_simplify_distance(5.0);
             ren.update_tile(a_tile);
             a_tile.serialize_to_string(output_buffer);
+#ifdef DEBUG
             expected_size = a_tile.size();
+#endif
         }
 
         {
