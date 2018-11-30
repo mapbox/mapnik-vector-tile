@@ -8,8 +8,8 @@ function install() {
     ./mason/mason link $1 $2
 }
 
-ICU_VERSION="57.1"
-MASON_VERSION="7610b80"
+ICU_VERSION="58.1"
+MASON_VERSION="dc0d00a"
 
 if [ ! -f ./mason/mason.sh ]; then
     mkdir -p ./mason
@@ -29,7 +29,7 @@ if [[ ${SKIP_MAPNIK_INSTALL:-} != 'YES' ]] && [[ ! -f ./mason_packages/.link/bin
     install jpeg_turbo 1.5.1
     install libpng 1.6.28
     install libtiff 4.0.7
-    install icu ${ICU_VERSION}
+    install icu ${ICU_VERSION}-brkitr
     install proj 4.9.3
     install pixman 0.34.0
     install cairo 1.14.8
@@ -38,11 +38,11 @@ if [[ ${SKIP_MAPNIK_INSTALL:-} != 'YES' ]] && [[ ! -f ./mason_packages/.link/bin
     install boost 1.66.0
     install boost_libsystem 1.66.0
     install boost_libfilesystem 1.66.0
-    install boost_libregex_icu57 1.66.0
+    install boost_libregex_icu58 1.66.0
     install freetype 2.7.1
     install harfbuzz 1.4.2-ft
 
     # mapnik
-    install mapnik da69fdf66
+    install mapnik abcd96be0
 
 fi
