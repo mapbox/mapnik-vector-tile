@@ -17,40 +17,49 @@
 
 namespace mapnik
 {
-    
+
 namespace vector_tile_impl
 {
 
+template <typename T>
+MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(T const& pt,
+                                              protozero::pbf_writer & current_feature,
+                                              int32_t & start_x,
+                                              int32_t & start_y);
+template <>
 MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapbox::geometry::point<std::int64_t> const& pt,
                                               protozero::pbf_writer & current_feature,
                                               int32_t & start_x,
                                               int32_t & start_y);
 
+template <>
 MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapbox::geometry::multi_point<std::int64_t> const& geom,
                                               protozero::pbf_writer & current_feature,
                                               int32_t & start_x,
                                               int32_t & start_y);
 
+template <>
 MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapbox::geometry::line_string<std::int64_t> const& line,
                                               protozero::pbf_writer & current_feature,
                                               int32_t & start_x,
                                               int32_t & start_y);
-
+template <>
 MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapbox::geometry::multi_line_string<std::int64_t> const& geom,
                                               protozero::pbf_writer & current_feature,
                                               int32_t & start_x,
                                               int32_t & start_y);
 
+template <>
 MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapbox::geometry::polygon<std::int64_t> const& poly,
                                               protozero::pbf_writer & current_feature,
                                               int32_t & start_x,
                                               int32_t & start_y);
-
+template <>
 MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapbox::geometry::multi_polygon<std::int64_t> const& poly,
                                               protozero::pbf_writer & current_feature,
                                               int32_t & start_x,
                                               int32_t & start_y);
-
+template <>
 MAPNIK_VECTOR_INLINE bool encode_geometry_pbf(mapbox::geometry::geometry<std::int64_t> const& geom,
                                               protozero::pbf_writer & current_feature,
                                               int32_t & start_x,
