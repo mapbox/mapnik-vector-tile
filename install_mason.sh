@@ -17,30 +17,30 @@ if [ ! -f ./mason/mason.sh ]; then
 fi
 
 # core deps
-install protozero 1.5.2
-install geometry 0.9.2
+install protozero 1.6.4
+install geometry 1.0.0
 install wagyu 0.4.3
-install protobuf 3.3.0
+install protobuf 3.5.1
 
 # mapnik
 if [[ ${SKIP_MAPNIK_INSTALL:-} != 'YES' ]] && [[ ! -f ./mason_packages/.link/bin/mapnik-config ]]; then
 
     # mapnik deps
-    install jpeg_turbo 1.5.1
-    install libpng 1.6.28
-    install libtiff 4.0.7
+    install jpeg_turbo 1.5.2
+    install libpng 1.6.32
+    install libtiff 4.0.8
     install icu ${ICU_VERSION}-brkitr
     install proj 4.9.3
     install pixman 0.34.0
     install cairo 1.14.8
     install webp 0.6.0
-    install libgdal 2.1.3
+    install libgdal 2.2.3
     install boost 1.66.0
     install boost_libsystem 1.66.0
     install boost_libfilesystem 1.66.0
     install boost_libregex_icu58 1.66.0
     install freetype 2.7.1
-    install harfbuzz 1.4.2-ft
+    install harfbuzz 1.4.4-ft
 
     # mapnik
     install mapnik abcd96be0
