@@ -49,7 +49,7 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
       extent_initialized_(false),
       tile_x_(0.0),
       tile_y_(0.0),
-      scale_(0.0),
+      scale_(1.0),
       version_(1), // Version == 1 is the default because it was not required until v2 to have this field
       type_(datasource::Vector)
 {
@@ -120,6 +120,10 @@ tile_datasource_pbf::tile_datasource_pbf(protozero::pbf_reader const& layer,
                 break;
             case Layer_Encoding::EXTENT:
                 tile_size_ = layer_.get_uint32();
+                if (tile_size_ == 0)
+                {
+                    throw std::runtime_error("Zero layer extent");
+                }
                 has_extent = true;
                 break;
             case Layer_Encoding::VERSION:
