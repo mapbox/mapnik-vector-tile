@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.1
+
+- Use maintained `gyp` version
+- Add check if layer extent (size!) is !=0 to avoid devisions by zero + default initialise `scale_` to 1.0
+- Fix bunch of compiler warnings e.g `warning: explicitly defaulted copy constructor is implicitly deleted [-Wdefaulted-function-deleted]`
+- Fix name resultion error (`../src/vector_tile_geometry_encoder_pbf.ipp:70:16: error: call to 'encode_geometry_pbf' is ambiguousreturn encode_geometry_pbf(geom, feature_, x_, y_);`)
+- Fix issue with command lengths causing extra executions of a loop in tileinfo
+
 ## 3.0.0
 
 - Set up layer resolution as layer extent (4096 by default) per width or height. Previously, if the layer had a datasource of type Vector the resolution would be set as 256 per layer width or height which caused some incorrect interactions with some Mapnik plugins that use this value to modify geometries. From now on, these operations will be done depending on the layer extent and not the default 256.
