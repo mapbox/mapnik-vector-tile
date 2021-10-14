@@ -43,6 +43,6 @@ if [[ ${SKIP_MAPNIK_INSTALL:-} != 'YES' ]] && [[ ! -f ./mason_packages/.link/bin
     install harfbuzz 1.4.4-ft
 
     # mapnik
-    install mapnik 5afe22030
+    install mapnik e553f55dc
 
 fi
