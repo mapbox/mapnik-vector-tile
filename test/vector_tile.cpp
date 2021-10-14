@@ -48,8 +48,8 @@
 TEST_CASE("vector tile from simplified geojson")
 {
     unsigned tile_size = 256 * 100;
-    mapnik::Map map(256,256,"+init=epsg:3857");
-    mapnik::layer lyr("layer","+init=epsg:4326");
+    mapnik::Map map(256,256,"epsg:3857");
+    mapnik::layer lyr("layer","epsg:4326");
     std::shared_ptr<mapnik::memory_datasource> ds = testing::build_geojson_ds("./test/data/poly.geojson");
     ds->set_envelope(mapnik::box2d<double>(160.147311,11.047284,160.662858,11.423830));
     lyr.set_datasource(ds);
@@ -58,7 +58,7 @@ TEST_CASE("vector tile from simplified geojson")
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    
+
     vector_tile::Tile tile;
     tile.ParseFromString(out_tile.get_buffer());
     REQUIRE(1 == tile.layers_size());
@@ -77,7 +77,7 @@ TEST_CASE("vector tile from simplified geojson")
     out_tile.layer_reader(0, layer_reader);
     REQUIRE(layer_reader.next(mapnik::vector_tile_impl::Layer_Encoding::FEATURES));
     protozero::pbf_reader feature_reader = layer_reader.get_message();
-    int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN; 
+    int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN;
     mapnik::vector_tile_impl::GeometryPBF::pbf_itr geom_itr;
     while (feature_reader.next())
     {
@@ -98,8 +98,8 @@ TEST_CASE("vector tile from simplified geojson")
     auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, geometry_type, 2, tile_x, tile_y, scale, -1.0 * scale);
 
     unsigned int n_err = 0;
-    mapnik::projection wgs84("+init=epsg:4326",true);
-    mapnik::projection merc("+init=epsg:3857",true);
+    mapnik::projection wgs84("epsg:4326",true);
+    mapnik::projection merc("epsg:3857",true);
     mapnik::proj_transform prj_trans(merc,wgs84);
     mapnik::geometry::geometry<double> projected_geom = mapnik::geometry::reproject_copy(geom,prj_trans,n_err);
     CHECK( n_err == 0 );
@@ -122,10 +122,10 @@ TEST_CASE("vector tile from simplified geojson")
 TEST_CASE("vector tile transform -- should not throw on coords outside merc range")
 {
     unsigned tile_size = 256 * 64;
-    mapnik::Map map(256,256,"+init=epsg:3857");
+    mapnik::Map map(256,256,"epsg:3857");
     // Note: 4269 is key. 4326 will trigger custom mapnik reprojection code
     // that does not hit proj4 and clamps values
-    mapnik::layer lyr("layer","+init=epsg:4269");
+    mapnik::layer lyr("layer","epsg:4269");
     mapnik::parameters params;
     params["type"] = "shape";
     params["file"] = "./test/data/poly-lat-invalid-4269.shp";
@@ -137,7 +137,7 @@ TEST_CASE("vector tile transform -- should not throw on coords outside merc rang
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    
+
     vector_tile::Tile tile;
     tile.ParseFromString(out_tile.get_buffer());
 
@@ -146,7 +146,7 @@ TEST_CASE("vector tile transform -- should not throw on coords outside merc rang
     CHECK(tile.SerializeToString(&buffer));
     CHECK(71 == buffer.size());
     // now create new objects
-    mapnik::Map map2(256,256,"+init=epsg:3857");
+    mapnik::Map map2(256,256,"epsg:3857");
     vector_tile::Tile tile2;
     CHECK(tile2.ParseFromString(buffer));
     CHECK(1 == tile2.layers_size());
@@ -200,7 +200,7 @@ TEST_CASE("vector tile transform2 -- should not throw reprojected data from loca
 {
     unsigned tile_size = 256 * 64;
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
-    mapnik::Map map(256,256,"+init=epsg:3857");
+    mapnik::Map map(256,256,"epsg:3857");
     // Note: 4269 is key. 4326 will trigger custom mapnik reprojection code
     // that does not hit proj4 and clamps values
     mapnik::layer lyr("layer","+proj=nzmg +lat_0=-41 +lon_0=173 +x_0=2510000 +y_0=6023150 +ellps=intl +units=m +no_defs");
@@ -211,12 +211,12 @@ TEST_CASE("vector tile transform2 -- should not throw reprojected data from loca
         mapnik::datasource_cache::instance().create(params);
     lyr.set_datasource(ds);
     map.add_layer(lyr);
-    
+
     mapnik::vector_tile_impl::processor ren(map);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0,tile_size);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    
+
     vector_tile::Tile tile;
     tile.ParseFromString(out_tile.get_buffer());
 
@@ -225,7 +225,7 @@ TEST_CASE("vector tile transform2 -- should not throw reprojected data from loca
     CHECK(tile.SerializeToString(&buffer));
     CHECK(231 == buffer.size());
     // now create new objects
-    mapnik::Map map2(256,256,"+init=epsg:3857");
+    mapnik::Map map2(256,256,"epsg:3857");
     vector_tile::Tile tile2;
     CHECK(tile2.ParseFromString(buffer));
     CHECK(1 == tile2.layers_size());

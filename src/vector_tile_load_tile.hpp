@@ -120,11 +120,11 @@ inline void merge_from_buffer(merc_tile & t, const char * data, std::size_t size
     // Convert v1 tiles to v2
     std::int32_t prev_buffer_size = t.buffer_size();
     t.buffer_size(4096); // very large buffer so we don't miss any buffered points
-    mapnik::Map map(t.tile_size(), t.tile_size(), "+init=epsg:3857");
+    mapnik::Map map(t.tile_size(), t.tile_size(), "epsg:3857");
     for (auto const& ds : ds_vec)
-    {    
+    {
         ds->set_envelope(t.get_buffered_extent());
-        mapnik::layer lyr(ds->get_name(), "+init=epsg:3857");
+        mapnik::layer lyr(ds->get_name(), "epsg:3857");
         lyr.set_datasource(ds);
         map.add_layer(std::move(lyr));
     }

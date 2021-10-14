@@ -48,7 +48,7 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
 
     // first we render the raw tile directly to an image
     {
-        mapnik::Map map(256,256,"+init=epsg:3857");
+        mapnik::Map map(256,256,"epsg:3857");
         vector_tile::Tile tile2;
         CHECK(tile2.ParseFromString(uncompressed));
 
@@ -96,9 +96,9 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
     // the goal here is to trigger the geometries to pass through
     // the decoder and encoder again
     mapnik::vector_tile_impl::tile out_tile(bbox);
-    
+
     {
-        std::string merc_srs("+init=epsg:3857");
+        std::string merc_srs("epsg:3857");
         mapnik::Map map(256, 256, merc_srs);
         protozero::pbf_reader message(uncompressed.data(), uncompressed.size());
         while (message.next(3))
@@ -130,7 +130,7 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
 
     // let's now render this to a image and make sure it looks right
     {
-        mapnik::Map map(256,256,"+init=epsg:3857");
+        mapnik::Map map(256,256,"epsg:3857");
         vector_tile::Tile tile2;
         CHECK(tile2.ParseFromString(buffer2));
         REQUIRE(1 == tile2.layers_size());
@@ -176,4 +176,3 @@ TEST_CASE("vector tile rasterize -- should try to decode windfail tile")
         }
     }
 }
-

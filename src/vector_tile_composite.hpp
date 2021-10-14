@@ -50,7 +50,7 @@ inline void composite(merc_tile & target_vt,
         {
             reencode_tile = true;
         }
-        
+
         protozero::pbf_reader tile_message(vt->get_reader());
         // loop through the layers of the tile!
         while (tile_message.next(Tile_Encoding::LAYERS))
@@ -64,12 +64,12 @@ inline void composite(merc_tile & target_vt,
             }
 
             std::string layer_name = layer_message.get_string();
-            
+
             if (!reencode_layer)
             {
                 target_vt.append_layer_buffer(data_view.data(), data_view.size(), layer_name);
             }
-            
+
             if (target_vt.has_layer(layer_name))
             {
                 continue;
@@ -82,7 +82,7 @@ inline void composite(merc_tile & target_vt,
                         vt->y(),
                         vt->z(),
                         true);
-            mapnik::layer lyr(layer_name,"+init=epsg:3857");
+            mapnik::layer lyr(layer_name,"epsg:3857");
             ds->set_envelope(vt->get_buffered_extent());
             lyr.set_datasource(ds);
             map.add_layer(lyr);

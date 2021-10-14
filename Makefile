@@ -1,4 +1,4 @@
-GYP_REVISION=024e167
+GYP_REVISION=6a5d254
 
 SSE_MATH ?= true
 
@@ -66,5 +66,3 @@ distclean: clean
 	rm -rf ./mason_packages
 
 .PHONY: test build/Makefile
-
-

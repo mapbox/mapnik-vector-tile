@@ -30,7 +30,7 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
 {
     unsigned tile_size = 256 * 1000;
     // Create map note its not 3857 -- round trip as 4326
-    mapnik::Map map(tile_size,tile_size,"+init=epsg:4326");
+    mapnik::Map map(tile_size,tile_size,"epsg:4326");
     // create layer
     mapnik::layer lyr("layer",map.srs());
     // create feature with geometry
@@ -44,7 +44,7 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     ds->push(feature);
     lyr.set_datasource(ds);
     map.add_layer(lyr);
-    
+
     // Build request
     mapnik::box2d<double> bbox(-180,-90,180,90);
 
@@ -54,7 +54,7 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
     ren.set_fill_type(fill_type);
     ren.set_multi_polygon_union(mpu);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(bbox, tile_size);
-    
+
     if (out_tile.get_layers().size() != 1)
     {
         std::stringstream s;
@@ -69,7 +69,7 @@ mapnik::geometry::geometry<double> round_trip(mapnik::geometry::geometry<double>
         throw std::runtime_error("Expected at least one feature in layer");
     }
     protozero::pbf_reader feature_reader = layer_reader.get_message();
-    int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN; 
+    int32_t geometry_type = mapnik::vector_tile_impl::Geometry_Type::UNKNOWN;
     mapnik::vector_tile_impl::GeometryPBF::pbf_itr geom_itr;
     while (feature_reader.next())
     {

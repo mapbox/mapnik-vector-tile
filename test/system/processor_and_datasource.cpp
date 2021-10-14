@@ -32,14 +32,14 @@ TEST_CASE("vector tile output -- simple two points")
     // This test should create vector tile with two points
 
     // Build Map
-    mapnik::Map map(256, 256, "+init=epsg:3857");
+    mapnik::Map map(256, 256, "epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(testing::build_ds(0,0,true));
     map.add_layer(lyr);
-    
+
     // Create processor
     mapnik::vector_tile_impl::processor ren(map);
-    
+
     // Request Tile
     mapnik::vector_tile_impl::merc_tile out_tile = ren.create_tile(0,0,0);
     CHECK(out_tile.is_painted() == true);
@@ -67,7 +67,7 @@ TEST_CASE("vector tile output -- simple two points")
 TEST_CASE("processor -- can deal with (optional) variables")
 {
     // Build Map
-    mapnik::Map map(256, 256, "+init=epsg:3857");
+    mapnik::Map map(256, 256, "epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(testing::build_ds(0,0,true));
     map.add_layer(lyr);
@@ -103,7 +103,7 @@ TEST_CASE("processor -- can deal with (optional) variables")
 TEST_CASE("vector tile output -- empty tile")
 {
     // test adding empty layers should result in empty tile
-    mapnik::Map map(256,256,"+init=epsg:3857");
+    mapnik::Map map(256,256,"epsg:3857");
     map.add_layer(mapnik::layer("layer",map.srs()));
     mapnik::vector_tile_impl::processor ren(map);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
@@ -122,7 +122,7 @@ TEST_CASE("vector tile output -- layers outside extent")
     // adding layers with geometries outside rendering extent should not add layer
     unsigned tile_size = 4096;
     // Create map
-    mapnik::Map map(256,256,"+init=epsg:3857");
+    mapnik::Map map(256,256,"epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     mapnik::context_ptr ctx = std::make_shared<mapnik::context_type>();
     mapnik::feature_ptr feature(mapnik::feature_factory::create(ctx,1));
@@ -138,7 +138,7 @@ TEST_CASE("vector tile output -- layers outside extent")
     map.add_layer(lyr);
 
     mapnik::box2d<double> custom_bbox(0,0,10,10);
-    
+
     // Build processor and create tile
     mapnik::vector_tile_impl::processor ren(map);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(custom_bbox, tile_size);
@@ -157,7 +157,7 @@ TEST_CASE("vector tile output is empty -- degenerate geometries")
     // adding layers with degenerate geometries should not add layer
     unsigned tile_size = 4096;
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
-    mapnik::Map map(256,256,"+init=epsg:3857");
+    mapnik::Map map(256,256,"epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     // create a datasource with a feature outside the map
     std::shared_ptr<mapnik::memory_datasource> ds = testing::build_ds(bbox.minx()-1,bbox.miny()-1);
@@ -166,13 +166,13 @@ TEST_CASE("vector tile output is empty -- degenerate geometries")
     ds->set_envelope(bbox);
     lyr.set_datasource(ds);
     map.add_layer(lyr);
-    
+
     // Build processor and create tile
     mapnik::vector_tile_impl::processor ren(map);
-    
+
     // Request Tile
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(bbox, tile_size);
-    
+
     // Check output
     CHECK(out_tile.is_painted() == false);
     CHECK(out_tile.is_empty() == true);
@@ -188,11 +188,11 @@ TEST_CASE("vector tile render simple point")
 {
     // should be able to parse message and render point
     unsigned tile_size = 4096;
-    mapnik::Map map(256, 256, "+init=epsg:3857");
+    mapnik::Map map(256, 256, "epsg:3857");
     mapnik::layer lyr("layer", map.srs());
     lyr.set_datasource(testing::build_ds(0,0));
     map.add_layer(lyr);
-    
+
     // create processor
     mapnik::vector_tile_impl::processor ren(map);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
@@ -212,11 +212,11 @@ TEST_CASE("vector tile render simple point")
     vector_tile::Tile_Layer const& layer2 = tile2.layers(0);
     CHECK(std::string("layer") == layer2.name());
     CHECK(1 == layer2.features_size());
-    
+
     // Create another map
-    mapnik::Map map2(256, 256, "+init=epsg:3857");
+    mapnik::Map map2(256, 256, "epsg:3857");
     mapnik::layer lyr2("layer",map.srs());
-    
+
     // Create datasource from tile.
     protozero::pbf_reader layer_reader;
     out_tile.layer_reader(0, layer_reader);
@@ -225,7 +225,7 @@ TEST_CASE("vector tile render simple point")
                                         layer_reader,0,0,0);
     CHECK( ds->type() == mapnik::datasource::Vector );
     CHECK( ds->get_geometry_type() == mapnik::datasource_geometry_t::Collection );
-    
+
     // Check that all the names are in the list
     mapnik::layer_descriptor lay_desc = ds->get_descriptor();
     std::set<std::string> expected_names;
@@ -243,7 +243,7 @@ TEST_CASE("vector tile render simple point")
         CHECK(expected_names.count(desc.get_name()) == 1);
     }
     CHECK(desc_count == expected_names.size());
-    
+
     // Add datasource to layer and map
     lyr2.set_datasource(ds);
     lyr2.add_style("style");
@@ -269,11 +269,11 @@ TEST_CASE("vector tile render simple point")
 
 TEST_CASE("vector tile datasource -- should filter features outside extent")
 {
-    mapnik::Map map(256,256,"+init=epsg:3857");
+    mapnik::Map map(256,256,"epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(testing::build_ds(0,0));
     map.add_layer(lyr);
-    
+
     mapnik::vector_tile_impl::processor ren(map);
     mapnik::vector_tile_impl::tile out_tile = ren.create_tile(0,0,0);
 
@@ -282,7 +282,7 @@ TEST_CASE("vector tile datasource -- should filter features outside extent")
     out_tile.serialize_to_string(buffer);
     CHECK(out_tile.is_painted() == true);
     CHECK(out_tile.is_empty() == false);
-    
+
     // check that vector tile contains proper information
     vector_tile::Tile tile;
     tile.ParseFromString(out_tile.get_buffer());
@@ -296,7 +296,7 @@ TEST_CASE("vector tile datasource -- should filter features outside extent")
     CHECK(9 == f.geometry(0));
     CHECK(4096 == f.geometry(1));
     CHECK(4096 == f.geometry(2));
-    
+
     // now actually start the meat of the test
     // create a datasource from the vector tile
     protozero::pbf_reader layer_reader;

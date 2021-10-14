@@ -19,7 +19,7 @@ TEST_CASE("Vector tile layer class")
         params["type"] = "memory";
         auto ds = std::make_shared<mapnik::memory_datasource>(params);
 
-        mapnik::layer layer("layer", "+init=epsg:3857");
+        mapnik::layer layer("layer", "epsg:3857");
         layer.set_datasource(ds);
         mapnik::box2d<double> extent(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
         const mapnik::attributes empty_vars;
@@ -46,7 +46,7 @@ TEST_CASE("Vector tile layer class")
         params["type"] = "memory";
         auto ds = std::make_shared<mapnik::memory_datasource>(params);
 
-        mapnik::layer layer("layer", "+init=epsg:3857");
+        mapnik::layer layer("layer", "epsg:3857");
         layer.set_datasource(ds);
         mapnik::box2d<double> extent(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
         const mapnik::attributes vars { {"zoom_level", 20} };
