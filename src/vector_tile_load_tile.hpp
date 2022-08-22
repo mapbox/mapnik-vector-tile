@@ -12,7 +12,6 @@
 // mapnik
 #include <mapnik/map.hpp>
 #include <mapnik/layer.hpp>
-#include <mapnik/make_unique.hpp>
 
 //protozero
 #include <protozero/pbf_reader.hpp>
