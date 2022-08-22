@@ -64,7 +64,7 @@
 TEST_CASE("pbf vector tile input")
 {
     unsigned tile_size = 4096;
-    mapnik::Map map(256,256,"+init=epsg:3857");
+    mapnik::Map map(256,256,"epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(testing::build_ds(0,0));
     map.add_layer(lyr);
@@ -79,7 +79,7 @@ TEST_CASE("pbf vector tile input")
     CHECK(tile.SerializeToString(&buffer));
     CHECK(147 == buffer.size());
     // now create new objects
-    mapnik::Map map2(256,256,"+init=epsg:3857");
+    mapnik::Map map2(256,256,"epsg:3857");
     vector_tile::Tile tile2;
     CHECK(tile2.ParseFromString(buffer));
     CHECK(1 == tile2.layers_size());
@@ -141,7 +141,7 @@ TEST_CASE("pbf vector tile input")
 TEST_CASE("pbf vector tile datasource")
 {
     unsigned tile_size = 4096;
-    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::Map map(tile_size,tile_size,"epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(testing::build_ds(0,0));
     map.add_layer(lyr);
@@ -330,7 +330,7 @@ TEST_CASE("pbf decoding some truncated buffers")
 {
     unsigned tile_size = 4096;
     mapnik::box2d<double> bbox(-20037508.342789,-20037508.342789,20037508.342789,20037508.342789);
-    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::Map map(tile_size,tile_size,"epsg:3857");
     mapnik::layer lyr("layer",map.srs());
     lyr.set_datasource(testing::build_ds(0,0));
     map.add_layer(lyr);
@@ -386,8 +386,8 @@ TEST_CASE("pbf decoding some truncated buffers")
 TEST_CASE("pbf vector tile from simplified geojson")
 {
     unsigned tile_size = 256 * 100;
-    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
-    mapnik::layer lyr("layer","+init=epsg:4326");
+    mapnik::Map map(tile_size,tile_size,"epsg:3857");
+    mapnik::layer lyr("layer","epsg:4326");
     std::shared_ptr<mapnik::memory_datasource> ds = testing::build_geojson_ds("./test/data/poly.geojson");
     ds->set_envelope(mapnik::box2d<double>(160.147311,11.047284,160.662858,11.423830));
     lyr.set_datasource(ds);
@@ -430,8 +430,8 @@ TEST_CASE("pbf vector tile from simplified geojson")
           mapnik::vector_tile_impl::GeometryPBF geoms(geom_itr);
           auto geom = mapnik::vector_tile_impl::decode_geometry<double>(geoms, f.type(), 2, tile_x, tile_y, scale, -1.0 * scale);
           unsigned int n_err = 0;
-          mapnik::projection wgs84("+init=epsg:4326",true);
-          mapnik::projection merc("+init=epsg:3857",true);
+          mapnik::projection wgs84("epsg:4326",true);
+          mapnik::projection merc("epsg:3857",true);
           mapnik::proj_transform prj_trans(merc,wgs84);
           mapnik::geometry::geometry<double> projected_geom = mapnik::geometry::reproject_copy(geom,prj_trans,n_err);
           CHECK( n_err == 0 );
@@ -467,7 +467,7 @@ TEST_CASE("pbf raster tile output -- should be able to overzoom raster")
           << bbox.maxx() << ',' << bbox.maxy();
 
         // build map
-        mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+        mapnik::Map map(tile_size,tile_size,"epsg:3857");
         map.set_buffer_size(buffer_size);
         mapnik::layer lyr("layer",map.srs());
         mapnik::parameters params;
@@ -512,7 +512,7 @@ TEST_CASE("pbf raster tile output -- should be able to overzoom raster")
     // and zoomed in
     // 2/0/1.png
     mapnik::box2d<double> bbox = mapnik::vector_tile_impl::tile_mercator_bbox(0,1,2);
-    mapnik::Map map2(256,256,"+init=epsg:3857");
+    mapnik::Map map2(256,256,"epsg:3857");
     map2.set_buffer_size(1024);
     mapnik::layer lyr2("layer",map2.srs());
     std::shared_ptr<mapnik::vector_tile_impl::tile_datasource_pbf> ds2 = std::make_shared<
@@ -573,8 +573,8 @@ TEST_CASE("Check that we throw on various valid-but-we-don't-handle PBF encoded 
 TEST_CASE("pbf vector tile from linestring geojson")
 {
     unsigned tile_size = 4096;
-    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
-    mapnik::layer lyr("layer","+init=epsg:4326");
+    mapnik::Map map(tile_size,tile_size,"epsg:3857");
+    mapnik::layer lyr("layer","epsg:4326");
     auto ds = testing::build_geojson_fs_ds("./test/data/linestrings_and_point.geojson");
     lyr.set_datasource(ds);
     map.add_layer(lyr);

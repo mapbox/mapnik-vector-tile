@@ -36,9 +36,9 @@ TEST_CASE("raster tile output 1")
     unsigned _z = 1;
     unsigned tile_size = 512;
     int buffer_size = 256;
-    
+
     // setup map object
-    mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::Map map(tile_size,tile_size,"epsg:3857");
     map.set_buffer_size(buffer_size);
     mapnik::layer lyr("layer",map.srs());
     mapnik::parameters params;
@@ -55,12 +55,12 @@ TEST_CASE("raster tile output 1")
     mapnik::vector_tile_impl::processor ren(map);
     ren.set_image_format("jpeg");
     ren.set_scaling_method(mapnik::SCALING_BILINEAR);
-    
+
     // Request the tile
     mapnik::vector_tile_impl::merc_tile out_tile = ren.create_tile(_x, _y, _z, tile_size, buffer_size);
     vector_tile::Tile tile;
     tile.ParseFromString(out_tile.get_buffer());
-    
+
     // Test that tile is correct
     CHECK(1 == tile.layers_size());
     vector_tile::Tile_Layer const& layer = tile.layers(0);
@@ -108,14 +108,14 @@ TEST_CASE("raster tile output 1")
     }
     std::string buffer;
     CHECK(tile.SerializeToString(&buffer));
-    if (!debug) 
+    if (!debug)
     {
         CHECK(expected_vtile_size == buffer.size());
     }
     // now read back and render image
-    mapnik::Map map2(tile_size,tile_size,"+init=epsg:3857");
+    mapnik::Map map2(tile_size,tile_size,"epsg:3857");
     map2.set_buffer_size(buffer_size);
-    
+
     vector_tile::Tile tile2;
     CHECK(tile2.ParseFromString(buffer));
     CHECK(1 == tile2.layers_size());
@@ -169,9 +169,9 @@ TEST_CASE("raster tile output 2")
         s << std::fixed << std::setprecision(16)
           << bbox.minx() << ',' << bbox.miny() << ','
           << bbox.maxx() << ',' << bbox.maxy();
-        
+
         // build map
-        mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+        mapnik::Map map(tile_size,tile_size,"epsg:3857");
         map.set_buffer_size(buffer_size);
         mapnik::layer lyr("layer",map.srs());
         mapnik::parameters params;
@@ -181,12 +181,12 @@ TEST_CASE("raster tile output 2")
         std::shared_ptr<mapnik::datasource> ds = mapnik::datasource_cache::instance().create(params);
         lyr.set_datasource(ds);
         map.add_layer(lyr);
-        
+
         // build processor
         mapnik::vector_tile_impl::processor ren(map);
         ren.set_image_format("jpeg");
         ren.set_scaling_method(mapnik::SCALING_BILINEAR);
-        
+
         // Update the tile
         ren.update_tile(out_tile);
     }
@@ -203,7 +203,7 @@ TEST_CASE("raster tile output 2")
     CHECK(f.has_raster());
     std::string const& ras_buffer = f.raster();
     CHECK(!ras_buffer.empty());
-    
+
     // debug
     bool debug = false;
     if (debug)
@@ -246,7 +246,7 @@ TEST_CASE("raster tile output 2")
     // now read back and render image at larger size
     // and zoomed in
     mapnik::box2d<double> bbox = mapnik::vector_tile_impl::tile_mercator_bbox(0,1,2);
-    mapnik::Map map2(256,256,"+init=epsg:3857");
+    mapnik::Map map2(256,256,"epsg:3857");
     map2.set_buffer_size(1024);
     mapnik::layer lyr2("layer",map2.srs());
     protozero::pbf_reader layer_reader;
@@ -283,7 +283,7 @@ TEST_CASE("raster tile output 3 -- should be able to round trip image with alpha
 
     {
         // build map
-        mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+        mapnik::Map map(tile_size,tile_size,"epsg:3857");
         mapnik::layer lyr("layer",map.srs());
         mapnik::parameters params;
         params["type"] = "raster";
@@ -295,12 +295,12 @@ TEST_CASE("raster tile output 3 -- should be able to round trip image with alpha
         std::shared_ptr<mapnik::datasource> ds = mapnik::datasource_cache::instance().create(params);
         lyr.set_datasource(ds);
         map.add_layer(lyr);
-        
+
         // build processor
         mapnik::vector_tile_impl::processor ren(map);
         ren.set_image_format("png32");
         ren.set_scaling_method(mapnik::SCALING_NEAR);
-        
+
         // Update the tile
         ren.update_tile(out_tile);
     }
@@ -377,7 +377,7 @@ TEST_CASE("raster tile output 3 -- should be able to round trip image with alpha
 
         // okay, now we'll re-render another vector tile from original
         // which triggers the raster to be resampled
-        mapnik::Map map(tile_size,tile_size,"+init=epsg:3857");
+        mapnik::Map map(tile_size,tile_size,"epsg:3857");
         mapnik::layer lyr("layer",map.srs());
         ds->set_envelope(bbox);
         lyr.set_datasource(ds);
@@ -388,10 +388,10 @@ TEST_CASE("raster tile output 3 -- should be able to round trip image with alpha
         mapnik::vector_tile_impl::processor ren(map);
         ren.set_image_format("png32");
         //ren.set_scaling_method(mapnik::SCALING_NEAR);
-        
+
         // Update the tile
         mapnik::vector_tile_impl::tile new_tile = ren.create_tile(0, 0, 0, tile_size); //, buffer_size);
-        
+
         vector_tile::Tile round_tripped_tile;
         round_tripped_tile.ParseFromString(new_tile.get_buffer());
 

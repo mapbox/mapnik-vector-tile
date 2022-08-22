@@ -1,4 +1,4 @@
-GYP_REVISION=024e167
+#GYP_REVISION=6a5d2545
 
 SSE_MATH ?= true
 
@@ -15,7 +15,7 @@ pre_build_check:
 	mapnik-config -v
 
 ./deps/gyp:
-	git clone https://github.com/refack/GYP.git ./deps/gyp && cd ./deps/gyp && git checkout $(GYP_REVISION)
+	git clone https://github.com/chromium/gyp ./deps/gyp && cd ./deps/gyp
 
 build/Makefile: pre_build_check ./deps/gyp gyp/build.gyp test/*
 	python deps/gyp/gyp_main.py gyp/build.gyp -Denable_sse=$(SSE_MATH) --depth=. -DMAPNIK_PLUGINDIR=\"$(shell mapnik-config --input-plugins)\" -Goutput_dir=. --generator-output=./build -f make
@@ -66,5 +66,3 @@ distclean: clean
 	rm -rf ./mason_packages
 
 .PHONY: test build/Makefile
-
-
